@@ -5,7 +5,7 @@
 #include "game_object.h"
 #include "map.h"
 
-GameObject* cursor;
+Cursor* cursor;
 Map* map;
 
 SDL_Renderer* Game::renderer = nullptr;
@@ -33,7 +33,7 @@ void Game::init(const char* title, int xpos, int ypos, int width, int height, bo
             printf("Renderer made.\n");
 
             //Loading our player
-            cursor = new GameObject("assets/cursor.png", 0, 0);
+            cursor = new Cursor("assets/cursor.png", 0, 0);
             map = new Map();
 
             isRunning = true;

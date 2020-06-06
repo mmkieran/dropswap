@@ -16,7 +16,7 @@ int main(int argc, char* args[])
 {
    game = new Game;
 
-   game->init("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 640, false);
+   game->init("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, false);
 
    while (game->running()) {
       frameStart = SDL_GetTicks();
@@ -25,10 +25,10 @@ int main(int argc, char* args[])
       game->update();
       game->render();
 
-      frameTime = SDL_GetTicks() - frameStart;
-      if (frameDelay > frameTime) {
-         SDL_Delay(frameDelay - frameTime);
-      }
+      //frameTime = SDL_GetTicks() - frameStart;
+      //if (frameDelay > frameTime) {
+      //   SDL_Delay(frameDelay - frameTime);
+      //}
    }
 
    game->clean();
