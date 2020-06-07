@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include "texture_manager.h"
 #include "game_object.h"
-#include "map.h"
+#include "board.h"
 
 Cursor* cursor;
-Map* map;
+Board* board;
 
 SDL_Renderer* Game::renderer = nullptr;
 
+int BOARD_HEIGHT = 12;
+int BOARD_WIDTH = 6;
 
 Game::Game() {}
 Game::~Game() {}
@@ -34,7 +36,8 @@ void Game::init(const char* title, int xpos, int ypos, int width, int height, bo
 
             //Loading our player
             cursor = new Cursor("assets/cursor.png", 0, 0);
-            map = new Map();
+            board = boardCreate(BOARD_HEIGHT, BOARD_WIDTH);
+            boardFillTiles(board);
 
             isRunning = true;
             return;
@@ -67,7 +70,7 @@ void Game::handleEvents(){
 
       case SDLK_RIGHT:
          x = cursor->GetXPosition();
-         if (x >= 5 * 64) { break; }
+         if (x >= 4 * 64) { break; }
          else {
             cursor->SetXPosition(x + 64);
             break;
@@ -98,13 +101,13 @@ void Game::update(){
    Game::count += 1;
    //printf("%d I guess it's working...\n", Game::count);
    cursor->Update();
+   //boardUpdate(board);
 
 }
 void Game::render(){
    SDL_RenderClear(renderer);
    //Draw game objects
-
-   map->DrawMap();
+   boardRender(board);
    cursor->Render();
 
    //Finish drawing and present
@@ -113,6 +116,7 @@ void Game::render(){
 }
 
 void Game::clean(){
+   boardDestroy(board);
    SDL_DestroyWindow(window);
    SDL_DestroyRenderer(renderer);
    SDL_Quit();

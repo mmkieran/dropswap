@@ -170,15 +170,16 @@ copy $(SolutionDir)Depends\SDL2_image\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_object.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="map.cpp" />
     <ClCompile Include="texture_manager.cpp" />
     <ClCompile Include="tile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="board.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="game_object.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="texture_manager.h" />
+    <ClInclude Include="tile.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\enemy.png" />
