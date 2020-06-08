@@ -31,13 +31,13 @@ void tileLoadTexture(Tile* tile, const char* path) {
    }
 }
 
-void tileInit(Tile* tile, int row, int col) {
+void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight) {
    tile->type = (TileEnum)(rand() % 6 + 1);
-   tile->xpos = col * 64;
-   tile->ypos = row * 64;
+   tile->xpos = col * tileWidth;
+   tile->ypos = row * tileHeight;
    tileLoadTexture(tile, "assets/dirt.png");
 
-   tile->srcRect.h = 32;
+   tile->srcRect.h = 32; //This is the size of the pixel art
    tile->srcRect.w = 32;
 
    tile->srcRect.x = 0;
@@ -46,17 +46,17 @@ void tileInit(Tile* tile, int row, int col) {
    tile->destRect.x = tile->xpos;
    tile->destRect.y = tile->ypos;
 
-   tile->destRect.w = tile->srcRect.w * 2;
-   tile->destRect.h = tile->srcRect.h * 2;
+   tile->destRect.w = tileWidth;
+   tile->destRect.h = tileHeight;
 }
 
-void tileInitWithType(Tile* tile, int row, int col, TileEnum type) {
+void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeight, TileEnum type) {
    tile->type = type;
-   tile->xpos = col * 64;
-   tile->ypos = row * 64;
+   tile->xpos = col * tileWidth;
+   tile->ypos = row * tileHeight;
    tileLoadTexture(tile, "assets/dirt.png");
 
-   tile->srcRect.h = 32;
+   tile->srcRect.h = 32; //This is the size of the pixel art
    tile->srcRect.w = 32;
 
    tile->srcRect.x = 0;
@@ -65,8 +65,8 @@ void tileInitWithType(Tile* tile, int row, int col, TileEnum type) {
    tile->destRect.x = tile->xpos;
    tile->destRect.y = tile->ypos;
 
-   tile->destRect.w = tile->srcRect.w * 2;
-   tile->destRect.h = tile->srcRect.h * 2;
+   tile->destRect.w = tileWidth;
+   tile->destRect.h = tileHeight;
 }
 
 void tileSetXPosition(Tile* tile, int x) { tile->xpos = x; }

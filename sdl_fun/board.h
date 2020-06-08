@@ -3,7 +3,7 @@
 
 typedef struct Board Board;
 
-Board* boardCreate(int height, int width);
+Board* boardCreate(int height, int width, int tileHeight, int tileWidth);
 void boardDestroy(Board* board);
 
 Tile* boardGetTile(Board* board, int row, int col);

@@ -13,6 +13,9 @@ SDL_Renderer* Game::renderer = nullptr;
 int BOARD_HEIGHT = 12;
 int BOARD_WIDTH = 6;
 
+int TILE_WIDTH = 64;
+int TILE_HEIGHT = 64;
+
 Uint32 gameStart = SDL_GetTicks();
 
 Game::Game() {}
@@ -37,8 +40,8 @@ void Game::init(const char* title, int xpos, int ypos, int width, int height, bo
             printf("Renderer made.\n");
 
             //Loading our player
-            cursor = new Cursor("assets/cursor.png", 0, 0);
-            board = boardCreate(BOARD_HEIGHT, BOARD_WIDTH);
+            cursor = new Cursor("assets/cursor.png", 0, 0, TILE_HEIGHT, TILE_WIDTH);
+            board = boardCreate(BOARD_HEIGHT, BOARD_WIDTH, TILE_HEIGHT, TILE_WIDTH);
             boardFillTiles(board);
 
             isRunning = true;
@@ -66,15 +69,15 @@ void Game::handleEvents(){
          x = cursor->GetXPosition();
          if (x <= 0) { break; }
          else {
-            cursor->SetXPosition(x - 64);
+            cursor->SetXPosition(x - TILE_WIDTH);
             break;
          }
 
       case SDLK_RIGHT:
          x = cursor->GetXPosition();
-         if (x >= 4 * 64) { break; }
+         if (x >= 4 * TILE_WIDTH) { break; }
          else {
-            cursor->SetXPosition(x + 64);
+            cursor->SetXPosition(x + TILE_WIDTH);
             break;
          }
 
@@ -82,15 +85,15 @@ void Game::handleEvents(){
          y = cursor->GetYPosition();
          if (y <= 0) { break; }
          else {
-            cursor->SetYPosition(y - 64);
+            cursor->SetYPosition(y - TILE_HEIGHT);
             break;
          }
 
       case SDLK_DOWN:
          y = cursor->GetYPosition();
-         if (y >= 11 * 64) { break; }
+         if (y >= 11 * TILE_HEIGHT) { break; }
          else {
-            cursor->SetYPosition(y + 64);
+            cursor->SetYPosition(y + TILE_HEIGHT);
             break;
          }
 

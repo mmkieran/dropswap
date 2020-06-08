@@ -3,7 +3,7 @@
 
 class Cursor {
 public:
-   Cursor(const char* texturesheet, int x, int y);
+   Cursor(const char* texturesheet, int x, int y, int cursor_width, int cursor_height);
    ~Cursor();
 
    void SetXPosition(int x);
@@ -23,4 +23,7 @@ private:
 
    SDL_Rect srcRect;
    SDL_Rect destRect;
+
+   int height;
+   int width;
 };

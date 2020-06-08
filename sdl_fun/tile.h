@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SDL.h>
 #include "texture_manager.h"
 
@@ -26,8 +27,8 @@ struct Tile {
 };
 
 void tileLoadTexture(Tile* tile, const char* path);
-void tileInit(Tile* tile, int row, int col);
-void tileInitWithType(Tile* tile, int row, int col, TileEnum type);
+void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight);
+void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeight, TileEnum type);
 
 void tileSetXPosition(Tile* tile, int x);
 void tileSetYPosition(Tile* tile, int y);

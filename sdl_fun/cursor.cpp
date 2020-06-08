@@ -1,10 +1,13 @@
 #include "cursor.h"
 #include "texture_manager.h"
 
-Cursor::Cursor(const char* texturesheet, int x, int y) {
+Cursor::Cursor(const char* texturesheet, int x, int y, int cursor_width, int cursor_height) {
    objTexture = TextureManager::LoadTexture(texturesheet);
    xpos = x;
    ypos = y;
+
+   height = cursor_height;
+   width = cursor_height;
 }
 
 void Cursor::SetXPosition(int x) { xpos = x; }
@@ -24,8 +27,8 @@ void Cursor::Update() {
    destRect.x = xpos;
    destRect.y = ypos;
 
-   destRect.w = srcRect.w * 4;
-   destRect.h = srcRect.h * 2;
+   destRect.w = width * 2;
+   destRect.h = height;
 }
 
 void Cursor::Render() {

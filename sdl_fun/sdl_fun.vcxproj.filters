@@ -49,16 +49,25 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\enemy.png">
+    <Image Include="assets\circle.png">
       <Filter>assets</Filter>
     </Image>
-    <Image Include="assets\player.jpg">
+    <Image Include="assets\cursor.png">
       <Filter>assets</Filter>
     </Image>
-    <Image Include="assets\player1.png">
+    <Image Include="assets\diamond.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\dtriangle.png">
       <Filter>assets</Filter>
     </Image>
     <Image Include="assets\heart.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\star.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\utriangle.png">
       <Filter>assets</Filter>
     </Image>
   </ItemGroup>

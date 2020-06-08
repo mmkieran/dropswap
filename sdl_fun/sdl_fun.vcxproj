@@ -181,10 +181,13 @@ copy $(SolutionDir)Depends\SDL2_image\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClInclude Include="tile.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\enemy.png" />
+    <Image Include="assets\circle.png" />
+    <Image Include="assets\cursor.png" />
+    <Image Include="assets\diamond.png" />
+    <Image Include="assets\dtriangle.png" />
     <Image Include="assets\heart.png" />
-    <Image Include="assets\player.jpg" />
-    <Image Include="assets\player1.png" />
+    <Image Include="assets\star.png" />
+    <Image Include="assets\utriangle.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

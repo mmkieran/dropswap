@@ -7,6 +7,9 @@ struct Board {
    int h = 12;
    int w = 6;
 
+   int tileWidth;
+   int tileHeight;
+
    Tile* tiles;
 
    double speed;
@@ -26,7 +29,7 @@ Tile* _boardCreateArray(int height, int width) {
    return tiles;
 }
 
-Board* boardCreate(int height, int width) {
+Board* boardCreate(int height, int width, int tile_height, int tile_width) {
    Board* board = (Board*)malloc(sizeof(Board));
    if (board) {
       Tile* tiles = _boardCreateArray(height, width);
@@ -35,6 +38,8 @@ Board* boardCreate(int height, int width) {
          board->tiles = tiles;
          board->h = height;
          board->w = width;
+         board->tileHeight = tile_height;
+         board->tileWidth = tile_width;
          board->time = 0;
          board->speed = 1;
          board->bust = false;
@@ -82,15 +87,15 @@ int boardFillTiles(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < 5) { 
-            tileInitWithType(tile, row, col, tile_empty);
+            tileInitWithType(tile, row, col, board->tileWidth, board->tileHeight, tile_empty);
             continue; 
          }
          if (col == 2) { 
-            tileInit(tile, row, col);
+            tileInit(tile, row, col, board->tileWidth, board->tileHeight);
             continue; 
          }
 
-         tileInit(tile, row, col);
+         tileInit(tile, row, col, board->tileWidth, board->tileHeight);
 
       }
    }
@@ -132,13 +137,11 @@ void boardMoveUp(Board* board) {
             continue;
          }
          else {
-            //Set x and y position here? Or just change tile? If I change the tile, I need to update the textures...
-            //Probably just loop through board and render texture based on tile type
             Tile* above = boardGetTile(board, row - 1, col);
             above->type = tile->type;
             above->texture = tile->texture;
             if (row == board->h - 1) {
-               tileInit(tile, row, col);
+               tileInit(tile, row, col, board->tileWidth, board->tileHeight);
 
                //create new tiles here
             }
@@ -148,21 +151,22 @@ void boardMoveUp(Board* board) {
    }
 }
 
-int posYToRow(int y) {
-   if (y % 64 != 0) {
-      int remain = y % 64;
-      return (y + (64 - remain)) / 64;
+
+int posYToRow(int y, int tile_height) {
+   if (y % tile_height != 0) {
+      int remain = y % tile_height;
+      return (y + (tile_height - remain)) / tile_height;
    }
-   return y / 64;
+   return y / tile_height;
 }
 
-int posXToCol(int x) {
-   return x / 64;
+int posXToCol(int x, int tile_width) {
+   return x / tile_width;
 }
 
 void boardSwap(Board* board, Cursor* cursor) {
-   int col = posXToCol(cursor->GetXPosition());
-   int row = posYToRow(cursor->GetYPosition());
+   int col = posXToCol(cursor->GetXPosition(), board->tileWidth);
+   int row = posYToRow(cursor->GetYPosition(), board->tileHeight);
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -179,10 +183,10 @@ void boardSwap(Board* board, Cursor* cursor) {
    return;
 }
 
-void boardCheckTiles() {
-   //triggers for matches
-   //swaps, board moving
-   //falling blocks
-
-   return;
-}
+//void boardCheckTiles() {
+//   //triggers for matches
+//   //swaps, board moving
+//   //falling blocks
+//
+//   return;
+//}
