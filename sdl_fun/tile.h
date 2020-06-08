@@ -3,14 +3,14 @@
 #include "texture_manager.h"
 
 enum TileEnum {
-   empty = 0,
-   circle,
-   diamond,
-   utriangle,
-   dtriangle,
-   star,
-   heart,
-   silver
+   tile_empty = 0,
+   tile_circle,
+   tile_diamond,
+   tile_utriangle,
+   tile_dtriangle,
+   tile_star,
+   tile_heart,
+   tile_silver
 };
 
 struct Tile {
@@ -26,6 +26,8 @@ struct Tile {
 };
 
 void tileLoadTexture(Tile* tile, const char* path);
+void tileInit(Tile* tile, int row, int col);
+void tileInitWithType(Tile* tile, int row, int col, TileEnum type);
 
 void tileSetXPosition(Tile* tile, int x);
 void tileSetYPosition(Tile* tile, int y);

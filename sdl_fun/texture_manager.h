@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game.h"
+#include <vector>
 
 class TextureManager {
 public:

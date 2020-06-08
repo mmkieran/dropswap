@@ -10,13 +10,13 @@
     <ClCompile Include="texture_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game_object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cursor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,16 +38,13 @@
     <ClInclude Include="texture_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game_object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="board.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cursor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

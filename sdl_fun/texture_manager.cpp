@@ -1,6 +1,11 @@
 #include "texture_manager.h"
 #include <stdio.h>
 #include <SDL_image.h>
+#include <map>
+
+//#include "tile.h"
+
+//std::map<TileEnum, SDL_Texture> textures;
 
 SDL_Texture* TextureManager::LoadTexture(const char* fileName) {
    SDL_Surface* tempSurface = IMG_Load(fileName);

@@ -12,3 +12,6 @@ int boardFillTiles(Board* board);
 
 void boardUpdate(Board* board);
 void boardRender(Board* board);
+void boardMoveUp(Board* board);
+
+void boardSwap(Board* board, Cursor* cursor);

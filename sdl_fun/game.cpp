@@ -2,7 +2,7 @@
 #include "game.h"
 #include <stdio.h>
 #include "texture_manager.h"
-#include "game_object.h"
+#include "cursor.h"
 #include "board.h"
 
 Cursor* cursor;
@@ -12,6 +12,8 @@ SDL_Renderer* Game::renderer = nullptr;
 
 int BOARD_HEIGHT = 12;
 int BOARD_WIDTH = 6;
+
+Uint32 gameStart = SDL_GetTicks();
 
 Game::Game() {}
 Game::~Game() {}
@@ -91,12 +93,25 @@ void Game::handleEvents(){
             cursor->SetYPosition(y + 64);
             break;
          }
-      }
 
+      case SDLK_SPACE:
+         boardSwap(board, cursor);
+      }
    }
 }
 
 void Game::update(){
+   Uint32 current = SDL_GetTicks();
+   double calc = (current % 10000);
+   static bool boardMoved = false;
+
+   if ( calc > 9990 && boardMoved == false) {
+      boardMoveUp(board);
+      boardMoved = true;
+   }
+   else if (calc > 1000 && calc < 9990 && boardMoved == true) {
+      boardMoved = false;
+   }
    //This is just some debug stuff
    Game::count += 1;
    //printf("%d I guess it's working...\n", Game::count);
