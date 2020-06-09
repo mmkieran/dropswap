@@ -99,6 +99,11 @@ void Game::handleEvents(){
 
       case SDLK_SPACE:
          boardSwap(board, cursor);
+         break;
+
+      case SDLK_r:
+         boardMoveUp(board);
+         break;
       }
    }
 }

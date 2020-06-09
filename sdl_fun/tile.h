@@ -11,7 +11,8 @@ enum TileEnum {
    tile_dtriangle,
    tile_star,
    tile_heart,
-   tile_silver
+   tile_silver,
+   tile_garbage
 };
 
 struct Tile {
@@ -24,6 +25,8 @@ struct Tile {
    SDL_Texture* texture;   //tile image
    SDL_Rect srcRect;          //What part of the texture are we using
    SDL_Rect destRect;         //Where are we going to render it
+
+   bool falling;
 };
 
 void tileLoadTexture(Tile* tile, const char* path);

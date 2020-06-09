@@ -1,5 +1,6 @@
 #pragma once
 #include "tile.h"
+#include "cursor.h"
 
 typedef struct Board Board;
 
@@ -15,3 +16,4 @@ void boardRender(Board* board);
 void boardMoveUp(Board* board);
 
 void boardSwap(Board* board, Cursor* cursor);
+void boardCheckClear(Board* board, std::vector <Tile*> tileList);

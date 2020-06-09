@@ -48,6 +48,8 @@ void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight) {
 
    tile->destRect.w = tileWidth;
    tile->destRect.h = tileHeight;
+
+   tile->falling = false;
 }
 
 void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeight, TileEnum type) {
