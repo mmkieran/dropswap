@@ -5,8 +5,6 @@
 #include "cursor.h"
 #include <vector>
 
-
-
 //The top of the board is (0, 0) for rendering and for indices
 struct Board {
    int h = 12;
@@ -66,12 +64,6 @@ Tile* boardGetTile(Board* board, int row, int col) {
    return tile;
 }
 
-//void boardSetTileType(Board* board, int row, int col, TileEnum type) {
-//   Tile* tile = boardGetTile(board, row, col);
-//   tile->type = type;
-//}
-
-
 int boardPrint(Board* board) {
    for (int row = 0; row < board->h; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -86,7 +78,6 @@ int boardPrint(Board* board) {
 
 
 int boardFillTiles(Board* board) {
-   //Need special logic to make sure blocks don't create chains at the start
    //Might just have pre-made boards
    for (int row = 0; row < board->h; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -104,7 +95,7 @@ int boardFillTiles(Board* board) {
 
       }
    }
-   //boardPrint(board);
+   //boardPrint(board);  //debug only
    return 0;
 }
 
@@ -163,7 +154,7 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
 
 //------------------
 
-void boardMoveUp(Board* board) {
+void boardMoveUp(Board* board, Cursor* cursor) {
    static bool top_warn = false;
    for (int row = 0; row < board->h; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -181,16 +172,24 @@ void boardMoveUp(Board* board) {
             above->type = tile->type;
             above->texture = tile->texture;
             if (row == board->h - 1) {
-               tileInit(tile, row, col, board->tileWidth, board->tileHeight);
-
-               //create new tiles here
+               tileInit(tile, row, col, board->tileWidth, board->tileHeight);    //create new tiles here
             }
          }
-
       }
    }
-   //Need to separate rows and columns here, I think
+   cursor->SetYPosition((cursor->GetYPosition() - board->tileHeight));
    boardCheckClear(board, boardGetRow(board, board->h -1));
+}
+
+void _swapTiles(Tile* tile1, Tile* tile2) {
+   TileEnum tmpEnum = tile2->type;
+   SDL_Texture* tmpTexture = tile2->texture;
+
+   tile2->type = tile1->type;
+   tile2->texture = tile1->texture;
+
+   tile1->type = tmpEnum;
+   tile1->texture = tmpTexture;
 }
 
 void boardSwap(Board* board, Cursor* cursor) {
@@ -202,17 +201,11 @@ void boardSwap(Board* board, Cursor* cursor) {
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
 
-   TileEnum tmpEnum = tile2->type;
-   SDL_Texture* tmpTexture = tile2->texture;
-
-   tile2->type = tile1->type;
-   tile2->texture = tile1->texture;
-
-   tile1->type = tmpEnum;
-   tile1->texture = tmpTexture;
+   _swapTiles(tile1, tile2);
 
    std::vector <Tile*> tiles = { tile1, tile2 };
    boardCheckClear(board, tiles);
+   //boardCheckFalling(board);
 
    return;
 }
@@ -232,7 +225,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
       Tile* match = nullptr;
 
       while (current <= cols.size() - 1) {
-
          // if we're matching, look for one more and add it
          // if not matching, check if tile is empty or different from next... set matching false
          // if we're not matching... look for group of three
@@ -288,13 +280,33 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
          }
          current = current + 1;
       }
-   }
 
-   if (matches.size() > 0) {
-      for (auto&& m : matches) {
-         m->type = tile_empty;
-         m->texture = nullptr;
+      if (matches.size() > 0) {
+         printf("Match size: %d\n", matches.size());
+         for (auto&& m : matches) {
+            m->type = tile_empty;
+            m->texture = nullptr;
+         }
+         matches.clear();
       }
    }
-   return;
+}
+
+void boardUpdateFalling(Board* board) {
+   for (int row = board->h - 2; row >= 0; row--) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type == tile_empty) {
+            continue;
+         }
+         Tile* below = boardGetTile(board, row + 1, col);
+         if (below->type == tile_empty || below->falling == true) {
+            tile->falling = true;
+            _swapTiles(tile, below);
+         }
+         else {
+            tile->falling = false;
+         }
+      }
+   }
 }

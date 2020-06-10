@@ -43,6 +43,9 @@ void Game::init(const char* title, int xpos, int ypos, int width, int height, bo
             cursor = new Cursor("assets/cursor.png", 0, 0, TILE_HEIGHT, TILE_WIDTH);
             board = boardCreate(BOARD_HEIGHT, BOARD_WIDTH, TILE_HEIGHT, TILE_WIDTH);
             boardFillTiles(board);
+            updateBoard = true;
+            updateFalling = true;
+            
 
             isRunning = true;
             return;
@@ -102,31 +105,44 @@ void Game::handleEvents(){
          break;
 
       case SDLK_r:
-         boardMoveUp(board);
+         boardMoveUp(board, cursor);
          break;
       }
    }
 }
 
 void Game::update(){
-   Uint32 current = SDL_GetTicks();
-   double calc = (current % 10000);
-   static bool boardMoved = false;
 
-   if ( calc > 9990 && boardMoved == false) {
-      boardMoveUp(board);
-      boardMoved = true;
+   // Check time interval
+   Uint32 current = SDL_GetTicks();
+   int boardInterval = (current % 10000);
+
+   //check if the board needs to be moved
+   if ( boardInterval > 9990 && updateBoard == true) {
+      boardMoveUp(board, cursor);
+      updateBoard = false;
    }
-   else if (calc > 1000 && calc < 9990 && boardMoved == true) {
-      boardMoved = false;
+   else if (boardInterval > 1000 && boardInterval < 9990 && updateBoard == false) {
+      updateBoard = true;
    }
-   //This is just some debug stuff
-   Game::count += 1;
-   //printf("%d I guess it's working...\n", Game::count);
+
+   //check if blocks need to fall
+   int fallTime = 100;
+   int fallInterval = (current % fallTime);
+
+   //check if the board needs to be moved
+   if (fallInterval > (fallTime * 0.9) && updateFalling == true) {
+      boardUpdateFalling(board);
+      updateFalling = false;
+   }
+   else if (fallInterval > (fallTime * 0.1) && fallInterval < (fallTime * 0.9) && updateFalling == false) {
+      updateFalling = true;
+   }
+
    cursor->Update();
-   //boardUpdate(board);
 
 }
+
 void Game::render(){
    SDL_RenderClear(renderer);
    //Draw game objects

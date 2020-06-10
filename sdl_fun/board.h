@@ -13,7 +13,10 @@ int boardFillTiles(Board* board);
 
 void boardUpdate(Board* board);
 void boardRender(Board* board);
-void boardMoveUp(Board* board);
+void boardMoveUp(Board* board, Cursor* cursor);
 
 void boardSwap(Board* board, Cursor* cursor);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList);
+
+void boardCheckFalling(Board* board);
+void boardUpdateFalling(Board* board);

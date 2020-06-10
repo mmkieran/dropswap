@@ -11,7 +11,10 @@ Cursor::Cursor(const char* texturesheet, int x, int y, int cursor_width, int cur
 }
 
 void Cursor::SetXPosition(int x) { xpos = x; }
-void Cursor::SetYPosition(int y) { ypos = y; }
+void Cursor::SetYPosition(int y) { 
+   if (y < 0) { ypos = 0; }
+   else {ypos = y; }
+}
 
 int Cursor::GetXPosition() { return xpos; }
 int Cursor::GetYPosition() { return ypos; }

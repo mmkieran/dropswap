@@ -16,13 +16,17 @@ public:
 
    void clean();
 
+   //void CheckTime(int timeInterval);
+
    static SDL_Renderer *renderer;
 
    bool running();
 
 private:
+
    bool isRunning;
    SDL_Window *window;
 
-   int count;
+   bool updateBoard;
+   bool updateFalling;
 };
