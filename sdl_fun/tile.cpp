@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "tile.h"
+#include "texture_manager.h"
 
 
 void tileLoadTexture(Tile* tile, const char* path) {

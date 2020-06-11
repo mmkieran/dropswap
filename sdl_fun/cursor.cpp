@@ -1,5 +1,6 @@
 #include "cursor.h"
 #include "texture_manager.h"
+#include "game.h"
 
 Cursor::Cursor(const char* texturesheet, int x, int y, int cursor_width, int cursor_height) {
    objTexture = TextureManager::LoadTexture(texturesheet);

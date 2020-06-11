@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL_image.h>
 #include <map>
+#include "game.h"
 
 //#include "tile.h"
 

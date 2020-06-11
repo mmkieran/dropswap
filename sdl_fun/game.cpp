@@ -1,28 +1,22 @@
 
 #include "game.h"
 #include <stdio.h>
+#include <thread>
+#include <chrono>
 #include "texture_manager.h"
-#include "cursor.h"
-#include "board.h"
 
-Cursor* cursor;
-Board* board;
 
+Cursor* cursor = nullptr;
+Board* board = nullptr;
 SDL_Renderer* Game::renderer = nullptr;
 
-int BOARD_HEIGHT = 12;
-int BOARD_WIDTH = 6;
-
-int TILE_WIDTH = 64;
-int TILE_HEIGHT = 64;
-
-Uint32 gameStart = SDL_GetTicks();
 
 Game::Game() {}
 Game::~Game() {}
 
 void Game::init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen){
    int flags = 0;
+   renderer = nullptr;
    if (fullscreen) {
       flags = SDL_WINDOW_FULLSCREEN;
    }
@@ -39,13 +33,23 @@ void Game::init(const char* title, int xpos, int ypos, int width, int height, bo
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             printf("Renderer made.\n");
 
-            //Loading our player
-            cursor = new Cursor("assets/cursor.png", 0, 0, TILE_HEIGHT, TILE_WIDTH);
-            board = boardCreate(BOARD_HEIGHT, BOARD_WIDTH, TILE_HEIGHT, TILE_WIDTH);
+            //Loading up our game elements
+            bHeight = 12;
+            bWidth = 6;
+
+            tWidth = 64;
+            tHeight = 64;
+
+            cursor = new Cursor("assets/cursor.png", 0, 0, tHeight, tWidth);
+
+            board = boardCreate(bHeight, bWidth, tHeight, tWidth);
             boardFillTiles(board);
             updateBoard = true;
             updateFalling = true;
-            
+            board->gracePeriod = false;
+            //todo: remove this later
+            std::thread test(startTimer, 3000);
+            test.detach();
 
             isRunning = true;
             return;
@@ -72,15 +76,15 @@ void Game::handleEvents(){
          x = cursor->GetXPosition();
          if (x <= 0) { break; }
          else {
-            cursor->SetXPosition(x - TILE_WIDTH);
+            cursor->SetXPosition(x - tWidth);
             break;
          }
 
       case SDLK_RIGHT:
          x = cursor->GetXPosition();
-         if (x >= 4 * TILE_WIDTH) { break; }
+         if (x >= 4 * tWidth) { break; }
          else {
-            cursor->SetXPosition(x + TILE_WIDTH);
+            cursor->SetXPosition(x + tWidth);
             break;
          }
 
@@ -88,15 +92,15 @@ void Game::handleEvents(){
          y = cursor->GetYPosition();
          if (y <= 0) { break; }
          else {
-            cursor->SetYPosition(y - TILE_HEIGHT);
+            cursor->SetYPosition(y - tHeight);
             break;
          }
 
       case SDLK_DOWN:
          y = cursor->GetYPosition();
-         if (y >= 11 * TILE_HEIGHT) { break; }
+         if (y >= 11 * tHeight) { break; }
          else {
-            cursor->SetYPosition(y + TILE_HEIGHT);
+            cursor->SetYPosition(y + tHeight);
             break;
          }
 
@@ -115,27 +119,28 @@ void Game::update(){
 
    // Check time interval
    Uint32 current = SDL_GetTicks();
-   int boardInterval = (current % 10000);
+   int boardTime = 10000;
+   int boardInterval = (current % boardTime);
 
    //check if the board needs to be moved
-   if ( boardInterval > 9990 && updateBoard == true) {
+   if ( boardInterval > (boardTime - 10) && updateBoard == true && board->gracePeriod == true) {
       boardMoveUp(board, cursor);
       updateBoard = false;
    }
-   else if (boardInterval > 1000 && boardInterval < 9990 && updateBoard == false) {
+   else if (boardInterval > (boardTime * 0.1) && boardInterval < (boardTime - 10) && updateBoard == false) {
       updateBoard = true;
    }
 
    //check if blocks need to fall
-   int fallTime = 100;
+   int fallTime = 200;
    int fallInterval = (current % fallTime);
 
    //check if the board needs to be moved
-   if (fallInterval > (fallTime * 0.9) && updateFalling == true) {
+   if (fallInterval > (fallTime - 10) && updateFalling == true) {
       boardUpdateFalling(board);
       updateFalling = false;
    }
-   else if (fallInterval > (fallTime * 0.1) && fallInterval < (fallTime * 0.9) && updateFalling == false) {
+   else if (fallInterval > (fallTime * 0.1) && fallInterval < (fallTime - 10) && updateFalling == false) {
       updateFalling = true;
    }
 
@@ -165,4 +170,9 @@ void Game::clean(){
 
 bool Game::running() {
    return isRunning;
+}
+
+void startTimer(int time) {
+   std::this_thread::sleep_for(std::chrono::milliseconds(time));
+   printf("Woke up after: %d", time);
 }

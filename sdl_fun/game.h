@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include "board.h"
 
 class Game {
 public:
@@ -19,10 +20,16 @@ public:
    //void CheckTime(int timeInterval);
 
    static SDL_Renderer *renderer;
+   Cursor* cursor;
+   Board* board;
 
    bool running();
 
-private:
+   int bHeight;
+   int bWidth;
+
+   int tWidth;
+   int tHeight;
 
    bool isRunning;
    SDL_Window *window;
@@ -30,3 +37,5 @@ private:
    bool updateBoard;
    bool updateFalling;
 };
+
+void startTimer(int time);

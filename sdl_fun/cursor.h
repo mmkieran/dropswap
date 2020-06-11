@@ -1,5 +1,5 @@
 #pragma once
-#include "game.h"
+#include <SDL.h>
 
 class Cursor {
 public:
@@ -15,7 +15,6 @@ public:
    void Update();
    void Render();
 
-private:
    int xpos;
    int ypos;
 

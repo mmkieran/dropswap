@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include "texture_manager.h"
 
 enum TileEnum {
    tile_empty = 0,
@@ -12,7 +11,8 @@ enum TileEnum {
    tile_star,
    tile_heart,
    tile_silver,
-   tile_garbage
+   tile_garbage,
+   tile_cleared
 };
 
 struct Tile {
