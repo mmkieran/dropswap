@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include "board.h"
 
 enum TileEnum {
    tile_empty = 0,
@@ -29,9 +30,9 @@ struct Tile {
    bool falling;
 };
 
-void tileLoadTexture(Tile* tile, const char* path);
-void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight);
-void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeight, TileEnum type);
+void tileLoadTexture(Board* board, Tile* tile);
+void tileInit(Board* board, Tile* tile, int row, int col);
+void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type);
 
 void tileSetXPosition(Tile* tile, int x);
 void tileSetYPosition(Tile* tile, int y);

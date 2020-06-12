@@ -39,7 +39,7 @@ int main()
     Tile* tile2 = (tiles + 11);
 
     while (tile1 + 5 < tile2) {
-       printf("%d\n", tile1);
+       //printf("%d\n", tile1);
        tile1 += 1;
     }
 

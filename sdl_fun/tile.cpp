@@ -3,40 +3,88 @@
 #include "texture_manager.h"
 
 
-void tileLoadTexture(Tile* tile, const char* path) {
+void tileLoadTexture(Board* board, Tile* tile) {
    //hard code this for now
    switch (tile->type) {
    case tile_empty:
       break;
    case tile_circle:
-      tile->texture = TextureManager::LoadTexture("assets/circle.png");
+      tile->texture = board->game->textures[0];
       break;
    case tile_diamond:
-      tile->texture = TextureManager::LoadTexture("assets/diamond.png");
+      tile->texture = board->game->textures[1];
       break;
    case tile_utriangle:
-      tile->texture = TextureManager::LoadTexture("assets/utriangle.png");
+      tile->texture = board->game->textures[2];
       break;
    case tile_dtriangle:
-      tile->texture = TextureManager::LoadTexture("assets/dtriangle.png");
+      tile->texture = board->game->textures[3];
       break;
    case tile_star:
-      tile->texture = TextureManager::LoadTexture("assets/star.png");
+      tile->texture = board->game->textures[4];
       break;
    case tile_heart:
-      tile->texture = TextureManager::LoadTexture("assets/heart.png");
+      tile->texture = board->game->textures[5];
       break;
    case tile_silver:
-      tile->texture = TextureManager::LoadTexture("assets/grass.png");
+      tile->texture = board->game->textures[6];
       break;
+
+   //case tile_empty:
+   //   break;
+   //case tile_circle:
+   //   tile->texture = board->game->textures["circle"];
+   //   break;
+   //case tile_diamond:
+   //   tile->texture = board->game->textures["diamond"];
+   //   break;
+   //case tile_utriangle:
+   //   tile->texture = board->game->textures["utriangle"];
+   //   break;
+   //case tile_dtriangle:
+   //   tile->texture = board->game->textures["dtriangle"];
+   //   break;
+   //case tile_star:
+   //   tile->texture = board->game->textures["star"];
+   //   break;
+   //case tile_heart:
+   //   tile->texture = board->game->textures["heart"];
+   //   break;
+   //case tile_silver:
+   //   tile->texture = board->game->textures["silver"];
+   //   break;
+
+   //case tile_empty:
+   //   break;
+   //case tile_circle:
+   //   tile->texture = board->game->textures[tile_circle];
+   //   break;
+   //case tile_diamond:
+   //   tile->texture = board->game->textures[tile_diamond];
+   //   break;
+   //case tile_utriangle:
+   //   tile->texture = board->game->textures[tile_utriangle];
+   //   break;
+   //case tile_dtriangle:
+   //   tile->texture = board->game->textures[tile_dtriangle];
+   //   break;
+   //case tile_star:
+   //   tile->texture = board->game->textures[tile_star];
+   //   break;
+   //case tile_heart:
+   //   tile->texture = board->game->textures[tile_heart];
+   //   break;
+   //case tile_silver:
+   //   tile->texture = board->game->textures[tile_silver];
+   //   break;
    }
 }
 
-void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight) {
+void tileInit(Board* board, Tile* tile, int row, int col) {
    tile->type = (TileEnum)(rand() % 6 + 1);
-   tile->xpos = col * tileWidth;
-   tile->ypos = row * tileHeight;
-   tileLoadTexture(tile, "assets/dirt.png");
+   tile->xpos = col * board->tileWidth;
+   tile->ypos = row * board->tileHeight;
+   tileLoadTexture(board, tile);
 
    tile->srcRect.h = 32; //This is the size of the pixel art
    tile->srcRect.w = 32;
@@ -47,17 +95,17 @@ void tileInit(Tile* tile, int row, int col, int tileWidth, int tileHeight) {
    tile->destRect.x = tile->xpos;
    tile->destRect.y = tile->ypos;
 
-   tile->destRect.w = tileWidth;
-   tile->destRect.h = tileHeight;
+   tile->destRect.w = board->tileWidth;
+   tile->destRect.h = board->tileHeight;
 
    tile->falling = false;
 }
 
-void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeight, TileEnum type) {
+void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type) {
    tile->type = type;
-   tile->xpos = col * tileWidth;
-   tile->ypos = row * tileHeight;
-   tileLoadTexture(tile, "assets/dirt.png");
+   tile->xpos = col * board->tileWidth;
+   tile->ypos = row * board->tileHeight;
+   tileLoadTexture(board, tile);
 
    tile->srcRect.h = 32; //This is the size of the pixel art
    tile->srcRect.w = 32;
@@ -68,8 +116,8 @@ void tileInitWithType(Tile* tile, int row, int col, int tileWidth, int tileHeigh
    tile->destRect.x = tile->xpos;
    tile->destRect.y = tile->ypos;
 
-   tile->destRect.w = tileWidth;
-   tile->destRect.h = tileHeight;
+   tile->destRect.w = board->tileWidth;
+   tile->destRect.h = board->tileHeight;
 }
 
 void tileSetXPosition(Tile* tile, int x) { tile->xpos = x; }

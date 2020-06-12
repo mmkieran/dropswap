@@ -1,29 +1,20 @@
 #pragma once
 
 #include <SDL.h>
-#include "board.h"
+#include <random>
+#include <atomic>
+#include <unordered_map>
 
-class Game {
-public:
-   Game();
-   ~Game();
+struct Board;
+enum TileEnum;
 
-   void init(const char* title, int x, int y, int width, int height, bool fullscreen);
+struct Game {
 
-   void handleEvents();
-
-   void update();
-   void render();
-
-   void clean();
-
-   //void CheckTime(int timeInterval);
-
-   static SDL_Renderer *renderer;
-   Cursor* cursor;
+   SDL_Renderer *renderer;
    Board* board;
 
-   bool running();
+   //std::unordered_map<const char*, SDL_Texture*> textures;
+   std::vector <SDL_Texture*> textures;
 
    int bHeight;
    int bWidth;
@@ -33,9 +24,18 @@ public:
 
    bool isRunning;
    SDL_Window *window;
-
-   bool updateBoard;
-   bool updateFalling;
 };
 
-void startTimer(int time);
+//void startTimer(int time);
+
+Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
+bool gameRunning(Game* game);
+
+void gameLoadTextures(Game* game);
+
+void gameHandleEvents(Game* game);
+
+void gameUpdate(Game* game);
+void gameRender(Game* game);
+
+void gameDestroy(Game* game);

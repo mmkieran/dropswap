@@ -1,23 +1,29 @@
 #pragma once
-#include "tile.h"
-#include "cursor.h"
-#include <random>
 
+#include "game.h"
+
+struct Tile;
+class Cursor;
 
 //The top left of the board is (0, 0) for rendering and for array indices
 struct Board {
    int h = 12;
    int w = 6;
 
+   bool updateBoard;
+   bool updateFalling;
+
    int tileWidth;
    int tileHeight;
 
    Tile* tiles;
+   Cursor* cursor;
+   Game* game;
 
    double speed;
    int time;
 
-   bool gracePeriod;
+   std::atomic_int gracePeriod;
 
    double score;
    bool bust;
@@ -27,15 +33,15 @@ struct Board {
 
 };
 
-Board* boardCreate(int height, int width, int tileHeight, int tileWidth);
+Board* boardCreate(Game* game);
 void boardDestroy(Board* board);
-
-Tile* boardGetTile(Board* board, int row, int col);
 
 int boardFillTiles(Board* board);
 
+Tile* boardGetTile(Board* board, int row, int col);
+
 void boardUpdate(Board* board);
-void boardRender(Board* board);
+void boardRender(Game* game, Board* board);
 void boardMoveUp(Board* board, Cursor* cursor);
 
 void boardSwap(Board* board, Cursor* cursor);

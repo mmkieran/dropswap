@@ -1,15 +1,16 @@
 #include "cursor.h"
 #include "texture_manager.h"
-#include "game.h"
 
-Cursor::Cursor(const char* texturesheet, int x, int y, int cursor_width, int cursor_height) {
-   objTexture = TextureManager::LoadTexture(texturesheet);
+Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {
+   objTexture = TextureManager::LoadTexture(game, texturesheet);
    xpos = x;
    ypos = y;
 
-   height = cursor_height;
-   width = cursor_height;
+   height = game->tHeight;
+   width = game->tWidth;
 }
+
+Cursor::~Cursor() {}
 
 void Cursor::SetXPosition(int x) { xpos = x; }
 void Cursor::SetYPosition(int y) { 
@@ -35,7 +36,7 @@ void Cursor::Update() {
    destRect.h = height;
 }
 
-void Cursor::Render() {
-   SDL_RenderCopy(Game::renderer, objTexture, &srcRect, &destRect);
+void Cursor::Render(Game* game) {
+   SDL_RenderCopy(game->renderer, objTexture, &srcRect, &destRect);
 }
 

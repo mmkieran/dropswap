@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+
 #include "game.h"
 
 Game *game = nullptr;
@@ -13,16 +14,14 @@ int frameTime;
 
 int main(int argc, char* args[])
 {
-   game = new Game;
+   game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, false);
 
-   game->init("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, false);
-
-   while (game->running()) {
+   while (gameRunning(game)) {
       //frameStart = SDL_GetTicks();
 
-      game->handleEvents();
-      game->update();
-      game->render();
+      gameHandleEvents(game);
+      gameUpdate(game);
+      gameRender(game);
 
       //frameTime = SDL_GetTicks() - frameStart;
       //if (frameDelay > frameTime) {
@@ -30,8 +29,6 @@ int main(int argc, char* args[])
       //}
    }
 
-   game->clean();
-
-   delete game;
+   gameDestroy(game);
    return 0;
 }

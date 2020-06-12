@@ -1,11 +1,12 @@
-
-
-#include "game.h"
 #include <vector>
 #include <time.h>
 #include <thread>
 #include <chrono>
+
+#include "board.h"
 #include "texture_manager.h"
+#include "tile.h"
+#include "cursor.h"
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList);
 
@@ -15,17 +16,17 @@ Tile* _boardCreateArray(int height, int width) {
    return tiles;
 }
 
-Board* boardCreate(int height, int width, int tile_height, int tile_width) {
+Board* boardCreate(Game* game) {
    Board* board = (Board*)malloc(sizeof(Board));
    if (board) {
-      Tile* tiles = _boardCreateArray(height, width);
+      Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
       if (tiles) {
 
          board->tiles = tiles;
-         board->h = height;
-         board->w = width;
-         board->tileHeight = tile_height;
-         board->tileWidth = tile_width;
+         board->h = game->bHeight;
+         board->w = game->bWidth;
+         board->tileHeight = game->tHeight;
+         board->tileWidth = game->tWidth;
          board->time = 0;
          board->speed = 1;
          board->bust = false;
@@ -63,23 +64,23 @@ int boardPrint(Board* board) {
    return 0;
 }
 
-
-
 int boardFillTiles(Board* board) {
    //todo: Might just have pre-made boards
+   std::vector <Tile*> checkTiles;
    for (int row = 0; row < board->h; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < 5) { 
-            tileInitWithType(tile, row, col, board->tileWidth, board->tileHeight, tile_empty);
+            tileInitWithType(board, tile, row, col, tile_empty);
             continue; 
          }
-         else {
-            tileInitWithType(tile, row, col, board->tileWidth, board->tileHeight, (TileEnum)board->distribution(board->generator));
+         else {  //todo: add a better algorithm here
+            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));
+            checkTiles.push_back(tile);
          }
       }
    }
-   //boardPrint(board);  //debug only
+   boardCheckClear(board, checkTiles); 
    return 0;
 }
 
@@ -94,11 +95,11 @@ void boardUpdate(Board* board) {
    }
 }
 
-void boardRender(Board* board) {
+void boardRender(Game* game, Board* board) {
    for (int row = 0; row < board->h; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         SDL_RenderCopy(Game::renderer, tile->texture, &tile->srcRect, &tile->destRect);
+         SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
       }
    }
 }
@@ -157,7 +158,7 @@ void boardMoveUp(Board* board, Cursor* cursor) {
             above->type = tile->type;
             above->texture = tile->texture;
             if (row == board->h - 1) {
-               tileInit(tile, row, col, board->tileWidth, board->tileHeight);    //create new tiles here
+               tileInit(board, tile, row, col);    //create new tiles here
             }
          }
       }
@@ -200,15 +201,24 @@ void boardSwap(Board* board, Cursor* cursor) {
 
 void boardClearTiles(Board* board, std::vector <Tile*> matches, int delay) {
    //todo: adjust this so it waits a shorter time for 3 clears
-   if (matches.size() > 3) {
-      board->gracePeriod = true;
-      std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-   }
+   int bonus = 0;
+   board->gracePeriod += delay / 1000;
+   SDL_Delay(delay);
+   //std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+   board->gracePeriod -= delay / 1000;
+
    for (auto&& m : matches) {
       m->type = tile_empty;
       m->texture = nullptr;
    }
-   board->gracePeriod = false;
+
+   if (matches.size() > 3) {
+      bonus = 2000;
+      board->gracePeriod += bonus / 1000;
+      SDL_Delay(bonus);
+      //std::this_thread::sleep_for(std::chrono::milliseconds(bonus));
+      board->gracePeriod -= bonus / 1000;
+   }
 }
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
@@ -230,7 +240,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
          // if not matching, check if tile is empty or different from next... set matching false
          // if we're not matching... look for group of three
 
-         if (match && match->type == cols[current]->type) {   //We found a match and now we're extending it
+         if (match && match->type == cols[current]->type && cols[current]->type != tile_cleared) {   //We found a match and now we're extending it
             matches.push_back(cols[current]);
          }
          else if (cols[current]->type == tile_empty || cols[current]->type == tile_cleared) {
@@ -261,7 +271,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
          // if not matching, check if tile is empty or different from next... set matching false
          // if we're not matching... look for group of three
 
-         if (match && match->type == rows[current]->type) {
+         if (match && match->type == rows[current]->type && cols[current]->type != tile_cleared) {
             matches.push_back(rows[current]);
          }
          else if (rows[current]->type == tile_empty || cols[current]->type == tile_cleared) {
@@ -281,11 +291,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
          }
          current = current + 1;
       }
-
-       for (auto&& m : matches) {
-          m->texture = TextureManager::LoadTexture("assets/water.png");
-          m->type = tile_cleared;
-       }
       //if (matches.size() > 0) {
       //   //printf("Match size: %d\n", matches.size());
       //   for (auto&& m : matches) {
@@ -294,8 +299,15 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
       //   }
       //   matches.clear();
       //}
-   std::thread t1 (boardClearTiles, board, matches, 2000);
-   t1.detach();
+   }
+
+   if (matches.size() > 0) {
+      for (auto&& m : matches) {
+         m->texture = TextureManager::LoadTexture(board->game, "assets/skull.png");
+         m->type = tile_cleared;
+      }
+      std::thread t1(boardClearTiles, board, matches, 1500);
+      t1.detach();
    }
 }
 
@@ -354,5 +366,7 @@ void boardUpdateFalling(Board* board) {
          }
       }
    }
-   boardCheckClear(board, tilesToCheck);
+   if (tilesToCheck.size() > 0) {
+      boardCheckClear(board, tilesToCheck);
+   }
 }

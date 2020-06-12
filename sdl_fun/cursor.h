@@ -1,9 +1,10 @@
 #pragma once
 #include <SDL.h>
+#include "game.h"
 
 class Cursor {
 public:
-   Cursor(const char* texturesheet, int x, int y, int cursor_width, int cursor_height);
+   Cursor(Game* game, const char* texturesheet, int x, int y);
    ~Cursor();
 
    void SetXPosition(int x);
@@ -13,7 +14,7 @@ public:
    int GetYPosition();
 
    void Update();
-   void Render();
+   void Render(Game* game);
 
    int xpos;
    int ypos;
