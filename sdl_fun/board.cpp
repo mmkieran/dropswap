@@ -158,7 +158,7 @@ void boardMoveUp(Board* board, Cursor* cursor) {
             above->type = tile->type;
             above->texture = tile->texture;
             if (row == board->h - 1) {
-               tileInit(board, tile, row, col);    //create new tiles here
+               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
             }
          }
       }

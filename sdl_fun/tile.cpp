@@ -33,30 +33,6 @@ void tileLoadTexture(Board* board, Tile* tile) {
    //case tile_empty:
    //   break;
    //case tile_circle:
-   //   tile->texture = board->game->textures["circle"];
-   //   break;
-   //case tile_diamond:
-   //   tile->texture = board->game->textures["diamond"];
-   //   break;
-   //case tile_utriangle:
-   //   tile->texture = board->game->textures["utriangle"];
-   //   break;
-   //case tile_dtriangle:
-   //   tile->texture = board->game->textures["dtriangle"];
-   //   break;
-   //case tile_star:
-   //   tile->texture = board->game->textures["star"];
-   //   break;
-   //case tile_heart:
-   //   tile->texture = board->game->textures["heart"];
-   //   break;
-   //case tile_silver:
-   //   tile->texture = board->game->textures["silver"];
-   //   break;
-
-   //case tile_empty:
-   //   break;
-   //case tile_circle:
    //   tile->texture = board->game->textures[tile_circle];
    //   break;
    //case tile_diamond:
@@ -80,26 +56,26 @@ void tileLoadTexture(Board* board, Tile* tile) {
    }
 }
 
-void tileInit(Board* board, Tile* tile, int row, int col) {
-   tile->type = (TileEnum)(rand() % 6 + 1);
-   tile->xpos = col * board->tileWidth;
-   tile->ypos = row * board->tileHeight;
-   tileLoadTexture(board, tile);
-
-   tile->srcRect.h = 32; //This is the size of the pixel art
-   tile->srcRect.w = 32;
-
-   tile->srcRect.x = 0;
-   tile->srcRect.y = 0;
-
-   tile->destRect.x = tile->xpos;
-   tile->destRect.y = tile->ypos;
-
-   tile->destRect.w = board->tileWidth;
-   tile->destRect.h = board->tileHeight;
-
-   tile->falling = false;
-}
+//void tileInit(Board* board, Tile* tile, int row, int col) {
+//   tile->type = (TileEnum)(rand() % 6 + 1);
+//   tile->xpos = col * board->tileWidth;
+//   tile->ypos = row * board->tileHeight;
+//   tileLoadTexture(board, tile);
+//
+//   tile->srcRect.h = 32; //This is the size of the pixel art
+//   tile->srcRect.w = 32;
+//
+//   tile->srcRect.x = 0;
+//   tile->srcRect.y = 0;
+//
+//   tile->destRect.x = tile->xpos;
+//   tile->destRect.y = tile->ypos;
+//
+//   tile->destRect.w = board->tileWidth;
+//   tile->destRect.h = board->tileHeight;
+//
+//   tile->falling = false;
+//}
 
 void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type) {
    tile->type = type;

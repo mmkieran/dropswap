@@ -17,16 +17,16 @@ int main(int argc, char* args[])
    game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, false);
 
    while (gameRunning(game)) {
-      //frameStart = SDL_GetTicks();
+      frameStart = SDL_GetTicks();
 
       gameHandleEvents(game);
       gameUpdate(game);
       gameRender(game);
 
-      //frameTime = SDL_GetTicks() - frameStart;
-      //if (frameDelay > frameTime) {
-      //   SDL_Delay(frameDelay - frameTime);
-      //}
+      frameTime = SDL_GetTicks() - frameStart;
+      if (frameDelay > frameTime) {
+         SDL_Delay(frameDelay - frameTime);
+      }
    }
 
    gameDestroy(game);

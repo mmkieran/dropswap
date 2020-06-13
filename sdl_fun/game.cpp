@@ -64,21 +64,13 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
 void gameLoadTextures(Game* game) {
 
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/circle.png"));
+   game->textures.push_back( TextureManager::LoadTexture(game, "assets/circle.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/diamond.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/utriangle.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/dtriangle.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/star.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/heart.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/grass.png"));
-
-   //game->textures["diamond"] = TextureManager::LoadTexture(game, "assets/diamond.png");
-   //game->textures["utriangle"] = TextureManager::LoadTexture(game, "assets/utriangle.png");
-   //game->textures["dtriangle"] = TextureManager::LoadTexture(game, "assets/dtriangle.png");
-   //game->textures["star"] = TextureManager::LoadTexture(game, "assets/star.png");
-   //game->textures["circle"] = TextureManager::LoadTexture(game, "assets/circle.png");
-   //game->textures["heart"] = TextureManager::LoadTexture(game, "assets/heart.png");
-   //game->textures["silver"] = TextureManager::LoadTexture(game, "assets/grass.png");
 
    //game->textures[tile_diamond] = TextureManager::LoadTexture(game, "assets/diamond.png");
    //game->textures[tile_utriangle] = TextureManager::LoadTexture(game, "assets/utriangle.png");
