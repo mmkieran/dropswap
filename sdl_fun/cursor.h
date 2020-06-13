@@ -13,7 +13,7 @@ public:
    int GetXPosition();
    int GetYPosition();
 
-   void Update();
+   void Update(Game* game);
    void Render(Game* game);
 
    int xpos;

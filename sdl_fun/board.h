@@ -10,9 +10,6 @@ struct Board {
    int h = 12;
    int w = 6;
 
-   bool updateBoard;
-   bool updateFalling;
-
    int tileWidth;
    int tileHeight;
 
@@ -20,8 +17,14 @@ struct Board {
    Cursor* cursor;
    Game* game;
 
-   double speed;
-   int time;
+   double speed = 1;
+
+   int moveTimer = 0;
+   int fallTimer = 0;
+   bool paused = false;
+   int pauseLength = 0;
+
+   int offset = 0;
 
    std::atomic_int gracePeriod;
 
@@ -42,10 +45,10 @@ Tile* boardGetTile(Board* board, int row, int col);
 
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
-void boardMoveUp(Board* board, Cursor* cursor);
+void boardMoveUp(Board* board);
 
 void boardSwap(Board* board, Cursor* cursor);
 
-//void boardCheckFalling(Board* board);
 void boardUpdateFalling(Board* board);
+void boardClearBlocks(Board* board);
 

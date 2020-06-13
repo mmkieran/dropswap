@@ -20,13 +20,22 @@ int main(int argc, char* args[])
       frameStart = SDL_GetTicks();
 
       gameHandleEvents(game);
-      gameUpdate(game);
-      gameRender(game);
+
+      if (!game->paused) {
+         gameUpdate(game);
+         gameRender(game);
+      }
+      else {
+         game->pauseLength += SDL_GetTicks() - frameStart;  //Use this to correct timeDelta after pause
+      }
 
       frameTime = SDL_GetTicks() - frameStart;
-      if (frameDelay > frameTime) {
+      if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          SDL_Delay(frameDelay - frameTime);
       }
+
+      game->timeDelta = SDL_GetTicks() - frameStart;
+      game->timer += game->timeDelta;
    }
 
    gameDestroy(game);

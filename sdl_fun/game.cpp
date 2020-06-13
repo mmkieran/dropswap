@@ -1,6 +1,5 @@
 
 #include <stdio.h>
-#include <thread>
 #include <chrono>
 
 #include "game.h"
@@ -31,22 +30,24 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
             SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
             printf("Renderer made.\n");
 
-            //Setting up the board
+            //Setting up the game settings
             game->bHeight = 12;
             game->bWidth = 6;
 
             game->tWidth = 64;
             game->tHeight = 64;
 
-            game->board = boardCreate(game); //todo: don't pass in height/width
-            game->board->cursor = new Cursor(game, "assets/cursor.png", 0, 0);
-            game->textures.empty();
+            game->timer = 0;
+
+            //setting up board
+            game->board = boardCreate(game); 
+            game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
             game->board->game = game;
             gameLoadTextures(game);
 
-            game->board->updateBoard = true; 
-            game->board->updateFalling = true;
             game->board->gracePeriod = 0;
+            game->board->paused = false;
+            game->board->pauseLength = 0;
 
             //todo: remove this later or fix algorithm so there are no matches at the start
             boardFillTiles(game->board);
@@ -104,7 +105,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_RIGHT:
          x = game->board->cursor->GetXPosition();
-         if (x >= 4 * game->tWidth) { break; }
+         if (x >= (game->bWidth -2) * game->tWidth) { break; }
          else {
             game->board->cursor->SetXPosition(x + game->tWidth);
             break;
@@ -112,7 +113,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_UP:
          y = game->board->cursor->GetYPosition();
-         if (y <= 0) { break; }
+         if (y - game->tHeight <= 0) { break; }
          else {
             game->board->cursor->SetYPosition(y - game->tHeight);
             break;
@@ -120,7 +121,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_DOWN:
          y = game->board->cursor->GetYPosition();
-         if (y >= 11 * game->tHeight) { break; }
+         if (y >= 11 * game->tHeight + game->board->offset) { break; }
          else {
             game->board->cursor->SetYPosition(y + game->tHeight);
             break;
@@ -132,7 +133,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_r:
          if (game->board->gracePeriod <= 0) {
-            boardMoveUp(game->board, game->board->cursor);
+            boardMoveUp(game->board);
             break;
          }
          break;
@@ -142,34 +143,40 @@ void gameHandleEvents(Game* game){
 
 void gameUpdate(Game* game){
 
-   // Check time interval
-   Uint32 current = SDL_GetTicks();
-   int boardTime = 5000;
-   int boardInterval = (current % boardTime);
+   if (game->board->pauseLength > 0) {
+      game->board->pauseLength -= game->timeDelta;
 
-   //check if the board needs to be moved
-   if ( boardInterval > (boardTime - 10) && game->board->updateBoard == true && game->board->gracePeriod <= 0) {
-      boardMoveUp(game->board, game->board->cursor);
-      game->board->updateBoard = false;
+      if (game->board->pauseLength < 0) {
+         game->board->paused = false;
+         game->board->pauseLength = 0;
+      }
    }
-   else if (boardInterval > (boardTime * 0.1) && boardInterval < (boardTime - 10) && game->board->updateBoard == false) {
-      game->board->updateBoard = true;
+   else {
+      game->board->paused = false;
    }
 
-   //check if blocks need to fall
-   int fallTime = 100;
-   int fallInterval = (current % fallTime);
+   //Update board
+   if (game->board->paused == false) {
+      
+      if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
+         boardMoveUp(game->board);
+         game->board->moveTimer = SDL_GetTicks();
+      }
+      else {
 
-   //check if the board needs to be moved
-   if (fallInterval > (fallTime - 10) && game->board->updateFalling == true) {
+      }
+   }
+
+   //Update falling blocks
+   if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
       boardUpdateFalling(game->board);
-      game->board->updateFalling = false;
-   }
-   else if (fallInterval > (fallTime * 0.1) && fallInterval < (fallTime - 10) && game->board->updateFalling == false) {
-      game->board->updateFalling = true;
+      game->board->fallTimer = SDL_GetTicks();
    }
 
-   game->board->cursor->Update();
+   boardClearBlocks(game->board);
+
+   game->board->cursor->Update(game);
+
 
 }
 
@@ -177,7 +184,6 @@ void gameRender(Game* game){
    SDL_RenderClear(game->renderer);
    //Draw game objects
    boardRender(game, game->board);
-   game->board->cursor->Render(game);
 
    //Finish drawing and present
    SDL_RenderPresent(game->renderer);
@@ -189,9 +195,9 @@ void gameDestroy(Game* game){
    boardDestroy(game->board);
    SDL_DestroyWindow(game->window);
    SDL_DestroyRenderer(game->renderer);
+   SDL_Quit();
    //free(game);
    delete game;
-   SDL_Quit();
 
    printf("Cleanup successful.\n");
 }
@@ -199,9 +205,3 @@ void gameDestroy(Game* game){
 bool gameRunning(Game* game) {
    return game->isRunning;
 }
-
-
-//void startTimer(int time) {
-//   std::this_thread::sleep_for(std::chrono::milliseconds(time));
-//   printf("Woke up after: %d\n", time);
-//}

@@ -16,14 +16,21 @@ struct Game {
    //std::unordered_map<const char*, SDL_Texture*> textures;
    std::vector <SDL_Texture*> textures;
 
-   int bHeight;
-   int bWidth;
+   int bHeight = 12;
+   int bWidth = 6;
 
-   int tWidth;
-   int tHeight;
+   int tWidth = 64;
+   int tHeight = 64;
 
-   bool isRunning;
+   bool isRunning = false;
    SDL_Window *window;
+
+   bool paused = false;
+   int pauseTimer = 0;
+   int pauseLength = 0;
+
+   int timer = 0;
+   int timeDelta = 0;
 };
 
 //void startTimer(int time);

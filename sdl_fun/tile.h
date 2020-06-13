@@ -28,11 +28,14 @@ struct Tile {
    SDL_Rect destRect;         //Where are we going to render it
 
    bool falling;
+   int clearTime;
+
 };
 
 void tileLoadTexture(Board* board, Tile* tile);
-void tileInit(Board* board, Tile* tile, int row, int col);
 void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type);
+
+void tileUpdate(Board* board, Tile* tile);
 
 void tileSetXPosition(Tile* tile, int x);
 void tileSetYPosition(Tile* tile, int y);

@@ -1,6 +1,5 @@
 #include <vector>
 #include <time.h>
-#include <thread>
 #include <chrono>
 
 #include "board.h"
@@ -10,7 +9,7 @@
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList);
 
-Tile* _boardCreateArray(int height, int width) {
+Tile* _boardCreateArray(int width, int height) {
    Tile* tiles = (Tile*)malloc(sizeof(Tile) * height * width);
    memset(tiles, 0, sizeof(Tile) * height * width);
    return tiles;
@@ -23,13 +22,17 @@ Board* boardCreate(Game* game) {
       if (tiles) {
 
          board->tiles = tiles;
-         board->h = game->bHeight;
+         board->h = game->bHeight;  //Todo add buffer row
          board->w = game->bWidth;
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
-         board->time = 0;
+         board->moveTimer = 0;
+         board->fallTimer = 0;
+         board->paused = false;
+         board->pauseLength = 0;
          board->speed = 1;
          board->bust = false;
+         board->offset = 0;
 
          std::default_random_engine gen(time(0));
          board->generator = gen;
@@ -102,6 +105,8 @@ void boardRender(Game* game, Board* board) {
          SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
       }
    }
+   //Does Cursor rendering belong here? It's part of the board
+   game->board->cursor->Render(game);
 }
 
 //-----Helpful functions----------
@@ -121,7 +126,6 @@ int posXToCol(Board* board, int x) {
 
 std::vector <Tile*> boardGetCol(Board* board, int col) {
    std::vector <Tile*> tiles;
-   //We want to go bottom to top (This will allow us to tag blocks above clears for falling)
    for (int i = 0; i < board->h; i++) {
       tiles.push_back(boardGetTile(board, i, col));
    }
@@ -139,33 +143,33 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
 
 //------------------
 
-void boardMoveUp(Board* board, Cursor* cursor) {
-   static bool top_warn = false;
-   for (int row = 0; row < board->h; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         //here we should collect a list of top blocks to clear
-         if (row == 0 ){
-            //todo: end game when board reaches the top
-            //if (tile->type != tile_empty && !top_warn) {
-            //printf("Harry! I've reached the top");
-            //top_warn = true;
-            //}
-            continue;
-         }
-         else {
-            Tile* above = boardGetTile(board, row - 1, col);
-            above->type = tile->type;
-            above->texture = tile->texture;
-            if (row == board->h - 1) {
-               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
-            }
-         }
-      }
-   }
-   cursor->SetYPosition((cursor->GetYPosition() - board->tileHeight));
-   boardCheckClear(board, boardGetRow(board, board->h -1));
-}
+//void boardMoveUp(Board* board, Cursor* cursor) {
+//   static bool top_warn = false;
+//   for (int row = 0; row < board->h; row++) {
+//      for (int col = 0; col < board->w; col++) {
+//         Tile* tile = boardGetTile(board, row, col);
+//         //here we should collect a list of top blocks to clear
+//         if (row == 0 ){
+//            //todo: end game when board reaches the top
+//            //if (tile->type != tile_empty && !top_warn) {
+//            //printf("Harry! I've reached the top");
+//            //top_warn = true;
+//            //}
+//            continue;
+//         }
+//         else {
+//            Tile* above = boardGetTile(board, row - 1, col);
+//            above->type = tile->type;
+//            above->texture = tile->texture;
+//            if (row == board->h - 1) {
+//               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+//            }
+//         }
+//      }
+//   }
+//   cursor->SetYPosition((cursor->GetYPosition() - board->tileHeight));
+//   boardCheckClear(board, boardGetRow(board, board->h -1));
+//}
 
 void _swapTiles(Tile* tile1, Tile* tile2) {
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }
@@ -197,28 +201,6 @@ void boardSwap(Board* board, Cursor* cursor) {
    //boardCheckFalling(board);
 
    return;
-}
-
-void boardClearTiles(Board* board, std::vector <Tile*> matches, int delay) {
-   //todo: adjust this so it waits a shorter time for 3 clears
-   int bonus = 0;
-   board->gracePeriod += delay / 1000;
-   SDL_Delay(delay);
-   //std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-   board->gracePeriod -= delay / 1000;
-
-   for (auto&& m : matches) {
-      m->type = tile_empty;
-      m->texture = nullptr;
-   }
-
-   if (matches.size() > 3) {
-      bonus = 2000;
-      board->gracePeriod += bonus / 1000;
-      SDL_Delay(bonus);
-      //std::this_thread::sleep_for(std::chrono::milliseconds(bonus));
-      board->gracePeriod -= bonus / 1000;
-   }
 }
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
@@ -291,47 +273,19 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
          }
          current = current + 1;
       }
-      //if (matches.size() > 0) {
-      //   //printf("Match size: %d\n", matches.size());
-      //   for (auto&& m : matches) {
-      //      m->type = tile_cleared;
-      //      m->texture = nullptr;
-      //   }
-      //   matches.clear();
-      //}
    }
 
    if (matches.size() > 0) {
+      int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
          m->texture = TextureManager::LoadTexture(board->game, "assets/skull.png");
          m->type = tile_cleared;
+         m->clearTime = clearTime;
+         board->paused = true;
+         board->pauseLength = 2000;
       }
-      std::thread t1(boardClearTiles, board, matches, 1500);
-      t1.detach();
    }
 }
-
-//std::vector <Tile*> boardCheckFalling(Board* board) {
-//   std::vector <Tile*> falling;
-//   for (int row = board->h - 2; row >= 0; row--) {
-//      for (int col = 0; col < board->w; col++) {
-//         Tile* tile = boardGetTile(board, row, col);
-//         if (tile->type == tile_empty) {
-//            continue;
-//         }
-//         Tile* below = boardGetTile(board, row + 1, col);
-//         if (below->type == tile_empty || below->falling == true) {
-//            tile->falling = true;
-//            falling.push_back(tile);
-//            //_swapTiles(tile, below);
-//         }
-//         else {
-//            tile->falling = false;
-//         }
-//      }
-//   }
-//   //boardCheckClear(board, doneFalling);
-//}
 
 void boardUpdateFalling(Board* board) {
    std::vector <Tile*> tilesToCheck;
@@ -369,4 +323,57 @@ void boardUpdateFalling(Board* board) {
    if (tilesToCheck.size() > 0) {
       boardCheckClear(board, tilesToCheck);
    }
+}
+
+void boardClearBlocks(Board* board) {
+   int pauseTime = 0;
+   int current = SDL_GetTicks();
+   for (int row = 0; row < board->h; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type == tile_cleared) {
+            if (tile->clearTime + 2000 <= current) {
+               tile->type = tile_empty;
+               tile->texture = nullptr;
+            }
+         }
+      }
+   }
+   return;
+}
+
+void boardMoveUp(Board* board) {
+   int nudge = 1;
+   board->offset -= nudge;
+   bool updateArray = false;
+
+   if (board->offset == -1 * board->tileHeight) {
+      board->offset = 0;
+      updateArray = true;
+   }
+   else { updateArray = false; }
+
+   for (int row = 0; row < board->h; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
+         if (updateArray) {
+            Tile* below = boardGetTile(board, row + 1, col);
+            tile->type = below->type;
+            tile->texture = below->texture;
+            tile->xpos = below->xpos;
+            tile->ypos = below->ypos;
+            tileUpdate(board, tile);
+            if (row == board->h - 1) {
+               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+            }
+         }
+         else {
+            tile->ypos -= nudge;
+            tileUpdate(board, tile);
+         }
+      }
+   }
+   
+   if (!updateArray){ board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge); }
 }

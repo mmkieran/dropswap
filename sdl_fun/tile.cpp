@@ -94,6 +94,24 @@ void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type)
 
    tile->destRect.w = board->tileWidth;
    tile->destRect.h = board->tileHeight;
+
+   tile->clearTime = 0;
+   tile->falling = false;
+}
+
+void tileUpdate(Board* board, Tile* tile) {
+
+   tile->srcRect.h = 32;
+   tile->srcRect.w = 32;
+
+   tile->srcRect.x = 0;
+   tile->srcRect.y = 0;
+
+   tile->destRect.x = tile->xpos;
+   tile->destRect.y = tile->ypos;
+
+   tile->destRect.w = board->tileWidth;
+   tile->destRect.h = board->tileHeight;
 }
 
 void tileSetXPosition(Tile* tile, int x) { tile->xpos = x; }

@@ -1,5 +1,6 @@
 #include "cursor.h"
 #include "texture_manager.h"
+#include "board.h"
 
 Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {
    objTexture = TextureManager::LoadTexture(game, texturesheet);
@@ -13,21 +14,22 @@ Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {
 Cursor::~Cursor() {}
 
 void Cursor::SetXPosition(int x) { xpos = x; }
-void Cursor::SetYPosition(int y) { 
-   if (y < 0) { ypos = 0; }
-   else {ypos = y; }
-}
+void Cursor::SetYPosition(int y) { ypos = y; }
 
 int Cursor::GetXPosition() { return xpos; }
 int Cursor::GetYPosition() { return ypos; }
 
-void Cursor::Update() {
+void Cursor::Update(Game* game) {
 
    srcRect.h = 32;
    srcRect.w = 32;
 
    srcRect.x = 0;
    srcRect.y = 0;
+
+   if (ypos < 0) {
+      ypos += game->tHeight;
+   }
 
    destRect.x = xpos;
    destRect.y = ypos;
