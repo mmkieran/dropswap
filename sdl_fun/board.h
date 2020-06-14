@@ -7,8 +7,11 @@ class Cursor;
 
 //The top left of the board is (0, 0) for rendering and for array indices
 struct Board {
-   int h = 12;
+   int startH = 12;
+   int endH;
    int w = 6;
+
+   int wBuffer;  //Create some extra board to store falling garbage and upcoming rows
 
    int tileWidth;
    int tileHeight;
@@ -45,7 +48,7 @@ Tile* boardGetTile(Board* board, int row, int col);
 
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
-void boardMoveUp(Board* board);
+void boardMoveUp(Board* board, int height);
 
 void boardSwap(Board* board, Cursor* cursor);
 

@@ -4,6 +4,7 @@
 #include "pch.h"
 #include <iostream>
 #include <stdlib.h>
+#include <unordered_map>
 
 enum TileEnum {
    tile_empty = 0,
@@ -25,6 +26,8 @@ struct Tile {
    int ypos;
 
    bool falling;
+
+   std::unordered_map <TileEnum, const char*> textures;
 };
 
 int main()
@@ -42,6 +45,14 @@ int main()
        //printf("%d\n", tile1);
        tile1 += 1;
     }
+
+    std::unordered_map <TileEnum, const char*> textures;
+    textures[tile_empty] = "empty";
+    printf("%s\n", textures[tile_empty] );
+
+    //tiles[0].textures = std::unordered_map <TileEnum, const char*>();
+    //tiles[0].textures[tile_heart] = "heart";
+    //printf("%s\n", textures[tile_heart]);
 
     //printf("%d\n", tile1);
     //printf("%d\n", tile2);

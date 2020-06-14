@@ -10,8 +10,8 @@
 void boardCheckClear(Board* board, std::vector <Tile*> tileList);
 
 Tile* _boardCreateArray(int width, int height) {
-   Tile* tiles = (Tile*)malloc(sizeof(Tile) * height * width);
-   memset(tiles, 0, sizeof(Tile) * height * width);
+   Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
+   //memset(tiles, 0, sizeof(Tile) * (height * 2 + 1) * width);
    return tiles;
 }
 
@@ -22,8 +22,14 @@ Board* boardCreate(Game* game) {
       if (tiles) {
 
          board->tiles = tiles;
-         board->h = game->bHeight;  //Todo add buffer row
+         //board->h = game->bHeight;  
+         //board->w = game->bWidth;
+
+         board->startH = game->bHeight;  //start playing area of the board
+         board->endH = game->bHeight * 2;  //end playing area of the board
+         board->wBuffer = board->endH + 1;  //Extra rows for garbage and upcoming rows
          board->w = game->bWidth;
+
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
          board->moveTimer = 0;
@@ -56,24 +62,13 @@ Tile* boardGetTile(Board* board, int row, int col) {
    return tile;
 }
 
-int boardPrint(Board* board) {
-   for (int row = 0; row < board->h; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         printf("xpos: %d, ypos: %d, type: %d\n", tile->xpos, tile->ypos, tile->type);
-      }
-   }
-
-   return 0;
-}
-
 int boardFillTiles(Board* board) {
    //todo: Might just have pre-made boards
    std::vector <Tile*> checkTiles;
-   for (int row = 0; row < board->h; row++) {
+   for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (row < 5) { 
+         if (row < board->startH + (board->endH - board->startH)/2 ) { 
             tileInitWithType(board, tile, row, col, tile_empty);
             continue; 
          }
@@ -88,7 +83,7 @@ int boardFillTiles(Board* board) {
 }
 
 void boardUpdate(Board* board) {
-   for (int row = 0; row < board->h; row++) {
+   for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
 
@@ -99,9 +94,10 @@ void boardUpdate(Board* board) {
 }
 
 void boardRender(Game* game, Board* board) {
-   for (int row = 0; row < board->h; row++) {
+   for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         if (tile->texture == nullptr) { continue; }
          SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
       }
    }
@@ -115,7 +111,7 @@ int posYToRow(Board* board, int y) {
    int tile_height = board->tileHeight;
    if (y % tile_height != 0) {
       int remain = y % tile_height;
-      return (y + (tile_height - remain)) / tile_height;
+      return (y + tile_height - remain) / tile_height + board->startH;
    }
    return y / tile_height;
 }
@@ -126,7 +122,7 @@ int posXToCol(Board* board, int x) {
 
 std::vector <Tile*> boardGetCol(Board* board, int col) {
    std::vector <Tile*> tiles;
-   for (int i = 0; i < board->h; i++) {
+   for (int i = board->startH -1; i < board->endH; i++) {
       tiles.push_back(boardGetTile(board, i, col));
    }
    return tiles;
@@ -143,37 +139,7 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
 
 //------------------
 
-//void boardMoveUp(Board* board, Cursor* cursor) {
-//   static bool top_warn = false;
-//   for (int row = 0; row < board->h; row++) {
-//      for (int col = 0; col < board->w; col++) {
-//         Tile* tile = boardGetTile(board, row, col);
-//         //here we should collect a list of top blocks to clear
-//         if (row == 0 ){
-//            //todo: end game when board reaches the top
-//            //if (tile->type != tile_empty && !top_warn) {
-//            //printf("Harry! I've reached the top");
-//            //top_warn = true;
-//            //}
-//            continue;
-//         }
-//         else {
-//            Tile* above = boardGetTile(board, row - 1, col);
-//            above->type = tile->type;
-//            above->texture = tile->texture;
-//            if (row == board->h - 1) {
-//               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
-//            }
-//         }
-//      }
-//   }
-//   cursor->SetYPosition((cursor->GetYPosition() - board->tileHeight));
-//   boardCheckClear(board, boardGetRow(board, board->h -1));
-//}
-
 void _swapTiles(Tile* tile1, Tile* tile2) {
-   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }
-   if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }
    TileEnum tmpEnum = tile2->type;
    SDL_Texture* tmpTexture = tile2->texture;
 
@@ -203,77 +169,48 @@ void boardSwap(Board* board, Cursor* cursor) {
    return;
 }
 
+void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
+   int current = 0;
+   Tile* match = nullptr;
+
+   while (current <= tiles.size() - 1) {
+      // if we're matching, look for one more and add it
+      // if not matching, check if tile is empty or different from next... set matching false
+      // if we're not matching... look for group of three
+
+      if (match && match->type == tiles[current]->type && tiles[current]->type != tile_cleared) {   //We found a match and now we're extending it
+         matches.push_back(tiles[current]);
+      }
+      else if (tiles[current]->type == tile_empty || tiles[current]->type == tile_cleared || tiles[current]->type == tile_garbage) {
+         match = nullptr;
+      }
+      else if (current + 2 <= tiles.size() - 1) {
+         match = nullptr;  //starting to look for a new match here
+         if (tiles[current]->type == tiles[(current + 1)]->type && tiles[current]->type == tiles[(current + 2)]->type) {
+            //add to match list and move counter ahead looking for more
+            matches.push_back(tiles[current]);
+            matches.push_back(tiles[current + 1]);
+            matches.push_back(tiles[current + 2]);
+
+            match = tiles[current];
+            current = current + 2;
+         }
+      }
+      current = current + 1;
+   }
+}
+
 void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
-   //triggers for matches
-   //swaps, board moving
-   //falling blocks
    std::vector <Tile*> matches;
 
    for (auto&& tile : tileList) {
       std::vector <Tile*> cols = boardGetCol(board, posXToCol(board, tile->xpos));
       std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, tile->ypos));
 
-      //check columns
-      int current = 0;
-      Tile* match = nullptr;
-
-      while (current <= cols.size() - 1) {
-         // if we're matching, look for one more and add it
-         // if not matching, check if tile is empty or different from next... set matching false
-         // if we're not matching... look for group of three
-
-         if (match && match->type == cols[current]->type && cols[current]->type != tile_cleared) {   //We found a match and now we're extending it
-            matches.push_back(cols[current]);
-         }
-         else if (cols[current]->type == tile_empty || cols[current]->type == tile_cleared) {
-            match = nullptr;
-         }
-         else if (current + 2 <= cols.size() - 1) {
-            match = nullptr;  //starting to look for a new match here
-            if (cols[current]->type == cols[(current + 1)]->type && cols[current]->type == cols[(current + 2)]->type) {
-               //add to match list and move counter ahead looking for more
-               matches.push_back(cols[current]);
-               matches.push_back(cols[current + 1]);
-               matches.push_back(cols[current + 2]);
-
-               match = cols[current];
-               current = current + 2;
-            }
-         }
-         current = current + 1;
-      }
-
-      //check rows
-      current = 0;
-      match = nullptr;
-
-       while (current <= rows.size() - 1) {
-
-         // if we're matching, look for one more and add it
-         // if not matching, check if tile is empty or different from next... set matching false
-         // if we're not matching... look for group of three
-
-         if (match && match->type == rows[current]->type && cols[current]->type != tile_cleared) {
-            matches.push_back(rows[current]);
-         }
-         else if (rows[current]->type == tile_empty || cols[current]->type == tile_cleared) {
-            match = nullptr;
-         }
-         else if (current + 2 <= rows.size() - 1) {
-            match = nullptr;
-            if (rows[current]->type == rows[(current + 1)]->type && rows[current]->type == rows[(current + 2)]->type) {
-               //add to match list and move pointers ahead looking for more
-               matches.push_back(rows[current]);
-               matches.push_back(rows[current + 1]);
-               matches.push_back(rows[current + 2]);
-
-               match = rows[current];
-               current = current + 2;
-            }
-         }
-         current = current + 1;
-      }
+      _checkClear(cols, matches);
+      _checkClear(rows, matches);
    }
+
 
    if (matches.size() > 0) {
       int clearTime = SDL_GetTicks();
@@ -289,18 +226,21 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList) {
 
 void boardUpdateFalling(Board* board) {
    std::vector <Tile*> tilesToCheck;
-   for (int row = board->h - 2; row >= 0; row--) {
+   for (int row = board->endH - 2; row >= 0; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty || tile->type == tile_cleared) {
             continue;
          }
+
+         //todo: add garbage falling logic here
+
          Tile* below = boardGetTile(board, row + 1, col);
          if (below->type == tile_empty || below->falling == true) {
             _swapTiles(tile, below);
 
             tile = below;  //now that they are swapped, check if it is still falling
-            if (row + 1 == board->h - 1) {  //hit the bottom
+            if (row + 1 == board->endH - 1) {  //hit the bottom
                tile->falling = false;
                tilesToCheck.push_back(tile);
             }
@@ -328,7 +268,7 @@ void boardUpdateFalling(Board* board) {
 void boardClearBlocks(Board* board) {
    int pauseTime = 0;
    int current = SDL_GetTicks();
-   for (int row = 0; row < board->h; row++) {
+   for (int row = board->startH -1; row < board->endH; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_cleared) {
@@ -342,18 +282,18 @@ void boardClearBlocks(Board* board) {
    return;
 }
 
-void boardMoveUp(Board* board) {
-   int nudge = 1;
+void boardMoveUp(Board* board, int height) {
+   int nudge = height;
    board->offset -= nudge;
    bool updateArray = false;
 
-   if (board->offset == -1 * board->tileHeight) {
-      board->offset = 0;
+   if (board->offset <= -1 * board->tileHeight) {
+      board->offset += board->tileHeight;
       updateArray = true;
    }
    else { updateArray = false; }
 
-   for (int row = 0; row < board->h; row++) {
+   for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
@@ -364,7 +304,7 @@ void boardMoveUp(Board* board) {
             tile->xpos = below->xpos;
             tile->ypos = below->ypos;
             tileUpdate(board, tile);
-            if (row == board->h - 1) {
+            if (row == board->endH) {
                tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
             }
          }

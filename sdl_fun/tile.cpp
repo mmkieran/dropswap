@@ -7,6 +7,7 @@ void tileLoadTexture(Board* board, Tile* tile) {
    //hard code this for now
    switch (tile->type) {
    case tile_empty:
+      tile->texture = nullptr;
       break;
    case tile_circle:
       tile->texture = board->game->textures[0];
@@ -80,7 +81,7 @@ void tileLoadTexture(Board* board, Tile* tile) {
 void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type) {
    tile->type = type;
    tile->xpos = col * board->tileWidth;
-   tile->ypos = row * board->tileHeight;
+   tile->ypos = (row - board->startH) * board->tileHeight;
    tileLoadTexture(board, tile);
 
    tile->srcRect.h = 32; //This is the size of the pixel art

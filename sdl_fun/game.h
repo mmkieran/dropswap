@@ -31,6 +31,8 @@ struct Game {
 
    int timer = 0;
    int timeDelta = 0;
+
+   SDL_Rect frame;
 };
 
 //void startTimer(int time);

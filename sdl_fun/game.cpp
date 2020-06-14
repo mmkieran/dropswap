@@ -34,8 +34,13 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
             game->bHeight = 12;
             game->bWidth = 6;
 
-            game->tWidth = 64;
+            game->frame.w = game->tWidth = 64;
             game->tHeight = 64;
+
+            game->frame.w = game->tWidth * game->bWidth;
+            game->frame.h = game->tHeight * game->bHeight;
+            game->frame.x = 0;
+            game->frame.y = 0;
 
             game->timer = 0;
 
@@ -132,8 +137,8 @@ void gameHandleEvents(Game* game){
          break;
 
       case SDLK_r:
-         if (game->board->gracePeriod <= 0) {
-            boardMoveUp(game->board);
+         if (!game->board->paused) {
+            boardMoveUp(game->board, game->tHeight + game->board->offset);
             break;
          }
          break;
@@ -159,7 +164,7 @@ void gameUpdate(Game* game){
    if (game->board->paused == false) {
       
       if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
-         boardMoveUp(game->board);
+         boardMoveUp(game->board, 1);
          game->board->moveTimer = SDL_GetTicks();
       }
       else {
@@ -181,9 +186,14 @@ void gameUpdate(Game* game){
 }
 
 void gameRender(Game* game){
+   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
    SDL_RenderClear(game->renderer);
    //Draw game objects
    boardRender(game, game->board);
+
+   //Rough frame for the game... use textures later
+   SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+   SDL_RenderDrawRect(game->renderer, &game->frame);
 
    //Finish drawing and present
    SDL_RenderPresent(game->renderer);
