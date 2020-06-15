@@ -138,7 +138,8 @@ void gameHandleEvents(Game* game){
 
       case SDLK_r:
          if (!game->board->paused) {
-            boardMoveUp(game->board, game->tHeight + game->board->offset);
+            //boardManualMove(game->board, game->tHeight + game->board->offset);
+            //boardMoveUp(game->board, 8);
             break;
          }
          break;
@@ -178,6 +179,7 @@ void gameUpdate(Game* game){
       game->board->fallTimer = SDL_GetTicks();
    }
 
+   //boardCheckClear(board, );
    boardClearBlocks(game->board);
 
    game->board->cursor->Update(game);

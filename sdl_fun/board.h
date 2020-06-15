@@ -49,9 +49,11 @@ Tile* boardGetTile(Board* board, int row, int col);
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
 void boardMoveUp(Board* board, int height);
+void boardManualMove(Board* board, int height);
 
 void boardSwap(Board* board, Cursor* cursor);
 
 void boardUpdateFalling(Board* board);
+void boardCheckClear(Board* board, std::vector <Tile*> tileList);
 void boardClearBlocks(Board* board);
 

@@ -7,6 +7,7 @@
 #include "tile.h"
 #include "cursor.h"
 
+void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList);
 
 Tile* _boardCreateArray(int width, int height) {
@@ -62,26 +63,6 @@ Tile* boardGetTile(Board* board, int row, int col) {
    return tile;
 }
 
-int boardFillTiles(Board* board) {
-   //todo: Might just have pre-made boards
-   std::vector <Tile*> checkTiles;
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         if (row < board->startH + (board->endH - board->startH)/2 ) { 
-            tileInitWithType(board, tile, row, col, tile_empty);
-            continue; 
-         }
-         else {  //todo: add a better algorithm here
-            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));
-            checkTiles.push_back(tile);
-         }
-      }
-   }
-   boardCheckClear(board, checkTiles); 
-   return 0;
-}
-
 void boardUpdate(Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -108,12 +89,7 @@ void boardRender(Game* game, Board* board) {
 //-----Helpful functions----------
 //todo: Maybe put these somewhere else later
 int posYToRow(Board* board, int y) {
-   int tile_height = board->tileHeight;
-   if (y % tile_height != 0) {
-      int remain = y % tile_height;
-      return (y + tile_height - remain) / tile_height + board->startH;
-   }
-   return y / tile_height;
+   return (y - board->offset) / board->tileHeight + board->startH;
 }
 
 int posXToCol(Board* board, int x) {
@@ -287,6 +263,8 @@ void boardMoveUp(Board* board, int height) {
    board->offset -= nudge;
    bool updateArray = false;
 
+   std::vector <Tile*> checkTiles;
+
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
       updateArray = true;
@@ -298,14 +276,20 @@ void boardMoveUp(Board* board, int height) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
          if (updateArray) {
-            Tile* below = boardGetTile(board, row + 1, col);
-            tile->type = below->type;
-            tile->texture = below->texture;
-            tile->xpos = below->xpos;
-            tile->ypos = below->ypos;
-            tileUpdate(board, tile);
             if (row == board->endH) {
                tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+               
+            }
+            else {
+               Tile* below = boardGetTile(board, row + 1, col);
+               tile->type = below->type;
+               tile->texture = below->texture;
+               tile->xpos = below->xpos;
+               tile->ypos = below->ypos;
+               tileUpdate(board, tile);
+               if (row == board->endH - 1) {
+                  checkTiles.push_back(tile);
+               }
             }
          }
          else {
@@ -316,4 +300,88 @@ void boardMoveUp(Board* board, int height) {
    }
    
    if (!updateArray){ board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge); }
+   boardCheckClear(board, checkTiles);
+}
+
+void boardManualMove(Board* board, int height) {
+   //move fixed amount
+   //if offset is greater than 1 tile...
+   //Swap all tiles up one
+   //Make new row at the bottom and adjust for offset
+
+   int nudge = height;
+   board->offset -= nudge;
+   bool updateArray = false;
+
+   std::vector <Tile*> checkTiles;
+
+   if (board->offset <= -1 * board->tileHeight) {
+      board->offset += board->tileHeight;
+      updateArray = true;
+   }
+   else { updateArray = false; }
+
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
+
+         if (row == board->endH) {
+
+            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+         }
+         else {
+            Tile* below = boardGetTile(board, row + 1, col);
+            tile->type = below->type;
+            tile->texture = below->texture;
+            tile->xpos = below->xpos;
+            tile->ypos = below->ypos;
+            tileUpdate(board, tile);
+         }
+         tile->ypos -= nudge;
+         tileUpdate(board, tile);
+      }
+   }
+   board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge);
+}
+
+int boardFillTiles(Board* board) {
+   //todo: Might just have pre-made boards
+   std::vector <Tile*> checkTiles;
+   std::vector <Tile*> matches;
+
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (row < board->startH + (board->endH - board->startH) / 2) {
+            tileInitWithType(board, tile, row, col, tile_empty);
+            continue;
+         }
+         else {  //todo: add a better algorithm here
+            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));
+            if (row != board->endH) {
+               checkTiles.push_back(tile);
+            }
+         }
+      }
+   }
+
+   for (auto&& ct : checkTiles) {
+      std::vector <Tile*> cols = boardGetCol(board, posXToCol(board, ct->xpos));
+      std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, ct->ypos));
+
+      _checkClear(cols, matches);
+      _checkClear(rows, matches);
+   }
+
+   if (matches.size() > 0) {
+      for (auto&& m : matches) {
+         m->texture = nullptr;
+         m->type = tile_empty;
+      }
+   }
+
+   boardUpdateFalling(board);
+   
+   return 0;
 }
