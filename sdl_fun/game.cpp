@@ -140,6 +140,7 @@ void gameHandleEvents(Game* game){
          if (!game->board->paused) {
             //boardManualMove(game->board, game->tHeight + game->board->offset);
             //boardMoveUp(game->board, 8);
+            boardMoveUp(game->board, 64);
             break;
          }
          break;
@@ -162,14 +163,16 @@ void gameUpdate(Game* game){
    }
 
    //Update board
-   if (game->board->paused == false) {
-      
-      if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
-         boardMoveUp(game->board, 1);
-         game->board->moveTimer = SDL_GetTicks();
-      }
-      else {
+   if (game->timer > 2000) {
+      if (game->board->paused == false) {
 
+         if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
+            boardMoveUp(game->board, 1);
+            game->board->moveTimer = SDL_GetTicks();
+         }
+         else {
+
+         }
       }
    }
 

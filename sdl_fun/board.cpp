@@ -259,33 +259,44 @@ void boardClearBlocks(Board* board) {
 }
 
 void boardMoveUp(Board* board, int height) {
+   //move fixed amount
+   //if offset is greater than 1 tile...
+   //Swap all tiles up one
+   //Make new row at the bottom and adjust for offset
+
    int nudge = height;
+   //int oldOffset = board->offset;
    board->offset -= nudge;
    bool updateArray = false;
 
-   std::vector <Tile*> checkTiles;
+   std::vector <Tile*> checkTiles;  //Check for clears after we nudge
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
       updateArray = true;
    }
-   else { updateArray = false; }
 
+   //std::vector <Tile*> test;  //debug
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         //test.push_back(tile);  //debug
          if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
+
          if (updateArray) {
-            if (row == board->endH) {
+
+            if (row == board->wBuffer - 1) {
                tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+               //tile->ypos += board->offset;
                
             }
             else {
+
                Tile* below = boardGetTile(board, row + 1, col);
                tile->type = below->type;
                tile->texture = below->texture;
                tile->xpos = below->xpos;
-               tile->ypos = below->ypos;
+               tile->ypos = below->ypos + board->offset;
                tileUpdate(board, tile);
                if (row == board->endH - 1) {
                   checkTiles.push_back(tile);
@@ -299,7 +310,7 @@ void boardMoveUp(Board* board, int height) {
       }
    }
    
-   if (!updateArray){ board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge); }
+   board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge); 
    boardCheckClear(board, checkTiles);
 }
 
@@ -310,38 +321,46 @@ void boardManualMove(Board* board, int height) {
    //Make new row at the bottom and adjust for offset
 
    int nudge = height;
+   int temp = board->offset;
    board->offset -= nudge;
    bool updateArray = false;
 
    std::vector <Tile*> checkTiles;
 
    if (board->offset <= -1 * board->tileHeight) {
-      board->offset += board->tileHeight;
       updateArray = true;
+      board->offset += board->tileHeight;
    }
-   else { updateArray = false; }
 
+   std::vector <Tile*> test;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
-
-         if (row == board->endH) {
-
-            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
-         }
-         else {
-            Tile* below = boardGetTile(board, row + 1, col);
-            tile->type = below->type;
-            tile->texture = below->texture;
-            tile->xpos = below->xpos;
-            tile->ypos = below->ypos;
-            tileUpdate(board, tile);
-         }
-         tile->ypos -= nudge;
+         tile->ypos -= nudge; //board->offset;
          tileUpdate(board, tile);
+         test.push_back(tile);
+
+         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
+         if (updateArray) {
+            if (row == board->endH) {  //buffer row
+               tile->type = (TileEnum)board->distribution(board->generator);   //create new tiles here
+               tileLoadTexture(board, tile);
+               //tile->ypos += temp;
+               tileUpdate(board, tile);
+               checkTiles.push_back(tile);
+            }
+            else {
+               Tile* below = boardGetTile(board, row + 1, col);
+               tile->type = below->type;
+               tile->texture = below->texture;
+               //tile->xpos = below->xpos;
+               //tile->ypos = below->ypos;
+               //tileUpdate(board, tile);
+            }
+         }
       }
    }
+
    board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge);
 }
 
