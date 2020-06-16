@@ -258,110 +258,78 @@ void boardClearBlocks(Board* board) {
    return;
 }
 
+//void boardUpdateArray(Board* board) {
+//
+//   for (int row = 0; row < board->wBuffer; row++) {
+//      for (int col = 0; col < board->w; col++) {
+//         Tile* tile = boardGetTile(board, row, col);
+//
+//         if (row == board->wBuffer - 1) {
+//            tile->type = (TileEnum)board->distribution(board->generator);   //create new tiles here
+//            tileLoadTexture(board, tile);
+//            tile->ypos += board->tileHeight;
+//            tileUpdate(board, tile);
+//
+//         }
+//         else {
+//
+//            Tile* below = boardGetTile(board, row + 1, col);
+//            tile->type = below->type;
+//            tile->texture = below->texture;
+//            tile->ypos = below->ypos;
+//         }
+//      }
+//   }
+//}
+
 void boardMoveUp(Board* board, int height) {
-   //move fixed amount
-   //if offset is greater than 1 tile...
-   //Swap all tiles up one
-   //Make new row at the bottom and adjust for offset
-
    int nudge = height;
-   //int oldOffset = board->offset;
-   board->offset -= nudge;
    bool updateArray = false;
-
-   std::vector <Tile*> checkTiles;  //Check for clears after we nudge
+   board->offset -= nudge;
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
       updateArray = true;
-   }
+   } 
 
-   //std::vector <Tile*> test;  //debug
-   for (int row = 0; row < board->wBuffer; row++) {
+   std::vector <Tile*> checkTiles;
+   for (int row = board->startH -1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         //test.push_back(tile);  //debug
-         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
+
+         if (tile->ypos <= 0 && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 
          if (updateArray) {
 
             if (row == board->wBuffer - 1) {
-               tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
-               //tile->ypos += board->offset;
-               
+               tile->type = (TileEnum)board->distribution(board->generator);   //create new tiles here
+               tileLoadTexture(board, tile);
+               tile->ypos = (row - board->startH) * board->tileHeight;  //push buffer layer one tile back down below frame
+
             }
             else {
 
                Tile* below = boardGetTile(board, row + 1, col);
                tile->type = below->type;
                tile->texture = below->texture;
-               tile->xpos = below->xpos;
-               tile->ypos = below->ypos + board->offset;
-               tileUpdate(board, tile);
-               if (row == board->endH - 1) {
-                  checkTiles.push_back(tile);
-               }
+               tile->ypos = (row - board->startH) * board->tileHeight;
             }
+
+            tile->ypos += board->offset;
+            if (row == board->endH - 1) { checkTiles.push_back(tile); }
          }
          else {
             tile->ypos -= nudge;
-            tileUpdate(board, tile);
          }
-      }
-   }
-   
-   board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge); 
-   boardCheckClear(board, checkTiles);
-}
-
-void boardManualMove(Board* board, int height) {
-   //move fixed amount
-   //if offset is greater than 1 tile...
-   //Swap all tiles up one
-   //Make new row at the bottom and adjust for offset
-
-   int nudge = height;
-   int temp = board->offset;
-   board->offset -= nudge;
-   bool updateArray = false;
-
-   std::vector <Tile*> checkTiles;
-
-   if (board->offset <= -1 * board->tileHeight) {
-      updateArray = true;
-      board->offset += board->tileHeight;
-   }
-
-   std::vector <Tile*> test;
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         tile->ypos -= nudge; //board->offset;
          tileUpdate(board, tile);
-         test.push_back(tile);
 
-         if (tile->ypos < 0) { board->bust = true; }  //todo fill in this logic later
-         if (updateArray) {
-            if (row == board->endH) {  //buffer row
-               tile->type = (TileEnum)board->distribution(board->generator);   //create new tiles here
-               tileLoadTexture(board, tile);
-               //tile->ypos += temp;
-               tileUpdate(board, tile);
-               checkTiles.push_back(tile);
-            }
-            else {
-               Tile* below = boardGetTile(board, row + 1, col);
-               tile->type = below->type;
-               tile->texture = below->texture;
-               //tile->xpos = below->xpos;
-               //tile->ypos = below->ypos;
-               //tileUpdate(board, tile);
-            }
-         }
       }
    }
 
    board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge);
+   //printf("%d : %d\n", board->cursor->GetYPosition(), boardGetTile(board, 19, 3)->ypos );
+
+   boardCheckClear(board, checkTiles);
 }
 
 int boardFillTiles(Board* board) {
