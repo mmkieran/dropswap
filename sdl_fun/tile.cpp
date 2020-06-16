@@ -82,7 +82,7 @@ void tileLoadTexture(Board* board, Tile* tile) {
 void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type) {
    tile->type = type;
    tile->xpos = col * board->tileWidth;
-   tile->ypos = (row - board->startH) * board->tileHeight + board->offset;
+   tile->ypos = (row - board->startH) * board->tileHeight;
    tileLoadTexture(board, tile);
 
    tile->srcRect.h = 32; //This is the size of the pixel art

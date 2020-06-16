@@ -126,7 +126,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_DOWN:
          y = game->board->cursor->GetYPosition();
-         if (y >= 11 * game->tHeight + game->board->offset) { break; }
+         if (y + game->tHeight >= game->tHeight * (game->board->startH - 1) ) { break; }
          else {
             game->board->cursor->SetYPosition(y + game->tHeight);
             break;
@@ -138,9 +138,7 @@ void gameHandleEvents(Game* game){
 
       case SDLK_r:
          if (!game->board->paused) {
-            //boardManualMove(game->board, game->tHeight + game->board->offset);
-            //boardMoveUp(game->board, 8);
-            boardMoveUp(game->board, 64);
+            boardMoveUp(game->board, 8);
             break;
          }
          break;
@@ -167,13 +165,17 @@ void gameUpdate(Game* game){
       if (game->board->paused == false) {
 
          if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
-            boardMoveUp(game->board, 1);
+            boardMoveUp(game->board, 4);
             game->board->moveTimer = SDL_GetTicks();
          }
          else {
 
          }
       }
+   }
+
+   if (game->board->bust) {
+      game->isRunning = false;
    }
 
    //Update falling blocks
@@ -186,7 +188,6 @@ void gameUpdate(Game* game){
    boardClearBlocks(game->board);
 
    game->board->cursor->Update(game);
-
 
 }
 
