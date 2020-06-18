@@ -35,25 +35,25 @@ void tileLoadTexture(Board* board, Tile* tile) {
    //case tile_empty:
    //   break;
    //case tile_circle:
-   //   tile->texture = board->game->textures[tile_circle];
+   //   tile->texture = board->game->textures[(int)tile_circle];
    //   break;
    //case tile_diamond:
-   //   tile->texture = board->game->textures[tile_diamond];
+   //   tile->texture = board->game->textures[(int)tile_diamond];
    //   break;
    //case tile_utriangle:
-   //   tile->texture = board->game->textures[tile_utriangle];
+   //   tile->texture = board->game->textures[(int)tile_utriangle];
    //   break;
    //case tile_dtriangle:
-   //   tile->texture = board->game->textures[tile_dtriangle];
+   //   tile->texture = board->game->textures[(int)tile_dtriangle];
    //   break;
    //case tile_star:
-   //   tile->texture = board->game->textures[tile_star];
+   //   tile->texture = board->game->textures[(int)tile_star];
    //   break;
    //case tile_heart:
-   //   tile->texture = board->game->textures[tile_heart];
+   //   tile->texture = board->game->textures[(int)tile_heart];
    //   break;
    //case tile_silver:
-   //   tile->texture = board->game->textures[tile_silver];
+   //   tile->texture = board->game->textures[(int)tile_silver];
    //   break;
    }
 }
@@ -99,6 +99,7 @@ void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type)
 
    tile->clearTime = 0;
    tile->falling = false;
+   tile->chain = 0;
 }
 
 void tileUpdate(Board* board, Tile* tile) {
