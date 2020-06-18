@@ -104,17 +104,29 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
 
 //------------------
 
-void _swapTiles(Tile* tile1, Tile* tile2) {
+void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
    Tile tmp = *tile2;
 
+   //basic swap
    tile2->type = tile1->type;
    tile2->texture = tile1->texture;
-   tile2->chain = tile1->chain;
-   //todo do we need to set more attributes here?
 
    tile1->type = tmp.type;
    tile1->texture = tmp.texture;
-   tile1->chain = tmp.chain;
+
+   if (pos) {  //swap positions
+      tile2->ypos = tile1->ypos;
+      tile2->xpos = tile1->xpos;
+
+      tile1->ypos = tile2->ypos;
+      tile1->xpos = tile2->xpos;
+   }
+
+   if (fall) {  //swap and maintain falling status
+      tile1->falling = tmp.falling;
+
+      tile2->falling = tile1->falling;
+   }
 }
 
 void boardSwap(Board* board, Cursor* cursor) {
@@ -137,44 +149,39 @@ void boardSwap(Board* board, Cursor* cursor) {
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
-   Tile* match = nullptr;
 
-   while (current <= tiles.size() - 1) {
-      // if we're matching, look for one more and add it
-      // if not matching, check if tile is empty or different from next... set matching false
-      // if we're not matching... look for group of three
+   while (current < tiles.size()) {
+      if (tiles[current]->type != tile_empty && tiles[current]->type != tile_cleared && tiles[current]->type != tile_garbage) {
+         if (current + 2 < tiles.size()) {
+            if (tiles[current]->type == tiles[current + 1]->type && tiles[current]->type == tiles[current + 2]->type) {
+               //We have a match... add to match list and move counter ahead looking for more
+               matches.push_back(tiles[current] );
+               matches.push_back(tiles[current + 1] );
+               matches.push_back(tiles[current + 2] );
 
-      if (match && match->type == tiles[current]->type && tiles[current]->type != tile_cleared) {   //We found a match and now we're extending it
-         matches.push_back(tiles[current]);
-      }
-      else if (tiles[current]->type == tile_empty || tiles[current]->type == tile_cleared || tiles[current]->type == tile_garbage) {
-         match = nullptr;
-      }
-      else if (current + 2 <= tiles.size() - 1) {
-         match = nullptr;  //starting to look for a new match here
-         if (tiles[current]->type == tiles[(current + 1)]->type && tiles[current]->type == tiles[(current + 2)]->type) {
-            //add to match list and move counter ahead looking for more
-            matches.push_back(tiles[current]);
-            matches.push_back(tiles[current + 1]);
-            matches.push_back(tiles[current + 2]);
-
-            match = tiles[current];
-            current = current + 2;
+               current = current + 3;
+               while (current < tiles.size()) {  //keep matching
+                  if (tiles[current]->type == matches[0]->type) {
+                     matches.push_back(tiles[current]);
+                  }
+                  current++;
+               }
+            }
          }
       }
-      current = current + 1;
+      current++;
    }
 }
 
-//std::vector <Tile*> _uniqueVector(std::vector <Tile*> tileList) {
-//   std::vector <Tile*> unique;
-//   for (int i = 0; i < tileList.size(); i++) {
-//      for (int j = 0; j < unique.size(); j++) {
-//         if (tileList[i] == unique[j]) { continue; }
-//      }
-//   }
-//   return unique;
-//}
+std::vector <Tile*> _uniqueVector(std::vector <Tile*> tileList) {
+   std::vector <Tile*> unique;
+   for (int i = 0; i < tileList.size(); i++) {
+      for (int j = 0; j < unique.size(); j++) {
+         if (tileList[i] == unique[j]) { continue; }
+      }
+   }
+   return unique;
+}
 
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
@@ -188,6 +195,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       _checkClear(rows, matches);
    }
 
+   //matches = _uniqueVector(matches);
    if (matches.size() > 0) {
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
@@ -283,7 +291,8 @@ void boardUpdateFalling(Board* board) {
 
          Tile* below = boardGetTile(board, row + 1, col);
          if (below->type == tile_empty || below->falling == true) {
-            _swapTiles(tile, below);
+
+            _swapTiles(tile, below); 
 
             tile = below;  //now that they are swapped, check if it is still falling
             if (row + 1 == board->endH - 1) {  //hit the bottom
@@ -358,9 +367,14 @@ void boardMoveUp(Board* board, int height) {
                tile->chain = 0;
 
             }
-            else {
+            else {  //swap tiles that aren't at the bottom
                //todo make a universal swap function
                Tile* below = boardGetTile(board, row + 1, col);
+               if (below->falling == true) {  
+                  tile->falling = below->falling;
+                  tile->ypos = below->ypos;
+                  tile->chain = below->chain;
+               }
                tile->type = below->type;
                tile->texture = below->texture;
                tile->ypos = (row - board->startH) * board->tileHeight;
