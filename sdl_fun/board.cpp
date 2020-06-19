@@ -147,24 +147,6 @@ void boardSwap(Board* board, Cursor* cursor) {
    return;
 }
 
-void _validateClear(Board* board, std::vector <Tile*> matches) {
-
-   for (int i = 0; i < matches.size() - 1; i++){
-      int row = posYToRow(board, matches[i]->ypos);
-      int col = posXToCol(board, matches[i]->xpos);
-
-      int nextRow = posYToRow(board, matches[i + 1]->ypos);
-      int nextCol = posXToCol(board, matches[i + 1]->xpos);
-
-      if (row + 1 != nextRow) {
-         printf("Row: Bad match");
-      }
-      if (col + 1 != nextCol) {
-         printf("Row: Bad match");
-      }
-   }
-}
-
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
@@ -179,10 +161,14 @@ void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
 
                current = current + 3;
                while (current < tiles.size()) {  //keep matching
-                  if (tiles[current]->type == matches[0]->type) {
+                  if (tiles[current]->type == tiles[current -1]->type) {
                      matches.push_back(tiles[current]);
+                     current++;
                   }
-                  current++;
+                  else {
+                     current++;
+                     break;
+                  }
                }
             }
          }
@@ -190,17 +176,6 @@ void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
       current++;
    }
 }
-
-std::vector <Tile*> _uniqueVector(std::vector <Tile*> tileList) {
-   std::vector <Tile*> unique;
-   for (int i = 0; i < tileList.size(); i++) {
-      for (int j = 0; j < unique.size(); j++) {
-         if (tileList[i] == unique[j]) { continue; }
-      }
-   }
-   return unique;
-}
-
 
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
    std::vector <Tile*> matches;
@@ -210,12 +185,9 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, tile->ypos));
 
       _checkClear(cols, matches);
-      _validateClear(board, matches);
       _checkClear(rows, matches);
-      _validateClear(board, matches);
    }
 
-   //matches = _uniqueVector(matches);
    if (matches.size() > 0) {
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
@@ -225,7 +197,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->clearTime = clearTime;
          board->paused = true;
          board->pauseLength = 2000;
-         if (fallCombo && m->chain) {
+         if (fallCombo && m->chain == true) {
             board->combo += 1;
             fallCombo = false;
          }
@@ -319,18 +291,26 @@ void boardUpdateFalling(Board* board) {
                tile->falling = false;
                tilesToCheck.push_back(tile);
             }
-            else {  //not at the bottom
+            else {  //potentially still falling
                below = boardGetTile(board, row + 2, col);
-               if (below->type == tile_empty || below->falling == true) {
+               if (below->type == tile_empty || below->falling == true) {  //nothing below or it's falling too
                   tile->falling = true;
                }
-               else {
+               else if (below->type == tile_cleared) {  //stopped temporarily under a clear
+                  tile->chain = true;
+                  tile->falling = false;
+               }
+               else {  //something below it
                   tile->falling = false;
                   tilesToCheck.push_back(tile);
                }
             }
          }
-         else {
+         else if (below->type == tile_cleared) {
+            tile->chain = true;
+            tile->falling = false;
+         }
+         else {  //something below it
             tile->falling = false;
          }
       }
@@ -345,14 +325,11 @@ void boardRemoveClears(Board* board) {
    int current = SDL_GetTicks();
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
-         std::vector <Tile*> debug;
          Tile* tile = boardGetTile(board, row, col);
-         debug.push_back(tile);
          if (tile->type == tile_cleared) {
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                tile->texture = nullptr;
-               tile->chain = true;
             }
          }
       }
@@ -375,6 +352,12 @@ void boardMoveUp(Board* board, int height) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
 
+         if (board->combo > 0) {
+            printf("combo count: %d", board->combo);
+         }
+         tile->chain = false;  //Whenever the board is moving, the combo is over
+         board->combo = 0;
+
          if (tile->ypos <= 0 && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 
          if (updateArray) {
@@ -384,7 +367,6 @@ void boardMoveUp(Board* board, int height) {
                tileLoadTexture(board, tile);
                tile->ypos = (row - board->startH) * board->tileHeight;  //push buffer layer one tile back down below frame
                tile->falling = false;
-               tile->chain = 0;
 
             }
             else {  //swap tiles that aren't at the bottom
