@@ -147,6 +147,24 @@ void boardSwap(Board* board, Cursor* cursor) {
    return;
 }
 
+void _validateClear(Board* board, std::vector <Tile*> matches) {
+
+   for (int i = 0; i < matches.size() - 1; i++){
+      int row = posYToRow(board, matches[i]->ypos);
+      int col = posXToCol(board, matches[i]->xpos);
+
+      int nextRow = posYToRow(board, matches[i + 1]->ypos);
+      int nextCol = posXToCol(board, matches[i + 1]->xpos);
+
+      if (row + 1 != nextRow) {
+         printf("Row: Bad match");
+      }
+      if (col + 1 != nextCol) {
+         printf("Row: Bad match");
+      }
+   }
+}
+
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
@@ -192,7 +210,9 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, tile->ypos));
 
       _checkClear(cols, matches);
+      _validateClear(board, matches);
       _checkClear(rows, matches);
+      _validateClear(board, matches);
    }
 
    //matches = _uniqueVector(matches);
