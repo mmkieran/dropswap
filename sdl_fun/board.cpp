@@ -195,10 +195,11 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->texture = board->game->textures[7];
          m->type = tile_cleared;
          m->clearTime = clearTime;
+         m->falling = false;
          board->paused = true;
-         board->pauseLength = 2000;
+         board->pauseLength = 3000;
          if (fallCombo && m->chain == true) {
-            board->combo += 1;
+              board->combo += 1;
             fallCombo = false;
          }
 
@@ -273,8 +274,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
 void boardUpdateFalling(Board* board) {
    std::vector <Tile*> tilesToCheck;
-   for (int row = board->endH - 2; row >= 0; row--) {
-      for (int col = 0; col < board->w; col++) {
+   for (int col = 0; col < board->w; col++) {
+      for (int row = board->endH - 2; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty || tile->type == tile_cleared)  {
             continue;
@@ -282,7 +283,7 @@ void boardUpdateFalling(Board* board) {
          //todo: add garbage falling logic here
 
          Tile* below = boardGetTile(board, row + 1, col);
-         if (below->type == tile_empty || below->falling == true) {
+         if (below->type == tile_empty || below->falling == true) {  //nothing below or it's falling too
 
             _swapTiles(tile, below); 
 
@@ -297,8 +298,11 @@ void boardUpdateFalling(Board* board) {
                   tile->falling = true;
                }
                else if (below->type == tile_cleared) {  //stopped temporarily under a clear
-                  tile->chain = true;
                   tile->falling = false;
+
+                  for (int i = row; i >= board->startH; i--) {  //flag all tiles above the clear as potentially part of a chain
+                     tile->chain = true;
+                  }
                }
                else {  //something below it
                   tile->falling = false;
@@ -306,13 +310,18 @@ void boardUpdateFalling(Board* board) {
                }
             }
          }
-         else if (below->type == tile_cleared) {
-            tile->chain = true;
+         else if (below->type == tile_cleared) {  //flag all tiles above the clear as potentially part of a chain
             tile->falling = false;
+
+            for (int i = row; i >= board->startH; i--) {  //flag all tiles above the clear as potentially part of a chain
+               tile->chain = true;
+            }
          }
          else {  //something below it
             tile->falling = false;
          }
+         tile = boardGetTile(board, row, col);
+         if (tile->falling = false) { tile->chain = false; }  //If at the end the block is not falling, then it's not part of a chain
       }
    }
    if (tilesToCheck.size() > 0) {
