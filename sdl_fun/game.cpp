@@ -164,14 +164,12 @@ void gameUpdate(Game* game){
    //Update board
    if (game->timer > 2000) {
       if (game->board->paused == false) {
+         boardMoveUp(game->board, 1 * game->board->speed);
 
-         if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
-            boardMoveUp(game->board, 1 * game->board->speed);
-            game->board->moveTimer = SDL_GetTicks();
-         }
-         else {
-
-         }
+         //if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
+         //   boardMoveUp(game->board, 1 * game->board->speed);
+         //   game->board->moveTimer = SDL_GetTicks();
+         //}
       }
    }
 
@@ -179,12 +177,14 @@ void gameUpdate(Game* game){
       game->isRunning = false;
    }
 
+   boardUpdateFalling(game->board, 2);
+
    //Update falling blocks
-   if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
-      boardUpdateFalling(game->board);
-      //boardUpdateFalling(game->board, 2);
-      game->board->fallTimer = SDL_GetTicks();
-   }
+   //if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
+   //   //boardUpdateFalling(game->board);
+   //   boardUpdateFalling(game->board, 2);
+   //   game->board->fallTimer = SDL_GetTicks();
+   //}
 
    boardRemoveClears(game->board);
    //boardResetChain(game->board);

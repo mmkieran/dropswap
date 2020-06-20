@@ -130,6 +130,9 @@ void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
 }
 
 void boardSwap(Board* board, Cursor* cursor) {
+
+   //todo add logic for falling blocks...
+
    int col = posXToCol(board, cursor->GetXPosition());
    int row = posYToRow(board, cursor->GetYPosition());
 
@@ -137,7 +140,7 @@ void boardSwap(Board* board, Cursor* cursor) {
    Tile* tile2 = boardGetTile(board, row, col + 1);
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
-   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }
+   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
 
    _swapTiles(tile1, tile2);
 
@@ -150,19 +153,27 @@ void boardSwap(Board* board, Cursor* cursor) {
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
-   while (current < tiles.size()) {
-      if (tiles[current]->type != tile_empty && tiles[current]->type != tile_cleared && tiles[current]->type != tile_garbage) {
-         if (current + 2 < tiles.size()) {
-            if (tiles[current]->type == tiles[current + 1]->type && tiles[current]->type == tiles[current + 2]->type) {
+   while (current + 2 < tiles.size()) {
+      Tile* t1 = tiles[current];
+      Tile* t2 = tiles[current + 1];
+      Tile* t3 = tiles[current + 2];
+
+      if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
+         current++;
+         continue;
+      }
+
+      if (t1->type != tile_empty && t1->type != tile_cleared && t1->type != tile_garbage) {
+            if (t1->type == t2->type && t1->type == t3->type) {
                //We have a match... add to match list and move counter ahead looking for more
-               matches.push_back(tiles[current] );
-               matches.push_back(tiles[current + 1] );
-               matches.push_back(tiles[current + 2] );
+               matches.push_back(t1);
+               matches.push_back(t2);
+               matches.push_back(t3);
 
                current = current + 3;
                while (current < tiles.size()) {  //keep matching
-                  if (tiles[current]->type == tiles[current -1]->type) {
-                     matches.push_back(tiles[current]);
+                  if (t1->type == tiles[current -1]->type) {
+                     matches.push_back(t1);
                      current++;
                   }
                   else {
@@ -171,7 +182,6 @@ void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
                   }
                }
             }
-         }
       }
       current++;
    }
@@ -208,126 +218,115 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 }
 
-//void boardUpdateFalling(Board* board, int velocity) {
-//   std::vector <Tile*> tilesToCheck;
-//   for (int col = 0; col < board->w; col++) {
-//      for (int row = board->endH -1; row >= 0; row--) {
-//         Tile* tile = boardGetTile(board, row, col);
-//         if (tile->type == tile_empty || tile->type == tile_cleared) {
-//            continue;
-//         }
-//         if (row >= board->endH - 1) { //skip the bottom row
-//            tile->falling = false; 
-//            continue;
-//         }
-//
-//         //todo: add garbage falling logic here
-//
-//         Tile* below = boardGetTile(board, row + 1, col);
-//
-//         if (below->type == tile_empty || below->falling == true) {  //If below is empty or falling start falling
-//            tile->falling = true;
-//            int drop = 8 * velocity;
-//
-//
-//            if (below->type == tile_empty){
-//               if (tile->ypos + drop >= below->ypos) {  //We nearly overlap an empty tile
-//                  int diff = tile->ypos + drop - below->ypos;
-//                  _swapTiles(tile, below);  //swap the empty tile up
-//                  below->ypos += diff;  //continue falling
-//                  tile->ypos = below->ypos - board->tileHeight;
-//               }
-//               else {
-//                  tile->ypos += drop;
-//               }
-//            }
-//            else if (below->falling == false) {
-//               if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //If the below tile is not falling, stop at it's edge
-//                  tile->ypos = below->ypos - board->tileHeight;
-//                  tile->falling = false;
-//                  tilesToCheck.push_back(tile);
-//               }
-//               else {
-//                  tile->ypos += drop;
-//               }
-//            }
-//            else if (below->falling == true) {  //Fall with your friends
-//               tile->ypos += drop;
-//            }
-//         }
-//         else if (below->type == tile_cleared || below->chain == true) {  //if it stops on a clear, it's a chain
-//            tile->chain = true;
-//            tile->falling = false;
-//         }
-//         else {
-//            tile->falling = false;
-//            tilesToCheck.push_back(tile);
-//         }
-//         tileUpdate(board, tile);
-//      }
-//   }
-//   if (tilesToCheck.size() > 0) {
-//      boardCheckClear(board, tilesToCheck, true);
-//   }
-//}
-
-
-void boardUpdateFalling(Board* board) {
+void boardUpdateFalling(Board* board, int velocity) {
    std::vector <Tile*> tilesToCheck;
    for (int col = 0; col < board->w; col++) {
-      for (int row = board->endH - 2; row >= 0; row--) {
+      for (int row = board->endH -1; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_empty || tile->type == tile_cleared)  {
+         if (tile->type == tile_empty || tile->type == tile_cleared) {
             continue;
          }
+         if (row >= board->endH - 1) { //skip the bottom row
+            tile->falling = false; 
+            continue;
+         }
+
          //todo: add garbage falling logic here
 
          Tile* below = boardGetTile(board, row + 1, col);
-         if (below->type == tile_empty || below->falling == true) {  //nothing below or it's falling too
 
-            _swapTiles(tile, below); 
+         if (below->type == tile_empty || below->falling == true) {  //If below is empty or falling start falling
+            tile->falling = true;
+            int drop = 1 * velocity;
 
-            tile = below;  //now that they are swapped, check if it is still falling
-            if (row + 1 == board->endH - 1) {  //hit the bottom
-               tile->falling = false;
-               tilesToCheck.push_back(tile);
-            }
-            else {  //potentially still falling
-               below = boardGetTile(board, row + 2, col);
-               if (below->type == tile_empty || below->falling == true) {  //nothing below or it's falling too
-                  tile->falling = true;
-               }
-               else if (below->type == tile_cleared) {  //stopped temporarily under a clear
-                  tile->falling = false;
 
-                  for (int i = row; i >= board->startH; i--) {  //flag all tiles above the clear as potentially part of a chain
-                     tile->chain = true;
+            if (below->type == tile_empty){
+               if (tile->ypos + drop >= below->ypos) {  //We halfway overlap an empty tile
+                  int diff = tile->ypos + drop - below->ypos;
+                  _swapTiles(tile, below);  //swap the empty tile up
+                  below->ypos += diff;  //continue falling
+                  below->falling = true;
+                  tile->ypos = below->ypos - board->tileHeight;  
+                  
+                  if (row + 2 <= board->endH - 1) {  //is there another tile below this
+                     tile = below;  //Now that they are swapped, check if it is still falling
+                     below = boardGetTile(board, row + 2, col);
+                     if (below->type == tile_empty || below->falling == true) { tile->falling = true; }
+                     else {tile->falling = false;}
                   }
                }
-               else {  //something below it
+               else {
+                  tile->ypos += drop;
+               }
+            }
+            else if (below->falling == false) {
+               if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //If the below tile is not falling, stop at it's edge
+                  tile->ypos = below->ypos - board->tileHeight;
                   tile->falling = false;
                   tilesToCheck.push_back(tile);
                }
+               else {
+                  tile->ypos += drop;
+               }
+            }
+            else if (below->falling == true) {  //Fall with your friends
+               tile->ypos += drop;
             }
          }
-         else if (below->type == tile_cleared) {  //flag all tiles above the clear as potentially part of a chain
-            tile->falling = false;
-
-            for (int i = row; i >= board->startH; i--) {  //flag all tiles above the clear as potentially part of a chain
-               tile->chain = true;
-            }
-         }
-         else {  //something below it
+         else if (below->type == tile_cleared || below->chain == true) {  //if it stops on a clear, it's potentially a chain
+            tile->chain = true;
             tile->falling = false;
          }
-         tile = boardGetTile(board, row, col);
-         if (tile->falling = false) { tile->chain = false; }  //If at the end the block is not falling, then it's not part of a chain
+         else { 
+            tile->falling = false;
+            tilesToCheck.push_back(tile);
+         }
+         tileUpdate(board, tile);
       }
    }
    if (tilesToCheck.size() > 0) {
       boardCheckClear(board, tilesToCheck, true);
    }
 }
+
+
+//void boardUpdateFalling(Board* board) {
+//   std::vector <Tile*> tilesToCheck;
+//   for (int col = 0; col < board->w; col++) {
+//      for (int row = board->endH - 2; row >= 0; row--) {
+//         Tile* tile = boardGetTile(board, row, col);
+//         //tile->falling = false;
+//
+//         if (tile->type == tile_empty || tile->type == tile_cleared)  {
+//            continue;
+//         }
+//         //todo: add garbage falling logic here
+//
+//         Tile* below = boardGetTile(board, row + 1, col);
+//         if (below->type == tile_empty) {  //nothing below or it's falling too
+//            tile->falling = true;
+//            _swapTiles(tile, below, false, true); 
+//         }
+//         else if (below->type == tile_cleared) {  //flag all tiles above the clear as potentially part of a chain
+//            tile->falling = true;
+//
+//            for (int i = row; i >= 0; i--) {  //flag all tiles above the clear as potentially part of a chain
+//               Tile* above = boardGetTile(board, i, col);
+//               tile->chain = true;
+//            }
+//         }
+//         else {  //Regular tile below it
+//            tile->falling = false;
+//            tilesToCheck.push_back(tile);
+//         }
+//         tile = boardGetTile(board, row, col);
+//         if (tile->falling = false) { tile->chain = false; }  //If at the end the block is not falling, then it's not part of a chain
+//      }
+//   }
+//   if (tilesToCheck.size() > 0) {
+//      boardCheckClear(board, tilesToCheck, true);
+//   }
+//}
 
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
@@ -383,19 +382,25 @@ void boardMoveUp(Board* board, int height) {
                Tile* below = boardGetTile(board, row + 1, col);
                if (below->falling == true) {  
                   tile->falling = below->falling;
-                  tile->ypos = below->ypos;
                   tile->chain = below->chain;
                }
+               //todo fix moving board up and falling down
                tile->type = below->type;
                tile->texture = below->texture;
-               tile->ypos = (row - board->startH) * board->tileHeight;
+               tile->ypos = (row - board->startH) * board->tileHeight;  //push non-falling tiles down one tile after swap
+
             }
 
-            tile->ypos += board->offset;
-            if (row == board->endH - 1) { checkTiles.push_back(tile); }
+            if (tile->falling == false) {
+               tile->ypos += board->offset;  //add extra offset if more than one tile
+            }
+
+            if (row == board->endH - 1) { checkTiles.push_back(tile); }  //check for clears in the new bottom row
          }
-         else {
-            tile->ypos -= nudge;
+         else {  //Move the board up, no need to adjust array
+            if (tile->falling == false) {
+               tile->ypos -= nudge;
+            }
          }
          tileUpdate(board, tile);
 
