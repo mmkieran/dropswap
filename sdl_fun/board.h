@@ -5,6 +5,14 @@
 struct Tile;
 class Cursor;
 
+enum MoveEnum {
+   move_up = 0,
+   move_down,
+   move_left,
+   move_right,
+};
+
+
 //The top left of the board is (0, 0) for rendering and for array indices
 struct Board {
    int startH = 12;
@@ -49,5 +57,6 @@ void boardUpdateFalling(Board* board, int velocity);
 //void boardUpdateFalling(Board* board);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void boardRemoveClears(Board* board);
-void boardResetChain(Board* board);
+//void boardResetChain(Board* board);
+void boardUpdateArray(Board* board, bool buffer);
 

@@ -62,6 +62,9 @@ Tile* boardGetTile(Board* board, int row, int col) {
    return tile;
 }
 
+void boardSetTile(Board* board, Tile tile, int row, int col) {
+   board->tiles[(board->w * row + col)] = tile;
+}
 
 void boardRender(Game* game, Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
@@ -77,11 +80,11 @@ void boardRender(Game* game, Board* board) {
 
 //-----Helpful functions----------
 //todo: Maybe put these somewhere else later
-int posYToRow(Board* board, int y) {
+int yPosToRow(Board* board, int y) {
    return (y - board->offset) / board->tileHeight + board->startH;
 }
 
-int posXToCol(Board* board, int x) {
+int xPosToCol(Board* board, int x) {
    return x / board->tileWidth;
 }
 
@@ -133,8 +136,8 @@ void boardSwap(Board* board, Cursor* cursor) {
 
    //todo add logic for falling blocks...
 
-   int col = posXToCol(board, cursor->GetXPosition());
-   int row = posYToRow(board, cursor->GetYPosition());
+   int col = xPosToCol(board, cursor->GetXPosition());
+   int row = yPosToRow(board, cursor->GetYPosition());
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -191,8 +194,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    std::vector <Tile*> matches;
 
    for (auto&& tile : tileList) {
-      std::vector <Tile*> cols = boardGetCol(board, posXToCol(board, tile->xpos));
-      std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, tile->ypos));
+      std::vector <Tile*> cols = boardGetCol(board, xPosToCol(board, tile->xpos));
+      std::vector <Tile*> rows = boardGetRow(board, yPosToRow(board, tile->ypos));
 
       _checkClear(cols, matches);
       _checkClear(rows, matches);
@@ -234,45 +237,46 @@ void boardUpdateFalling(Board* board, int velocity) {
          //todo: add garbage falling logic here
 
          Tile* below = boardGetTile(board, row + 1, col);
+         int drop = 1 * velocity;
 
-         if (below->type == tile_empty || below->falling == true) {  //If below is empty or falling start falling
+         if (below->type == tile_empty) {
             tile->falling = true;
-            int drop = 1 * velocity;
-
-
-            if (below->type == tile_empty){
-               if (tile->ypos + drop >= below->ypos) {  //We halfway overlap an empty tile
-                  int diff = tile->ypos + drop - below->ypos;
-                  _swapTiles(tile, below);  //swap the empty tile up
-                  below->ypos += diff;  //continue falling
-                  below->falling = true;
-                  tile->ypos = below->ypos - board->tileHeight;  
-                  
-                  if (row + 2 <= board->endH - 1) {  //is there another tile below this
-                     tile = below;  //Now that they are swapped, check if it is still falling
-                     below = boardGetTile(board, row + 2, col);
-                     if (below->type == tile_empty || below->falling == true) { tile->falling = true; }
-                     else {tile->falling = false;}
+            //Check if we would drop through the empty tile into another
+            if (tile->ypos + drop >= below->ypos + board->tileHeight) {
+               if (row + 2 <= board->endH - 1) {  //is there another tile below this
+                  Tile* down2 = boardGetTile(board, row + 2, col);
+                  if (down2->type == tile_empty || down2->falling == true) { //Safe to just fall
+                     tile->falling = true; 
+                     tile->ypos += drop;
+                  }
+                  else {
+                     tile->falling = false;
+                     tile->ypos = below->ypos + board->tileHeight;  //lock the tile to the tile 2 down
+                     tilesToCheck.push_back(tile);
                   }
                }
-               else {
-                  tile->ypos += drop;
-               }
+               else { tile->ypos = below->ypos; }  //We're at the bottom so take the below position
             }
-            else if (below->falling == false) {
-               if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //If the below tile is not falling, stop at it's edge
-                  tile->ypos = below->ypos - board->tileHeight;
-                  tile->falling = false;
-                  tilesToCheck.push_back(tile);
-               }
-               else {
-                  tile->ypos += drop;
-               }
-            }
-            else if (below->falling == true) {  //Fall with your friends
+            else {  //Nothing to stop it
                tile->ypos += drop;
             }
          }
+
+         else if (below->falling == false) {
+            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //If the below tile is not falling, stop at it's edge
+               tile->ypos = below->ypos - board->tileHeight;
+               tile->falling = false;
+               tilesToCheck.push_back(tile);
+            }
+            else {
+               tile->ypos += drop;
+            }
+         }
+
+         else if (below->falling == true) {  //Fall with your friends
+            tile->ypos += drop;
+         }
+
          else if (below->type == tile_cleared || below->chain == true) {  //if it stops on a clear, it's potentially a chain
             tile->chain = true;
             tile->falling = false;
@@ -288,45 +292,6 @@ void boardUpdateFalling(Board* board, int velocity) {
       boardCheckClear(board, tilesToCheck, true);
    }
 }
-
-
-//void boardUpdateFalling(Board* board) {
-//   std::vector <Tile*> tilesToCheck;
-//   for (int col = 0; col < board->w; col++) {
-//      for (int row = board->endH - 2; row >= 0; row--) {
-//         Tile* tile = boardGetTile(board, row, col);
-//         //tile->falling = false;
-//
-//         if (tile->type == tile_empty || tile->type == tile_cleared)  {
-//            continue;
-//         }
-//         //todo: add garbage falling logic here
-//
-//         Tile* below = boardGetTile(board, row + 1, col);
-//         if (below->type == tile_empty) {  //nothing below or it's falling too
-//            tile->falling = true;
-//            _swapTiles(tile, below, false, true); 
-//         }
-//         else if (below->type == tile_cleared) {  //flag all tiles above the clear as potentially part of a chain
-//            tile->falling = true;
-//
-//            for (int i = row; i >= 0; i--) {  //flag all tiles above the clear as potentially part of a chain
-//               Tile* above = boardGetTile(board, i, col);
-//               tile->chain = true;
-//            }
-//         }
-//         else {  //Regular tile below it
-//            tile->falling = false;
-//            tilesToCheck.push_back(tile);
-//         }
-//         tile = boardGetTile(board, row, col);
-//         if (tile->falling = false) { tile->chain = false; }  //If at the end the block is not falling, then it's not part of a chain
-//      }
-//   }
-//   if (tilesToCheck.size() > 0) {
-//      boardCheckClear(board, tilesToCheck, true);
-//   }
-//}
 
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
@@ -347,68 +312,32 @@ void boardRemoveClears(Board* board) {
 
 void boardMoveUp(Board* board, int height) {
    int nudge = height;
-   bool updateArray = false;
    board->offset -= nudge;
-
-   if (board->offset <= -1 * board->tileHeight) {
-      board->offset += board->tileHeight;
-      updateArray = true;
-   } 
 
    std::vector <Tile*> checkTiles;
    for (int row = board->startH -1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
 
-         if (board->combo > 0) {
+         if (board->combo > 0) {  //debug
             printf("combo count: %d", board->combo);
          }
-         tile->chain = false;  //Whenever the board is moving, the combo is over
+
+         tile->chain = false;  //Whenever the board is moving, the combo is over?
          board->combo = 0;
 
          if (tile->ypos <= 0 && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 
-         if (updateArray) {
+         if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
-            if (row == board->wBuffer - 1) {
-               tile->type = (TileEnum)board->distribution(board->generator);   //create new tiles here
-               tileLoadTexture(board, tile);
-               tile->ypos = (row - board->startH) * board->tileHeight;  //push buffer layer one tile back down below frame
-               tile->falling = false;
-
-            }
-            else {  //swap tiles that aren't at the bottom
-               //todo make a universal swap function
-               Tile* below = boardGetTile(board, row + 1, col);
-               if (below->falling == true) {  
-                  tile->falling = below->falling;
-                  tile->chain = below->chain;
-               }
-               //todo fix moving board up and falling down
-               tile->type = below->type;
-               tile->texture = below->texture;
-               tile->ypos = (row - board->startH) * board->tileHeight;  //push non-falling tiles down one tile after swap
-
-            }
-
-            if (tile->falling == false) {
-               tile->ypos += board->offset;  //add extra offset if more than one tile
-            }
-
-            if (row == board->endH - 1) { checkTiles.push_back(tile); }  //check for clears in the new bottom row
+         if (tile->falling == false) {  //Only nudge up blocks that aren't falling
+            tile->ypos -= nudge;
+            tileUpdate(board, tile);
          }
-         else {  //Move the board up, no need to adjust array
-            if (tile->falling == false) {
-               tile->ypos -= nudge;
-            }
-         }
-         tileUpdate(board, tile);
-
       }
    }
 
    board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge);
-
    boardCheckClear(board, checkTiles, false);
 }
 
@@ -434,8 +363,8 @@ int boardFillTiles(Board* board) {
    }
 
    for (auto&& ct : checkTiles) {
-      std::vector <Tile*> cols = boardGetCol(board, posXToCol(board, ct->xpos));
-      std::vector <Tile*> rows = boardGetRow(board, posYToRow(board, ct->ypos));
+      std::vector <Tile*> cols = boardGetCol(board, xPosToCol(board, ct->xpos));
+      std::vector <Tile*> rows = boardGetRow(board, yPosToRow(board, ct->ypos));
 
       _checkClear(cols, matches);
       _checkClear(rows, matches);
@@ -451,26 +380,70 @@ int boardFillTiles(Board* board) {
    return 0;
 }
 
-void boardResetChain(Board* board) {
-   bool contCombo = false;
+//void boardResetChain(Board* board) {
+//   bool contCombo = false;
+//
+//   for (int col = 0; col < board->w; col++) {
+//      for (int row = board->endH - 1; row >= 0; row--) {
+//         Tile* tile = boardGetTile(board, row, col);
+//         if (tile->type == tile_cleared) {
+//            for (int i = row; i >= board->startH; i--) {
+//               tile->chain = true;
+//               contCombo = true;
+//            }
+//            break;
+//         }
+//      }
+//   }
+//
+//   if (!contCombo) {
+//      board->combo = 0;
+//   }
+//   else {
+//      printf("combo count: %d", board->combo);
+//   }
+//}
 
-   for (int col = 0; col < board->w; col++) {
-      for (int row = board->endH - 1; row >= 0; row--) {
+void boardUpdateArray(Board* board, bool buffer = false) {
+   std::vector <Tile> tileList;
+   bool* done = (bool*)malloc(sizeof(bool) * (board->wBuffer) * board->w);
+   memset(done, false, sizeof(bool) * (board->wBuffer) * board->w );
+
+   for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
+      for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_cleared) {
-            for (int i = row; i >= board->startH; i--) {
-               tile->chain = true;
-               contCombo = true;
-            }
-            break;
-         }
+         tileList.push_back(*tile);
+         tileInitWithType(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
       }
    }
 
-   if (!contCombo) {
-      board->combo = 0;
+   for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
+      
+      //Offset to just above the tile below, so that moving up triggers on the last pixel and moving down on the first
+      int row = (t.ypos + board->tileHeight - 1) / board->tileHeight + board->startH;  
+      int col = t.xpos / board->tileWidth;
+
+      if (done[(board->w * row + col)] == true) {  //oopsy we already put a tile in this slot
+         if (t.type != tile_empty) {
+            //printf("overlapping tiles at: %d %d\n", row, col);
+            //board->game->paused = true;
+            //board->game->pauseLength = 2;
+         }
+      }
+
+      boardSetTile(board, t, row, col);
+      done[(board->w * row + col)] = true;
    }
-   else {
-      printf("combo count: %d", board->combo);
+
+   for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
+      int row = board->wBuffer - 1;
+      Tile* current = boardGetTile(board, row, col);
+      if (current->type == tile_empty) {
+         Tile newTile;
+         tileInitWithType(board, &newTile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+         boardSetTile(board, newTile, row, col);
+      }
    }
+
+   free(done);
 }

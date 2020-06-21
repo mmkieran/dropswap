@@ -177,7 +177,7 @@ void gameUpdate(Game* game){
       game->isRunning = false;
    }
 
-   boardUpdateFalling(game->board, 2);
+   //boardUpdateFalling(game->board, 2);
 
    //Update falling blocks
    //if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
@@ -187,6 +187,7 @@ void gameUpdate(Game* game){
    //}
 
    boardRemoveClears(game->board);
+   boardUpdateArray(game->board, false);
    //boardResetChain(game->board);
 
    game->board->cursor->Update(game);
