@@ -13,7 +13,7 @@ struct Game {
    SDL_Renderer *renderer;
    Board* board;
 
-   //std::unordered_map<const char*, SDL_Texture*> textures;
+   //std::unordered_map<int, SDL_Texture*> textures;
    std::vector <SDL_Texture*> textures;
 
    int bHeight = 12;

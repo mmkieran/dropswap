@@ -32,33 +32,19 @@ struct Tile {
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
 
     int height = 12;
     int width = 6;
+    int tileHeight = 64;
 
     Tile* tiles = (Tile*)malloc(sizeof(Tile) * height * width);
     Tile* tile1 = (tiles + 1);
     Tile* tile2 = (tiles + 11);
 
-    while (tile1 + 5 < tile2) {
-       //printf("%d\n", tile1);
-       tile1 += 1;
-    }
+    tile1->ypos = 65;
 
-    std::unordered_map <TileEnum, const char*> textures;
-    textures[tile_empty] = "empty";
-    printf("%s\n", textures[tile_empty] );
-
-    //tiles[0].textures = std::unordered_map <TileEnum, const char*>();
-    //tiles[0].textures[tile_heart] = "heart";
-    //printf("%s\n", textures[tile_heart]);
-
-    //printf("%d\n", tile1);
-    //printf("%d\n", tile2);
-    //printf("%d\n", tile2 - tile1);
-    //printf("%d\n", tile2 > tile1 + 11);
-    //std::cout << "Pointer" << ptr << std::endl;
+    int row = (tile1->ypos + tileHeight - 1) / tileHeight + 12;
+    printf("%d \n", row);
 
     free(tiles);
 }

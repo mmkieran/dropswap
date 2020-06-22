@@ -43,14 +43,14 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
             game->frame.y = 0;
 
             game->timer = 0;
+            gameLoadTextures(game);
 
             //setting up board
             game->board = boardCreate(game); 
             game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
             game->board->game = game;
-            gameLoadTextures(game);
+            
 
-            game->board->gracePeriod = 0;
             game->board->paused = false;
             game->board->pauseLength = 0;
 
@@ -70,21 +70,22 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
 void gameLoadTextures(Game* game) {
 
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/circle.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/diamond.png"));
+   game->textures.push_back( TextureManager::LoadTexture(game, "assets/circle.png"));  
+   game->textures.push_back( TextureManager::LoadTexture(game, "assets/diamond.png")); 
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/utriangle.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/dtriangle.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/star.png"));
    game->textures.push_back( TextureManager::LoadTexture(game, "assets/heart.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/grass.png"));
+   game->textures.push_back( TextureManager::LoadTexture(game, "assets/empty.png"));  //silver
+   game->textures.push_back( TextureManager::LoadTexture(game, "assets/skull.png")); //clear
 
-   //game->textures[tile_diamond] = TextureManager::LoadTexture(game, "assets/diamond.png");
-   //game->textures[tile_utriangle] = TextureManager::LoadTexture(game, "assets/utriangle.png");
-   //game->textures[tile_dtriangle] = TextureManager::LoadTexture(game, "assets/dtriangle.png");
-   //game->textures[tile_star] = TextureManager::LoadTexture(game, "assets/star.png");
-   //game->textures[tile_circle] = TextureManager::LoadTexture(game, "assets/circle.png");
-   //game->textures[tile_heart] = TextureManager::LoadTexture(game, "assets/heart.png");
-   //game->textures[tile_silver] = TextureManager::LoadTexture(game, "assets/grass.png");
+   //game->textures[(int)tile_diamond] = TextureManager::LoadTexture(game, "assets/diamond.png");
+   //game->textures[(int)tile_utriangle] = TextureManager::LoadTexture(game, "assets/utriangle.png");
+   //game->textures[(int)tile_dtriangle] = TextureManager::LoadTexture(game, "assets/dtriangle.png");
+   //game->textures[(int)tile_star] = TextureManager::LoadTexture(game, "assets/star.png");
+   //game->textures[(int)tile_circle] = TextureManager::LoadTexture(game, "assets/circle.png");
+   //game->textures[(int)tile_heart] = TextureManager::LoadTexture(game, "assets/heart.png");
+   //game->textures[(int)tile_silver] = TextureManager::LoadTexture(game, "assets/grass.png");
 }
 
 void gameHandleEvents(Game* game){
@@ -148,6 +149,7 @@ void gameHandleEvents(Game* game){
 
 void gameUpdate(Game* game){
 
+   boardRemoveClears(game->board);
    if (game->board->pauseLength > 0) {
       game->board->pauseLength -= game->timeDelta;
 
@@ -163,14 +165,8 @@ void gameUpdate(Game* game){
    //Update board
    if (game->timer > 2000) {
       if (game->board->paused == false) {
-
-         if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
-            boardMoveUp(game->board, 4);
-            game->board->moveTimer = SDL_GetTicks();
-         }
-         else {
-
-         }
+         boardMoveUp(game->board, 1 * game->board->speed);
+         boardUpdateArray(game->board, false);
       }
    }
 
@@ -178,14 +174,8 @@ void gameUpdate(Game* game){
       game->isRunning = false;
    }
 
-   //Update falling blocks
-   if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
-      boardUpdateFalling(game->board);
-      game->board->fallTimer = SDL_GetTicks();
-   }
-
-   //boardCheckClear(board, );
-   boardClearBlocks(game->board);
+   boardUpdateFalling(game->board, 4);
+   boardUpdateArray(game->board, false);
 
    game->board->cursor->Update(game);
 
@@ -197,7 +187,7 @@ void gameRender(Game* game){
    //Draw game objects
    boardRender(game, game->board);
 
-   //Rough frame for the game... use textures later
+   //todo Rough frame for the game... use textures later
    SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
    SDL_RenderDrawRect(game->renderer, &game->frame);
 
@@ -208,6 +198,9 @@ void gameRender(Game* game){
 
 void gameDestroy(Game* game){
    delete game->board->cursor;
+   for (auto&& t : game->textures) {
+      SDL_DestroyTexture(t);
+   }
    boardDestroy(game->board);
    SDL_DestroyWindow(game->window);
    SDL_DestroyRenderer(game->renderer);

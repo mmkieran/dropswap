@@ -29,6 +29,7 @@ struct Tile {
 
    bool falling;
    int clearTime;
+   bool chain;
 
 };
 
