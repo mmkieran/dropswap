@@ -227,13 +227,14 @@ void boardUpdateFalling(Board* board, int velocity) {
    std::vector <Tile> debug = boardDebug(board);
 
    for (int col = 0; col < board->w; col++) {
-      for (int row = board->endH - 1; row >= 0; row--) {
+      for (int row = board->wBuffer - 1; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
+         tile->falling = false;
 
          if (tile->type == tile_empty || tile->type == tile_cleared) {  //Don't update empty or cleared tiles
             continue;
          }
-         if (row >= board->endH - 1) { //skip the bottom row
+         if (row >= board->wBuffer - 1) { //skip the bottom row
             tile->falling = false;
             continue;
          }
@@ -241,22 +242,12 @@ void boardUpdateFalling(Board* board, int velocity) {
          Tile* below = boardGetTile(board, row + 1, col);
 
          //Probably do a while loop here with the below tile type?
-         if (below->type == tile_empty) {
+         if (below->type == tile_empty || below->falling == true) {
             tile->falling = true;
-            if (tile->ypos + drop >= below->ypos + board->tileHeight) {  //snap to tile's edge if drop is too much
-               tile->ypos = below->ypos + board->tileHeight;
-            }
-            else { tile->ypos += drop; }
-         }
-
-         else if (below->falling == true) {
-            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile stopped short, stop at it's edge
+            if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
                tile->ypos = below->ypos - board->tileHeight;
             }
-            else {
-               tile->falling = true;
-               tile->ypos += drop;
-            }
+            else { tile->ypos += drop; }
          }
 
          else if (below->falling == false) {
@@ -267,6 +258,7 @@ void boardUpdateFalling(Board* board, int velocity) {
             }
             else {
                tile->ypos += drop;
+               tile->falling = true;
             }
          }
 
@@ -291,7 +283,7 @@ void boardRemoveClears(Board* board) {
          if (tile->type == tile_cleared) {
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
-               tile->texture = board->game->textures[6];
+               tile->texture = nullptr; //board->game->textures[6];
             }
          }
       }
@@ -311,6 +303,8 @@ void boardMoveUp(Board* board, int height) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+
+         if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
          if (board->combo > 0) {  //debug
             printf("combo count: %d", board->combo);
@@ -365,7 +359,7 @@ int boardFillTiles(Board* board) {
 
    if (matches.size() > 0) {
       for (auto&& m : matches) {
-         m->texture = board->game->textures[6];  //debug texture
+         m->texture = nullptr; //board->game->textures[6];  //debug texture
          m->type = tile_empty;
       }
    }
@@ -379,8 +373,12 @@ void boardUpdateArray(Board* board, bool buffer = false) {
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         //if (tile->type == tile_empty) { continue;  }
-         tileList.push_back(*tile);
+         if (tile->type == tile_empty) { 
+            continue;  
+         }
+         else {
+            tileList.push_back(*tile);
+         }
          tileInitWithType(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
       }
    }
@@ -390,6 +388,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int col = t.xpos / board->tileWidth;
 
       boardSetTile(board, t, row, col);
+      tileUpdate(board, boardGetTile(board, row, col) );
    }
 
    std::vector <Tile*> checkTiles;
