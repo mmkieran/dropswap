@@ -7,8 +7,8 @@ void tileLoadTexture(Board* board, Tile* tile) {
    //hard code this for now
    switch (tile->type) {
    case tile_empty:
-      tile->texture = nullptr;
-      //tile->texture = board->game->textures[6];  //debug
+      //tile->texture = nullptr;
+      tile->texture = board->game->textures[6];  //debug
       break;
    case tile_circle:
       tile->texture = board->game->textures[0];

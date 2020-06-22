@@ -223,47 +223,44 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
 void boardUpdateFalling(Board* board, int velocity) {
    std::vector <Tile*> tilesToCheck;
+   int drop = 1 * velocity;
+   std::vector <Tile> debug = boardDebug(board);
+
    for (int col = 0; col < board->w; col++) {
-      for (int row = board->endH -1; row >= 0; row--) {
+      for (int row = board->endH - 1; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_empty || tile->type == tile_cleared) {
+
+         if (tile->type == tile_empty || tile->type == tile_cleared) {  //Don't update empty or cleared tiles
             continue;
          }
          if (row >= board->endH - 1) { //skip the bottom row
-            tile->falling = false; 
+            tile->falling = false;
             continue;
          }
 
-         //todo: add garbage falling logic here
-
          Tile* below = boardGetTile(board, row + 1, col);
-         int drop = 1 * velocity;
 
+         //Probably do a while loop here with the below tile type?
          if (below->type == tile_empty) {
             tile->falling = true;
-            //Check if we would drop through the empty tile into another
-            if (tile->ypos + drop >= below->ypos + board->tileHeight) {
-               if (row + 2 <= board->endH - 1) {  //is there another tile below this
-                  Tile* down2 = boardGetTile(board, row + 2, col);
-                  if (down2->type == tile_empty || down2->falling == true) { //Safe to just fall
-                     tile->falling = true; 
-                     tile->ypos += drop;
-                  }
-                  else {
-                     tile->falling = false;
-                     tile->ypos = below->ypos + board->tileHeight;  //lock the tile to the tile 2 down
-                     tilesToCheck.push_back(tile);
-                  }
-               }
-               else { tile->ypos = below->ypos; }  //We're at the bottom so take the below position
+            if (tile->ypos + drop >= below->ypos + board->tileHeight) {  //snap to tile's edge if drop is too much
+               tile->ypos = below->ypos + board->tileHeight;
             }
-            else {  //Nothing to stop it
+            else { tile->ypos += drop; }
+         }
+
+         else if (below->falling == true) {
+            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile stopped short, stop at it's edge
+               tile->ypos = below->ypos - board->tileHeight;
+            }
+            else {
+               tile->falling = true;
                tile->ypos += drop;
             }
          }
 
          else if (below->falling == false) {
-            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //If the below tile is not falling, stop at it's edge
+            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
@@ -273,18 +270,10 @@ void boardUpdateFalling(Board* board, int velocity) {
             }
          }
 
-         else if (below->falling == true) {  //Fall with your friends
-            tile->ypos += drop;
+         else {
+            tile->falling = false;
          }
 
-         else if (below->type == tile_cleared || below->chain == true) {  //if it stops on a clear, it's potentially a chain
-            tile->chain = true;
-            tile->falling = false;
-         }
-         else { 
-            tile->falling = false;
-            tilesToCheck.push_back(tile);
-         }
          tileUpdate(board, tile);
       }
    }
@@ -302,7 +291,7 @@ void boardRemoveClears(Board* board) {
          if (tile->type == tile_cleared) {
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
-               tile->texture = nullptr;
+               tile->texture = board->game->textures[6];
             }
          }
       }
@@ -314,8 +303,12 @@ void boardMoveUp(Board* board, int height) {
    int nudge = height;
    board->offset -= nudge;
 
+   if (board->offset <= -1 * board->tileHeight) {
+      board->offset += board->tileHeight;
+   }
+
    std::vector <Tile*> checkTiles;
-   for (int row = board->startH -1; row < board->wBuffer; row++) {
+   for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
 
@@ -372,7 +365,7 @@ int boardFillTiles(Board* board) {
 
    if (matches.size() > 0) {
       for (auto&& m : matches) {
-         m->texture = nullptr;
+         m->texture = board->game->textures[6];  //debug texture
          m->type = tile_empty;
       }
    }
@@ -380,70 +373,49 @@ int boardFillTiles(Board* board) {
    return 0;
 }
 
-//void boardResetChain(Board* board) {
-//   bool contCombo = false;
-//
-//   for (int col = 0; col < board->w; col++) {
-//      for (int row = board->endH - 1; row >= 0; row--) {
-//         Tile* tile = boardGetTile(board, row, col);
-//         if (tile->type == tile_cleared) {
-//            for (int i = row; i >= board->startH; i--) {
-//               tile->chain = true;
-//               contCombo = true;
-//            }
-//            break;
-//         }
-//      }
-//   }
-//
-//   if (!contCombo) {
-//      board->combo = 0;
-//   }
-//   else {
-//      printf("combo count: %d", board->combo);
-//   }
-//}
-
 void boardUpdateArray(Board* board, bool buffer = false) {
    std::vector <Tile> tileList;
-   bool* done = (bool*)malloc(sizeof(bool) * (board->wBuffer) * board->w);
-   memset(done, false, sizeof(bool) * (board->wBuffer) * board->w );
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         //if (tile->type == tile_empty) { continue;  }
          tileList.push_back(*tile);
          tileInitWithType(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
       }
    }
 
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
-      
-      //Offset to just above the tile below, so that moving up triggers on the last pixel and moving down on the first
-      int row = (t.ypos + board->tileHeight - 1) / board->tileHeight + board->startH;  
+      int row = (t.ypos + board->tileHeight - 1) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
-      if (done[(board->w * row + col)] == true) {  //oopsy we already put a tile in this slot
-         if (t.type != tile_empty) {
-            //printf("overlapping tiles at: %d %d\n", row, col);
-            //board->game->paused = true;
-            //board->game->pauseLength = 2;
-         }
-      }
-
       boardSetTile(board, t, row, col);
-      done[(board->w * row + col)] = true;
    }
 
+   std::vector <Tile*> checkTiles;
    for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
       int row = board->wBuffer - 1;
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
          Tile newTile;
          tileInitWithType(board, &newTile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+         newTile.ypos += board->offset;  //need to take board offset into account
          boardSetTile(board, newTile, row, col);
+         tileUpdate(board, current);
+         checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
    }
+   boardCheckClear(board, checkTiles, false);
+}
 
-   free(done);
+std::vector <Tile> boardDebug(Board* board) {
+   std::vector <Tile> tileList;
+
+   for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         tileList.push_back(*tile);
+      }
+   }
+   return tileList;
 }

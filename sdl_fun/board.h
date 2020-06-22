@@ -60,3 +60,5 @@ void boardRemoveClears(Board* board);
 //void boardResetChain(Board* board);
 void boardUpdateArray(Board* board, bool buffer);
 
+std::vector <Tile> boardDebug(Board* board);
+

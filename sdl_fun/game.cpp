@@ -165,7 +165,7 @@ void gameUpdate(Game* game){
    if (game->timer > 2000) {
       if (game->board->paused == false) {
          boardMoveUp(game->board, 1 * game->board->speed);
-
+         boardUpdateArray(game->board, false);
          //if (game->board->moveTimer + 100 <= SDL_GetTicks()) {
          //   boardMoveUp(game->board, 1 * game->board->speed);
          //   game->board->moveTimer = SDL_GetTicks();
@@ -177,14 +177,7 @@ void gameUpdate(Game* game){
       game->isRunning = false;
    }
 
-   //boardUpdateFalling(game->board, 2);
-
-   //Update falling blocks
-   //if (game->board->fallTimer + 100 <= SDL_GetTicks()) {
-   //   //boardUpdateFalling(game->board);
-   //   boardUpdateFalling(game->board, 2);
-   //   game->board->fallTimer = SDL_GetTicks();
-   //}
+   boardUpdateFalling(game->board, 2);
 
    boardRemoveClears(game->board);
    boardUpdateArray(game->board, false);
@@ -211,6 +204,9 @@ void gameRender(Game* game){
 
 void gameDestroy(Game* game){
    delete game->board->cursor;
+   for (auto&& t : game->textures) {
+      SDL_DestroyTexture(t);
+   }
    boardDestroy(game->board);
    SDL_DestroyWindow(game->window);
    SDL_DestroyRenderer(game->renderer);
