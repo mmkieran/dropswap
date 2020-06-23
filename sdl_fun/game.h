@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <random>
 #include <atomic>
 #include <unordered_map>
@@ -15,6 +16,7 @@ struct Game {
 
    //std::unordered_map<int, SDL_Texture*> textures;
    std::vector <SDL_Texture*> textures;
+   TTF_Font* font;
 
    int bHeight = 12;
    int bWidth = 6;

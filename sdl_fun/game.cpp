@@ -20,6 +20,10 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
       printf("SDL subsystems initialized...\n");
+
+      if (TTF_Init() == 0) {
+         printf("True Text Fonts initialized.\n");
+      }
       
       game->window = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
       if (game->window) {
@@ -29,6 +33,11 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
          if (game->renderer) {
             SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
             printf("Renderer made.\n");
+
+            game->font = TTF_OpenFont("assets/arial.ttf", 14);
+            if (!game->font) {
+               printf("Couldn't load font?.\n");
+            }
 
             //Setting up the game settings
             game->bHeight = 12;
@@ -191,19 +200,37 @@ void gameRender(Game* game){
    SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
    SDL_RenderDrawRect(game->renderer, &game->frame);
 
+   //debug rendering text
+   SDL_Color color = { 255, 255, 255 };
+   SDL_Rect textBox;
+   textBox.x = 64 * 7;
+   textBox.y = 0;
+   textBox.w = 128;
+   textBox.h = 32;
+   SDL_Surface * surface = TTF_RenderText_Solid(game->font,"Swap And Drop", color);
+   SDL_Texture * texture = SDL_CreateTextureFromSurface(game->renderer, surface);
+   SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
+   SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
+
    //Finish drawing and present
    SDL_RenderPresent(game->renderer);
+
+   //debug temp
+   SDL_DestroyTexture(texture);
+   SDL_FreeSurface(surface);
 
 }
 
 void gameDestroy(Game* game){
-   delete game->board->cursor;
-   for (auto&& t : game->textures) {
+   delete game->board->cursor;  //todo make this not a class later
+   for (auto&& t : game->textures) {  //destory all textures, maybe do in function later
       SDL_DestroyTexture(t);
    }
+   TTF_CloseFont(game->font);  //free the font
    boardDestroy(game->board);
    SDL_DestroyWindow(game->window);
    SDL_DestroyRenderer(game->renderer);
+   TTF_Quit();  //close ttf
    SDL_Quit();
    //free(game);
    delete game;

@@ -292,6 +292,7 @@ void boardRemoveClears(Board* board) {
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                tile->texture = nullptr; //board->game->textures[6];
+               //todo flag all blocks above as part of a chain
             }
          }
       }
