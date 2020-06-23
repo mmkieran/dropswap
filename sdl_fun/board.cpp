@@ -38,7 +38,7 @@ Board* boardCreate(Game* game) {
          board->pauseLength = 0;
          board->bust = false;
          board->score = 0;
-         board->combo = 0;
+         board->combo = 1;
 
          std::default_random_engine gen(time(0));
          board->generator = gen;
@@ -175,6 +175,7 @@ void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
 
                current = current + 3;
                while (current < tiles.size()) {  //keep matching
+                  t1 = tiles[current];
                   if (t1->type == tiles[current -1]->type) {
                      matches.push_back(t1);
                      current++;
@@ -212,9 +213,14 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          board->paused = true;
          board->pauseLength = 3000;
          if (fallCombo && m->chain == true) {
-              board->combo += 1;
+            board->combo += 1;
             fallCombo = false;
+
+            if (board->combo > 1) {  //debug
+               printf("combo count: %d\n", board->combo);
+            }
          }
+         m->chain = false;
 
          //todo add score logic here
       }
@@ -247,16 +253,17 @@ void boardUpdateFalling(Board* board, int velocity) {
             if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
                tile->ypos = below->ypos - board->tileHeight;
             }
-            else { tile->ypos += drop; }
+            else { tile->ypos += drop; }  //keep falling
          }
 
          else if (below->falling == false) {
             if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
+               if (below->type == tile_cleared || below->chain == true) { tile->chain = true; }  //If we're stopped by a clear, everything above could be a combo
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
             }
-            else {
+            else {  //fall towards stopped tile
                tile->ypos += drop;
                tile->falling = true;
             }
@@ -264,6 +271,7 @@ void boardUpdateFalling(Board* board, int velocity) {
 
          else {
             tile->falling = false;
+            tile->chain = false;  //Not falling so stop chaining
          }
 
          tileUpdate(board, tile);
@@ -306,12 +314,8 @@ void boardMoveUp(Board* board, int height) {
 
          if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
-         if (board->combo > 0) {  //debug
-            printf("combo count: %d", board->combo);
-         }
-
          tile->chain = false;  //Whenever the board is moving, the combo is over?
-         board->combo = 0;
+         board->combo = 1;
 
          if (tile->ypos <= 0 && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 

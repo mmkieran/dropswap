@@ -31,6 +31,8 @@ void tileLoadTexture(Board* board, Tile* tile) {
    case tile_silver:
       tile->texture = board->game->textures[6];
       break;
+   default:
+      tile->texture = nullptr;
 
    //case tile_empty:
    //   break;
