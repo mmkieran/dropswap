@@ -17,11 +17,11 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //Game* game = (Game*)malloc(sizeof(Game));
    Game* game = new Game;
 
-   int flags = 0;
+   //int flags = 0;
 
-   if (fullscreen) {
-      flags = SDL_WINDOW_FULLSCREEN;
-   }
+   //if (fullscreen) {
+   //   flags = sdl_window_fullscreen;
+   //}
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
       printf("Failed to initialize SDL...\n");
@@ -36,7 +36,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
       
    game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
    if (!game->window) {
@@ -70,7 +70,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->gl_context = SDL_GL_CreateContext(game->window);
    SDL_GL_MakeCurrent(game->window, game->gl_context);
-   SDL_GL_SetSwapInterval(1); // Enable vsync
+   //SDL_GL_SetSwapInterval(1); // Enable vsync
 
    if (gl3wInit() != 0) {
       printf("Failed to initialize gl3w...\n");
