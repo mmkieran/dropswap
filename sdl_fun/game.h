@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <imgui/imgui.h>
 #include <random>
 #include <atomic>
 #include <unordered_map>
@@ -12,6 +13,9 @@ enum TileEnum;
 struct Game {
 
    SDL_Renderer *renderer;
+   SDL_Window *window;
+   SDL_GLContext gl_context;
+   ImGuiIO* io;
    Board* board;
 
    //std::unordered_map<int, SDL_Texture*> textures;
@@ -25,7 +29,7 @@ struct Game {
    int tHeight = 64;
 
    bool isRunning = false;
-   SDL_Window *window;
+
 
    bool paused = false;
    int pauseTimer = 0;

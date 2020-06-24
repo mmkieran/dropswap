@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,7 +151,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -190,6 +190,11 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <Image Include="assets\heart.png" />
     <Image Include="assets\star.png" />
     <Image Include="assets\utriangle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\imgui\example_sdl_opengl3.vcxproj">
+      <Project>{bbaeb705-1669-40f3-8567-04cf6a991f4c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
