@@ -32,7 +32,26 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Failed to initialize True Text Fonts...\n");
    }
 
-   // Decide GL+GLSL versions
+   // Create window with graphics context
+   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+      
+   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
+   if (!game->window) {
+      printf("Failed to create SDL window...\n");
+      return nullptr;
+   }
+
+   game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+   if (!game->renderer) {
+      SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
+      printf("Failed to create renderer.\n");
+      return nullptr;
+   }
+
+      // Decide GL+GLSL versions
    #if __APPLE__
        // GL 3.2 Core + GLSL 150
       const char* glsl_version = "#version 150";
@@ -48,18 +67,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
    #endif
-
-   // Create window with graphics context
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-      
-   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   if (!game->window) {
-      printf("Failed to create window...\n");
-      return nullptr;
-   }
 
    game->gl_context = SDL_GL_CreateContext(game->window);
    SDL_GL_MakeCurrent(game->window, game->gl_context);
@@ -84,13 +91,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    // Setup Platform/Renderer bindings
    ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
-
-   game->renderer = SDL_CreateRenderer(game->window, -1, 0);
-   if (!game->renderer) {
-      SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-      printf("Failed to create renderer.\n");
-      return nullptr;
-   }
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -121,7 +121,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->board->paused = false;
    game->board->pauseLength = 0;
 
-   //todo: remove this later or fix algorithm so there are no matches at the start
+   //todo: Use premade boards or fix algorithm so there are no matches at the start
    boardFillTiles(game->board);
 
    game->isRunning = true;
@@ -210,6 +210,14 @@ void gameHandleEvents(Game* game){
 
 void gameUpdate(Game* game){
 
+   // Start the Dear ImGui frame
+   ImGui_ImplOpenGL3_NewFrame();
+   ImGui_ImplSDL2_NewFrame(game->window);
+   ImGui::NewFrame();
+
+   bool show_demo_window = true;
+   ImGui::ShowDemoWindow(&show_demo_window);
+
    boardRemoveClears(game->board);
    if (game->board->pauseLength > 0) {
       game->board->pauseLength -= game->timeDelta;
@@ -243,16 +251,16 @@ void gameUpdate(Game* game){
 }
 
 void gameRender(Game* game){
+
    SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
    SDL_RenderClear(game->renderer);
    //Draw game objects
    boardRender(game, game->board);
 
    //todo Rough frame for the game... use textures later
-   SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
    SDL_RenderDrawRect(game->renderer, &game->frame);
 
-   //debug rendering text
+   //debug testing rendering text
    SDL_Color color = { 255, 255, 255 };
    SDL_Rect textBox;
    textBox.x = 64 * 7;
@@ -264,10 +272,21 @@ void gameRender(Game* game){
    SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
    SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
 
+   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+   glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
+   glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+   glClear(GL_COLOR_BUFFER_BIT);
+
+   glUseProgram(0);
+   ImGui::Render();
+
+   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+   SDL_GL_SwapWindow(game->window);
+
    //Finish drawing and present
    SDL_RenderPresent(game->renderer);
 
-   //debug temp
+   //debug temp for rendering text
    SDL_DestroyTexture(texture);
    SDL_FreeSurface(surface);
 
@@ -281,12 +300,13 @@ void gameDestroy(Game* game){
    TTF_CloseFont(game->font);  //free the font
    boardDestroy(game->board);
 
+   //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();
    ImGui_ImplSDL2_Shutdown();
    ImGui::DestroyContext();
-
    SDL_GL_DeleteContext(game->gl_context);
 
+   //SDL cleanup
    SDL_DestroyWindow(game->window);
    SDL_DestroyRenderer(game->renderer);
    TTF_Quit();  //close ttf
