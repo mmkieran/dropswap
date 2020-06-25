@@ -6,6 +6,7 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include <imgui/GL/gl3w/gl3w.h>
+#include <gl/GL.h>
 
 #include "game.h"
 #include "board.h"
@@ -253,25 +254,25 @@ void gameUpdate(Game* game){
 
 void gameRender(Game* game){
 
-   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-   SDL_RenderClear(game->renderer);
-   //Draw game objects
-   boardRender(game, game->board);
+   //SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
+   //SDL_RenderClear(game->renderer);
+   ////Draw game objects
+   //boardRender(game, game->board);
 
-   //todo Rough frame for the game... use textures later
-   SDL_RenderDrawRect(game->renderer, &game->frame);
+   ////todo Rough frame for the game... use textures later
+   //SDL_RenderDrawRect(game->renderer, &game->frame);
 
-   //debug testing rendering text
-   SDL_Color color = { 255, 255, 255 };
-   SDL_Rect textBox;
-   textBox.x = 64 * 7;
-   textBox.y = 0;
-   textBox.w = 128;
-   textBox.h = 32;
-   SDL_Surface * surface = TTF_RenderText_Solid(game->font,"Swap And Drop", color);
-   SDL_Texture * texture = SDL_CreateTextureFromSurface(game->renderer, surface);
-   SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
-   SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
+   ////debug testing rendering text
+   //SDL_Color color = { 255, 255, 255 };
+   //SDL_Rect textBox;
+   //textBox.x = 64 * 7;
+   //textBox.y = 0;
+   //textBox.w = 128;
+   //textBox.h = 32;
+   //SDL_Surface * surface = TTF_RenderText_Solid(game->font,"Swap And Drop", color);
+   //SDL_Texture * texture = SDL_CreateTextureFromSurface(game->renderer, surface);
+   //SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
+   //SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
 
    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
    glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
@@ -284,12 +285,12 @@ void gameRender(Game* game){
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
    SDL_GL_SwapWindow(game->window2);
 
-   //Finish drawing and present
-   SDL_RenderPresent(game->renderer);
+   ////Finish drawing and present
+   //SDL_RenderPresent(game->renderer);
 
-   //debug temp for rendering text
-   SDL_DestroyTexture(texture);
-   SDL_FreeSurface(surface);
+   ////debug temp for rendering text
+   //SDL_DestroyTexture(texture);
+   //SDL_FreeSurface(surface);
 
 }
 
