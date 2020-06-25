@@ -14,6 +14,7 @@ struct Game {
 
    SDL_Renderer *renderer;
    SDL_Window *window;
+   SDL_Window *window2;
    SDL_GLContext gl_context;
    ImGuiIO* io;
    Board* board;

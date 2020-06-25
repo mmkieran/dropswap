@@ -36,9 +36,10 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
       
    game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
+   game->window2 = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
    if (!game->window) {
       printf("Failed to create SDL window...\n");
       return nullptr;
@@ -68,9 +69,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
    #endif
 
-   game->gl_context = SDL_GL_CreateContext(game->window);
-   SDL_GL_MakeCurrent(game->window, game->gl_context);
-   //SDL_GL_SetSwapInterval(1); // Enable vsync
+   game->gl_context = SDL_GL_CreateContext(game->window2);
+   SDL_GL_MakeCurrent(game->window2, game->gl_context);
+   SDL_GL_SetSwapInterval(1); // Enable vsync
 
    if (gl3wInit() != 0) {
       printf("Failed to initialize gl3w...\n");
@@ -89,7 +90,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //ImGui::StyleColorsClassic();
 
    // Setup Platform/Renderer bindings
-   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
+   ImGui_ImplSDL2_InitForOpenGL(game->window2, game->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
@@ -212,7 +213,7 @@ void gameUpdate(Game* game){
 
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window);
+   ImGui_ImplSDL2_NewFrame(game->window2);
    ImGui::NewFrame();
 
    bool show_demo_window = true;
@@ -281,7 +282,7 @@ void gameRender(Game* game){
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->window);
+   SDL_GL_SwapWindow(game->window2);
 
    //Finish drawing and present
    SDL_RenderPresent(game->renderer);
