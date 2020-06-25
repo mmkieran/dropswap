@@ -14,7 +14,11 @@ int frameTime;
 
 int main(int argc, char* args[])
 {
-   game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 600, 900, false);
+   game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1200, 900, false);
+   if (!game) {
+      printf("Failed to create game...\n");
+      return -1;
+   }
 
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
