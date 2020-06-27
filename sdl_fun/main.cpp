@@ -20,6 +20,24 @@ int main(int argc, char* args[])
       return -1;
    }
 
+   //define vertices
+   float vertices[] = {
+      0.0f, 0.5f, // x and then y
+      0.5f, -0.5f,
+      -0.5f, -0.5f
+   };
+
+   //Vertex Buffer Object
+   GLuint vbo;
+   glGenBuffers(1, &vbo);
+
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);  //Make vbo active so we can copy the vertex data
+
+   //copy data from vertices to buffer
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
 

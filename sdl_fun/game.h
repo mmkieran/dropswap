@@ -2,6 +2,10 @@
 
 #include <SDL.h>
 #include <SDL_ttf.h>
+
+#include <imgui/GL/gl3w/gl3w.h>
+#include <gl/GL.h>
+
 #include <imgui/imgui.h>
 #include <random>
 #include <atomic>

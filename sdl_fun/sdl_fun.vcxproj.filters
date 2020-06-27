@@ -19,6 +19,12 @@
     <ClCompile Include="cursor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="opengl_tutorial.cpp">
+      <Filter>third</Filter>
+    </ClCompile>
+    <ClCompile Include="render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -29,6 +35,9 @@
     </Filter>
     <Filter Include="assets">
       <UniqueIdentifier>{14a1b75a-df9d-4b76-8cd3-757013aa8b8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third">
+      <UniqueIdentifier>{f17d0b3f-1531-402c-954f-31c62018493f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="cursor.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Depends\stb\include\stb_image.h">
+      <Filter>third</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
