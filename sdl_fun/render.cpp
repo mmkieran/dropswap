@@ -24,8 +24,8 @@ enum ShaderStage {
 const char* vertexSource = R"glsl(
 #version 150 core
 
-layout (location = 0) in vec2 position; 
-layout (location = 1) in vec2 texCoord;
+in vec2 position; 
+in vec2 texCoord;
 
 out vec2 v_texCoord;
 
@@ -46,8 +46,8 @@ out vec4 outColor;
 uniform sampler2D myTexture;
 
 void main() {
-   outColor = texture(myTexture, v_texCoord);
    //outColor = vec4(1.0, 0.5, 0.5, 1.0);
+   outColor = texture(myTexture, v_texCoord);
 }
 )glsl";
 
@@ -71,6 +71,7 @@ GLuint createShader(ShaderStage shaderStage) {
    if (status != GL_TRUE) {
       char buffer[512];
       glGetShaderInfoLog(shader, 512, NULL, buffer);
+      printf("%s", buffer);
       //todo message this somehow
       glDeleteShader(shader);
       return 0;

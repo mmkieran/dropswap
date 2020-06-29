@@ -21,6 +21,17 @@ int main(int argc, char* args[])
       return -1;
    }
 
+   //float vertices[] =
+   //{   //position   //texture coords
+   //   0.0f, 1.0f, -0.5f, 0.5f,
+   //   0.0f, 0.0f, -0.5f, -0.5f,
+   //   1.0f, 0.0f,0.5f, -0.5f,
+
+   //   1.0f, 1.0f,0.5f, 0.5f,
+   //   1.0f, 0.0f,0.5f, -0.5f,
+   //   0.0f, 1.0f, -0.5f, 0.5f
+   //};
+
    float vertices[] =
    {   //position   //texture coords
       -0.5f, 0.5f,   0.0f, 1.0f,
@@ -29,9 +40,8 @@ int main(int argc, char* args[])
 
       0.5f, 0.5f,    1.0f, 1.0f,
       0.5f, -0.5f,   1.0f, 0.0f,
-      -0.5f, 0.5f,   0.0f, 1.0f,
+      -0.5f, 0.5f,   0.0f, 1.0f
    };
-
 
    //Init start
    GLuint vao;
@@ -62,6 +72,7 @@ int main(int argc, char* args[])
    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2*sizeof(float) ) );  //point to texture coords
    glEnableVertexAttribArray(1);
 
+   glActiveTexture(GL_TEXTURE0);
    Texture* texture = loadTextureFromFile("assets/circle.png");
    glBindTexture(GL_TEXTURE_2D, texture->handle);
 
