@@ -271,7 +271,9 @@ void gameRender(Game* game) {
    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   glUseProgram(0);
+   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+   //glUseProgram(0);
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -119,7 +119,7 @@ namespace ogl
    {
       //use stb image to load this.
       int w, h;
-      int comp = 4;  //kmm 8 bit components per pixel
+      int comp = 4;  //kmm 4 bit components per pixel
       int reqComp = 4;  //kmm Requested components
       auto imageData = stbi_load(path, &w, &h, &comp, reqComp);
 
