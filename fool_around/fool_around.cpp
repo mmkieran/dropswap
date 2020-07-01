@@ -30,23 +30,47 @@ struct Tile {
    std::unordered_map <TileEnum, const char*> textures;
 };
 
+
+struct Square {
+   unsigned int vbo;  //vbo handle
+
+   int ptCount;  //to draw it
+
+   float positions[12] =
+   {
+      -0.5f, 0.5f,
+      -0.5f, -0.5f,
+      0.5f, -0.5f,
+
+      0.5f, 0.5f,
+      0.5f, -0.5f,
+      -0.5f, 0.5f,
+   };
+
+
+   float texcoords[12] =
+   {
+      0.0f, 1.0f,
+      0.0f, 0.0f,
+      1.0f, 0.0f,
+
+      1.0f, 1.0f,
+      1.0f, 0.0f,
+      0.0f, 1.0f,
+   };
+
+};
+
 int main()
 {
 
-    int height = 12;
-    int width = 6;
-    int tileHeight = 64;
+    Square* square = new Square;
 
-    Tile* tiles = (Tile*)malloc(sizeof(Tile) * height * width);
-    Tile* tile1 = (tiles + 1);
-    Tile* tile2 = (tiles + 11);
+    for (int i = 0; i < 12; i++) {
+       printf("%f\n", square->positions[i]);
+    }
 
-    tile1->ypos = 65;
-
-    int row = (tile1->ypos + tileHeight - 1) / tileHeight + 12;
-    printf("%d \n", row);
-
-    free(tiles);
+    delete square;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

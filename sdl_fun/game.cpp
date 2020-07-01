@@ -11,6 +11,7 @@
 #include "texture_manager.h"
 #include "cursor.h"
 #include "tile.h"
+#include "render.h"
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
@@ -37,13 +38,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       return nullptr;
    }
 
-   //game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-   //if (!game->renderer) {
-   //   SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-   //   printf("Failed to create renderer.\n");
-   //   return nullptr;
-   //}
-
    // Decide GL+GLSL versions
 #if __APPLE__
     // GL 3.2 Core + GLSL 150
@@ -69,6 +63,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Failed to initialize gl3w...\n");
       return nullptr;
    }
+
+   void openglInit();
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();

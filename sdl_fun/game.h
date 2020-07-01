@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 struct Board;
-enum TileEnum;
 
 struct Game {
 

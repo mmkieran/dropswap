@@ -15,12 +15,18 @@ struct Texture {
 //const char* vertexSource;
 //const char* fragSource;
 
-GLuint createShader(ShaderStage shaderStage);
-GLuint createProgram();
+void openglInit();
 
+GLuint createShader(ShaderStage shaderStage);
+void deleteShaders(GLuint shader);
+
+GLuint createProgram();
+void deleteProgram(GLuint program);
 
 Texture* createTexture(unsigned char* image, int width, int height);
 void destroyTexture(Texture* texture);
 
 Texture* loadTextureFromFile(const char* filename);
 
+Square* createSquare();
+void deleteSquare(Square* square);

@@ -51,6 +51,16 @@ void main() {
 }
 )glsl";
 
+void openglInit() {
+   
+   GLuint vao;
+   glGenVertexArrays(1, &vao);  //Make a vertex array object... stores the links between attributes and vbos
+   glBindVertexArray(vao);
+
+   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
+   glDisable(GL_DEPTH_TEST);
+
+}
 
 GLuint createShader(ShaderStage shaderStage) {
    GLuint shader;
@@ -106,6 +116,10 @@ void deleteShaders(GLuint shader) {
    glDeleteShader(shader);
 }
 
+void deleteProgram(GLuint program) {
+   glDeleteProgram(program);
+}
+
 
 Texture* createTexture(unsigned char* image, int width, int height) {
    Texture* texture = new Texture;
@@ -149,14 +163,14 @@ Texture* loadTextureFromFile(const char* filename) {
    int nChannels = 4; //get number of channels
    int reqChannels = 4;  //required number of channels
 
+   stbi_set_flip_vertically_on_load(true);
    unsigned char* image = stbi_load(filename, &width, &height, &nChannels, reqChannels);
    if (!image) {
       printf("Failed to load image: %s...\n", filename);
       return nullptr;
    }
 
-   printf("%d...\n", nChannels);
-   Texture* texture = createTexture(image, width, height);
+   Texture* texture = createTexture(image, width, height);  //create texture using image data
 
    stbi_image_free(image);
 
@@ -164,26 +178,71 @@ Texture* loadTextureFromFile(const char* filename) {
 }
 
 
+struct Square {
+   GLuint vbo;  //vbo handle
 
-//for later
-float vertices[] =
-{
-   -0.5f, 0.5f,
-   -0.5f, -0.5f,
-   0.5f, -0.5f,
+   int ptCount = 6;  //to draw it
 
-   0.5f, 0.5f,
-   0.5f, -0.5f,
-   -0.5f, 0.5f,
+   float positions[12] =
+   {
+      -0.5f, 0.5f,
+      -0.5f, -0.5f,
+      0.5f, -0.5f,
+
+      0.5f, 0.5f,
+      0.5f, -0.5f,
+      -0.5f, 0.5f,
+   };
+
+
+   float texcoords[12] =
+   {
+      0.0f, 1.0f,
+      0.0f, 0.0f,
+      1.0f, 0.0f,
+
+      1.0f, 1.0f,
+      1.0f, 0.0f,
+      0.0f, 1.0f,
+   };
+
 };
 
-float texcoords[] =
-{
-   0.0f, 1.0f,
-   0.0f, 0.0f,
-   1.0f, 0.0f,
 
-   1.0f, 1.0f,
-   1.0f, 0.0f,
-   0.0f, 1.0f,
+
+Square* createSquare() {
+
+   Square* square = new Square;
+
+   float vertices[24];
+
+   //todo make this smarter if we have more than 2 attributes
+   int i = 0;
+   int j = 0;
+   while (i < 12) {
+      if (square->positions) {
+         vertices[j] = square->positions[i];
+         vertices[j + 1] = square->positions[i + 1];
+      }
+      if (square->texcoords) {
+         vertices[j + 2] = square->texcoords[i];
+         vertices[j + 3] = square->texcoords[i + 1];
+      }
+
+      i += 2;
+      j += 4;
+   }
+
+   glGenBuffers(1, &square->vbo);
+
+   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);  //Make vbo active so we can copy the vertex data
+
+   //copy data from vertices to buffer
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 };
+
+void deleteSquare(Square* square) {
+   delete square;
+}

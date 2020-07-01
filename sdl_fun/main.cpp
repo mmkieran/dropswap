@@ -21,38 +21,6 @@ int main(int argc, char* args[])
       return -1;
    }
 
-   //float vertices[] =
-   //{   //position   //texture coords
-   //   0.0f, 1.0f, -0.5f, 0.5f,
-   //   0.0f, 0.0f, -0.5f, -0.5f,
-   //   1.0f, 0.0f,0.5f, -0.5f,
-
-   //   1.0f, 1.0f,0.5f, 0.5f,
-   //   1.0f, 0.0f,0.5f, -0.5f,
-   //   0.0f, 1.0f, -0.5f, 0.5f
-   //};
-
-   float vertices[] =
-   {   //position   //texture coords
-      -0.5f, 0.5f,   0.0f, 1.0f,
-      -0.5f, -0.5f,  0.0f, 0.0f,
-      0.5f, -0.5f,   1.0f, 0.0f,
-
-      0.5f, 0.5f,    1.0f, 1.0f,
-      0.5f, -0.5f,   1.0f, 0.0f,
-      -0.5f, 0.5f,   0.0f, 1.0f
-   };
-
-   //Init start
-   GLuint vao;
-   glGenVertexArrays(1, &vao);  //Make a vertex array object... stores the links between attributes and vbos
-   glBindVertexArray(vao);
-
-   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
-   glDisable(GL_DEPTH_TEST);
-
-   //End init
-
    //Vertex Buffer Object
    GLuint vbo;
    glGenBuffers(1, &vbo);
@@ -72,8 +40,8 @@ int main(int argc, char* args[])
    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2*sizeof(float) ) );  //point to texture coords
    glEnableVertexAttribArray(1);
 
-   glActiveTexture(GL_TEXTURE0);
-   Texture* texture = loadTextureFromFile("assets/circle.png");
+   //glActiveTexture(GL_TEXTURE0);
+   Texture* texture = loadTextureFromFile("assets/utriangle.png");
    glBindTexture(GL_TEXTURE_2D, texture->handle);
 
    while (gameRunning(game)) {
