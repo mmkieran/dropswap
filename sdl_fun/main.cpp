@@ -21,28 +21,10 @@ int main(int argc, char* args[])
       return -1;
    }
 
-   //Vertex Buffer Object
-   GLuint vbo;
-   glGenBuffers(1, &vbo);
-
-   glBindBuffer(GL_ARRAY_BUFFER, vbo);  //Make vbo active so we can copy the vertex data
-
-   //copy data from vertices to buffer
-   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
    GLuint shaderProgram = createProgram();
    glUseProgram(shaderProgram);
 
-   //GLint positionAttribute = glGetAttribLocation(shaderProgram, "position");
-   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);  //point to position
-   glEnableVertexAttribArray(0);
-
-   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2*sizeof(float) ) );  //point to texture coords
-   glEnableVertexAttribArray(1);
-
-   //glActiveTexture(GL_TEXTURE0);
-   Texture* texture = loadTextureFromFile("assets/utriangle.png");
-   glBindTexture(GL_TEXTURE_2D, texture->handle);
+   game->square = createSquare();
 
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
@@ -67,7 +49,7 @@ int main(int argc, char* args[])
    }
 
    glDeleteProgram(shaderProgram);
-   destroyTexture(texture);
+   //destroyTexture(texture);
 
    gameDestroy(game);
    return 0;

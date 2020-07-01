@@ -111,12 +111,12 @@ GLuint createProgram() {
    return shaderProgram;
 }
 
-void deleteShaders(GLuint shader) {
+void destroyShaders(GLuint shader) {
    //glDetachShader(program, shader);
    glDeleteShader(shader);
 }
 
-void deleteProgram(GLuint program) {
+void destroyProgram(GLuint program) {
    glDeleteProgram(program);
 }
 
@@ -163,7 +163,7 @@ Texture* loadTextureFromFile(const char* filename) {
    int nChannels = 4; //get number of channels
    int reqChannels = 4;  //required number of channels
 
-   stbi_set_flip_vertically_on_load(true);
+   stbi_set_flip_vertically_on_load(true);  //my images are upside down :)
    unsigned char* image = stbi_load(filename, &width, &height, &nChannels, reqChannels);
    if (!image) {
       printf("Failed to load image: %s...\n", filename);
@@ -177,43 +177,32 @@ Texture* loadTextureFromFile(const char* filename) {
    return texture;
 }
 
+struct Mesh {
+   GLuint vbo;
+   int ptCount;
 
-struct Square {
-   GLuint vbo;  //vbo handle
-
-   int ptCount = 6;  //to draw it
-
-   float positions[12] =
-   {
-      -0.5f, 0.5f,
-      -0.5f, -0.5f,
-      0.5f, -0.5f,
-
-      0.5f, 0.5f,
-      0.5f, -0.5f,
-      -0.5f, 0.5f,
-   };
-
-
-   float texcoords[12] =
-   {
-      0.0f, 1.0f,
-      0.0f, 0.0f,
-      1.0f, 0.0f,
-
-      1.0f, 1.0f,
-      1.0f, 0.0f,
-      0.0f, 1.0f,
-   };
-
+   float* vertices;
 };
 
+Mesh* createMesh(int verts) {
+   Mesh* mesh = new Mesh;
+   mesh->vertices = (float*)malloc(sizeof(float)*verts);
+   mesh->ptCount = verts;
+
+   return mesh;
+}
+
+void destroyMesh(Mesh* mesh) {
+   free(mesh->vertices);
+   delete mesh;
+}
 
 
 Square* createSquare() {
 
    Square* square = new Square;
 
+   //Take the positions and texture coordinates and intertwine them into one array
    float vertices[24];
 
    //todo make this smarter if we have more than 2 attributes
@@ -233,6 +222,10 @@ Square* createSquare() {
       j += 4;
    }
 
+   for (int a = 0; a < 24; a++) {
+      printf("%f\n", vertices[a]);
+   }
+
    glGenBuffers(1, &square->vbo);
 
    glBindBuffer(GL_ARRAY_BUFFER, square->vbo);  //Make vbo active so we can copy the vertex data
@@ -240,9 +233,66 @@ Square* createSquare() {
    //copy data from vertices to buffer
    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);  //point to position attribute
+   glEnableVertexAttribArray(0);
+
+   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));  //point to texture coords attribute
+   glEnableVertexAttribArray(1);
+
+   square->texture = loadTextureFromFile("assets/utriangle.png");  //todo put loading a texture in a texture manager
+   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
+
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+
+   return square;
 };
 
-void deleteSquare(Square* square) {
+void drawSquare(Square* square) {
+
+   //Take the positions and texture coordinates and intertwine them into one array
+   float vertices[24];
+
+   //todo make this smarter if we have more than 2 attributes
+   int i = 0;
+   int j = 0;
+   while (i < 12) {
+      if (square->positions) {
+         vertices[j] = square->positions[i];
+         vertices[j + 1] = square->positions[i + 1];
+      }
+      if (square->texcoords) {
+         vertices[j + 2] = square->texcoords[i];
+         vertices[j + 3] = square->texcoords[i + 1];
+      }
+
+      i += 2;
+      j += 4;
+   }
+
+   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
+
+   //copy data from vertices to buffer
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+   
+   glDrawArrays(GL_TRIANGLES, 0, square->ptCount);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+}
+
+void destroySquare(Square* square) {
    delete square;
+}
+
+void clearRenderer(float r, float g, float b, float a) {
+   glClearColor(r, g, b, a);
+   glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void copyToRenderer(Mesh* mesh) {
+   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+
+   //copy data from vertices to buffer
+   glBufferData(GL_ARRAY_BUFFER, sizeof(mesh->vertices), mesh->vertices, GL_STATIC_DRAW);
+
+   glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }

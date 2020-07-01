@@ -10,6 +10,7 @@
 #include <random>
 #include <atomic>
 #include <unordered_map>
+#include "render.h"
 
 struct Board;
 
@@ -21,6 +22,8 @@ struct Game {
    SDL_GLContext gl_context;
    ImGuiIO* io;
    Board* board;
+
+   Square* square;
 
    //std::unordered_map<int, SDL_Texture*> textures;
    std::vector <SDL_Texture*> textures;

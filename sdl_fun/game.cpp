@@ -262,14 +262,12 @@ void gameRender(Game* game) {
    //SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
    //SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
 
-   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-   glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
-   glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-   glClear(GL_COLOR_BUFFER_BIT);
 
-   glDrawArrays(GL_TRIANGLES, 0, 6);
+   //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
+   clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   //glUseProgram(0);
+   drawSquare(game->square);
+
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -291,6 +289,9 @@ void gameDestroy(Game* game) {
    //}
    TTF_CloseFont(game->font);  //free the font
    //boardDestroy(game->board);
+
+   destroyTexture(game->square->texture);
+   destroySquare(game->square);
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();
