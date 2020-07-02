@@ -13,6 +13,23 @@
 #include "tile.h"
 #include "render.h"
 
+
+bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
+   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+
+   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
+   if (!game->window) {
+      printf("Failed to create SDL window...\n");
+      return false;
+   }
+
+   game->gl_context = SDL_GL_CreateContext(game->window);
+   SDL_GL_MakeCurrent(game->window, game->gl_context);
+   SDL_GL_SetSwapInterval(1); // Enable vsync
+
+   return true;
+}
+
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
 
@@ -20,51 +37,46 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Failed to initialize SDL...\n");
       return nullptr;
    }
-
+   else {
+      printf("Initialized SDL...\n");
+   }
+   
    if (TTF_Init() != 0) {
       printf("Failed to initialize True Text Fonts...\n");
    }
-
-   // Create window with graphics context
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-
-   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   if (!game->window) {
-      printf("Failed to create SDL window...\n");
-      return nullptr;
+   else {
+      printf("Initialized True Text Fonts...\n");
    }
 
-   // Decide GL+GLSL versions
-#if __APPLE__
-    // GL 3.2 Core + GLSL 150
-   const char* glsl_version = "#version 150";
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#else
-    // GL 3.0 + GLSL 130
-   const char* glsl_version = "#version 130";
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#endif
+   if (openglInit() != 0) {
+      printf("Shader stuff failed...\n");
+   }
+   else {
+      printf("Initialized openGL...\n");
+   }
 
-   game->gl_context = SDL_GL_CreateContext(game->window);
-   SDL_GL_MakeCurrent(game->window, game->gl_context);
-   SDL_GL_SetSwapInterval(1); // Enable vsync
+
+   if (!createGameWindow(game, title, xpos, ypos, width, height)) {
+      printf("Failed to create SDL window...\n");
+   }
 
    if (gl3wInit() != 0) {
       printf("Failed to initialize gl3w...\n");
       return nullptr;
    }
+   else {
+      printf("Initialized gl3w...\n");
+   }
 
-   void openglInit();
+   game->resources = initResources();
+
+   //Make a vertex array object... stores the links between attributes and vbos
+   GLuint vao;
+   glGenVertexArrays(1, &vao);
+   glBindVertexArray(vao);
+
+   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
+   glDisable(GL_DEPTH_TEST);
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
@@ -78,6 +90,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //ImGui::StyleColorsClassic();
 
    // Setup Platform/Renderer bindings
+   const char* glsl_version = "#version 130";
    ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
 
@@ -99,7 +112,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //game->frame.y = 0;
 
    game->timer = 0;
-   game->resources = initResources(); //load up all our textures
 
    ////setting up board
    //game->board = boardCreate(game);
@@ -266,15 +278,14 @@ void gameRender(Game* game) {
 }
 
 void gameDestroy(Game* game) {
-   //delete game->board->cursor;  //todo make this not a class later
-   //for (auto&& t : game->textures) {  //destory all textures, maybe do in function later
-   //   SDL_DestroyTexture(t);
-   //}
+
    TTF_CloseFont(game->font);  //free the font
    //boardDestroy(game->board);
 
-   //destroyTexture(game->square->texture);
    destroySquare(game->square);
+   //destroy vertex array??
+
+   destroyResources(game->resources);
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();

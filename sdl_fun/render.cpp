@@ -1,7 +1,8 @@
 #include "render.h"
 #include "stb_image.h"
-#include <gl/GL.h>
 
+#include <gl/GL.h>
+#include <SDL.h>
 
 //I really recommend having your own struct that looks like this!
 struct Vec2
@@ -53,18 +54,23 @@ void main() {
 }
 )glsl";
 
-void openglInit() {
-   
-   GLuint vao;
-   glGenVertexArrays(1, &vao);  //Make a vertex array object... stores the links between attributes and vbos
-   glBindVertexArray(vao);
+int openglInit() {
 
-   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
-   glDisable(GL_DEPTH_TEST);
+   //todo check what can go wrong here
 
-   GLuint shaderProgram = createProgram();
-   glUseProgram(shaderProgram);
+   // Create graphics context
+   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
+
+   // GL 3.0 + GLSL 130
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+   return 0;
 }
 
 GLuint createShader(ShaderStage shaderStage) {
@@ -114,6 +120,10 @@ GLuint createProgram() {
    glDeleteShader(fragShader);
 
    return shaderProgram;
+}
+
+void useProgram(GLuint program) {
+   glUseProgram(program);
 }
 
 void destroyShaders(GLuint shader) {
@@ -302,4 +312,5 @@ void copyToRenderer(Mesh* mesh) {
 
    glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+
 }

@@ -44,12 +44,13 @@ struct Square {
 //const char* vertexSource;
 //const char* fragSource;
 
-void openglInit();
+int openglInit();
 
 GLuint createShader(ShaderStage shaderStage);
 void destroyShaders(GLuint shader);
 
 GLuint createProgram();
+void useProgram(GLuint program);
 void destroyProgram(GLuint program);
 
 Texture* createTexture(unsigned char* image, int width, int height);

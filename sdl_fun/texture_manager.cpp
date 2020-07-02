@@ -1,8 +1,9 @@
-#include "texture_manager.h"
+
 #include <stdio.h>
-#include "render.h"
 #include <vector>
 
+#include "render.h"
+#include "texture_manager.h"
 
 //Need a place to store textures and other assets
 //Need a way to retrieve textures and assets
@@ -10,7 +11,9 @@
 
 struct Resources {
    std::vector <Texture*> textures;  //todo maybe use a hashmap?
-   //audio?
+   GLuint shaderProgram;
+
+   //audio
    //others?
 };
 
@@ -26,45 +29,24 @@ Resources* initResources() {
    resources->textures.push_back(loadTextureFromFile("assets/empty.png"));  //silver
    resources->textures.push_back(loadTextureFromFile("assets/skull.png")); //clear
 
+   //Might have more than 1 shader eventually?
+   resources->shaderProgram = createProgram();
+
    return resources;
 }
 
 void destroyResources(Resources* resources) {
+   if (resources->textures.size() > 0) {
+      for (auto&& tex : resources->textures) {
+         destroyTexture(tex);
+      }
+   }
+   if (resources->shaderProgram) {
+      destroyProgram(resources->shaderProgram);
+   }
    delete resources;
 }
 
 Texture* resourcesGetTexture(Resources* resources, int index) {
    return resources->textures[index];
 }
-
-//Texture* getTexture(Tile* tile) {
-//   //hard code this for now
-//switch (tile->type) {
-//case tile_empty:
-//   tile->texture = nullptr;
-//   //tile->texture = board->game->textures[6];  //debug
-//   break;
-//case tile_circle:
-//   tile->texture = board->game->textures[0];
-//   break;
-//case tile_diamond:
-//   tile->texture = board->game->textures[1];
-//   break;
-//case tile_utriangle:
-//   tile->texture = board->game->textures[2];
-//   break;
-//case tile_dtriangle:
-//   tile->texture = board->game->textures[3];
-//   break;
-//case tile_star:
-//   tile->texture = board->game->textures[4];
-//   break;
-//case tile_heart:
-//   tile->texture = board->game->textures[5];
-//   break;
-//case tile_silver:
-//   tile->texture = board->game->textures[6];
-//   break;
-//default:
-//   tile->texture = nullptr;
-//}

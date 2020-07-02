@@ -4,10 +4,9 @@
 #include <SDL_ttf.h>
 #include <imgui/imgui.h>
 
-#include "texture_manager.h"
-
 typedef struct Board Board;
 typedef struct Square Square;
+typedef struct Resources Resources;
 
 struct Game {
 
