@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include "board.h"
-#include "texture_manager.h"
+#include "resources.h"
 #include "tile.h"
 #include "cursor.h"
 

@@ -1,5 +1,5 @@
 #include "cursor.h"
-#include "texture_manager.h"
+#include "resources.h"
 #include "board.h"
 
 Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {

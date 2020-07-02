@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "tile.h"
-#include "texture_manager.h"
+#include "resources.h"
 
 
 void tileLoadTexture(Board* board, Tile* tile) {

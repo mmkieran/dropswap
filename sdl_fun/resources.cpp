@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "render.h"
-#include "texture_manager.h"
+#include "resources.h"
 
 //Need a place to store textures and other assets
 //Need a way to retrieve textures and assets

@@ -8,7 +8,7 @@
 
 #include "game.h"
 #include "board.h"
-#include "texture_manager.h"
+#include "resources.h"
 #include "cursor.h"
 #include "tile.h"
 #include "render.h"

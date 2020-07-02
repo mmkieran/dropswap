@@ -174,7 +174,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl_tutorial.cpp" />
     <ClCompile Include="render.cpp" />
-    <ClCompile Include="texture_manager.cpp" />
+    <ClCompile Include="resources.cpp" />
     <ClCompile Include="tile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -183,7 +183,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClInclude Include="game.h" />
     <ClInclude Include="cursor.h" />
     <ClInclude Include="render.h" />
-    <ClInclude Include="texture_manager.h" />
+    <ClInclude Include="resources.h" />
     <ClInclude Include="tile.h" />
   </ItemGroup>
   <ItemGroup>
