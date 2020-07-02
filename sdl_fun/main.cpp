@@ -24,7 +24,7 @@ int main(int argc, char* args[])
    GLuint shaderProgram = createProgram();
    glUseProgram(shaderProgram);
 
-   game->square = createSquare();
+   game->square = createSquare(game);
 
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
@@ -49,7 +49,6 @@ int main(int argc, char* args[])
    }
 
    glDeleteProgram(shaderProgram);
-   //destroyTexture(texture);
 
    gameDestroy(game);
    return 0;

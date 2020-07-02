@@ -1,5 +1,7 @@
 #include "render.h"
 #include "stb_image.h"
+#include <gl/GL.h>
+
 
 //I really recommend having your own struct that looks like this!
 struct Vec2
@@ -198,7 +200,7 @@ void destroyMesh(Mesh* mesh) {
 }
 
 
-Square* createSquare() {
+Square* createSquare(Game* game) {
 
    Square* square = new Square;
 
@@ -222,10 +224,6 @@ Square* createSquare() {
       j += 4;
    }
 
-   for (int a = 0; a < 24; a++) {
-      printf("%f\n", vertices[a]);
-   }
-
    glGenBuffers(1, &square->vbo);
 
    glBindBuffer(GL_ARRAY_BUFFER, square->vbo);  //Make vbo active so we can copy the vertex data
@@ -239,13 +237,19 @@ Square* createSquare() {
    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));  //point to texture coords attribute
    glEnableVertexAttribArray(1);
 
-   square->texture = loadTextureFromFile("assets/utriangle.png");  //todo put loading a texture in a texture manager
-   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
+   //square->texture = game->textures[1];  //todo put loading a texture in a texture manager
+   //glBindTexture(GL_TEXTURE_2D, square->texture->handle);
 
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
    return square;
 };
+
+void bindTexture(Square* square) {
+   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
+   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+}
 
 void drawSquare(Square* square) {
 

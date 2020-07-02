@@ -32,7 +32,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
    game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   game->window2 = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
+   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
    if (!game->window) {
       printf("Failed to create SDL window...\n");
       return nullptr;
@@ -55,8 +55,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
 
-   game->gl_context = SDL_GL_CreateContext(game->window2);
-   SDL_GL_MakeCurrent(game->window2, game->gl_context);
+   game->gl_context = SDL_GL_CreateContext(game->window);
+   SDL_GL_MakeCurrent(game->window, game->gl_context);
    SDL_GL_SetSwapInterval(1); // Enable vsync
 
    if (gl3wInit() != 0) {
@@ -78,7 +78,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //ImGui::StyleColorsClassic();
 
    // Setup Platform/Renderer bindings
-   ImGui_ImplSDL2_InitForOpenGL(game->window2, game->gl_context);
+   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
@@ -90,16 +90,16 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->bHeight = 12;
    game->bWidth = 6;
 
-   game->frame.w = game->tWidth = 64;
+   //game->frame.w = game->tWidth = 64;
    game->tHeight = 64;
 
-   game->frame.w = game->tWidth * game->bWidth;
-   game->frame.h = game->tHeight * game->bHeight;
-   game->frame.x = 0;
-   game->frame.y = 0;
+   //game->frame.w = game->tWidth * game->bWidth;
+   //game->frame.h = game->tHeight * game->bHeight;
+   //game->frame.x = 0;
+   //game->frame.y = 0;
 
    game->timer = 0;
-   //gameLoadTextures(game);
+   game->resources = initResources(); //load up all our textures
 
    ////setting up board
    //game->board = boardCreate(game);
@@ -117,26 +117,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->isRunning = true;
    return game;
 
-}
-
-void gameLoadTextures(Game* game) {
-
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/circle.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/diamond.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/utriangle.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/dtriangle.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/star.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/heart.png"));
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/empty.png"));  //silver
-   game->textures.push_back(TextureManager::LoadTexture(game, "assets/skull.png")); //clear
-
-   //game->textures[(int)tile_diamond] = TextureManager::LoadTexture(game, "assets/diamond.png");
-   //game->textures[(int)tile_utriangle] = TextureManager::LoadTexture(game, "assets/utriangle.png");
-   //game->textures[(int)tile_dtriangle] = TextureManager::LoadTexture(game, "assets/dtriangle.png");
-   //game->textures[(int)tile_star] = TextureManager::LoadTexture(game, "assets/star.png");
-   //game->textures[(int)tile_circle] = TextureManager::LoadTexture(game, "assets/circle.png");
-   //game->textures[(int)tile_heart] = TextureManager::LoadTexture(game, "assets/heart.png");
-   //game->textures[(int)tile_silver] = TextureManager::LoadTexture(game, "assets/grass.png");
 }
 
 void gameHandleEvents(Game* game) {
@@ -202,7 +182,7 @@ void gameUpdate(Game* game) {
 
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window2);
+   ImGui_ImplSDL2_NewFrame(game->window);
    ImGui::NewFrame();
 
    bool show_demo_window = true;
@@ -271,7 +251,7 @@ void gameRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->window2);
+   SDL_GL_SwapWindow(game->window);
 
    ////Finish drawing and present
    //SDL_RenderPresent(game->renderer);
@@ -290,7 +270,7 @@ void gameDestroy(Game* game) {
    TTF_CloseFont(game->font);  //free the font
    //boardDestroy(game->board);
 
-   destroyTexture(game->square->texture);
+   //destroyTexture(game->square->texture);
    destroySquare(game->square);
 
    //imgui stuff to shutdown

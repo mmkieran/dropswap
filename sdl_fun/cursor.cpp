@@ -3,7 +3,7 @@
 #include "board.h"
 
 Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {
-   objTexture = TextureManager::LoadTexture(game, texturesheet);
+   //objTexture = TextureManager::LoadTexture(game, texturesheet);
    xpos = x;
    ypos = y;
 
@@ -39,6 +39,6 @@ void Cursor::Update(Game* game) {
 }
 
 void Cursor::Render(Game* game) {
-   SDL_RenderCopy(game->renderer, objTexture, &srcRect, &destRect);
+   //SDL_RenderCopy(game->renderer, objTexture, &srcRect, &destRect);
 }
 

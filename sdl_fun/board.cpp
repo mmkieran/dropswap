@@ -71,7 +71,7 @@ void boardRender(Game* game, Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->texture == nullptr) { continue; }
-         SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
+         //SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
       }
    }
    //Does Cursor rendering belong here? It's part of the board
@@ -206,7 +206,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
          //clear block and set timer
-         m->texture = board->game->textures[7];
+         //m->texture = board->game->textures[7];  //todo replace with new texture stuff
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;

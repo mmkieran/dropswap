@@ -1,11 +1,11 @@
 #pragma once
+#include "render.h"
 
-#include "game.h"
-#include <vector>
+typedef struct Resources Resources;
 
-class TextureManager {
-public:
-   static SDL_Texture* LoadTexture(Game* game, const char* fileName);
-   static void Draw(Game* game, SDL_Texture* tex, SDL_Rect src, SDL_Rect dest);
+Resources* initResources();
 
-};
+void destroyResources(Resources* resources);
+
+Texture* resourcesGetTexture(Resources* resources, int index);
+

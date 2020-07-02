@@ -2,10 +2,8 @@
 
 #include <imgui/GL/gl3w/gl3w.h>
 
-struct Vec2;
-struct Mat4x4;
-
-enum ShaderStage;
+typedef enum ShaderStage ShaderStage;
+typedef struct Game Game;
 
 struct Texture {
    GLuint handle;
@@ -59,7 +57,7 @@ void destroyTexture(Texture* texture);
 
 Texture* loadTextureFromFile(const char* filename);
 
-Square* createSquare();
+Square* createSquare(Game* game);
 void destroySquare(Square* square);
 
 void drawSquare(Square* square);
