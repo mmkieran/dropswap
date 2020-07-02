@@ -62,6 +62,9 @@ void openglInit() {
    //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
    glDisable(GL_DEPTH_TEST);
 
+   GLuint shaderProgram = createProgram();
+   glUseProgram(shaderProgram);
+
 }
 
 GLuint createShader(ShaderStage shaderStage) {

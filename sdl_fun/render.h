@@ -53,6 +53,7 @@ GLuint createProgram();
 void destroyProgram(GLuint program);
 
 Texture* createTexture(unsigned char* image, int width, int height);
+void bindTexture(Square* square);
 void destroyTexture(Texture* texture);
 
 Texture* loadTextureFromFile(const char* filename);

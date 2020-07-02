@@ -24,8 +24,6 @@ int main(int argc, char* args[])
    GLuint shaderProgram = createProgram();
    glUseProgram(shaderProgram);
 
-   game->square = createSquare(game);
-
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
 

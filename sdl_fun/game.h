@@ -2,11 +2,7 @@
 
 #include <SDL.h>
 #include <SDL_ttf.h>
-
-#include <imgui/GL/gl3w/gl3w.h>
-
 #include <imgui/imgui.h>
-#include <random>
 
 #include "texture_manager.h"
 

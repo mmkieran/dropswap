@@ -113,6 +113,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    ////todo: Use premade boards or fix algorithm so there are no matches at the start
    //boardFillTiles(game->board);
 
+   game->square = createSquare(game); //debug create square
+   game->square->texture = resourcesGetTexture(game->resources, 3);
+   bindTexture(game->square);
 
    game->isRunning = true;
    return game;
