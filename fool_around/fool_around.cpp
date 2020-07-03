@@ -6,71 +6,128 @@
 #include <stdlib.h>
 #include <unordered_map>
 
-enum TileEnum {
-   tile_empty = 0,
-   tile_circle,
-   tile_diamond,
-   tile_utriangle,
-   tile_dtriangle,
-   tile_star,
-   tile_heart,
-   tile_silver,
-   tile_garbage
-};
 
-struct Tile {
-
-   TileEnum type;
-
-   int xpos;
-   int ypos;
-
-   bool falling;
-
-   std::unordered_map <TileEnum, const char*> textures;
+//I really recommend having your own struct that looks like this!
+struct Vec2
+{
+   float x, y;
 };
 
 
-struct Square {
-   unsigned int vbo;  //vbo handle
-
-   int ptCount;  //to draw it
-
-   float positions[12] =
-   {
-      -0.5f, 0.5f,
-      -0.5f, -0.5f,
-      0.5f, -0.5f,
-
-      0.5f, 0.5f,
-      0.5f, -0.5f,
-      -0.5f, 0.5f,
-   };
-
-
-   float texcoords[12] =
-   {
-      0.0f, 1.0f,
-      0.0f, 0.0f,
-      1.0f, 0.0f,
-
-      1.0f, 1.0f,
-      1.0f, 0.0f,
-      0.0f, 1.0f,
-   };
-
+//4x4 matrix - a standard for graphics.
+struct Mat4x4
+{
+   float values[16];
 };
+
+//This will be used to translate, rotate, and scale our meshes
+Mat4x4 identityMatrix() {
+   Mat4x4 identity;
+
+   for (int row = 0; row < 4; row++) {
+      for (int col = 0; col < 4; col++) {
+         if (row == col) {
+            identity.values[4 * row + col] = 1;
+         }
+         else {
+            identity.values[4 * row + col] = 0;
+         }
+      }
+   }
+
+   return identity;
+}
+
+//translation
+Mat4x4 translateMatrix(Vec2 movement) {
+   Mat4x4 out = identityMatrix();
+   out.values[3] = movement.x;
+   out.values[7] = movement.y;
+
+   return out;
+}
+
+//scale
+Mat4x4 scaleMatrix(Vec2 scale) {
+   Mat4x4 out = identityMatrix();
+   out.values[0] = scale.x;
+   out.values[5] = scale.y;
+   return out;
+}
+
+Mat4x4 rotateMatrix(float degreeAngle) {
+   Mat4x4 out = identityMatrix();
+
+   float PI = 3.1415926535;
+   float radianAngle = PI / 180.0 * degreeAngle;
+
+   out.values[0] = cosf(radianAngle);
+   out.values[1] = -sinf(radianAngle);
+   out.values[4] = sinf(radianAngle);
+   out.values[5] = cosf(radianAngle);
+
+   return out;
+}
+
+Mat4x4 multiplyMatrix(Mat4x4 left, Mat4x4 right) {
+   Mat4x4 out;
+
+   //loop through left matrix
+   for (int leftRow = 0; leftRow < 4; leftRow++) {
+      for (int leftCol = 0; leftCol < 4; leftCol++) {
+         float sum = 0;
+         //grab right matrix column
+         for (int rightRow = 0; rightRow < 4; rightRow++) {
+            //row x col, so use the left row index as the right column index
+            int rightCol = leftRow;
+            sum += left.values[4 * leftRow + leftCol] * right.values[4 * rightRow + rightCol];
+         }
+         out.values[4 * leftRow + leftCol] = sum;
+      }
+   }
+   return out;
+}
+
+//translate, rotate, scale together
+Mat4x4 transformMatrix(Vec2 movement, float degreeAngle, Vec2 scale) {
+   Mat4x4 intermediate = multiplyMatrix(translateMatrix(movement), rotateMatrix(degreeAngle));
+   Mat4x4 out = multiplyMatrix(intermediate, scaleMatrix(scale));
+   return out;
+}
+
+void printMatrix(Mat4x4 test) {
+
+   for (int row = 0; row < 4; row++) {
+      for (int col = 0; col < 4; col++) {
+         printf("%f, ", test.values[4 * row + col]);
+      }
+      printf("\n");
+   }
+   printf("\n");
+}
 
 int main()
 {
+   Mat4x4 identity = identityMatrix();
+   printMatrix(identity);
 
-    Square* square = new Square;
+   Vec2 scaleValue = { 1.5, 1.2 };
+   Mat4x4 scale = scaleMatrix(scaleValue);
+   printMatrix(scale);
 
-    for (int i = 0; i < 12; i++) {
-       printf("%f\n", square->positions[i]);
-    }
+   float degreeAngle = 20.0;
+   Mat4x4 rotate = rotateMatrix(degreeAngle);
+   printMatrix(rotate);
 
-    delete square;
+   Vec2 movement = { 4, 6 };
+   Mat4x4 translate = translateMatrix(movement);
+   printMatrix(translate);
+
+   Mat4x4 multiply = multiplyMatrix(translate, rotate);
+   printMatrix(multiply);
+
+   Mat4x4 transform = transformMatrix(movement, degreeAngle, scaleValue);
+   printMatrix(transform);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
