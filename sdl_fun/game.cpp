@@ -30,6 +30,25 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
    return true;
 }
 
+void setupImGui(Game* game) {
+   // Setup Dear ImGui context
+   IMGUI_CHECKVERSION();
+   ImGui::CreateContext();
+   game->io = &ImGui::GetIO(); (void)game->io;
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+   // Setup Dear ImGui style
+   ImGui::StyleColorsDark();
+   //ImGui::StyleColorsClassic();
+
+   // Setup Platform/Renderer bindings
+   const char* glsl_version = "#version 130";
+   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
+   ImGui_ImplOpenGL3_Init(glsl_version);
+
+}
+
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
 
@@ -59,6 +78,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    if (!createGameWindow(game, title, xpos, ypos, width, height)) {
       printf("Failed to create SDL window...\n");
    }
+   else {
+      printf("Created SDL window...\n");
+   }
 
    if (gl3wInit() != 0) {
       printf("Failed to initialize gl3w...\n");
@@ -68,31 +90,14 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Initialized gl3w...\n");
    }
 
+   //Load game resources
    game->resources = initResources();
 
    //Make a vertex array object... stores the links between attributes and vbos
-   GLuint vao;
-   glGenVertexArrays(1, &vao);
-   glBindVertexArray(vao);
+   game->VAO = createVAO();
 
-   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
-   glDisable(GL_DEPTH_TEST);
-
-   // Setup Dear ImGui context
-   IMGUI_CHECKVERSION();
-   ImGui::CreateContext();
-   game->io = &ImGui::GetIO(); (void)game->io;
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-   // Setup Dear ImGui style
-   ImGui::StyleColorsDark();
-   //ImGui::StyleColorsClassic();
-
-   // Setup Platform/Renderer bindings
-   const char* glsl_version = "#version 130";
-   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
-   ImGui_ImplOpenGL3_Init(glsl_version);
+   //initialize IMGUI
+   setupImGui(game);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -286,6 +291,8 @@ void gameDestroy(Game* game) {
    //destroy vertex array??
 
    destroyResources(game->resources);
+
+   destroyVAO(game->VAO);
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();

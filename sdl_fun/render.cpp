@@ -73,6 +73,25 @@ int openglInit() {
    return 0;
 }
 
+GLuint createVAO() {
+   //Make a vertex array object... stores the links between attributes and vbos
+   GLuint vao;
+   glGenVertexArrays(1, &vao);
+   glBindVertexArray(vao);
+
+   //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
+   //todo Why does it only work when I put this here?
+   glDisable(GL_DEPTH_TEST);
+
+   return vao;
+}
+
+void destroyVAO(GLuint vao) {
+   if (vao != 0) {
+      glDeleteVertexArrays(1, &vao);
+   }
+}
+
 GLuint createShader(ShaderStage shaderStage) {
    GLuint shader;
    if (shaderStage == vertex_shader) {

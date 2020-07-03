@@ -16,6 +16,8 @@ struct Game {
    ImGuiIO* io;
    Board* board;
 
+   unsigned int VAO;
+
    Square* square;
    Resources* resources;
 

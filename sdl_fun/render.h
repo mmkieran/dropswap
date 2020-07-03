@@ -46,6 +46,9 @@ struct Square {
 
 int openglInit();
 
+GLuint createVAO();
+void destroyVAO(GLuint vao);
+
 GLuint createShader(ShaderStage shaderStage);
 void destroyShaders(GLuint shader);
 
