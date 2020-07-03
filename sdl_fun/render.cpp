@@ -4,19 +4,6 @@
 #include <gl/GL.h>
 #include <SDL.h>
 
-//I really recommend having your own struct that looks like this!
-struct Vec2
-{
-   float x, y;
-};
-
-
-//4x4 matrix - a standard for graphics.
-struct Mat4x4
-{
-   float values[16];
-};
-
 
 enum ShaderStage {
    fragment_shader,
