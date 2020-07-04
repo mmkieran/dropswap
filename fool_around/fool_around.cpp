@@ -105,35 +105,40 @@ void printMatrix(Mat4x4 test) {
 
 int main()
 {
-   Mat4x4 identity = identityMatrix();
-   printMatrix(identity);
+   //Mat4x4 identity = identityMatrix();
+   //printMatrix(identity);
 
-   Vec2 scaleValue = { 2, 2 };
-   Mat4x4 scale = scaleMatrix(scaleValue);
-   printMatrix(scale);
+   //Vec2 scaleValue = { 2, 2 };
+   //Mat4x4 scale = scaleMatrix(scaleValue);
+   //printMatrix(scale);
 
-   float degreeAngle = 45.0;
-   Mat4x4 rotate = rotateMatrix(degreeAngle);
-   printMatrix(rotate);
+   //float degreeAngle = 45.0;
+   //Mat4x4 rotate = rotateMatrix(degreeAngle);
+   //printMatrix(rotate);
 
-   Vec2 movement = { 1, 1 };
-   Mat4x4 translate = translateMatrix(movement);
-   printMatrix(translate);
+   //Vec2 movement = { 1, 1 };
+   //Mat4x4 translate = translateMatrix(movement);
+   //printMatrix(translate);
 
-   Mat4x4 multiply = multiplyMatrix(scale, rotate);
-   printMatrix(multiply);
+   //Mat4x4 multiply = multiplyMatrix(scale, rotate);
+   //printMatrix(multiply);
 
    //Mat4x4 transform = transformMatrix(movement, degreeAngle, scaleValue);
    //printMatrix(transform);
+
+   Vec2 botLeft = { -1, -1 };
+   Vec2 botRight = { 1, -1 };
+   Vec2 topLeft = { -1, 1 };
+   Vec2 topRight = { 1, 1 };
+
+   Vec2 worldBotLeft = { 0, 0 };
+   Vec2 worldTopRight = { 1000, 1000 };
+
+   Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
+   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x), (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y) };
+
+
+
+   Mat4x4 transform = transformMatrix(movement, 0, scale);
+   printMatrix(transform);
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
