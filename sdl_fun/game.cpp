@@ -138,11 +138,13 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    useProgram(resourcesGetShader(game));
 
-   Mat4x4 mat = transformMatrix({ 1, 1 }, 45.0, { 0.1, 0.1 });
+   Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 180.0, { 0.1, 0.1 });
    //Mat4x4 mat = identityMatrix();
    //Mat4x4 mat = rotateMatrix(45.0);
-   //Mat4x4 mat = scaleMatrix({ 0.1, 0.1 });
-   //Mat4x4 mat = translateMatrix({ 0.4, 0.4 });
+   //Mat4x4 mat1 = scaleMatrix({ 0.2, 0.2 });
+   //Mat4x4 mat2 = translateMatrix({ 0.2, 0.2 });
+
+   //Mat4x4 mat = multiplyMatrix(mat1, mat2);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 

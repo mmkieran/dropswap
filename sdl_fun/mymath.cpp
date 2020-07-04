@@ -54,17 +54,15 @@ Mat4x4 rotateMatrix(float degreeAngle) {
 Mat4x4 multiplyMatrix(Mat4x4 left, Mat4x4 right) {
    Mat4x4 out;
 
-   //loop through left matrix
-   for (int leftRow = 0; leftRow < 4; leftRow++) {
-      for (int leftCol = 0; leftCol < 4; leftCol++) {
+   for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
          float sum = 0;
-         //grab right matrix column
-         for (int rightRow = 0; rightRow < 4; rightRow++) {
-            //row x col, so use the left row index as the right column index
-            int rightCol = leftRow;
-            sum += left.values[4 * leftRow + leftCol] * right.values[4 * rightRow + rightCol];
+         for (int k = 0; k < 4; k++) {
+            //This is confusing, but you use the third index to increment columns for left and rows in right
+            //todo I made it row major order... sadness
+            sum += left.values[4 * i + k] * right.values[4 * k + j];
          }
-         out.values[4 * leftRow + leftCol] = sum;
+         out.values[4 * i + j] = sum;
       }
    }
    return out;

@@ -73,16 +73,13 @@ Mat4x4 multiplyMatrix(Mat4x4 left, Mat4x4 right) {
    Mat4x4 out;
 
    //loop through left matrix
-   for (int leftRow = 0; leftRow < 4; leftRow++) {
-      for (int leftCol = 0; leftCol < 4; leftCol++) {
+   for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
          float sum = 0;
-         //grab right matrix column
-         for (int rightRow = 0; rightRow < 4; rightRow++) {
-            //row x col, so use the left row index as the right column index
-            int rightCol = leftRow;
-            sum += left.values[4 * leftRow + leftCol] * right.values[4 * rightRow + rightCol];
+         for (int k = 0; k < 4; k++) {
+            sum += left.values[4 * i + k] * right.values[4 * k + j];
          }
-         out.values[4 * leftRow + leftCol] = sum;
+         out.values[4 * i + j] = sum;
       }
    }
    return out;
@@ -111,23 +108,23 @@ int main()
    Mat4x4 identity = identityMatrix();
    printMatrix(identity);
 
-   Vec2 scaleValue = { 1.5, 1.2 };
+   Vec2 scaleValue = { 2, 2 };
    Mat4x4 scale = scaleMatrix(scaleValue);
    printMatrix(scale);
 
-   float degreeAngle = 20.0;
+   float degreeAngle = 45.0;
    Mat4x4 rotate = rotateMatrix(degreeAngle);
    printMatrix(rotate);
 
-   Vec2 movement = { 4, 6 };
+   Vec2 movement = { 1, 1 };
    Mat4x4 translate = translateMatrix(movement);
    printMatrix(translate);
 
-   Mat4x4 multiply = multiplyMatrix(translate, rotate);
+   Mat4x4 multiply = multiplyMatrix(scale, rotate);
    printMatrix(multiply);
 
-   Mat4x4 transform = transformMatrix(movement, degreeAngle, scaleValue);
-   printMatrix(transform);
+   //Mat4x4 transform = transformMatrix(movement, degreeAngle, scaleValue);
+   //printMatrix(transform);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
