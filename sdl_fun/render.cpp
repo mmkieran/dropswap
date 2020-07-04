@@ -1,5 +1,6 @@
 #include "render.h"
 #include "stb_image.h"
+#include "mymath.h"
 
 #include <gl/GL.h>
 #include <SDL.h>
@@ -215,6 +216,7 @@ Texture* loadTextureFromFile(const char* filename) {
    return texture;
 }
 
+//todo make a generic mesh creator for funsies
 struct Mesh {
    GLuint vbo;
    int ptCount;
@@ -229,6 +231,7 @@ Mesh* createMesh(int verts) {
 
    return mesh;
 }
+//ignore above for now
 
 void destroyMesh(Mesh* mesh) {
    free(mesh->vertices);
@@ -286,6 +289,10 @@ void bindTexture(Square* square) {
    glBindTexture(GL_TEXTURE_2D, square->texture->handle);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
+
+//void putInPlace(Square* square, Vec2 dest) {
+//   
+//}
 
 void drawSquare(Square* square) {
 

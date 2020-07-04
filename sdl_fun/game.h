@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <imgui/imgui.h>
+#include <vector>
 
 typedef struct Board Board;
 typedef struct Square Square;
@@ -18,7 +19,8 @@ struct Game {
 
    unsigned int VAO;
 
-   Square* square;
+   std::vector <Square*> squares;
+
    Resources* resources;
 
    TTF_Font* font;

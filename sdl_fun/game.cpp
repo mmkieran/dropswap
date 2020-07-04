@@ -132,21 +132,19 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    ////todo: Use premade boards or fix algorithm so there are no matches at the start
    //boardFillTiles(game->board);
 
-   game->square = createSquare(game); //debug create square
-   game->square->texture = resourcesGetTexture(game->resources, 3);
-   bindTexture(game->square);
+   for (int i = 0; i < 6; i++) {
+      game->squares.push_back(createSquare(game));
+   }
+
+   //debug single square
+   //game->square = createSquare(game); //debug create square
+   //game->square->texture = resourcesGetTexture(game->resources, 3);
+   //bindTexture(game->square);
 
    useProgram(resourcesGetShader(game));
 
-   Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 180.0, { 0.1, 0.1 });
-   //Mat4x4 mat = identityMatrix();
-   //Mat4x4 mat = rotateMatrix(45.0);
-   //Mat4x4 mat1 = scaleMatrix({ 0.2, 0.2 });
-   //Mat4x4 mat2 = translateMatrix({ 0.2, 0.2 });
-
-   //Mat4x4 mat = multiplyMatrix(mat1, mat2);
-
-   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+   //Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 20.0, { 0.1, 0.1 });  //debug matrix testing
+   //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);  //transform vertexe using uniform
 
    game->isRunning = true;
    return game;
@@ -280,7 +278,20 @@ void gameRender(Game* game) {
    //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   drawSquare(game->square);
+   for (int i = 0; i < game->squares.size(); i++) {
+      game->squares[i]->texture = resourcesGetTexture(game->resources, i);
+      bindTexture(game->squares[i]);
+
+      float factor = (float)i;
+      Mat4x4 mat = transformMatrix({ 0.2f * factor, 0.2f * factor }, 10.0f * factor, { 0.1f, 0.1f });
+      shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+      drawSquare(game->squares[i]);
+   }
+
+   //Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 20.0, { 0.1, 0.1 });
+   //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+   //drawSquare(game->square);
+
 
    ImGui::Render();
 
@@ -301,8 +312,10 @@ void gameDestroy(Game* game) {
    TTF_CloseFont(game->font);  //free the font
    //boardDestroy(game->board);
 
-   destroySquare(game->square);
-   //destroy vertex array??
+   for (int i = 0; i < game->squares.size(); i++) {
+      destroySquare(game->squares[i]);
+   }
+   //destroySquare(game->square);
 
    destroyResources(game->resources);
 
