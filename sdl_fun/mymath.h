@@ -6,6 +6,10 @@ struct Vec2
    float x, y;
 };
 
+struct Vec4
+{
+   float x, y, z, w;
+};
 
 //4x4 matrix - a standard for graphics.
 struct Mat4x4

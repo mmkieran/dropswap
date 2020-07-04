@@ -21,6 +21,9 @@ struct Game {
 
    std::vector <Square*> squares;
 
+   float x;
+   float y;
+
    Resources* resources;
 
    TTF_Font* font;

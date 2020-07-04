@@ -290,36 +290,43 @@ void bindTexture(Square* square) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-//void putInPlace(Square* square, Vec2 dest) {
-//   
-//}
+void setSquareLocation(Square* square, Vec2 dest) {
+   float x = square->positions[0];
+   float y = square->positions[1];
+
+   float diffX = dest.x - x;
+   float diffY = dest.y - y;
+
+   Mat4x4 translate = translateMatrix({ diffX, diffY });
+
+}
 
 void drawSquare(Square* square) {
 
-   //Take the positions and texture coordinates and intertwine them into one array
-   float vertices[24];
+   ////Take the positions and texture coordinates and intertwine them into one array
+   //float vertices[24];
 
-   //todo make this smarter if we have more than 2 attributes
-   int i = 0;
-   int j = 0;
-   while (i < 12) {
-      if (square->positions) {
-         vertices[j] = square->positions[i];
-         vertices[j + 1] = square->positions[i + 1];
-      }
-      if (square->texcoords) {
-         vertices[j + 2] = square->texcoords[i];
-         vertices[j + 3] = square->texcoords[i + 1];
-      }
+   ////todo make this smarter if we have more than 2 attributes
+   //int i = 0;
+   //int j = 0;
+   //while (i < 12) {
+   //   if (square->positions) {
+   //      vertices[j] = square->positions[i];
+   //      vertices[j + 1] = square->positions[i + 1];
+   //   }
+   //   if (square->texcoords) {
+   //      vertices[j + 2] = square->texcoords[i];
+   //      vertices[j + 3] = square->texcoords[i + 1];
+   //   }
 
-      i += 2;
-      j += 4;
-   }
+   //   i += 2;
+   //   j += 4;
+   //}
 
    glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
 
-   //copy data from vertices to buffer
-   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+   ////copy data from vertices to buffer
+   //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  //We only wanna do this whe we have to because copying to GPU is slow
    
    glDrawArrays(GL_TRIANGLES, 0, square->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it

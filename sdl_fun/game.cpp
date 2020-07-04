@@ -136,6 +136,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       game->squares.push_back(createSquare(game));
    }
 
+   game->x = 0;
+   game->y = 0;
+
    //debug single square
    //game->square = createSquare(game); //debug create square
    //game->square->texture = resourcesGetTexture(game->resources, 3);
@@ -278,12 +281,13 @@ void gameRender(Game* game) {
    //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
+   game->x += 0.001;
+
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
       bindTexture(game->squares[i]);
 
-      float factor = (float)i;
-      Mat4x4 mat = transformMatrix({ 0.2f * factor, 0.2f * factor }, 10.0f * factor, { 0.1f, 0.1f });
+      Mat4x4 mat = transformMatrix({ game->x + i/10.0f, game->y }, 0.0f, { 0.1f, 0.1f });
       shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
       drawSquare(game->squares[i]);
    }
