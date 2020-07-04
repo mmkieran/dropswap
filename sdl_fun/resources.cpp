@@ -4,6 +4,7 @@
 
 #include "render.h"
 #include "resources.h"
+#include "game.h"
 
 //Need a place to store textures and other assets
 //Need a way to retrieve textures and assets
@@ -49,4 +50,8 @@ void destroyResources(Resources* resources) {
 
 Texture* resourcesGetTexture(Resources* resources, int index) {
    return resources->textures[index];
+}
+
+unsigned int resourcesGetShader(Game* game) {
+   return game->resources->shaderProgram;
 }

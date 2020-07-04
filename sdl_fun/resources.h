@@ -9,3 +9,4 @@ void destroyResources(Resources* resources);
 
 Texture* resourcesGetTexture(Resources* resources, int index);
 
+unsigned int resourcesGetShader(Game* game);

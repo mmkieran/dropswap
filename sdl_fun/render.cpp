@@ -19,8 +19,10 @@ in vec2 texCoord;
 
 out vec2 v_texCoord;
 
+uniform mat4 transform;
+
 void main() {
-   gl_Position = vec4(position, 0.0, 1.0);
+   gl_Position = transform*vec4(position, 0.0, 1.0);
    v_texCoord = texCoord;
 }
 )glsl";
@@ -130,6 +132,21 @@ GLuint createProgram() {
 
 void useProgram(GLuint program) {
    glUseProgram(program);
+}
+
+GLuint shaderGetUniform(GLuint shaderHandle, const char* uniformName) {
+   GLuint uniform = glGetUniformLocation(shaderHandle, uniformName);
+   return uniform;
+}
+
+void shaderSetMat4(GLuint location, float* mat) {
+   //I used row major order apparently, false uses column major order... see wiki :(
+   glUniformMatrix4fv(location, 1, GL_TRUE, mat);
+}
+
+void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat) {
+   GLuint location = shaderGetUniform(program, name);
+   shaderSetMat4(location, mat);
 }
 
 void destroyShaders(GLuint shader) {

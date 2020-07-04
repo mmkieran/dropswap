@@ -12,6 +12,7 @@
 #include "cursor.h"
 #include "tile.h"
 #include "render.h"
+#include "mymath.h"
 
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
@@ -92,6 +93,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //Load game resources
    game->resources = initResources();
+   //use the shader program
 
    //Make a vertex array object... stores the links between attributes and vbos
    game->VAO = createVAO();
@@ -133,6 +135,16 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->square = createSquare(game); //debug create square
    game->square->texture = resourcesGetTexture(game->resources, 3);
    bindTexture(game->square);
+
+   useProgram(resourcesGetShader(game));
+
+   Mat4x4 mat = transformMatrix({ 1, 1 }, 45.0, { 0.1, 0.1 });
+   //Mat4x4 mat = identityMatrix();
+   //Mat4x4 mat = rotateMatrix(45.0);
+   //Mat4x4 mat = scaleMatrix({ 0.1, 0.1 });
+   //Mat4x4 mat = translateMatrix({ 0.4, 0.4 });
+
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
    game->isRunning = true;
    return game;

@@ -1,19 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-
-//I really recommend having your own struct that looks like this!
-struct Vec2
-{
-   float x, y;
-};
-
-
-//4x4 matrix - a standard for graphics.
-struct Mat4x4
-{
-   float values[16];
-};
+#include "mymath.h"
 
 //This will be used to translate, rotate, and scale our meshes
 Mat4x4 identityMatrix() {

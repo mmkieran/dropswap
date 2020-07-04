@@ -56,6 +56,12 @@ GLuint createProgram();
 void useProgram(GLuint program);
 void destroyProgram(GLuint program);
 
+GLuint shaderGetUniform(GLuint shaderHandle, const char* name);
+
+void shaderSetMat4(GLuint location, float* mat);
+
+void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
+
 Texture* createTexture(unsigned char* image, int width, int height);
 void bindTexture(Square* square);
 void destroyTexture(Texture* texture);

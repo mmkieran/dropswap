@@ -21,9 +21,6 @@ int main(int argc, char* args[])
       return -1;
    }
 
-   GLuint shaderProgram = createProgram();
-   glUseProgram(shaderProgram);
-
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
 
@@ -45,8 +42,6 @@ int main(int argc, char* args[])
       game->timeDelta = SDL_GetTicks() - frameStart;
       game->timer += game->timeDelta;
    }
-
-   glDeleteProgram(shaderProgram);
 
    gameDestroy(game);
    return 0;
