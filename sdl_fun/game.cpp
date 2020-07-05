@@ -118,8 +118,11 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->bHeight = 12;
    game->bWidth = 6;
 
-   //game->frame.w = game->tWidth = 64;
+   game->tWidth = 64;
    game->tHeight = 64;
+
+   game->windowHeight = height;
+   game->windowWidth = width;
 
    //game->frame.w = game->tWidth * game->bWidth;
    //game->frame.h = game->tHeight * game->bHeight;
@@ -143,9 +146,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    for (int i = 0; i < 6; i++) {
       game->squares.push_back(createSquare(game));
    }
-
-   game->x = 0;
-   game->y = 0;
 
    game->isRunning = true;
    return game;
@@ -258,16 +258,11 @@ void gameRender(Game* game) {
    ////Draw game objects
    //boardRender(game, game->board);
 
-   //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   //setWorldCoords(game, 0.0f, 0.0f, 1200, 900);
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-
-      //Mat4x4 mat = transformMatrix({ game->x + i/10.0f, game->y }, 0.0f, { 0.1f, 0.1f });
-      //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
-      drawSquare(game, game->squares[i], 64.0 * i, 64.0 * i);
+      drawSquare(game, game->squares[i], 64.0 * i + 32.0, 64.0 * i + 32.0);
    }
 
    ImGui::Render();

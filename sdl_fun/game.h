@@ -21,8 +21,8 @@ struct Game {
 
    std::vector <Square*> squares;
 
-   float x;
-   float y;
+   float windowWidth;
+   float windowHeight;
 
    Resources* resources;
 

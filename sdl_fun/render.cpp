@@ -266,8 +266,10 @@ void bindTexture(Square* square) {
 }
 
 void drawSquare(Game* game, Square* square, float destX, float destY) {
+   
+   Vec2 scale = { (float)square->texture->w / game->windowWidth * 3, (float)square->texture->h / game->windowHeight * 3};
 
-   Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, { 0.1f, 0.1f });
+   Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, scale);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
