@@ -267,10 +267,14 @@ void bindTexture(Square* square) {
 
 void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH) {
    
-   //The object is a quarter of the screen, so times 2
-   Vec2 scale = { destW / game->windowWidth *2, destH / game->windowHeight *2};
+   int width, height;
+   SDL_GetWindowSize(game->window, &width, &height);
 
-   Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, scale);
+   //Vec2 scale = { destW / width, destH / height};
+   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
+   Vec2 dest = {destX , destY};
+
+   Mat4x4 mat = transformMatrix( dest, 0.0f, scale);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
@@ -296,7 +300,7 @@ void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float
    Vec2 worldBotRight = { width, height };
 
    Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
-   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
+   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x)*2,  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y)*2 };
 
    Mat4x4 mMove = translateMatrix(movement);
    Mat4x4 mScale = scaleMatrix(scale);

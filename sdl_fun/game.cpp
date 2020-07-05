@@ -260,9 +260,14 @@ void gameRender(Game* game) {
 
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
+   int width, height;
+   SDL_GetWindowSize(game->window, &width, &height);
+   //setWorldCoords(game, 0.0f, 0.0f, width, height);
+   //setDeviceCoords(game, 0.0f, 0.0f, width, height);
+
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], -32 + (64.0 * i), -32 + (64.0 * i), 64, 64);
+      drawSquare(game, game->squares[i], -32 + (64.0 * i), -32, 64, 64);
    }
 
 
