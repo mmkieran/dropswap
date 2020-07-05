@@ -77,6 +77,6 @@ Texture* loadTextureFromFile(const char* filename);
 Square* createSquare(Game* game);
 void destroySquare(Square* square);
 
-void drawSquare(Game* game, Square* square, float destX, float destY);
+void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH);
 
 void clearRenderer(float r, float g, float b, float a);

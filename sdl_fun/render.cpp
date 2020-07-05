@@ -265,9 +265,9 @@ void bindTexture(Square* square) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void drawSquare(Game* game, Square* square, float destX, float destY) {
+void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH) {
    
-   Vec2 scale = { (float)square->texture->w / game->windowWidth * 3, (float)square->texture->h / game->windowHeight * 3};
+   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight };
 
    Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, scale);
 
@@ -287,17 +287,21 @@ void destroySquare(Square* square) {
 void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botLeft = { -1, -1 };
-   Vec2 topRight = { 1, 1 };
+   Vec2 botLeft = { -1.0f, -1.0f };
+   Vec2 topRight = { 1.0f , 1.0f };
 
    //world coordinates
    Vec2 worldBotLeft = { xOrigin, yOrigin };
    Vec2 worldTopRight = { width, height };
 
    Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
-   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x), (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y) };
+   //The object is a quarter of the screen, so times 2
+   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x)*2, (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y)*2 };
 
-   Mat4x4 mat = transformMatrix(movement, 0.0f, scale);
+   Mat4x4 mMove = translateMatrix(movement);
+   Mat4x4 mScale = scaleMatrix(scale);
+
+   Mat4x4 mat = multiplyMatrix(mScale, mMove);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "projection", mat.values);
 }
@@ -305,8 +309,8 @@ void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float
 void setDeviceCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botLeft = { -1, -1 };
-   Vec2 topRight = { 1, 1 };
+   Vec2 botLeft = { -1.0f, -1.0f };
+   Vec2 topRight = { 1.0f , 1.0f };
 
    //world coordinates
    Vec2 worldBotLeft = { xOrigin, yOrigin };
@@ -315,7 +319,10 @@ void setDeviceCoords(Game* game, float xOrigin, float yOrigin, float width, floa
    Vec2 movement = { (botLeft.x - worldBotLeft.x), (botLeft.y - worldBotLeft.y) };
    Vec2 scale = { (topRight.x - botLeft.x) / (worldTopRight.x - worldBotLeft.x), (topRight.y - botLeft.y) / (worldTopRight.y - worldBotLeft.y) };
 
-   Mat4x4 mat = transformMatrix(movement, 0.0f, scale);
+   Mat4x4 mMove = translateMatrix(movement);
+   Mat4x4 mScale = scaleMatrix(scale);
+
+   Mat4x4 mat = multiplyMatrix(mMove, mScale);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "deviceCoords", mat.values);
 }

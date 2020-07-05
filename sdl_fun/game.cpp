@@ -218,8 +218,8 @@ void gameUpdate(Game* game) {
    ImGui_ImplSDL2_NewFrame(game->window);
    ImGui::NewFrame();
 
-   bool show_demo_window = true;
-   ImGui::ShowDemoWindow(&show_demo_window);
+   //bool show_demo_window = true;
+   //ImGui::ShowDemoWindow(&show_demo_window);
 
    //boardRemoveClears(game->board);
    //if (game->board->pauseLength > 0) {
@@ -262,8 +262,35 @@ void gameRender(Game* game) {
 
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], 64.0 * i + 32.0, 64.0 * i + 32.0);
+      drawSquare(game, game->squares[i], 0 + 64.0 * i, 0 + 64.0 * i, 64, 64);
    }
+
+
+   //ImGui debug
+   bool show_demo_window = true;
+   bool show_another_window = true;
+   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+   static float f = 0.0f;
+   static int counter = 0;
+
+   ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+   ImGui::Image((void*)(intptr_t)game->squares[1]->texture->handle, { 64, 64 } );
+
+   ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+   ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+   ImGui::Checkbox("Another Window", &show_another_window);
+
+   ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+   ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+   if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+      counter++;
+   ImGui::SameLine();
+   ImGui::Text("counter = %d", counter);
+
+   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+   ImGui::End();
 
    ImGui::Render();
 

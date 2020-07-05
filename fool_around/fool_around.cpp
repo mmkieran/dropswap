@@ -132,19 +132,29 @@ int main()
    Vec2 topRight = { 1, 1 };
 
    Vec2 worldBotLeft = { 0, 0 };
-   Vec2 worldTopRight = { 1000, 1000 };
+   Vec2 worldTopRight = { 900, 1200 };
 
    //device to world
    Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
    Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x), (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y) };
 
-   Mat4x4 transform = transformMatrix(movement, 0, scale);
+   Mat4x4 mMove = translateMatrix(movement);
+   Mat4x4 mScale = scaleMatrix(scale);
+
+   Mat4x4 transform = multiplyMatrix(mScale, mMove);
+
+   //Mat4x4 transform = transformMatrix(movement, 0, scale);
    printMatrix(transform);
 
    //world to device
    Vec2 movement2 = { (botLeft.x - worldBotLeft.x), (botLeft.y - worldBotLeft.y) };
    Vec2 scale2 = { (topRight.x - botLeft.x) / (worldTopRight.x - worldBotLeft.x), (topRight.y - botLeft.y) / (worldTopRight.y - worldBotLeft.y) };
 
-   Mat4x4 transform2 = transformMatrix(movement2, 0, scale2);
+   Mat4x4 mMove2 = translateMatrix(movement2);
+   Mat4x4 mScale2 = scaleMatrix(scale2);
+
+   Mat4x4 transform2 = multiplyMatrix(mMove2, mScale2);
+
+   //Mat4x4 transform2 = transformMatrix(movement2, 0, scale2);
    printMatrix(transform2);
 }
