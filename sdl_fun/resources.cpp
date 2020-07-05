@@ -10,14 +10,6 @@
 //Need a way to retrieve textures and assets
 //Should clean them up when it's done
 
-struct Resources {
-   std::vector <Texture*> textures;  //todo maybe use a hashmap?
-   GLuint shaderProgram;
-
-   //audio
-   //others?
-};
-
 Resources* initResources() {
    Resources* resources = new Resources;
 

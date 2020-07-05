@@ -1,7 +1,15 @@
 #pragma once
+
+#include "game.h"
 #include "render.h"
 
-typedef struct Resources Resources;
+struct Resources {
+   std::vector <Texture*> textures;  //todo maybe use a hashmap?
+   GLuint shaderProgram;
+
+   //audio
+   //others?
+};
 
 Resources* initResources();
 

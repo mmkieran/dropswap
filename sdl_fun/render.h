@@ -1,9 +1,12 @@
 #pragma once
 
 #include <imgui/GL/gl3w/gl3w.h>
+#include "game.h"
 
-typedef enum ShaderStage ShaderStage;
-typedef struct Game Game;
+enum ShaderStage {
+   fragment_shader,
+   vertex_shader
+};
 
 struct Texture {
    GLuint handle;
@@ -44,7 +47,7 @@ struct Square {
 //const char* vertexSource;
 //const char* fragSource;
 
-int openglInit();
+int openglContext();
 
 GLuint createVAO();
 void destroyVAO(GLuint vao);
@@ -53,7 +56,7 @@ GLuint createShader(ShaderStage shaderStage);
 void destroyShaders(GLuint shader);
 
 GLuint createProgram();
-void useProgram(GLuint program);
+void useShaderProgram(GLuint program);
 void destroyProgram(GLuint program);
 
 GLuint shaderGetUniform(GLuint shaderHandle, const char* name);
@@ -61,6 +64,8 @@ GLuint shaderGetUniform(GLuint shaderHandle, const char* name);
 void shaderSetMat4(GLuint location, float* mat);
 
 void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
+
+void setProjection(Game* game, float xOrigin, float yOrigin, float width, float height);
 
 Texture* createTexture(unsigned char* image, int width, int height);
 void bindTexture(Square* square);
@@ -71,6 +76,6 @@ Texture* loadTextureFromFile(const char* filename);
 Square* createSquare(Game* game);
 void destroySquare(Square* square);
 
-void drawSquare(Square* square);
+void drawSquare(Game* game, Square* square, float destX, float destY);
 
 void clearRenderer(float r, float g, float b, float a);

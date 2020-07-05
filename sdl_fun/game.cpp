@@ -68,16 +68,17 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Initialized True Text Fonts...\n");
    }
 
-   if (openglInit() != 0) {
-      printf("Shader stuff failed...\n");
+   if (openglContext() != 0) {
+      printf("Failed to create OpenGL Context?...\n");
    }
    else {
-      printf("Initialized openGL...\n");
+      printf("Created OpenGL Context...\n");
    }
 
 
    if (!createGameWindow(game, title, xpos, ypos, width, height)) {
       printf("Failed to create SDL window...\n");
+      return nullptr;
    }
    else {
       printf("Created SDL window...\n");
@@ -100,6 +101,12 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //initialize IMGUI
    setupImGui(game);
+
+   //Use the Shader Program once it's created
+   useShaderProgram(resourcesGetShader(game));
+
+   //Set the projection matrix to change world to device coordinates
+   setProjection(game, 0.0f, 0.0f, width, height);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -138,16 +145,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->x = 0;
    game->y = 0;
-
-   //debug single square
-   //game->square = createSquare(game); //debug create square
-   //game->square->texture = resourcesGetTexture(game->resources, 3);
-   //bindTexture(game->square);
-
-   useProgram(resourcesGetShader(game));
-
-   //Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 20.0, { 0.1, 0.1 });  //debug matrix testing
-   //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);  //transform vertexe using uniform
 
    game->isRunning = true;
    return game;
@@ -257,57 +254,25 @@ void gameUpdate(Game* game) {
 
 void gameRender(Game* game) {
 
-   //SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-   //SDL_RenderClear(game->renderer);
    ////Draw game objects
    //boardRender(game, game->board);
-
-   ////todo Rough frame for the game... use textures later
-   //SDL_RenderDrawRect(game->renderer, &game->frame);
-
-   ////debug testing rendering text
-   //SDL_Color color = { 255, 255, 255 };
-   //SDL_Rect textBox;
-   //textBox.x = 64 * 7;
-   //textBox.y = 0;
-   //textBox.w = 128;
-   //textBox.h = 32;
-   //SDL_Surface * surface = TTF_RenderText_Solid(game->font, "Swap And Drop", color);
-   //SDL_Texture * texture = SDL_CreateTextureFromSurface(game->renderer, surface);
-   //SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
-   //SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
-
 
    //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   game->x += 0.001;
-
+   setProjection(game, 0.0f, 0.0f, 1200, 900);
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      bindTexture(game->squares[i]);
 
-      Mat4x4 mat = transformMatrix({ game->x + i/10.0f, game->y }, 0.0f, { 0.1f, 0.1f });
-      shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
-      drawSquare(game->squares[i]);
+      //Mat4x4 mat = transformMatrix({ game->x + i/10.0f, game->y }, 0.0f, { 0.1f, 0.1f });
+      //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+      drawSquare(game, game->squares[i], 0.1, 0.1);
    }
-
-   //Mat4x4 mat = transformMatrix({ 0.2, 0.2 }, 20.0, { 0.1, 0.1 });
-   //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
-   //drawSquare(game->square);
-
 
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
    SDL_GL_SwapWindow(game->window);
-
-   ////Finish drawing and present
-   //SDL_RenderPresent(game->renderer);
-
-   ////debug temp for rendering text
-   //SDL_DestroyTexture(texture);
-   //SDL_FreeSurface(surface);
 
 }
 
@@ -319,7 +284,6 @@ void gameDestroy(Game* game) {
    for (int i = 0; i < game->squares.size(); i++) {
       destroySquare(game->squares[i]);
    }
-   //destroySquare(game->square);
 
    destroyResources(game->resources);
 
@@ -333,7 +297,6 @@ void gameDestroy(Game* game) {
 
    //SDL cleanup
    SDL_DestroyWindow(game->window);
-   //SDL_DestroyRenderer(game->renderer);
    TTF_Quit();  //close ttf
    SDL_Quit();
    delete game;

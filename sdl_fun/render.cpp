@@ -1,15 +1,10 @@
 #include "render.h"
 #include "stb_image.h"
 #include "mymath.h"
+#include "resources.h"
 
 #include <gl/GL.h>
 #include <SDL.h>
-
-
-enum ShaderStage {
-   fragment_shader,
-   vertex_shader
-};
 
 
 const char* vertexSource = R"glsl(
@@ -21,9 +16,10 @@ in vec2 texCoord;
 out vec2 v_texCoord;
 
 uniform mat4 transform;
+uniform mat4 projection;
 
 void main() {
-   gl_Position = transform*vec4(position, 0.0, 1.0);
+   gl_Position = projection*(transform*vec4(position, 0.0, 1.0));
    v_texCoord = texCoord;
 }
 )glsl";
@@ -44,11 +40,12 @@ void main() {
 }
 )glsl";
 
-int openglInit() {
+int openglContext() {
 
    //todo check what can go wrong here
 
    // Create graphics context
+   //ImGui also uses these
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -131,7 +128,7 @@ GLuint createProgram() {
    return shaderProgram;
 }
 
-void useProgram(GLuint program) {
+void useShaderProgram(GLuint program) {
    glUseProgram(program);
 }
 
@@ -216,29 +213,6 @@ Texture* loadTextureFromFile(const char* filename) {
    return texture;
 }
 
-//todo make a generic mesh creator for funsies
-struct Mesh {
-   GLuint vbo;
-   int ptCount;
-
-   float* vertices;
-};
-
-Mesh* createMesh(int verts) {
-   Mesh* mesh = new Mesh;
-   mesh->vertices = (float*)malloc(sizeof(float)*verts);
-   mesh->ptCount = verts;
-
-   return mesh;
-}
-//ignore above for now
-
-void destroyMesh(Mesh* mesh) {
-   free(mesh->vertices);
-   delete mesh;
-}
-
-
 Square* createSquare(Game* game) {
 
    Square* square = new Square;
@@ -290,43 +264,14 @@ void bindTexture(Square* square) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void setSquareLocation(Square* square, Vec2 dest) {
-   float x = square->positions[0];
-   float y = square->positions[1];
+void drawSquare(Game* game, Square* square, float destX, float destY) {
 
-   float diffX = dest.x - x;
-   float diffY = dest.y - y;
+   Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, { 0.1f, 0.1f });
 
-   Mat4x4 translate = translateMatrix({ diffX, diffY });
-
-}
-
-void drawSquare(Square* square) {
-
-   ////Take the positions and texture coordinates and intertwine them into one array
-   //float vertices[24];
-
-   ////todo make this smarter if we have more than 2 attributes
-   //int i = 0;
-   //int j = 0;
-   //while (i < 12) {
-   //   if (square->positions) {
-   //      vertices[j] = square->positions[i];
-   //      vertices[j + 1] = square->positions[i + 1];
-   //   }
-   //   if (square->texcoords) {
-   //      vertices[j + 2] = square->texcoords[i];
-   //      vertices[j + 3] = square->texcoords[i + 1];
-   //   }
-
-   //   i += 2;
-   //   j += 4;
-   //}
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
    glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
-
-   ////copy data from vertices to buffer
-   //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  //We only wanna do this whe we have to because copying to GPU is slow
+   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
    
    glDrawArrays(GL_TRIANGLES, 0, square->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
@@ -336,9 +281,54 @@ void destroySquare(Square* square) {
    delete square;
 }
 
+void setProjection(Game* game, float xOrigin, float yOrigin, float width, float height) {
+
+   //device coordinates
+   Vec2 botLeft = { -1, -1 };
+   Vec2 topRight = { 1, 1 };
+
+   //world coordinates
+   Vec2 worldBotLeft = { xOrigin, yOrigin };
+   Vec2 worldTopRight = { width, height };
+
+   Vec2 movement = { (botLeft.x - worldBotLeft.x), (botLeft.y - worldBotLeft.y) };
+   Vec2 scale = { (topRight.x - botLeft.x) / (worldTopRight.x - worldBotLeft.x), (topRight.y - botLeft.y) / (worldTopRight.y - worldBotLeft.y) };
+
+   Mat4x4 mat = transformMatrix(movement, 0.0f, scale);
+
+   shaderSetMat4UniformByName(resourcesGetShader(game), "projection", mat.values);
+}
+
 void clearRenderer(float r, float g, float b, float a) {
    glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void setRenderTarget(int botLeftX, int botLeftY, int width, int height) {
+   //Set the lower left corner of the viewerport rectangle
+   glViewport(botLeftX, botLeftY, width, height);
+}
+
+
+//todo make a generic mesh creator for funsies
+struct Mesh {
+   GLuint vbo;
+   int ptCount;
+
+   float* vertices;
+};
+
+Mesh* createMesh(int verts) {
+   Mesh* mesh = new Mesh;
+   mesh->vertices = (float*)malloc(sizeof(float)*verts);
+   mesh->ptCount = verts;
+
+   return mesh;
+}
+
+void destroyMesh(Mesh* mesh) {
+   free(mesh->vertices);
+   delete mesh;
 }
 
 void copyToRenderer(Mesh* mesh) {
@@ -351,3 +341,5 @@ void copyToRenderer(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
 }
+
+//ignore above for now
