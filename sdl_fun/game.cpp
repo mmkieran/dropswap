@@ -262,7 +262,7 @@ void gameRender(Game* game) {
 
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], 0 + 64.0 * i, 0 + 64.0 * i, 64, 64);
+      drawSquare(game, game->squares[i], -32 + (64.0 * i), -32 + (64.0 * i), 64, 64);
    }
 
 

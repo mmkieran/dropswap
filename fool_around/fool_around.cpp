@@ -131,12 +131,13 @@ int main()
    Vec2 topLeft = { -1, 1 };
    Vec2 topRight = { 1, 1 };
 
-   Vec2 worldBotLeft = { 0, 0 };
-   Vec2 worldTopRight = { 900, 1200 };
+   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldBotRight = { 1200, 900 };
 
    //device to world
-   Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
-   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x), (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y) };
+
+   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
+   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
 
    Mat4x4 mMove = translateMatrix(movement);
    Mat4x4 mScale = scaleMatrix(scale);
@@ -147,8 +148,8 @@ int main()
    printMatrix(transform);
 
    //world to device
-   Vec2 movement2 = { (botLeft.x - worldBotLeft.x), (botLeft.y - worldBotLeft.y) };
-   Vec2 scale2 = { (topRight.x - botLeft.x) / (worldTopRight.x - worldBotLeft.x), (topRight.y - botLeft.y) / (worldTopRight.y - worldBotLeft.y) };
+   Vec2 movement2 = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
+   Vec2 scale2 = { (topLeft.x - botRight.x) / (worldTopLeft.x - worldBotRight.x), (topLeft.y - botRight.y) / (worldTopLeft.y - worldBotRight.y) };
 
    Mat4x4 mMove2 = translateMatrix(movement2);
    Mat4x4 mScale2 = scaleMatrix(scale2);

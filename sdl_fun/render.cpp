@@ -267,7 +267,8 @@ void bindTexture(Square* square) {
 
 void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH) {
    
-   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight };
+   //The object is a quarter of the screen, so times 2
+   Vec2 scale = { destW / game->windowWidth *2, destH / game->windowHeight *2};
 
    Mat4x4 mat = transformMatrix({ destX, destY }, 0.0f, scale);
 
@@ -287,16 +288,15 @@ void destroySquare(Square* square) {
 void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botLeft = { -1.0f, -1.0f };
-   Vec2 topRight = { 1.0f , 1.0f };
+   Vec2 botRight = { 1, -1 };
+   Vec2 topLeft = { -1, 1 };
 
    //world coordinates
-   Vec2 worldBotLeft = { xOrigin, yOrigin };
-   Vec2 worldTopRight = { width, height };
+   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldBotRight = { width, height };
 
-   Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
-   //The object is a quarter of the screen, so times 2
-   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x)*2, (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y)*2 };
+   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
+   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
 
    Mat4x4 mMove = translateMatrix(movement);
    Mat4x4 mScale = scaleMatrix(scale);
@@ -309,15 +309,15 @@ void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float
 void setDeviceCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botLeft = { -1.0f, -1.0f };
-   Vec2 topRight = { 1.0f , 1.0f };
+   Vec2 botRight = { 1, -1 };
+   Vec2 topLeft = { -1, 1 };
 
    //world coordinates
-   Vec2 worldBotLeft = { xOrigin, yOrigin };
-   Vec2 worldTopRight = { width, height };
+   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldBotRight = { width, height };
 
-   Vec2 movement = { (botLeft.x - worldBotLeft.x), (botLeft.y - worldBotLeft.y) };
-   Vec2 scale = { (topRight.x - botLeft.x) / (worldTopRight.x - worldBotLeft.x), (topRight.y - botLeft.y) / (worldTopRight.y - worldBotLeft.y) };
+   Vec2 movement = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
+   Vec2 scale = { (topLeft.x - botRight.x) / (worldTopLeft.x - worldBotRight.x), (topLeft.y - botRight.y) / (worldTopLeft.y - worldBotRight.y) };
 
    Mat4x4 mMove = translateMatrix(movement);
    Mat4x4 mScale = scaleMatrix(scale);
