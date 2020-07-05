@@ -17,9 +17,10 @@ out vec2 v_texCoord;
 
 uniform mat4 transform;
 uniform mat4 projection;
+uniform mat4 deviceCoords;
 
 void main() {
-   gl_Position = projection*(transform*vec4(position, 0.0, 1.0));
+   gl_Position = deviceCoords*transform*projection*vec4(position, 0.0, 1.0);
    v_texCoord = texCoord;
 }
 )glsl";
@@ -281,7 +282,25 @@ void destroySquare(Square* square) {
    delete square;
 }
 
-void setProjection(Game* game, float xOrigin, float yOrigin, float width, float height) {
+void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
+
+   //device coordinates
+   Vec2 botLeft = { -1, -1 };
+   Vec2 topRight = { 1, 1 };
+
+   //world coordinates
+   Vec2 worldBotLeft = { xOrigin, yOrigin };
+   Vec2 worldTopRight = { width, height };
+
+   Vec2 movement = { (worldBotLeft.x - botLeft.x), (worldBotLeft.y - botLeft.y) };
+   Vec2 scale = { (worldTopRight.x - worldBotLeft.x) / (topRight.x - botLeft.x), (worldTopRight.y - worldBotLeft.y) / (topRight.y - botLeft.y) };
+
+   Mat4x4 mat = transformMatrix(movement, 0.0f, scale);
+
+   shaderSetMat4UniformByName(resourcesGetShader(game), "projection", mat.values);
+}
+
+void setDeviceCoords(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
    Vec2 botLeft = { -1, -1 };
@@ -296,7 +315,7 @@ void setProjection(Game* game, float xOrigin, float yOrigin, float width, float 
 
    Mat4x4 mat = transformMatrix(movement, 0.0f, scale);
 
-   shaderSetMat4UniformByName(resourcesGetShader(game), "projection", mat.values);
+   shaderSetMat4UniformByName(resourcesGetShader(game), "deviceCoords", mat.values);
 }
 
 void clearRenderer(float r, float g, float b, float a) {

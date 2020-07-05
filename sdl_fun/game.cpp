@@ -106,7 +106,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    useShaderProgram(resourcesGetShader(game));
 
    //Set the projection matrix to change world to device coordinates
-   setProjection(game, 0.0f, 0.0f, width, height);
+   setWorldCoords(game, 0.0f, 0.0f, width, height);
+   setDeviceCoords(game, 0.0f, 0.0f, width, height);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -260,13 +261,13 @@ void gameRender(Game* game) {
    //glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   setProjection(game, 0.0f, 0.0f, 1200, 900);
+   //setWorldCoords(game, 0.0f, 0.0f, 1200, 900);
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
 
       //Mat4x4 mat = transformMatrix({ game->x + i/10.0f, game->y }, 0.0f, { 0.1f, 0.1f });
       //shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
-      drawSquare(game, game->squares[i], 0.1, 0.1);
+      drawSquare(game, game->squares[i], 64.0 * i, 64.0 * i);
    }
 
    ImGui::Render();
