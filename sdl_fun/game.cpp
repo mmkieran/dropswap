@@ -262,17 +262,20 @@ void gameRender(Game* game) {
 
    int width, height;
    SDL_GetWindowSize(game->window, &width, &height);
-   //originToWorld(game, 0.0f, 0.0f, width, height);
+
+   setRenderTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
+
+   ////Do this if we want the squares to stay the same size when then window changes...
    //worldToDevice(game, 0.0f, 0.0f, width, height);
 
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], (64.0 * i -32), 0.0, 64.0, 64.0);
+      drawSquare(game, game->squares[i], (64.0 * i), 0.0, 64.0, 64.0);
    }
 
    for (int i = 0; i < game->squares.size(); i++) {
       //game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], (64.0 * i -32), 64.0, 64.0, 64.0);
+      drawSquare(game, game->squares[i], (64.0 * i), 64.0, 64.0, 64.0);
    }
 
    //ImGui debug

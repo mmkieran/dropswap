@@ -299,7 +299,9 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
    Vec2 worldTopLeft = { 0, 0 };
    Vec2 worldBotRight = { width, height };
 
-   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y + 0.5f) };
+   //I like to draw the squares at the top left corner
+   Vec2 movement = { (worldTopLeft.x - topLeft.x - 0.5f), (worldTopLeft.y - topLeft.y + 0.5f) };
+   //Multiply by two because it's only a quarter of the screen... should i just change the vertices?
    Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x)*2.0f,  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y)*2.0f };
 
    Mat4x4 mMove = translateMatrix(movement);
@@ -336,9 +338,9 @@ void clearRenderer(float r, float g, float b, float a) {
    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void setRenderTarget(int botLeftX, int botLeftY, int width, int height) {
+void setRenderTarget(int originX, int originY, int width, int height) {
    //Set the lower left corner of the viewerport rectangle
-   glViewport(botLeftX, botLeftY, width, height);
+   glViewport(originX, originY, width, height);
 }
 
 

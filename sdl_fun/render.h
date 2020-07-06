@@ -79,4 +79,5 @@ void destroySquare(Square* square);
 
 void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH);
 
+void setRenderTarget(int botLeftX, int botLeftY, int width, int height);
 void clearRenderer(float r, float g, float b, float a);
