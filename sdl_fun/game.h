@@ -3,24 +3,29 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <imgui/imgui.h>
-#include <random>
-#include <atomic>
-#include <unordered_map>
+#include <vector>
 
-struct Board;
-enum TileEnum;
+typedef struct Board Board;
+typedef struct Square Square;
+typedef struct Resources Resources;
 
 struct Game {
 
-   SDL_Renderer *renderer;
    SDL_Window *window;
-   SDL_Window *window2;
+
    SDL_GLContext gl_context;
    ImGuiIO* io;
    Board* board;
 
-   //std::unordered_map<int, SDL_Texture*> textures;
-   std::vector <SDL_Texture*> textures;
+   unsigned int VAO;
+
+   std::vector <Square*> squares;
+
+   float windowWidth;
+   float windowHeight;
+
+   Resources* resources;
+
    TTF_Font* font;
 
    int bHeight = 12;
@@ -39,15 +44,12 @@ struct Game {
    int timer = 0;
    int timeDelta = 0;
 
-   SDL_Rect frame;
 };
 
 //void startTimer(int time);
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
 bool gameRunning(Game* game);
-
-void gameLoadTextures(Game* game);
 
 void gameHandleEvents(Game* game);
 

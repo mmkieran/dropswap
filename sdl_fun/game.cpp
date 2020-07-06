@@ -5,80 +5,33 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include <imgui/GL/gl3w/gl3w.h>
-#include <gl/GL.h>
 
 #include "game.h"
 #include "board.h"
-#include "texture_manager.h"
+#include "resources.h"
 #include "cursor.h"
 #include "tile.h"
+#include "render.h"
+#include "mymath.h"
 
-Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen){
-   //Game* game = (Game*)malloc(sizeof(Game));
-   Game* game = new Game;
 
-   //int flags = 0;
-
-   //if (fullscreen) {
-   //   flags = sdl_window_fullscreen;
-   //}
-
-   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
-      printf("Failed to initialize SDL...\n");
-      return nullptr;
-   }
-
-   if (TTF_Init() != 0) {
-      printf("Failed to initialize True Text Fonts...\n");
-   }
-
-   // Create window with graphics context
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-      
+
    game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   game->window2 = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
    if (!game->window) {
       printf("Failed to create SDL window...\n");
-      return nullptr;
+      return false;
    }
 
-   game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-   if (!game->renderer) {
-      SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-      printf("Failed to create renderer.\n");
-      return nullptr;
-   }
-
-      // Decide GL+GLSL versions
-   #if __APPLE__
-       // GL 3.2 Core + GLSL 150
-      const char* glsl_version = "#version 150";
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-   #else
-       // GL 3.0 + GLSL 130
-      const char* glsl_version = "#version 130";
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-   #endif
-
-   game->gl_context = SDL_GL_CreateContext(game->window2);
-   SDL_GL_MakeCurrent(game->window2, game->gl_context);
+   game->gl_context = SDL_GL_CreateContext(game->window);
+   SDL_GL_MakeCurrent(game->window, game->gl_context);
    SDL_GL_SetSwapInterval(1); // Enable vsync
 
-   if (gl3wInit() != 0) {
-      printf("Failed to initialize gl3w...\n");
-      return nullptr;
-   }
+   return true;
+}
 
+void setupImGui(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
@@ -91,8 +44,70 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //ImGui::StyleColorsClassic();
 
    // Setup Platform/Renderer bindings
-   ImGui_ImplSDL2_InitForOpenGL(game->window2, game->gl_context);
+   const char* glsl_version = "#version 130";
+   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
+
+}
+
+Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
+   Game* game = new Game;
+
+   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
+      printf("Failed to initialize SDL...\n");
+      return nullptr;
+   }
+   else {
+      printf("Initialized SDL...\n");
+   }
+   
+   if (TTF_Init() != 0) {
+      printf("Failed to initialize True Text Fonts...\n");
+   }
+   else {
+      printf("Initialized True Text Fonts...\n");
+   }
+
+   if (openglContext() != 0) {
+      printf("Failed to create OpenGL Context?...\n");
+   }
+   else {
+      printf("Created OpenGL Context...\n");
+   }
+
+
+   if (!createGameWindow(game, title, xpos, ypos, width, height)) {
+      printf("Failed to create SDL window...\n");
+      return nullptr;
+   }
+   else {
+      printf("Created SDL window...\n");
+   }
+
+   if (gl3wInit() != 0) {
+      printf("Failed to initialize gl3w...\n");
+      return nullptr;
+   }
+   else {
+      printf("Initialized gl3w...\n");
+   }
+
+   //Load game resources
+   game->resources = initResources();
+   //use the shader program
+
+   //Make a vertex array object... stores the links between attributes and vbos
+   game->VAO = createVAO();
+
+   //initialize IMGUI
+   setupImGui(game);
+
+   //Use the Shader Program once it's created in resources
+   useShaderProgram(resourcesGetShader(game));
+
+   //Set the projection matrices to change origin to world and then to device coordinates
+   originToWorld(game, 0.0f, 0.0f, width, height);
+   worldToDevice(game, 0.0f, 0.0f, width, height);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -103,55 +118,36 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->bHeight = 12;
    game->bWidth = 6;
 
-   game->frame.w = game->tWidth = 64;
+   game->tWidth = 64;
    game->tHeight = 64;
 
-   game->frame.w = game->tWidth * game->bWidth;
-   game->frame.h = game->tHeight * game->bHeight;
-   game->frame.x = 0;
-   game->frame.y = 0;
+   game->windowHeight = height;
+   game->windowWidth = width;
 
    game->timer = 0;
-   gameLoadTextures(game);
 
-   //setting up board
-   game->board = boardCreate(game); 
-   game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
-   game->board->game = game;
-            
+   ////setting up board
+   //game->board = boardCreate(game);
+   //game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
+   //game->board->game = game;
 
-   game->board->paused = false;
-   game->board->pauseLength = 0;
 
-   //todo: Use premade boards or fix algorithm so there are no matches at the start
-   boardFillTiles(game->board);
+   //game->board->paused = false;
+   //game->board->pauseLength = 0;
+
+   ////todo: Use premade boards or fix algorithm so there are no matches at the start
+   //boardFillTiles(game->board);
+
+   for (int i = 0; i < 6; i++) {
+      game->squares.push_back(createSquare(game));
+   }
 
    game->isRunning = true;
    return game;
 
 }
 
-void gameLoadTextures(Game* game) {
-
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/circle.png"));  
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/diamond.png")); 
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/utriangle.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/dtriangle.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/star.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/heart.png"));
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/empty.png"));  //silver
-   game->textures.push_back( TextureManager::LoadTexture(game, "assets/skull.png")); //clear
-
-   //game->textures[(int)tile_diamond] = TextureManager::LoadTexture(game, "assets/diamond.png");
-   //game->textures[(int)tile_utriangle] = TextureManager::LoadTexture(game, "assets/utriangle.png");
-   //game->textures[(int)tile_dtriangle] = TextureManager::LoadTexture(game, "assets/dtriangle.png");
-   //game->textures[(int)tile_star] = TextureManager::LoadTexture(game, "assets/star.png");
-   //game->textures[(int)tile_circle] = TextureManager::LoadTexture(game, "assets/circle.png");
-   //game->textures[(int)tile_heart] = TextureManager::LoadTexture(game, "assets/heart.png");
-   //game->textures[(int)tile_silver] = TextureManager::LoadTexture(game, "assets/grass.png");
-}
-
-void gameHandleEvents(Game* game){
+void gameHandleEvents(Game* game) {
    SDL_Event event;
    SDL_PollEvent(&event);
    switch (event.type) {
@@ -159,148 +155,167 @@ void gameHandleEvents(Game* game){
       game->isRunning = false;
       break;
 
-   case SDL_KEYDOWN:
-      int x = 0;
-      int y = 0;
-      switch (event.key.keysym.sym) {
+      //case SDL_KEYDOWN:
+      //   int x = 0;
+      //   int y = 0;
+      //   switch (event.key.keysym.sym) {
 
-      case SDLK_LEFT:
-         x = game->board->cursor->GetXPosition();
-         if (x <= 0) { break; }
-         else {
-            game->board->cursor->SetXPosition(x - game->tWidth);
-            break;
-         }
+      //   case SDLK_LEFT:
+      //      x = game->board->cursor->GetXPosition();
+      //      if (x <= 0) { break; }
+      //      else {
+      //         game->board->cursor->SetXPosition(x - game->tWidth);
+      //         break;
+      //      }
 
-      case SDLK_RIGHT:
-         x = game->board->cursor->GetXPosition();
-         if (x >= (game->bWidth -2) * game->tWidth) { break; }
-         else {
-            game->board->cursor->SetXPosition(x + game->tWidth);
-            break;
-         }
+      //   case SDLK_RIGHT:
+      //      x = game->board->cursor->GetXPosition();
+      //      if (x >= (game->bWidth - 2) * game->tWidth) { break; }
+      //      else {
+      //         game->board->cursor->SetXPosition(x + game->tWidth);
+      //         break;
+      //      }
 
-      case SDLK_UP:
-         y = game->board->cursor->GetYPosition();
-         if (y - game->tHeight <= 0) { break; }
-         else {
-            game->board->cursor->SetYPosition(y - game->tHeight);
-            break;
-         }
+      //   case SDLK_UP:
+      //      y = game->board->cursor->GetYPosition();
+      //      if (y - game->tHeight <= 0) { break; }
+      //      else {
+      //         game->board->cursor->SetYPosition(y - game->tHeight);
+      //         break;
+      //      }
 
-      case SDLK_DOWN:
-         y = game->board->cursor->GetYPosition();
-         if (y + game->tHeight >= game->tHeight * (game->board->startH - 1) ) { break; }
-         else {
-            game->board->cursor->SetYPosition(y + game->tHeight);
-            break;
-         }
+      //   case SDLK_DOWN:
+      //      y = game->board->cursor->GetYPosition();
+      //      if (y + game->tHeight >= game->tHeight * (game->board->startH - 1)) { break; }
+      //      else {
+      //         game->board->cursor->SetYPosition(y + game->tHeight);
+      //         break;
+      //      }
 
-      case SDLK_SPACE:
-         boardSwap(game->board, game->board->cursor);
-         break;
+      //   case SDLK_SPACE:
+      //      boardSwap(game->board, game->board->cursor);
+      //      break;
 
-      case SDLK_r:
-         if (!game->board->paused) {
-            boardMoveUp(game->board, 8);
-            break;
-         }
-         break;
-      }
+      //   case SDLK_r:
+      //      if (!game->board->paused) {
+      //         boardMoveUp(game->board, 8);
+      //         break;
+      //      }
+      //      break;
+      //   }
    }
 }
 
-void gameUpdate(Game* game){
+void gameUpdate(Game* game) {
 
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window2);
+   ImGui_ImplSDL2_NewFrame(game->window);
    ImGui::NewFrame();
 
-   bool show_demo_window = true;
-   ImGui::ShowDemoWindow(&show_demo_window);
 
-   boardRemoveClears(game->board);
-   if (game->board->pauseLength > 0) {
-      game->board->pauseLength -= game->timeDelta;
+   //boardRemoveClears(game->board);
+   //if (game->board->pauseLength > 0) {
+   //   game->board->pauseLength -= game->timeDelta;
 
-      if (game->board->pauseLength < 0) {
-         game->board->paused = false;
-         game->board->pauseLength = 0;
-      }
-   }
-   else {
-      game->board->paused = false;
-   }
+   //   if (game->board->pauseLength < 0) {
+   //      game->board->paused = false;
+   //      game->board->pauseLength = 0;
+   //   }
+   //}
+   //else {
+   //   game->board->paused = false;
+   //}
 
-   //Update board
-   if (game->timer > 2000) {
-      if (game->board->paused == false) {
-         boardMoveUp(game->board, 1 * game->board->speed);
-         boardUpdateArray(game->board, false);
-      }
-   }
+   ////Update board
+   //if (game->timer > 2000) {
+   //   if (game->board->paused == false) {
+   //      boardMoveUp(game->board, 1 * game->board->speed);
+   //      boardUpdateArray(game->board, false);
+   //   }
+   //}
 
-   if (game->board->bust) {
-      game->isRunning = false;
-   }
+   //if (game->board->bust) {
+   //   game->isRunning = false;
+   //}
 
-   boardUpdateFalling(game->board, 4);
-   boardUpdateArray(game->board, false);
+   //boardUpdateFalling(game->board, 4);
+   //boardUpdateArray(game->board, false);
 
-   game->board->cursor->Update(game);
+   //game->board->cursor->Update(game);
 
 }
 
-void gameRender(Game* game){
+void gameRender(Game* game) {
 
-   //SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 255);
-   //SDL_RenderClear(game->renderer);
    ////Draw game objects
    //boardRender(game, game->board);
 
-   ////todo Rough frame for the game... use textures later
-   //SDL_RenderDrawRect(game->renderer, &game->frame);
+   clearRenderer(0.0, 0.0, 0.0, 0.0);
 
-   ////debug testing rendering text
-   //SDL_Color color = { 255, 255, 255 };
-   //SDL_Rect textBox;
-   //textBox.x = 64 * 7;
-   //textBox.y = 0;
-   //textBox.w = 128;
-   //textBox.h = 32;
-   //SDL_Surface * surface = TTF_RenderText_Solid(game->font,"Swap And Drop", color);
-   //SDL_Texture * texture = SDL_CreateTextureFromSurface(game->renderer, surface);
-   //SDL_QueryTexture(texture, NULL, NULL, &textBox.w, &textBox.h);
-   //SDL_RenderCopy(game->renderer, texture, NULL, &textBox);
+   int width, height;
+   SDL_GetWindowSize(game->window, &width, &height);
 
+   setRenderTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
+
+   ////Do this if we want the squares to stay the same size when then window changes...
+   //worldToDevice(game, 0.0f, 0.0f, width, height);
+
+   for (int i = 0; i < game->squares.size(); i++) {
+      game->squares[i]->texture = resourcesGetTexture(game->resources, i);
+      drawSquare(game, game->squares[i], (64.0 * i), 0.0, 64.0, 64.0);
+   }
+
+   for (int i = 0; i < game->squares.size(); i++) {
+      //game->squares[i]->texture = resourcesGetTexture(game->resources, i);
+      drawSquare(game, game->squares[i], (64.0 * i), 64.0, 64.0, 64.0);
+   }
+
+   //ImGui debug
+   bool show_demo_window = true;
+   bool show_another_window = true;
    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-   glViewport(0, 0, (int)game->io->DisplaySize.x, (int)game->io->DisplaySize.y);
-   glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-   glClear(GL_COLOR_BUFFER_BIT);
 
-   glUseProgram(0);
+   static float f = 0.0f;
+   static int counter = 0;
+
+   ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+   ImGui::Image((void*)(intptr_t)game->squares[1]->texture->handle, { 64, 64 } );
+
+   ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+   ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+   ImGui::Checkbox("Another Window", &show_another_window);
+
+   ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+   ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+   if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+      counter++;
+   ImGui::SameLine();
+   ImGui::Text("counter = %d", counter);
+
+   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+   ImGui::End();
+
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->window2);
-
-   ////Finish drawing and present
-   //SDL_RenderPresent(game->renderer);
-
-   ////debug temp for rendering text
-   //SDL_DestroyTexture(texture);
-   //SDL_FreeSurface(surface);
+   SDL_GL_SwapWindow(game->window);
 
 }
 
-void gameDestroy(Game* game){
-   delete game->board->cursor;  //todo make this not a class later
-   for (auto&& t : game->textures) {  //destory all textures, maybe do in function later
-      SDL_DestroyTexture(t);
-   }
+void gameDestroy(Game* game) {
+
    TTF_CloseFont(game->font);  //free the font
-   boardDestroy(game->board);
+   //boardDestroy(game->board);
+
+   for (int i = 0; i < game->squares.size(); i++) {
+      destroySquare(game->squares[i]);
+   }
+
+   destroyResources(game->resources);
+
+   destroyVAO(game->VAO);
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();
@@ -310,10 +325,8 @@ void gameDestroy(Game* game){
 
    //SDL cleanup
    SDL_DestroyWindow(game->window);
-   SDL_DestroyRenderer(game->renderer);
    TTF_Quit();  //close ttf
    SDL_Quit();
-   //free(game);
    delete game;
 
    printf("Cleanup successful.\n");

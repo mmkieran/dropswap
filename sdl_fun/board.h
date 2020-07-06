@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game.h"
+#include <random>
 
 struct Tile;
 class Cursor;

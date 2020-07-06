@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir);$(SolutionDir)Depends\stb\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,7 +151,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir)Depends\SDL2_image\include;$(SolutionDir)Depends\SDL2_ttf\include;$(SolutionDir);$(SolutionDir)Depends\stb\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,14 +172,20 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="game.cpp" />
     <ClCompile Include="cursor.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="texture_manager.cpp" />
+    <ClCompile Include="mymath.cpp" />
+    <ClCompile Include="opengl_tutorial.cpp" />
+    <ClCompile Include="render.cpp" />
+    <ClCompile Include="resources.cpp" />
     <ClCompile Include="tile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Depends\stb\include\stb_image.h" />
     <ClInclude Include="board.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="cursor.h" />
-    <ClInclude Include="texture_manager.h" />
+    <ClInclude Include="mymath.h" />
+    <ClInclude Include="render.h" />
+    <ClInclude Include="resources.h" />
     <ClInclude Include="tile.h" />
   </ItemGroup>
   <ItemGroup>

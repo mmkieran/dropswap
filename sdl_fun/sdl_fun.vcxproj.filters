@@ -7,9 +7,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="texture_manager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -17,6 +14,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cursor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="opengl_tutorial.cpp">
+      <Filter>third</Filter>
+    </ClCompile>
+    <ClCompile Include="render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="resources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mymath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,12 +39,12 @@
     <Filter Include="assets">
       <UniqueIdentifier>{14a1b75a-df9d-4b76-8cd3-757013aa8b8b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third">
+      <UniqueIdentifier>{f17d0b3f-1531-402c-954f-31c62018493f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="texture_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="board.h">
@@ -45,6 +54,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cursor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Depends\stb\include\stb_image.h">
+      <Filter>third</Filter>
+    </ClInclude>
+    <ClInclude Include="render.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
