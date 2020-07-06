@@ -106,8 +106,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    useShaderProgram(resourcesGetShader(game));
 
    //Set the projection matrix to change world to device coordinates
-   setWorldCoords(game, 0.0f, 0.0f, width, height);
-   setDeviceCoords(game, 0.0f, 0.0f, width, height);
+   originToWorld(game, 0.0f, 0.0f, width, height);
+   worldToDevice(game, 0.0f, 0.0f, width, height);
 
    game->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->font) {
@@ -262,14 +262,18 @@ void gameRender(Game* game) {
 
    int width, height;
    SDL_GetWindowSize(game->window, &width, &height);
-   //setWorldCoords(game, 0.0f, 0.0f, width, height);
-   //setDeviceCoords(game, 0.0f, 0.0f, width, height);
+   //originToWorld(game, 0.0f, 0.0f, width, height);
+   //worldToDevice(game, 0.0f, 0.0f, width, height);
 
    for (int i = 0; i < game->squares.size(); i++) {
       game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], -32 + (64.0 * i), -32, 64, 64);
+      drawSquare(game, game->squares[i], (64.0 * i -32), 0.0, 64.0, 64.0);
    }
 
+   for (int i = 0; i < game->squares.size(); i++) {
+      //game->squares[i]->texture = resourcesGetTexture(game->resources, i);
+      drawSquare(game, game->squares[i], (64.0 * i -32), 64.0, 64.0, 64.0);
+   }
 
    //ImGui debug
    bool show_demo_window = true;

@@ -65,8 +65,8 @@ void shaderSetMat4(GLuint location, float* mat);
 
 void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
 
-void setWorldCoords(Game* game, float xOrigin, float yOrigin, float width, float height);
-void setDeviceCoords(Game* game, float xOrigin, float yOrigin, float width, float height);
+void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height);
+void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height);
 
 Texture* createTexture(unsigned char* image, int width, int height);
 void bindTexture(Square* square);
