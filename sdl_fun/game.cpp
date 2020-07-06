@@ -102,7 +102,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //initialize IMGUI
    setupImGui(game);
 
-   //Use the Shader Program once it's created
+   //Use the Shader Program once it's created in resources
    useShaderProgram(resourcesGetShader(game));
 
    //Set the projection matrix to change world to device coordinates
@@ -123,11 +123,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
-
-   //game->frame.w = game->tWidth * game->bWidth;
-   //game->frame.h = game->tHeight * game->bHeight;
-   //game->frame.x = 0;
-   //game->frame.y = 0;
 
    game->timer = 0;
 
@@ -218,8 +213,6 @@ void gameUpdate(Game* game) {
    ImGui_ImplSDL2_NewFrame(game->window);
    ImGui::NewFrame();
 
-   //bool show_demo_window = true;
-   //ImGui::ShowDemoWindow(&show_demo_window);
 
    //boardRemoveClears(game->board);
    //if (game->board->pauseLength > 0) {

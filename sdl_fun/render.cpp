@@ -296,7 +296,7 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
    Vec2 topLeft = { -1, 1 };
 
    //world coordinates
-   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldTopLeft = { xOrigin, yOrigin };
    Vec2 worldBotRight = { width, height };
 
    //I like to draw the squares at the top left corner
@@ -319,7 +319,7 @@ void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float 
    Vec2 topLeft = { -1, 1 };
 
    //world coordinates
-   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldTopLeft = { xOrigin, yOrigin };
    Vec2 worldBotRight = { width, height };
 
    Vec2 movement = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
