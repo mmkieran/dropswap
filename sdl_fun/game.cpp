@@ -105,7 +105,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //Use the Shader Program once it's created in resources
    useShaderProgram(resourcesGetShader(game));
 
-   //Set the projection matrix to change world to device coordinates
+   //Set the projection matrices to change origin to world and then to device coordinates
    originToWorld(game, 0.0f, 0.0f, width, height);
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
