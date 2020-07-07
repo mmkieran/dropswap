@@ -75,7 +75,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Created OpenGL Context...\n");
    }
 
-
    if (!createGameWindow(game, title, xpos, ypos, width, height)) {
       printf("Failed to create SDL window...\n");
       return nullptr;
@@ -94,7 +93,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //Load game resources
    game->resources = initResources();
-   //use the shader program
 
    //Make a vertex array object... stores the links between attributes and vbos
    game->VAO = createVAO();
@@ -126,21 +124,17 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->timer = 0;
 
-   ////setting up board
-   //game->board = boardCreate(game);
-   //game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
-   //game->board->game = game;
+   //setting up board
+   game->board = boardCreate(game);
+   game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
+   game->board->game = game;
 
 
-   //game->board->paused = false;
-   //game->board->pauseLength = 0;
+   game->board->paused = false;
+   game->board->pauseLength = 0;
 
-   ////todo: Use premade boards or fix algorithm so there are no matches at the start
-   //boardFillTiles(game->board);
-
-   for (int i = 0; i < 6; i++) {
-      game->meshes.push_back(createMesh(game));
-   }
+   //todo: Use premade boards or fix algorithm so there are no matches at the start
+   boardFillTiles(game->board);
 
    game->isRunning = true;
    return game;
@@ -213,43 +207,39 @@ void gameUpdate(Game* game) {
    ImGui_ImplSDL2_NewFrame(game->window);
    ImGui::NewFrame();
 
+   boardRemoveClears(game->board);
+   if (game->board->pauseLength > 0) {
+      game->board->pauseLength -= game->timeDelta;
 
-   //boardRemoveClears(game->board);
-   //if (game->board->pauseLength > 0) {
-   //   game->board->pauseLength -= game->timeDelta;
+      if (game->board->pauseLength < 0) {
+         game->board->paused = false;
+         game->board->pauseLength = 0;
+      }
+   }
+   else {
+      game->board->paused = false;
+   }
 
-   //   if (game->board->pauseLength < 0) {
-   //      game->board->paused = false;
-   //      game->board->pauseLength = 0;
-   //   }
-   //}
-   //else {
-   //   game->board->paused = false;
-   //}
+   //Update board
+   if (game->timer > 2000) {
+      if (game->board->paused == false) {
+         boardMoveUp(game->board, 1 * game->board->speed);
+         boardUpdateArray(game->board, false);
+      }
+   }
 
-   ////Update board
-   //if (game->timer > 2000) {
-   //   if (game->board->paused == false) {
-   //      boardMoveUp(game->board, 1 * game->board->speed);
-   //      boardUpdateArray(game->board, false);
-   //   }
-   //}
+   if (game->board->bust) {
+      game->isRunning = false;
+   }
 
-   //if (game->board->bust) {
-   //   game->isRunning = false;
-   //}
+   boardUpdateFalling(game->board, 4);
+   boardUpdateArray(game->board, false);
 
-   //boardUpdateFalling(game->board, 4);
-   //boardUpdateArray(game->board, false);
-
-   //game->board->cursor->Update(game);
+   game->board->cursor->Update(game);
 
 }
 
 void gameRender(Game* game) {
-
-   ////Draw game objects
-   //boardRender(game, game->board);
 
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
@@ -261,15 +251,8 @@ void gameRender(Game* game) {
    ////Do this if we want the meshes to stay the same size when then window changes...
    //worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   for (int i = 0; i < game->meshes.size(); i++) {
-      game->meshes[i]->texture = resourcesGetTexture(game->resources, i);
-      drawMesh(game, game->meshes[i], (64.0 * i), 0.0, 64.0, 64.0);
-   }
-
-   for (int i = 0; i < game->meshes.size(); i++) {
-      //game->meshes[i]->texture = resourcesGetTexture(game->resources, i);
-      drawMesh(game, game->meshes[i], (64.0 * i), 64.0, 64.0, 64.0);
-   }
+   //Draw game objects
+   boardRender(game, game->board);
 
    //ImGui debug
    bool show_demo_window = true;
@@ -280,19 +263,9 @@ void gameRender(Game* game) {
    static int counter = 0;
 
    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-   ImGui::Image((void*)(intptr_t)game->meshes[1]->texture->handle, { 64, 64 } );
+   //ImGui::Image((void*)(intptr_t)game->meshes[1]->texture->handle, { 64, 64 } );
 
    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-   ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-   ImGui::Checkbox("Another Window", &show_another_window);
-
-   ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-   ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-   if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-      counter++;
-   ImGui::SameLine();
-   ImGui::Text("counter = %d", counter);
 
    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
    ImGui::End();
@@ -307,11 +280,8 @@ void gameRender(Game* game) {
 void gameDestroy(Game* game) {
 
    TTF_CloseFont(game->font);  //free the font
-   //boardDestroy(game->board);
 
-   for (int i = 0; i < game->meshes.size(); i++) {
-      destroyMesh(game->meshes[i]);
-   }
+   boardDestroy(game->board);
 
    destroyResources(game->resources);
 

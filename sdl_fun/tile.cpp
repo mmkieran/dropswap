@@ -1,58 +1,48 @@
 #include <stdlib.h>
 #include "tile.h"
 #include "resources.h"
+#include "render.h"
 
-
-void tileLoadTexture(Board* board, Tile* tile) {
-   ////hard code this for now
-   //switch (tile->type) {
-   //case tile_empty:
-   //   tile->texture = nullptr;
-   //   //tile->texture = board->game->textures[6];  //debug
-   //   break;
-   //case tile_circle:
-   //   tile->texture = board->game->textures[0];
-   //   break;
-   //case tile_diamond:
-   //   tile->texture = board->game->textures[1];
-   //   break;
-   //case tile_utriangle:
-   //   tile->texture = board->game->textures[2];
-   //   break;
-   //case tile_dtriangle:
-   //   tile->texture = board->game->textures[3];
-   //   break;
-   //case tile_star:
-   //   tile->texture = board->game->textures[4];
-   //   break;
-   //case tile_heart:
-   //   tile->texture = board->game->textures[5];
-   //   break;
-   //case tile_silver:
-   //   tile->texture = board->game->textures[6];
-   //   break;
-   //default:
-   //   tile->texture = nullptr;
-   //}
+void tileSetTexture(Board* board, Tile* tile) {
+   //hard code this for now
+   switch (tile->type) {
+   case tile_empty:
+      tile->mesh->texture = nullptr;
+      break;
+   case tile_circle:
+      tile->mesh->texture = board->game->resources->textures[0];
+      break;
+   case tile_diamond:
+      tile->mesh->texture = board->game->resources->textures[1];
+      break;
+   case tile_utriangle:
+      tile->mesh->texture = board->game->resources->textures[2];
+      break;
+   case tile_dtriangle:
+      tile->mesh->texture = board->game->resources->textures[3];
+      break;
+   case tile_star:
+      tile->mesh->texture = board->game->resources->textures[4];
+      break;
+   case tile_heart:
+      tile->mesh->texture = board->game->resources->textures[5];
+      break;
+   case tile_silver:
+      tile->mesh->texture = board->game->resources->textures[6];
+      break;
+   default:
+      tile->mesh->texture = nullptr;
+   }
 }
 
-void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type) {
+void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type) {
    tile->type = type;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;
-   tileLoadTexture(board, tile);
 
-   tile->srcRect.h = 32; //This is the size of the pixel art
-   tile->srcRect.w = 32;
+   tile->mesh = createMesh(board->game);
 
-   tile->srcRect.x = 0;
-   tile->srcRect.y = 0;
-
-   tile->destRect.x = tile->xpos;
-   tile->destRect.y = tile->ypos;
-
-   tile->destRect.w = board->tileWidth;
-   tile->destRect.h = board->tileHeight;
+   tileSetTexture(board, tile);
 
    tile->clearTime = 0;
    tile->falling = false;
@@ -60,22 +50,10 @@ void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type)
 }
 
 void tileUpdate(Board* board, Tile* tile) {
-
-   tile->srcRect.h = 32;
-   tile->srcRect.w = 32;
-
-   tile->srcRect.x = 0;
-   tile->srcRect.y = 0;
-
-   tile->destRect.x = tile->xpos;
-   tile->destRect.y = tile->ypos;
-
-   tile->destRect.w = board->tileWidth;
-   tile->destRect.h = board->tileHeight;
+   //todo put something here
 }
 
-void tileSetXPosition(Tile* tile, int x) { tile->xpos = x; }
-void tileSetYPosition(Tile* tile, int y) { tile->ypos = y; }
+void tileDraw(Board* board, Tile* tile) {
+   drawMesh(board->game, tile->mesh, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight);
+}
 
-int tileGetXPosition(Tile* tile) { return tile->xpos; }
-int tileGetYPosition(Tile* tile) { return tile->ypos; }

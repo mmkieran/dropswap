@@ -23,9 +23,7 @@ struct Tile {
    int xpos;
    int ypos;
 
-   SDL_Texture* texture;   //tile image
-   SDL_Rect srcRect;          //What part of the texture are we using
-   SDL_Rect destRect;         //Where are we going to render it
+   Mesh* mesh;
 
    bool falling;
    int clearTime;
@@ -33,13 +31,8 @@ struct Tile {
 
 };
 
-void tileLoadTexture(Board* board, Tile* tile);
-void tileInitWithType(Board* board, Tile* tile, int row, int col, TileEnum type);
+void tileSetTexture(Board* board, Tile* tile);
+void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type);
 
 void tileUpdate(Board* board, Tile* tile);
-
-void tileSetXPosition(Tile* tile, int x);
-void tileSetYPosition(Tile* tile, int y);
-
-int tileGetXPosition(Tile* tile);
-int tileGetYPosition(Tile* tile);
+void tileDraw(Board* board, Tile* tile);

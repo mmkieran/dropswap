@@ -55,10 +55,8 @@ void boardMoveUp(Board* board, int height);
 void boardSwap(Board* board, Cursor* cursor);
 
 void boardUpdateFalling(Board* board, int velocity);
-//void boardUpdateFalling(Board* board);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void boardRemoveClears(Board* board);
-//void boardResetChain(Board* board);
 void boardUpdateArray(Board* board, bool buffer);
 
 std::vector <Tile> boardDebug(Board* board);

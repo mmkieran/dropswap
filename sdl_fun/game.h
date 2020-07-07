@@ -17,9 +17,9 @@ struct Game {
    ImGuiIO* io;
    Board* board;
 
-   unsigned int VAO;
+   std::vector <Mesh*> testMesh;
 
-   std::vector <Mesh*> meshes;
+   unsigned int VAO;
 
    float windowWidth;
    float windowHeight;

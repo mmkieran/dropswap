@@ -70,8 +70,8 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->texture == nullptr) { continue; }
-         //SDL_RenderCopy(game->renderer, tile->texture, &tile->srcRect, &tile->destRect);
+         if (tile->mesh->texture == nullptr) { continue; }
+         tileDraw(board, tile);
       }
    }
    //Does Cursor rendering belong here? It's part of the board
@@ -112,10 +112,10 @@ void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
 
    //basic swap
    tile2->type = tile1->type;
-   tile2->texture = tile1->texture;
+   tile2->mesh->texture = tile1->mesh->texture;
 
    tile1->type = tmp.type;
-   tile1->texture = tmp.texture;
+   tile1->mesh->texture = tmp.mesh->texture;
 
    if (pos) {  //swap positions
       tile2->ypos = tile1->ypos;
@@ -206,7 +206,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
          //clear block and set timer
-         //m->texture = board->game->textures[7];  //todo replace with new texture stuff
+         m->mesh->texture = board->game->resources->textures[7];  //todo replace with new texture stuff
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;
@@ -291,7 +291,7 @@ void boardRemoveClears(Board* board) {
          if (tile->type == tile_cleared) {
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
-               tile->texture = nullptr; //board->game->textures[6];
+               tile->mesh->texture = nullptr; //board->game->textures[6];
                //todo flag all blocks above as part of a chain
             }
          }
@@ -342,11 +342,11 @@ int boardFillTiles(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < board->startH + (board->endH - board->startH) / 2) {
-            tileInitWithType(board, tile, row, col, tile_empty);
+            tileInit(board, tile, row, col, tile_empty);
             continue;
          }
          else {  //todo: add a better algorithm here
-            tileInitWithType(board, tile, row, col, (TileEnum)board->distribution(board->generator));
+            tileInit(board, tile, row, col, (TileEnum)board->distribution(board->generator));
             if (row != board->endH) {
                checkTiles.push_back(tile);
             }
@@ -364,7 +364,7 @@ int boardFillTiles(Board* board) {
 
    if (matches.size() > 0) {
       for (auto&& m : matches) {
-         m->texture = nullptr; //board->game->textures[6];  //debug texture
+         m->mesh->texture = nullptr; //board->game->textures[6];  //debug texture
          m->type = tile_empty;
       }
    }
@@ -384,7 +384,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
          else {
             tileList.push_back(*tile);
          }
-         tileInitWithType(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
+         tileInit(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
       }
    }
 
@@ -402,7 +402,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
          Tile newTile;
-         tileInitWithType(board, &newTile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
+         tileInit(board, &newTile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
          newTile.ypos += board->offset;  //need to take board offset into account
          boardSetTile(board, newTile, row, col);
          tileUpdate(board, current);
