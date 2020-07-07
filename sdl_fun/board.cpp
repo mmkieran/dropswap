@@ -21,6 +21,8 @@ Board* boardCreate(Game* game) {
    if (board) {
       Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
       if (tiles) {
+         board->game = game;
+
          board->tiles = tiles;
 
          board->startH = game->bHeight;  //start playing area of the board... everything above is for garbage
@@ -32,8 +34,6 @@ Board* boardCreate(Game* game) {
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
          board->speed = 1;
-         board->moveTimer = 0;
-         board->fallTimer = 0;
          board->paused = false;
          board->pauseLength = 0;
          board->bust = false;
@@ -45,6 +45,8 @@ Board* boardCreate(Game* game) {
 
          std::uniform_int_distribution<int> dist (1, 6);
          board->distribution = dist;
+
+         board->cursor = cursorCreate(board, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
 
          return board;
       }
@@ -74,8 +76,8 @@ void boardRender(Game* game, Board* board) {
          tileDraw(board, tile);
       }
    }
-   //Does Cursor rendering belong here? It's part of the board
-   game->board->cursor->Render(game);
+   //Does Cursor rendering belong here? It's part of the board...
+   cursorDraw(board);
 }
 
 //-----Helpful functions----------
@@ -132,12 +134,12 @@ void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
    }
 }
 
-void boardSwap(Board* board, Cursor* cursor) {
+void boardSwap(Board* board) {
 
    //todo add logic for falling blocks...
 
-   int col = xPosToCol(board, cursor->GetXPosition());
-   int row = yPosToRow(board, cursor->GetYPosition());
+   int col = xPosToCol(board, cursorGetX(board->cursor));
+   int row = yPosToRow(board, cursorGetY(board->cursor));
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -329,7 +331,7 @@ void boardMoveUp(Board* board, int height) {
       }
    }
 
-   board->cursor->SetYPosition(board->cursor->GetYPosition() - nudge);
+   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
    boardCheckClear(board, checkTiles, false);
 }
 

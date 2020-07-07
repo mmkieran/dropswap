@@ -4,7 +4,7 @@
 #include <random>
 
 struct Tile;
-class Cursor;
+struct Cursor;
 
 enum MoveEnum {
    move_up = 0,

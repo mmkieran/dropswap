@@ -11,14 +11,16 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->x = xpos;
    cursor->y = ypos;
 
-   Mesh* mesh = createMesh(board->game);
-   mesh->texture = board->game->resources->textures[8];
+   cursor->mesh = createMesh(board->game);
+   cursor->mesh->texture = board->game->resources->textures[8];
 
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;
+
+   return cursor;
 }
 
-void destroyCursor(Cursor* cursor) {
+void cursorDestroy(Cursor* cursor) {
    delete cursor;
 }
 
@@ -26,7 +28,7 @@ void cursorSetX(Cursor* cursor, float x) {
    cursor->x = x;
 }
 
-void cursorSetX(Cursor* cursor, float y) {
+void cursorSetY(Cursor* cursor, float y) {
    cursor->y = y;
 }
 
@@ -34,7 +36,7 @@ float cursorGetX(Cursor* cursor) {
    return cursor->x;
 }
 
-float cursorGetX(Cursor* cursor) {
+float cursorGetY(Cursor* cursor) {
    return cursor->y;
 }
 

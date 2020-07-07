@@ -14,13 +14,13 @@ struct Cursor {
 };
 
 Cursor* cursorCreate(Board* board, float xpos, float ypos);
-void destroyCursor(Cursor* cursor);
+void cursorDestroy(Cursor* cursor);
 
 void cursorSetX(Cursor* cursor, float x);
-void cursorSetX(Cursor* cursor, float y);
+void cursorSetY(Cursor* cursor, float y);
 
 float cursorGetX(Cursor* cursor);
-float cursorGetX(Cursor* cursor);
+float cursorGetY(Cursor* cursor);
 
-//void cursorUpdate(Board* board);
+void cursorUpdate(Board* board);
 void cursorDraw(Board* board);

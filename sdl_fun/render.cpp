@@ -73,6 +73,8 @@ GLuint createVAO() {
    //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
    //todo Why does it only work when I put this here?
    glDisable(GL_DEPTH_TEST);
+   glEnable(GL_BLEND);  //for images with alpha values
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
    return vao;
 }
@@ -200,7 +202,7 @@ void destroyTexture(Texture* texture) {
 
 Texture* loadTextureFromFile(const char* filename) {
    int width, height;  //retrieve height and width of image
-   int nChannels = 4; //get number of channels
+   int nChannels; //get number of channels
    int reqChannels = 4;  //required number of channels
 
    stbi_set_flip_vertically_on_load(true);  //my images are upside down :)

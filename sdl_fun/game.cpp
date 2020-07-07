@@ -126,9 +126,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //setting up board
    game->board = boardCreate(game);
-   game->board->cursor = new Cursor(game, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
    game->board->game = game;
-
+   game->board->cursor = cursorCreate(game->board, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
 
    game->board->paused = false;
    game->board->pauseLength = 0;
@@ -235,7 +234,7 @@ void gameUpdate(Game* game) {
    boardUpdateFalling(game->board, 4);
    boardUpdateArray(game->board, false);
 
-   game->board->cursor->Update(game);
+   cursorUpdate(game->board);  //todo make this do something
 
 }
 
