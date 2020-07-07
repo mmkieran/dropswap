@@ -109,15 +109,19 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
 
 //------------------
 
+
+//todo totally redo this...
 void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
    Tile tmp = *tile2;
+   tmp.mesh = tile2->mesh;
+   tmp.type = tile2->type;
 
    //basic swap
    tile2->type = tile1->type;
-   tile2->mesh->texture = tile1->mesh->texture;
+   tile2->mesh = tile1->mesh;
 
    tile1->type = tmp.type;
-   tile1->mesh->texture = tmp.mesh->texture;
+   tile1->mesh = tmp.mesh;
 
    if (pos) {  //swap positions
       tile2->ypos = tile1->ypos;
