@@ -148,54 +148,38 @@ void gameHandleEvents(Game* game) {
       game->isRunning = false;
       break;
 
-      //case SDL_KEYDOWN:
-      //   int x = 0;
-      //   int y = 0;
-      //   switch (event.key.keysym.sym) {
+      case SDL_KEYDOWN:
+         int x = 0;
+         int y = 0;
+         switch (event.key.keysym.sym) {
 
-      //   case SDLK_LEFT:
-      //      x = game->board->cursor->GetXPosition();
-      //      if (x <= 0) { break; }
-      //      else {
-      //         game->board->cursor->SetXPosition(x - game->tWidth);
-      //         break;
-      //      }
+         case SDLK_LEFT:
+            cursorMove(game->board, move_left);
+            break;
 
-      //   case SDLK_RIGHT:
-      //      x = game->board->cursor->GetXPosition();
-      //      if (x >= (game->bWidth - 2) * game->tWidth) { break; }
-      //      else {
-      //         game->board->cursor->SetXPosition(x + game->tWidth);
-      //         break;
-      //      }
+         case SDLK_RIGHT:
+            cursorMove(game->board, move_right);
+            break;
 
-      //   case SDLK_UP:
-      //      y = game->board->cursor->GetYPosition();
-      //      if (y - game->tHeight <= 0) { break; }
-      //      else {
-      //         game->board->cursor->SetYPosition(y - game->tHeight);
-      //         break;
-      //      }
+         case SDLK_UP:
+            cursorMove(game->board, move_up);
+            break;
 
-      //   case SDLK_DOWN:
-      //      y = game->board->cursor->GetYPosition();
-      //      if (y + game->tHeight >= game->tHeight * (game->board->startH - 1)) { break; }
-      //      else {
-      //         game->board->cursor->SetYPosition(y + game->tHeight);
-      //         break;
-      //      }
+         case SDLK_DOWN:
+            cursorMove(game->board, move_down);
+            break;
 
-      //   case SDLK_SPACE:
-      //      boardSwap(game->board, game->board->cursor);
-      //      break;
+         case SDLK_SPACE:
+            boardSwap(game->board);
+            break;
 
-      //   case SDLK_r:
-      //      if (!game->board->paused) {
-      //         boardMoveUp(game->board, 8);
-      //         break;
-      //      }
-      //      break;
-      //   }
+         case SDLK_r:
+            if (!game->board->paused) {
+               boardMoveUp(game->board, 8);
+               break;
+            }
+            break;
+         }
    }
 }
 

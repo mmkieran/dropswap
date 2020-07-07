@@ -13,6 +13,14 @@ struct Cursor {
    int w;
 };
 
+enum MoveEnum {
+   move_up = 0,
+   move_down,
+   move_right,
+   move_left
+};
+
+
 Cursor* cursorCreate(Board* board, float xpos, float ypos);
 void cursorDestroy(Cursor* cursor);
 
@@ -24,3 +32,4 @@ float cursorGetY(Cursor* cursor);
 
 void cursorUpdate(Board* board);
 void cursorDraw(Board* board);
+void cursorMove(Board* board, MoveEnum dir);

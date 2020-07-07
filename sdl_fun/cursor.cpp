@@ -52,3 +52,36 @@ void cursorDraw(Board* board) {
    drawMesh(game, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 }
 
+void cursorMove(Board* board, MoveEnum dir) {
+   float y = cursorGetY(board->cursor);
+   float x = cursorGetX(board->cursor);
+
+   if (dir == move_up) {
+      if (y - board->tileHeight <= 0) { return; }
+      else {
+         cursorSetY(board->cursor, (y - board->tileHeight));
+      }
+   }
+
+   else if (dir == move_down) {
+      if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+      else {
+         cursorSetY(board->cursor, (y + board->tileHeight));
+      }
+   }
+
+   else if (dir == move_right) {
+      if (x >= (board->w - 2) * board->tileWidth) { return; }
+      else {
+         cursorSetX(board->cursor, (x + board->tileWidth));
+      }
+   }
+
+   else if (dir == move_left) {
+      if (x <= 0) { return; }
+      else {
+         cursorSetX(board->cursor, (x - board->tileWidth));
+      }
+   }
+}
+

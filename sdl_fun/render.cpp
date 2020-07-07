@@ -74,7 +74,7 @@ GLuint createVAO() {
    //todo Why does it only work when I put this here?
    glDisable(GL_DEPTH_TEST);
    glEnable(GL_BLEND);  //for images with alpha values
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  //setup blending function
 
    return vao;
 }
