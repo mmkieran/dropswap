@@ -1,4 +1,7 @@
 #include "render.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "stb_image.h"
 #include "mymath.h"
 #include "resources.h"
@@ -119,7 +122,7 @@ GLuint createProgram() {
    glAttachShader(shaderProgram, vertexShader);
    glAttachShader(shaderProgram, fragShader);
 
-   glBindFragDataLocation(shaderProgram, 0, "outColor");  //I'm a little confused about this
+   glBindFragDataLocation(shaderProgram, 0, "outColor");  //todo I'm a little confused about this
 
    glLinkProgram(shaderProgram);  //link program
 
@@ -214,9 +217,9 @@ Texture* loadTextureFromFile(const char* filename) {
    return texture;
 }
 
-Square* createSquare(Game* game) {
+Mesh* createMesh(Game* game) {
 
-   Square* square = new Square;
+   Mesh* mesh = new Mesh;
 
    //Take the positions and texture coordinates and intertwine them into one array
    float vertices[24];
@@ -225,22 +228,22 @@ Square* createSquare(Game* game) {
    int i = 0;
    int j = 0;
    while (i < 12) {
-      if (square->positions) {
-         vertices[j] = square->positions[i];
-         vertices[j + 1] = square->positions[i + 1];
+      if (mesh->positions) {
+         vertices[j] = mesh->positions[i];
+         vertices[j + 1] = mesh->positions[i + 1];
       }
-      if (square->texcoords) {
-         vertices[j + 2] = square->texcoords[i];
-         vertices[j + 3] = square->texcoords[i + 1];
+      if (mesh->texcoords) {
+         vertices[j + 2] = mesh->texcoords[i];
+         vertices[j + 3] = mesh->texcoords[i + 1];
       }
 
       i += 2;
       j += 4;
    }
 
-   glGenBuffers(1, &square->vbo);
+   glGenBuffers(1, &mesh->vbo);
 
-   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);  //Make vbo active so we can copy the vertex data
+   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);  //Make vbo active so we can copy the vertex data
 
    //copy data from vertices to buffer
    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -251,21 +254,18 @@ Square* createSquare(Game* game) {
    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));  //point to texture coords attribute
    glEnableVertexAttribArray(1);
 
-   //square->texture = game->textures[1];  //todo put loading a texture in a texture manager
-   //glBindTexture(GL_TEXTURE_2D, square->texture->handle);
-
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
-   return square;
+   return mesh;
 };
 
-void bindTexture(Square* square) {
-   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
-   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
+void bindTexture(Mesh* mesh) {
+   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH) {
+void drawMesh(Game* game, Mesh* mesh, float destX, float destY, float destW, float destH) {
    
    int width, height;
    SDL_GetWindowSize(game->window, &width, &height);
@@ -278,15 +278,16 @@ void drawSquare(Game* game, Square* square, float destX, float destY, float dest
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
-   glBindBuffer(GL_ARRAY_BUFFER, square->vbo);
-   glBindTexture(GL_TEXTURE_2D, square->texture->handle);
+   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
    
-   glDrawArrays(GL_TRIANGLES, 0, square->ptCount);
+   glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void destroySquare(Square* square) {
-   delete square;
+void destroyMesh(Mesh* mesh) {
+   glDeleteBuffers(1, &mesh->vbo);
+   delete mesh;
 }
 
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height) {
@@ -299,7 +300,7 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
    Vec2 worldTopLeft = { xOrigin, yOrigin };
    Vec2 worldBotRight = { width, height };
 
-   //I like to draw the squares at the top left corner
+   //I like to draw the meshes at the top left corner
    Vec2 movement = { (worldTopLeft.x - topLeft.x - 0.5f), (worldTopLeft.y - topLeft.y + 0.5f) };
    //Multiply by two because it's only a quarter of the screen... should i just change the vertices?
    Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x)*2.0f,  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y)*2.0f };
@@ -339,41 +340,18 @@ void clearRenderer(float r, float g, float b, float a) {
 }
 
 void setRenderTarget(int originX, int originY, int width, int height) {
-   //Set the lower left corner of the viewerport rectangle
+   //Set the top left corner of the viewerport rectangle
    glViewport(originX, originY, width, height);
 }
 
-
-//todo make a generic mesh creator for funsies
-struct Mesh {
-   GLuint vbo;
-   int ptCount;
-
-   float* vertices;
-};
-
-Mesh* createMesh(int verts) {
-   Mesh* mesh = new Mesh;
-   mesh->vertices = (float*)malloc(sizeof(float)*verts);
-   mesh->ptCount = verts;
-
-   return mesh;
-}
-
-void destroyMesh(Mesh* mesh) {
-   free(mesh->vertices);
-   delete mesh;
-}
-
+//Copies the VBO data to the graphics card... only do this when we changes the vertices
 void copyToRenderer(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
    //copy data from vertices to buffer
-   glBufferData(GL_ARRAY_BUFFER, sizeof(mesh->vertices), mesh->vertices, GL_STATIC_DRAW);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(mesh->positions), mesh->positions, GL_STATIC_DRAW);
 
    glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
 }
-
-//ignore above for now

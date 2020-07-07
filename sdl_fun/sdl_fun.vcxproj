@@ -173,7 +173,6 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="cursor.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mymath.cpp" />
-    <ClCompile Include="opengl_tutorial.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="resources.cpp" />
     <ClCompile Include="tile.cpp" />

@@ -13,7 +13,7 @@ struct Texture {
    int w, h;  //pixels
 };
 
-struct Square {
+struct Mesh {
    GLuint vbo;  //vbo handle
    Texture* texture;
 
@@ -69,15 +69,15 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height);
 
 Texture* createTexture(unsigned char* image, int width, int height);
-void bindTexture(Square* square);
+void bindTexture(Mesh* mesh);
 void destroyTexture(Texture* texture);
 
 Texture* loadTextureFromFile(const char* filename);
 
-Square* createSquare(Game* game);
-void destroySquare(Square* square);
+Mesh* createMesh(Game* game);
+void destroyMesh(Mesh* mesh);
 
-void drawSquare(Game* game, Square* square, float destX, float destY, float destW, float destH);
+void drawMesh(Game* game, Mesh* mesh, float destX, float destY, float destW, float destH);
 
 void setRenderTarget(int botLeftX, int botLeftY, int width, int height);
 void clearRenderer(float r, float g, float b, float a);

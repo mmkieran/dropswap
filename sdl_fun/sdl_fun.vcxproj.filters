@@ -16,9 +16,6 @@
     <ClCompile Include="cursor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="opengl_tutorial.cpp">
-      <Filter>third</Filter>
-    </ClCompile>
     <ClCompile Include="render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

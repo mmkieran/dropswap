@@ -6,7 +6,7 @@
 #include <vector>
 
 typedef struct Board Board;
-typedef struct Square Square;
+typedef struct Mesh Mesh;
 typedef struct Resources Resources;
 
 struct Game {
@@ -19,7 +19,7 @@ struct Game {
 
    unsigned int VAO;
 
-   std::vector <Square*> squares;
+   std::vector <Mesh*> meshes;
 
    float windowWidth;
    float windowHeight;

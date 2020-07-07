@@ -139,7 +139,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //boardFillTiles(game->board);
 
    for (int i = 0; i < 6; i++) {
-      game->squares.push_back(createSquare(game));
+      game->meshes.push_back(createMesh(game));
    }
 
    game->isRunning = true;
@@ -258,17 +258,17 @@ void gameRender(Game* game) {
 
    setRenderTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
 
-   ////Do this if we want the squares to stay the same size when then window changes...
+   ////Do this if we want the meshes to stay the same size when then window changes...
    //worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   for (int i = 0; i < game->squares.size(); i++) {
-      game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], (64.0 * i), 0.0, 64.0, 64.0);
+   for (int i = 0; i < game->meshes.size(); i++) {
+      game->meshes[i]->texture = resourcesGetTexture(game->resources, i);
+      drawMesh(game, game->meshes[i], (64.0 * i), 0.0, 64.0, 64.0);
    }
 
-   for (int i = 0; i < game->squares.size(); i++) {
-      //game->squares[i]->texture = resourcesGetTexture(game->resources, i);
-      drawSquare(game, game->squares[i], (64.0 * i), 64.0, 64.0, 64.0);
+   for (int i = 0; i < game->meshes.size(); i++) {
+      //game->meshes[i]->texture = resourcesGetTexture(game->resources, i);
+      drawMesh(game, game->meshes[i], (64.0 * i), 64.0, 64.0, 64.0);
    }
 
    //ImGui debug
@@ -280,7 +280,7 @@ void gameRender(Game* game) {
    static int counter = 0;
 
    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-   ImGui::Image((void*)(intptr_t)game->squares[1]->texture->handle, { 64, 64 } );
+   ImGui::Image((void*)(intptr_t)game->meshes[1]->texture->handle, { 64, 64 } );
 
    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
@@ -309,8 +309,8 @@ void gameDestroy(Game* game) {
    TTF_CloseFont(game->font);  //free the font
    //boardDestroy(game->board);
 
-   for (int i = 0; i < game->squares.size(); i++) {
-      destroySquare(game->squares[i]);
+   for (int i = 0; i < game->meshes.size(); i++) {
+      destroyMesh(game->meshes[i]);
    }
 
    destroyResources(game->resources);
