@@ -126,7 +126,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //setting up board
    game->board = boardCreate(game);
-   game->board->cursor = new Cursor(game, "assets/cursor.png", (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
+   game->board->cursor = new Cursor(game, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
    game->board->game = game;
 
 

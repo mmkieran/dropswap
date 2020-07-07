@@ -22,6 +22,8 @@ Resources* initResources() {
    resources->textures.push_back(loadTextureFromFile("assets/empty.png"));  //silver
    resources->textures.push_back(loadTextureFromFile("assets/skull.png")); //clear
 
+   resources->textures.push_back(loadTextureFromFile("assets/cursor.png")); //cursor
+
    //Might have more than 1 shader eventually?
    resources->shaderProgram = createProgram();
 

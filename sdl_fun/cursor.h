@@ -2,28 +2,25 @@
 #include <SDL.h>
 #include "game.h"
 
-class Cursor {
-public:
-   Cursor(Game* game, const char* texturesheet, int x, int y);
-   ~Cursor();
+struct Cursor {
 
-   void SetXPosition(int x);
-   void SetYPosition(int y);
+   float x;
+   float y;
 
-   int GetXPosition();
-   int GetYPosition();
+   Mesh* mesh;
 
-   void Update(Game* game);
-   void Render(Game* game);
-
-   int xpos;
-   int ypos;
-
-   SDL_Texture* objTexture;
-
-   SDL_Rect srcRect;
-   SDL_Rect destRect;
-
-   int height;
-   int width;
+   int h;
+   int w;
 };
+
+Cursor* cursorCreate(Board* board, float xpos, float ypos);
+void destroyCursor(Cursor* cursor);
+
+void cursorSetX(Cursor* cursor, float x);
+void cursorSetX(Cursor* cursor, float y);
+
+float cursorGetX(Cursor* cursor);
+float cursorGetX(Cursor* cursor);
+
+//void cursorUpdate(Board* board);
+void cursorDraw(Board* board);

@@ -1,44 +1,52 @@
 #include "cursor.h"
 #include "resources.h"
 #include "board.h"
+#include "render.h"
 
-Cursor::Cursor(Game* game, const char* texturesheet, int x, int y) {
-   //objTexture = TextureManager::LoadTexture(game, texturesheet);
-   xpos = x;
-   ypos = y;
 
-   height = game->tHeight;
-   width = game->tWidth;
+Cursor* cursorCreate(Board* board, float xpos, float ypos) {
+
+   Cursor* cursor = new Cursor;
+
+   cursor->x = xpos;
+   cursor->y = ypos;
+
+   Mesh* mesh = createMesh(board->game);
+   mesh->texture = board->game->resources->textures[8];
+
+   cursor->h = board->game->tHeight;
+   cursor->w = board->game->tWidth * 2;
 }
 
-Cursor::~Cursor() {}
-
-void Cursor::SetXPosition(int x) { xpos = x; }
-void Cursor::SetYPosition(int y) { ypos = y; }
-
-int Cursor::GetXPosition() { return xpos; }
-int Cursor::GetYPosition() { return ypos; }
-
-void Cursor::Update(Game* game) {
-
-   srcRect.h = 32;
-   srcRect.w = 32;
-
-   srcRect.x = 0;
-   srcRect.y = 0;
-
-   if (ypos < 0) {
-      ypos += game->tHeight;
-   }
-
-   destRect.x = xpos;
-   destRect.y = ypos;
-
-   destRect.w = width * 2;
-   destRect.h = height;
+void destroyCursor(Cursor* cursor) {
+   delete cursor;
 }
 
-void Cursor::Render(Game* game) {
-   //SDL_RenderCopy(game->renderer, objTexture, &srcRect, &destRect);
+void cursorSetX(Cursor* cursor, float x) {
+   cursor->x = x;
+}
+
+void cursorSetX(Cursor* cursor, float y) {
+   cursor->y = y;
+}
+
+float cursorGetX(Cursor* cursor) {
+   return cursor->x;
+}
+
+float cursorGetX(Cursor* cursor) {
+   return cursor->y;
+}
+
+void cursorUpdate(Board* board) {
+
+   //todo put something here...
+}
+
+void cursorDraw(Board* board) {
+   Cursor* cursor = board->cursor;
+   Game* game = board->game;
+
+   drawMesh(game, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 }
 
