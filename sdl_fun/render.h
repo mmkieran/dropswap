@@ -77,7 +77,7 @@ Texture* loadTextureFromFile(const char* filename);
 Mesh* createMesh(Game* game);
 void destroyMesh(Mesh* mesh);
 
-void drawMesh(Game* game, Mesh* mesh, float destX, float destY, float destW, float destH);
+void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH);
 
 void setRenderTarget(int botLeftX, int botLeftY, int width, int height);
 void clearRenderer(float r, float g, float b, float a);

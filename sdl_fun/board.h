@@ -14,13 +14,13 @@ struct Board {
    int w = 6;
    int tileWidth;
    int tileHeight;
-   int offset = 0;
+   float offset = 0;
 
    Tile* tiles;
    Cursor* cursor;
    Game* game;
 
-   double speed = 1;
+   double speed = 0.5;
    int moveTimer = 0;
    int fallTimer = 0;
    bool paused = false;
@@ -42,14 +42,16 @@ int boardFillTiles(Board* board);
 Tile* boardGetTile(Board* board, int row, int col);
 
 void boardRender(Game* game, Board* board);
-void boardMoveUp(Board* board, int height);
+void boardMoveUp(Board* board, float height);
 
 void boardSwap(Board* board);
 
-void boardUpdateFalling(Board* board, int velocity);
+void boardUpdateFalling(Board* board, float velocity);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void boardRemoveClears(Board* board);
 void boardUpdateArray(Board* board, bool buffer);
 
 std::vector <Tile> boardDebug(Board* board);
+int yPosToRow(Board* board, float y);
+int xPosToCol(Board* board, float x);
 

@@ -149,8 +149,6 @@ void gameHandleEvents(Game* game) {
       break;
 
       case SDL_KEYDOWN:
-         int x = 0;
-         int y = 0;
          switch (event.key.keysym.sym) {
 
          case SDLK_LEFT:
@@ -175,7 +173,7 @@ void gameHandleEvents(Game* game) {
 
          case SDLK_r:
             if (!game->board->paused) {
-               boardMoveUp(game->board, 8);
+               boardMoveUp(game->board, 8.0f);
                break;
             }
             break;
@@ -206,8 +204,8 @@ void gameUpdate(Game* game) {
    //Update board
    if (game->timer > 2000) {
       if (game->board->paused == false) {
-         boardMoveUp(game->board, 1 * game->board->speed);
-         boardUpdateArray(game->board, false);
+         boardMoveUp(game->board, game->board->speed);
+         //boardUpdateArray(game->board, false);
       }
    }
 
@@ -215,10 +213,10 @@ void gameUpdate(Game* game) {
       game->isRunning = false;
    }
 
-   boardUpdateFalling(game->board, 4);
+   boardUpdateFalling(game->board, 8.0f);
    boardUpdateArray(game->board, false);
 
-   cursorUpdate(game->board);  //todo make this do something
+   cursorUpdate(game->board);  //todo make this do something more
 
 }
 
@@ -238,19 +236,18 @@ void gameRender(Game* game) {
    boardRender(game, game->board);
 
    //ImGui debug
-   bool show_demo_window = true;
-   bool show_another_window = true;
-   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-   static float f = 0.0f;
-   static int counter = 0;
-
-   ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+   ImGui::Begin("Drop and Swap");                        
    //ImGui::Image((void*)(intptr_t)game->meshes[1]->texture->handle, { 64, 64 } );
 
-   ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+   ImGui::Text("%.1f x, %.1f y", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
+   ImGui::NewLine();
 
-   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
+   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
+
+   ImGui::Text("%d col, %d row", col, row);
+
    ImGui::End();
 
    ImGui::Render();

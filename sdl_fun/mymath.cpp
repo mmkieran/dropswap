@@ -40,8 +40,8 @@ Mat4x4 scaleMatrix(Vec2 scale) {
 Mat4x4 rotateMatrix(float degreeAngle) {
    Mat4x4 out = identityMatrix();
 
-   float PI = 3.1415926535;
-   float radianAngle = PI / 180.0 * degreeAngle;
+   float PI = 3.1415926535f;
+   float radianAngle = PI / 180.0f * degreeAngle;
 
    out.values[0] = cosf(radianAngle);
    out.values[1] = -sinf(radianAngle);

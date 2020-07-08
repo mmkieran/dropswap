@@ -20,8 +20,8 @@ struct Tile {
 
    TileEnum type;
 
-   int xpos;
-   int ypos;
+   float xpos;
+   float ypos;
 
    Mesh* mesh;
 
@@ -32,7 +32,7 @@ struct Tile {
 };
 
 void tileSetTexture(Board* board, Tile* tile);
-void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type);
+void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool firstTime = false);
 
 void tileUpdate(Board* board, Tile* tile);
 void tileDraw(Board* board, Tile* tile);

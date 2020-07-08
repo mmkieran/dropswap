@@ -105,57 +105,13 @@ void printMatrix(Mat4x4 test) {
 
 int main()
 {
-   //Mat4x4 identity = identityMatrix();
-   //printMatrix(identity);
+   float a = 1.1;
+   int b = 22;
 
-   //Vec2 scaleValue = { 2, 2 };
-   //Mat4x4 scale = scaleMatrix(scaleValue);
-   //printMatrix(scale);
+   float c = a + b;
 
-   //float degreeAngle = 45.0;
-   //Mat4x4 rotate = rotateMatrix(degreeAngle);
-   //printMatrix(rotate);
-
-   //Vec2 movement = { 1, 1 };
-   //Mat4x4 translate = translateMatrix(movement);
-   //printMatrix(translate);
-
-   //Mat4x4 multiply = multiplyMatrix(scale, rotate);
-   //printMatrix(multiply);
-
-   //Mat4x4 transform = transformMatrix(movement, degreeAngle, scaleValue);
-   //printMatrix(transform);
-
-   Vec2 botLeft = { -1, -1 };
-   Vec2 botRight = { 1, -1 };
-   Vec2 topLeft = { -1, 1 };
-   Vec2 topRight = { 1, 1 };
-
-   Vec2 worldTopLeft = { 0, 0 };
-   Vec2 worldBotRight = { 1200, 900 };
-
-   //device to world
-
-   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
-   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
-
-   Mat4x4 mMove = translateMatrix(movement);
-   Mat4x4 mScale = scaleMatrix(scale);
-
-   Mat4x4 transform = multiplyMatrix(mScale, mMove);
-
-   //Mat4x4 transform = transformMatrix(movement, 0, scale);
-   printMatrix(transform);
-
-   //world to device
-   Vec2 movement2 = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
-   Vec2 scale2 = { (topLeft.x - botRight.x) / (worldTopLeft.x - worldBotRight.x), (topLeft.y - botRight.y) / (worldTopLeft.y - worldBotRight.y) };
-
-   Mat4x4 mMove2 = translateMatrix(movement2);
-   Mat4x4 mScale2 = scaleMatrix(scale2);
-
-   Mat4x4 transform2 = multiplyMatrix(mMove2, mScale2);
-
-   //Mat4x4 transform2 = transformMatrix(movement2, 0, scale2);
-   printMatrix(transform2);
+   printf("%f", c);
+   if (a + b > 23.05f) {
+      printf("True");
+   }
 }

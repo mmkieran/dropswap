@@ -33,7 +33,7 @@ Board* boardCreate(Game* game) {
 
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
-         board->speed = 1;
+         board->speed = 0.5;
          board->paused = false;
          board->pauseLength = 0;
          board->bust = false;
@@ -72,7 +72,12 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->mesh->texture == nullptr) { continue; }
+         if (tile->mesh->texture == nullptr) { 
+            if (tile->type != tile_empty) {
+               printf("Texture not set for non empty_tile");
+            }
+            continue; 
+         }
          tileDraw(board, tile);
       }
    }
@@ -82,11 +87,11 @@ void boardRender(Game* game, Board* board) {
 
 //-----Helpful functions----------
 //todo: Maybe put these somewhere else later
-int yPosToRow(Board* board, int y) {
+int yPosToRow(Board* board, float y) {
    return (y - board->offset) / board->tileHeight + board->startH;
 }
 
-int xPosToCol(Board* board, int x) {
+int xPosToCol(Board* board, float x) {
    return x / board->tileWidth;
 }
 
@@ -107,14 +112,13 @@ std::vector <Tile*> boardGetRow(Board* board, int row) {
    return tiles;
 }
 
-//------------------
+//End Helper stuff------------------
 
 
-//todo totally redo this...
+//todo adjust it so you can't swap a tile under and push things up
 void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
+
    Tile tmp = *tile2;
-   tmp.mesh = tile2->mesh;
-   tmp.type = tile2->type;
 
    //basic swap
    tile2->type = tile1->type;
@@ -127,8 +131,8 @@ void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
       tile2->ypos = tile1->ypos;
       tile2->xpos = tile1->xpos;
 
-      tile1->ypos = tile2->ypos;
-      tile1->xpos = tile2->xpos;
+      tile1->ypos = tmp.ypos;
+      tile1->xpos = tmp.xpos;
    }
 
    if (fall) {  //swap and maintain falling status
@@ -150,6 +154,10 @@ void boardSwap(Board* board) {
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
+
+   if (tile1->ypos != tile2->ypos) {
+
+   }
 
    _swapTiles(tile1, tile2);
 
@@ -233,9 +241,9 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 }
 
-void boardUpdateFalling(Board* board, int velocity) {
+void boardUpdateFalling(Board* board, float velocity) {
    std::vector <Tile*> tilesToCheck;
-   int drop = 1 * velocity;
+   float drop = 1.0f * velocity;
    std::vector <Tile> debug = boardDebug(board);
 
    for (int col = 0; col < board->w; col++) {
@@ -306,12 +314,16 @@ void boardRemoveClears(Board* board) {
    return;
 }
 
-void boardMoveUp(Board* board, int height) {
-   int nudge = height;
+void boardMoveUp(Board* board, float height) {
+   float nudge = height;
    board->offset -= nudge;
+
+   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
+      boardUpdateArray(board, true);
+      nudge = -board->offset;
    }
 
    std::vector <Tile*> checkTiles;
@@ -324,18 +336,16 @@ void boardMoveUp(Board* board, int height) {
          tile->chain = false;  //Whenever the board is moving, the combo is over?
          board->combo = 1;
 
-         if (tile->ypos <= 0 && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
+         if (tile->ypos <= 0.0f && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
          if (tile->falling == false) {  //Only nudge up blocks that aren't falling
             tile->ypos -= nudge;
-            tileUpdate(board, tile);
          }
       }
    }
 
-   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
    boardCheckClear(board, checkTiles, false);
 }
 
@@ -348,11 +358,11 @@ int boardFillTiles(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < board->startH + (board->endH - board->startH) / 2) {
-            tileInit(board, tile, row, col, tile_empty);
+            tileInit(board, tile, row, col, tile_empty, true);
             continue;
          }
          else {  //todo: add a better algorithm here
-            tileInit(board, tile, row, col, (TileEnum)board->distribution(board->generator));
+            tileInit(board, tile, row, col, (TileEnum)board->distribution(board->generator), true);
             if (row != board->endH) {
                checkTiles.push_back(tile);
             }
@@ -384,10 +394,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_empty) { 
-            continue;  
-         }
-         else {
+         if (tile->type != tile_empty) { 
             tileList.push_back(*tile);
          }
          tileInit(board, tile, row, col, tile_empty);  //Set each tile in the array to empty in the starting position
@@ -398,8 +405,10 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int row = (t.ypos + board->tileHeight - 1) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
-      boardSetTile(board, t, row, col);
-      tileUpdate(board, boardGetTile(board, row, col) );
+      Tile* current = boardGetTile(board, row, col);
+      t.mesh = current->mesh;
+      *current = t;
+      tileSetTexture(board, current);
    }
 
    std::vector <Tile*> checkTiles;
@@ -407,15 +416,12 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int row = board->wBuffer - 1;
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
-         Tile newTile;
-         tileInit(board, &newTile, row, col, (TileEnum)board->distribution(board->generator));   //create new tiles here
-         newTile.ypos += board->offset;  //need to take board offset into account
-         boardSetTile(board, newTile, row, col);
-         tileUpdate(board, current);
+         tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
+         //current->ypos += board->offset;  //The one pixel shift is messing things up
          checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
    }
-   boardCheckClear(board, checkTiles, false);
+   //boardCheckClear(board, checkTiles, false);
 }
 
 std::vector <Tile> boardDebug(Board* board) {

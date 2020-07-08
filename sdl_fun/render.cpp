@@ -267,7 +267,7 @@ void bindTexture(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void drawMesh(Game* game, Mesh* mesh, float destX, float destY, float destW, float destH) {
+void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
    
    int width, height;
    SDL_GetWindowSize(game->window, &width, &height);

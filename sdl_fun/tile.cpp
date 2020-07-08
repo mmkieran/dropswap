@@ -30,17 +30,22 @@ void tileSetTexture(Board* board, Tile* tile) {
    case tile_silver:
       tile->mesh->texture = board->game->resources->textures[6];
       break;
+   case tile_cleared:
+      tile->mesh->texture = board->game->resources->textures[7];
+      break;
    default:
       tile->mesh->texture = nullptr;
    }
 }
 
-void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type) {
+void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool firstTime) {
    tile->type = type;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;
 
-   tile->mesh = createMesh(board->game);
+   if (firstTime == true) {
+      tile->mesh = createMesh(board->game);
+   }
 
    tileSetTexture(board, tile);
 
