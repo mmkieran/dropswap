@@ -237,16 +237,21 @@ void gameRender(Game* game) {
 
    //ImGui debug
 
-   ImGui::Begin("Drop and Swap");                        
-   //ImGui::Image((void*)(intptr_t)game->meshes[1]->texture->handle, { 64, 64 } );
+   ImGui::Begin("Drop and Swap");
+   Tile* tile = boardGetTile(game->board, 23, 2);
+   if (tile->mesh->texture) {
+      ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+   }
 
-   ImGui::Text("%.1f x, %.1f y", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
+   ImGui::Text("%.0f x, %.0f y", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
    ImGui::NewLine();
 
    int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
    int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
 
    ImGui::Text("%d col, %d row", col, row);
+   ImGui::Text("%d combo", game->board->combo);
+   ImGui::Text("%.1f offset", game->board->offset);
 
    ImGui::End();
 

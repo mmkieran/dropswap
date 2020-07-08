@@ -16,6 +16,8 @@ struct Board {
    int tileHeight;
    float offset = 0;
 
+   Mesh* frame;
+
    Tile* tiles;
    Cursor* cursor;
    Game* game;

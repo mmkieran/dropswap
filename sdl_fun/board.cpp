@@ -40,6 +40,9 @@ Board* boardCreate(Game* game) {
          board->score = 0;
          board->combo = 1;
 
+         board->frame = createMesh(board->game);
+         board->frame->texture = game->resources->textures[9];
+
          std::default_random_engine gen(time(0));
          board->generator = gen;
 
@@ -55,16 +58,29 @@ Board* boardCreate(Game* game) {
 }
 
 void boardDestroy(Board* board) {
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         destroyMesh(tile->mesh);
+      }
+   }
+
    free(board->tiles);
    free(board);
 }
 
 Tile* boardGetTile(Board* board, int row, int col) {
+   if (row < 0 || row > board->wBuffer - 1) {
+      return nullptr;
+   }
    Tile* tile = &board->tiles[(board->w * row + col)];
    return tile;
 }
 
 void boardSetTile(Board* board, Tile tile, int row, int col) {
+   if (row < 0 || row > board->wBuffer - 1) {
+      return;
+   }
    board->tiles[(board->w * row + col)] = tile;
 }
 
@@ -83,6 +99,9 @@ void boardRender(Game* game, Board* board) {
    }
    //Does Cursor rendering belong here? It's part of the board...
    cursorDraw(board);
+
+   //debug basic frame
+   drawMesh(board->game, board->frame, 0, 0, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //-----Helpful functions----------
@@ -317,13 +336,13 @@ void boardRemoveClears(Board* board) {
 void boardMoveUp(Board* board, float height) {
    float nudge = height;
    board->offset -= nudge;
+   bool update = false;
 
    cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
-      boardUpdateArray(board, true);
-      nudge = -board->offset;
+      update = true;
    }
 
    std::vector <Tile*> checkTiles;
@@ -347,6 +366,8 @@ void boardMoveUp(Board* board, float height) {
    }
 
    boardCheckClear(board, checkTiles, false);
+
+   boardUpdateArray(board, update);
 }
 
 int boardFillTiles(Board* board) {
@@ -411,17 +432,19 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       tileSetTexture(board, current);
    }
 
-   std::vector <Tile*> checkTiles;
-   for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
-      int row = board->wBuffer - 1;
-      Tile* current = boardGetTile(board, row, col);
-      if (current->type == tile_empty) {
-         tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
-         //current->ypos += board->offset;  //The one pixel shift is messing things up
-         checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
+   if (buffer) {
+      //std::vector <Tile*> checkTiles;
+      for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
+         int row = board->wBuffer - 1;
+         Tile* current = boardGetTile(board, row, col);
+         if (current->type == tile_empty) {
+            tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
+            current->ypos += board->offset + board->tileHeight;
+            //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
+         }
       }
+      //boardCheckClear(board, checkTiles, false);
    }
-   //boardCheckClear(board, checkTiles, false);
 }
 
 std::vector <Tile> boardDebug(Board* board) {

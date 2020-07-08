@@ -23,6 +23,7 @@ Resources* initResources() {
    resources->textures.push_back(loadTextureFromFile("assets/skull.png")); //clear
 
    resources->textures.push_back(loadTextureFromFile("assets/cursor.png")); //cursor
+   resources->textures.push_back(loadTextureFromFile("assets/frame.png")); //frame
 
    //Might have more than 1 shader eventually?
    resources->shaderProgram = createProgram();
