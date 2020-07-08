@@ -432,19 +432,16 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       tileSetTexture(board, current);
    }
 
-   if (buffer) {
-      //std::vector <Tile*> checkTiles;
-      for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
-         int row = board->wBuffer - 1;
-         Tile* current = boardGetTile(board, row, col);
-         if (current->type == tile_empty) {
-            tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
-            current->ypos += board->offset + board->tileHeight;
-            //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
-         }
+   //std::vector <Tile*> checkTiles;
+   for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
+      int row = board->wBuffer - 1;
+      Tile* current = boardGetTile(board, row, col);
+      if (current->type == tile_empty) {
+         tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
+         //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
-      //boardCheckClear(board, checkTiles, false);
    }
+   //boardCheckClear(board, checkTiles, false);
 }
 
 std::vector <Tile> boardDebug(Board* board) {
