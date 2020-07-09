@@ -247,13 +247,13 @@ void gameRender(Game* game) {
       ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
    }
 
-   ImGui::Text("Cursor col %.0f, row %.0f", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
+   ImGui::Text("Cursor x %0.1f, y %0.1f", game->board->cursor->x, game->board->cursor->y);
+   ImGui::Text("%d col, %d row", col, row);
    ImGui::NewLine();
 
-   Tile* bufferTile = boardGetTile(game->board, 24, 2);
-   ImGui::Text("%.1f col, %.1f row", bufferTile->ypos, tile->ypos);
+   //Tile* bufferTile = boardGetTile(game->board, 24, 2);
+   //ImGui::Text("%.1f col, %.1f row", bufferTile->ypos, tile->ypos);
 
-   ImGui::Text("%d col, %d row", col, row);
    ImGui::Text("%d combo", game->board->combo);
    ImGui::Text("%.1f offset", game->board->offset);
 

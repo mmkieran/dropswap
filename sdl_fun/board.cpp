@@ -323,7 +323,7 @@ void boardRemoveClears(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_cleared) {
-            if (tile->clearTime + 1500 <= current) {
+            if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                tile->mesh->texture = nullptr; //board->game->textures[6];
                //todo flag all blocks above as part of a chain

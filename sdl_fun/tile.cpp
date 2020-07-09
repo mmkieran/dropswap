@@ -7,7 +7,8 @@ void tileSetTexture(Board* board, Tile* tile) {
    //hard code this for now
    switch (tile->type) {
    case tile_empty:
-      tile->mesh->texture = board->game->resources->textures[10];
+      tile->mesh->texture = nullptr;
+      //tile->mesh->texture = board->game->resources->textures[10];
       break;
    case tile_circle:
       tile->mesh->texture = board->game->resources->textures[0];
