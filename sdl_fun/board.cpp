@@ -250,7 +250,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
             fallCombo = false;
 
             if (board->combo > 1) {  //debug
-               printf("combo count: %d\n", board->combo);
+               //printf("combo count: %d\n", board->combo); //debug
+               //todo add some score stuff here?
             }
          }
          m->chain = false;
@@ -322,7 +323,7 @@ void boardRemoveClears(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_cleared) {
-            if (tile->clearTime + 2000 <= current) {
+            if (tile->clearTime + 1500 <= current) {
                tile->type = tile_empty;
                tile->mesh->texture = nullptr; //board->game->textures[6];
                //todo flag all blocks above as part of a chain
@@ -423,7 +424,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
    }
 
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
-      int row = (t.ypos + board->tileHeight - 1) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      int row = (t.ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
@@ -438,6 +439,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
          tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
+         current->ypos += board->offset;
          //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
    }

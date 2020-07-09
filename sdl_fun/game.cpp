@@ -202,10 +202,11 @@ void gameUpdate(Game* game) {
    }
 
    //Update board
+   boardUpdateArray(game->board, false);
+
    if (game->timer > 2000) {
       if (game->board->paused == false) {
          boardMoveUp(game->board, game->board->speed);
-         //boardUpdateArray(game->board, false);
       }
    }
 
@@ -214,7 +215,6 @@ void gameUpdate(Game* game) {
    }
 
    boardUpdateFalling(game->board, 8.0f);
-   boardUpdateArray(game->board, false);
 
    cursorUpdate(game->board);  //todo make this do something more
 
@@ -238,16 +238,20 @@ void gameRender(Game* game) {
    //ImGui debug
 
    ImGui::Begin("Drop and Swap");
-   Tile* tile = boardGetTile(game->board, 23, 2);
+
+   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
+   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
+
+   Tile* tile = boardGetTile(game->board, row, col);
    if (tile->mesh->texture) {
       ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
    }
 
-   ImGui::Text("%.0f x, %.0f y", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
+   ImGui::Text("Cursor col %.0f, row %.0f", game->board->cursor->x/game->tWidth, game->board->cursor->y/game->tHeight + game->board->startH);
    ImGui::NewLine();
 
-   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
-   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
+   Tile* bufferTile = boardGetTile(game->board, 24, 2);
+   ImGui::Text("%.1f col, %.1f row", bufferTile->ypos, tile->ypos);
 
    ImGui::Text("%d col, %d row", col, row);
    ImGui::Text("%d combo", game->board->combo);
