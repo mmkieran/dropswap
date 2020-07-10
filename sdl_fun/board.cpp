@@ -373,8 +373,6 @@ void boardMoveUp(Board* board, float height) {
 
 int boardFillTiles(Board* board) {
    //todo: Might just have pre-made boards
-   std::vector <Tile*> checkTiles;
-   std::vector <Tile*> matches;
 
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -383,27 +381,27 @@ int boardFillTiles(Board* board) {
             tileInit(board, tile, row, col, tile_empty, true);
             continue;
          }
-         else {  //todo: add a better algorithm here
-            tileInit(board, tile, row, col, (TileEnum)board->distribution(board->generator), true);
-            if (row != board->endH) {
-               checkTiles.push_back(tile);
-            }
+         else {  
+            int current = board->distribution(board->generator);
+            TileEnum type = (TileEnum)current;
+
+            Tile* left = boardGetTile(board, row, col - 1);
+            Tile* left2 = boardGetTile(board, row, col - 2);
+            Tile* up = boardGetTile(board, row - 1, col);
+            Tile* up2 = boardGetTile(board, row - 2, col);
+
+            int total = 6;
+            //make sure we don't create any matches on startup
+            while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type) ) {
+               current++;
+               if (current > total) {
+                  current = current % total;
+               }
+               type = (TileEnum)current;
+            } 
+         
+            tileInit(board, tile, row, col, type, true);
          }
-      }
-   }
-
-   for (auto&& ct : checkTiles) {
-      std::vector <Tile*> cols = boardGetCol(board, xPosToCol(board, ct->xpos));
-      std::vector <Tile*> rows = boardGetRow(board, yPosToRow(board, ct->ypos));
-
-      _checkClear(cols, matches);
-      _checkClear(rows, matches);
-   }
-
-   if (matches.size() > 0) {
-      for (auto&& m : matches) {
-         m->mesh->texture = nullptr; //board->game->textures[6];  //debug texture
-         m->type = tile_empty;
       }
    }
    
