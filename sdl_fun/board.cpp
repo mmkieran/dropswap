@@ -385,22 +385,26 @@ int boardFillTiles(Board* board) {
             int current = board->distribution(board->generator);
             TileEnum type = (TileEnum)current;
 
+            //make sure we don't create any matches on startup
             Tile* left = boardGetTile(board, row, col - 1);
             Tile* left2 = boardGetTile(board, row, col - 2);
             Tile* up = boardGetTile(board, row - 1, col);
             Tile* up2 = boardGetTile(board, row - 2, col);
 
             int total = 6;
-            //make sure we don't create any matches on startup
             while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type) ) {
                current++;
                if (current > total) {
                   current = current % total;
                }
                type = (TileEnum)current;
-            } 
-         
-            tileInit(board, tile, row, col, type, true);
+            }
+            if (col % 2 == 0) {
+               tileInit(board, tile, row - board->startH, col, type, true);
+            }
+            else {
+               tileInit(board, tile, row - board->startH + 1, col, type, true);
+            }
          }
       }
    }

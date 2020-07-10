@@ -2,6 +2,7 @@
 
 #include "game.h"
 #include <random>
+#include <vector>
 
 struct Tile;
 struct Cursor;
@@ -30,6 +31,8 @@ struct Board {
    double score;
    bool bust;
    int combo;
+
+   std::vector <Garbage*> garbage;
 
    std::default_random_engine generator;
    std::uniform_int_distribution<int> distribution;

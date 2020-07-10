@@ -25,6 +25,9 @@
     <ClCompile Include="mymath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="garbage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mymath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="garbage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

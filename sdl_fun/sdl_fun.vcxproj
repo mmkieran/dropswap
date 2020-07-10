@@ -171,6 +171,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="board.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="cursor.cpp" />
+    <ClCompile Include="garbage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mymath.cpp" />
     <ClCompile Include="render.cpp" />
@@ -182,6 +183,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClInclude Include="board.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="cursor.h" />
+    <ClInclude Include="garbage.h" />
     <ClInclude Include="mymath.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="resources.h" />
