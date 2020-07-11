@@ -6,25 +6,35 @@
 #include "resources.h"
 #include "game.h"
 
-//Need a place to store textures and other assets
-//Need a way to retrieve textures and assets
-//Should clean them up when it's done
+struct Resources {
+   std::vector <Texture*> textures;  //todo maybe use a hashmap?
+   GLuint shaderProgram;
+
+   //audio
+   //others?
+};
+
+static const char* _texturePaths[] =
+{
+   "assets/circle.png",
+   "assets/diamond.png",
+   "assets/utriangle.png",
+   "assets/dtriangle.png",
+   "assets/star.png",
+   "assets/heart.png",
+   "assets/silver.png",
+   "assets/garbage.png",
+   "assets/cleared.png",
+   "assets/cursor.png",
+   "assets/frame.png",
+};
 
 Resources* initResources() {
    Resources* resources = new Resources;
 
-   resources->textures.push_back(loadTextureFromFile("assets/circle.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/diamond.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/utriangle.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/dtriangle.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/star.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/heart.png"));
-   resources->textures.push_back(loadTextureFromFile("assets/empty.png"));  //silver
-   resources->textures.push_back(loadTextureFromFile("assets/skull.png")); //clear
-
-   resources->textures.push_back(loadTextureFromFile("assets/cursor.png")); //cursor
-   resources->textures.push_back(loadTextureFromFile("assets/frame.png")); //frame
-   resources->textures.push_back(loadTextureFromFile("assets/empty.png")); //frame
+   for (int i = 0; i < Texture_COUNT; i++) {
+      resources->textures.push_back(loadTextureFromFile(_texturePaths[i]) );
+   }
 
    //Might have more than 1 shader eventually?
    resources->shaderProgram = createProgram();
@@ -44,8 +54,8 @@ void destroyResources(Resources* resources) {
    delete resources;
 }
 
-Texture* resourcesGetTexture(Resources* resources, int index) {
-   return resources->textures[index];
+Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
+   return resources->textures[texture];
 }
 
 unsigned int resourcesGetShader(Game* game) {

@@ -11,28 +11,28 @@ void tileSetTexture(Board* board, Tile* tile) {
       //tile->mesh->texture = board->game->resources->textures[10];
       break;
    case tile_circle:
-      tile->mesh->texture = board->game->resources->textures[0];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_circle);
       break;
    case tile_diamond:
-      tile->mesh->texture = board->game->resources->textures[1];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_diamond);
       break;
    case tile_utriangle:
-      tile->mesh->texture = board->game->resources->textures[2];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_utriangle);
       break;
    case tile_dtriangle:
-      tile->mesh->texture = board->game->resources->textures[3];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_dtriangle);
       break;
    case tile_star:
-      tile->mesh->texture = board->game->resources->textures[4];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_star);
       break;
    case tile_heart:
-      tile->mesh->texture = board->game->resources->textures[5];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_heart);
       break;
    case tile_silver:
-      tile->mesh->texture = board->game->resources->textures[6];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_silver);
       break;
    case tile_cleared:
-      tile->mesh->texture = board->game->resources->textures[7];
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared);
       break;
    default:
       tile->mesh->texture = nullptr;

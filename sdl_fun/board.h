@@ -1,10 +1,10 @@
 #pragma once
 
 #include "game.h"
+#include "garbage.h"
+
 #include <random>
 #include <vector>
-
-#include "garbage.h"
 
 struct Tile;
 struct Cursor;

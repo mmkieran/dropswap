@@ -41,7 +41,7 @@ Board* boardCreate(Game* game) {
          board->combo = 1;
 
          board->frame = createMesh(board->game);
-         board->frame->texture = game->resources->textures[9];
+         board->frame->texture = resourcesGetTexture(game->resources, Texture_frame);
 
          std::default_random_engine gen(time(0));
          board->generator = gen;
@@ -239,7 +239,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
          //clear block and set timer
-         m->mesh->texture = board->game->resources->textures[7];  //todo replace with new texture stuff
+         m->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared); 
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;
