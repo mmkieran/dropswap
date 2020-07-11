@@ -8,9 +8,18 @@
 Game *game = nullptr;
 
 const int FPS = 60;
-const int frameDelay = 1000 / FPS;
-Uint32 frameStart;
-int frameTime;
+const int frameDelay = 1000000 / FPS;  //microseconds
+
+uint64_t frameStart;
+uint64_t frameTime;
+
+uint64_t gameStart;
+uint64_t timeFreq;
+
+uint64_t getTime() {
+   uint64_t current = SDL_GetPerformanceCounter();
+   return ((current - gameStart) * 1000000) / timeFreq;
+}
 
 
 int main(int argc, char* args[])
@@ -21,11 +30,11 @@ int main(int argc, char* args[])
       return -1;
    }
 
-   uint64_t gameStart = SDL_GetPerformanceCounter();
-   uint64_t frequency = SDL_GetPerformanceFrequency();
+   gameStart = SDL_GetPerformanceCounter(); 
+   timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
 
    while (gameRunning(game)) {
-      frameStart = SDL_GetTicks();
+      frameStart = getTime();
 
       gameHandleEvents(game);
 
@@ -34,15 +43,15 @@ int main(int argc, char* args[])
          gameRender(game);
       }
       else {
-         game->pauseLength += SDL_GetTicks() - frameStart;  //Use this to correct timeDelta after pause
+         game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
       }
 
-      frameTime = SDL_GetTicks() - frameStart;
+      frameTime = getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
-         SDL_Delay(frameDelay - frameTime);
+         SDL_Delay((frameDelay - frameTime) / 1000);
       }
 
-      game->timeDelta = SDL_GetTicks() - frameStart;
+      game->timeDelta = (getTime() - frameStart) / 1000;
       game->timer += game->timeDelta;
    }
 

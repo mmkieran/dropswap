@@ -44,9 +44,6 @@ struct Mesh {
 
 };
 
-//const char* vertexSource;
-//const char* fragSource;
-
 int openglContext();
 
 GLuint createVAO();

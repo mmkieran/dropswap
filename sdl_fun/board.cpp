@@ -279,6 +279,10 @@ void boardUpdateFalling(Board* board, float velocity) {
             continue;
          }
 
+         if (tile->type == tile_garbage) {
+            //todo add garbage logic here
+         }
+
          Tile* below = boardGetTile(board, row + 1, col);
 
          //Probably do a while loop here with the below tile type?

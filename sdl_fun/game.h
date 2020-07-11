@@ -15,7 +15,6 @@ struct Game {
 
    SDL_GLContext gl_context;
    ImGuiIO* io;
-   Board* board;
 
    std::vector <Mesh*> testMesh;
 
@@ -24,6 +23,7 @@ struct Game {
    float windowWidth;
    float windowHeight;
 
+   Board* board;
    Resources* resources;
 
    TTF_Font* font;

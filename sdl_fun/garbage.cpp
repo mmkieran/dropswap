@@ -17,7 +17,7 @@ void garbageCreate(Board* board, int size) {
    Let the tiles fall naturally
    */
    int number = 1;
-   int size = 3;
+   size = 3;
 
    Tile* tile = boardGetTile(board, 0, 0);
    if (tile->type != tile_empty) {
