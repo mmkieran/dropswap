@@ -2,7 +2,7 @@
 
 struct Garbage;
 
-void garbageCreate();
+void garbageCreate(Board* board, int size);
 
 void garbageClear();
 

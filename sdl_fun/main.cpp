@@ -21,6 +21,9 @@ int main(int argc, char* args[])
       return -1;
    }
 
+   uint64_t gameStart = SDL_GetPerformanceCounter();
+   uint64_t frequency = SDL_GetPerformanceFrequency();
+
    while (gameRunning(game)) {
       frameStart = SDL_GetTicks();
 

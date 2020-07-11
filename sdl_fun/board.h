@@ -4,6 +4,8 @@
 #include <random>
 #include <vector>
 
+#include "garbage.h"
+
 struct Tile;
 struct Cursor;
 
