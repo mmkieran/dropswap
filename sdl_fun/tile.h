@@ -1,7 +1,9 @@
 #pragma once
 
 #include <SDL.h>
+
 #include "board.h"
+#include "garbage.h"
 
 enum TileEnum {
    tile_empty = 0,
@@ -28,6 +30,8 @@ struct Tile {
    bool falling;
    int clearTime;
    bool chain;
+
+   Garbage* garbage;
 
 };
 

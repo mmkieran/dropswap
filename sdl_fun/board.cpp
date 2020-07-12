@@ -264,7 +264,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 void boardUpdateFalling(Board* board, float velocity) {
    std::vector <Tile*> tilesToCheck;
    float drop = 1.0f * velocity;
-   std::vector <Tile> debug = boardDebug(board);
 
    for (int col = 0; col < board->w; col++) {
       for (int row = board->wBuffer - 1; row >= 0; row--) {
@@ -285,7 +284,6 @@ void boardUpdateFalling(Board* board, float velocity) {
 
          Tile* below = boardGetTile(board, row + 1, col);
 
-         //Probably do a while loop here with the below tile type?
          if (below->type == tile_empty || below->falling == true) {
             tile->falling = true;
             if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
@@ -311,8 +309,6 @@ void boardUpdateFalling(Board* board, float velocity) {
             tile->falling = false;
             tile->chain = false;  //Not falling so stop chaining
          }
-
-         tileUpdate(board, tile);
       }
    }
    if (tilesToCheck.size() > 0) {
