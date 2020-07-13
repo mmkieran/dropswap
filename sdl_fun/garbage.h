@@ -4,8 +4,11 @@ typedef struct Board Board;
 
 struct Garbage;
 
-void garbageCreate(Board* board, int size);
+Garbage* garbageCreate(Board* board, int width, int layers);
+void garbageDestroy(Garbage* garbage);
 
 void garbageClear();
 
-void garbageFall();
+void garbageFall(Board* board, float velocity);
+
+void garbageDraw(Board* board);

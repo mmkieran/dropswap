@@ -3,6 +3,11 @@
 #include <imgui/GL/gl3w/gl3w.h>
 #include "game.h"
 
+enum TextureWrap {
+   repeat,
+   mirror,
+};
+
 enum ShaderStage {
    fragment_shader,
    vertex_shader
@@ -67,6 +72,7 @@ void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float 
 
 Texture* createTexture(unsigned char* image, int width, int height);
 void bindTexture(Mesh* mesh);
+void changeTexParams(Texture* texture, TextureWrap wrap);
 void destroyTexture(Texture* texture);
 
 Texture* loadTextureFromFile(const char* filename);

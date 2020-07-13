@@ -65,6 +65,10 @@ void boardDestroy(Board* board) {
       }
    }
 
+   for (auto&& garbage : board->garbage) {
+      garbageDestroy(garbage);
+   }
+
    free(board->tiles);
    free(board);
 }
@@ -88,10 +92,7 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->mesh->texture == nullptr) { 
-            if (tile->type != tile_empty) {
-               printf("Texture not set for non empty_tile");
-            }
+         if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
             continue; 
          }
          tileDraw(board, tile);
