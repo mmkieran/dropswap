@@ -9,16 +9,6 @@
 
 #include <vector>
 
-struct Garbage {
-   int ID;
-
-   int width;
-   int layers;
-
-   Tile* start;  //top left of garbage
-   Mesh* mesh;
-};
-
 Garbage* garbageCreate(Board* board, int width, int layers) {
 
    Garbage* garbage = new Garbage;
@@ -33,18 +23,18 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    garbage->layers = layers;
 
    //todo For now always start on the top left
-   Tile* tile = boardGetTile(board, 0, 0);
+   Tile* tile = boardGetTile(board, 12, 0);
    garbage->start = tile;  //do this for now to start
+   tile->garbage = garbage;
 
    if (tile->type != tile_empty) {
       board->bust = false;  //todo add bust logic
    }
 
-   for (int row = 0; row < layers; row++) {
+   for (int row = 12; row >= 12 - layers; row--) {
       for (int col = 0; col < width; col++) {
          Tile* tile = boardGetTile(board, row, col);
          tile->type = tile_garbage;
-         tile->garbage = garbage;
       }
    }
    id++;
@@ -106,9 +96,9 @@ void garbageFall(Board* board, float velocity) {
 
       //If the bottom layer can fall, adjust the ypos with the max drop
       if (letFall == true && drop > 0) {
-         for (int row = 0; row < garbage->layers; row--) {
-            for (int col = 0; col < garbage->width; col++) {
-               Tile* tile = boardGetTile(board, row, col);
+         for (int r = row; r >= row - garbage->layers; r--) {
+            for (int c = 0; c < garbage->width; c++) {
+               Tile* tile = boardGetTile(board, r, c);
                tile->ypos += drop;
             }
          }
@@ -122,9 +112,9 @@ void garbageDraw(Board* board) {
       float xpos, ypos;
 
       xpos = garbage->start->xpos;
-      ypos = garbage->start->ypos - board->tileHeight * (garbage->layers - 1);
+      ypos = garbage->start->ypos; //- (board->tileHeight * garbage->layers );
 
-      drawMesh(board->game, garbage->mesh, xpos, ypos, board->tileWidth, board->tileHeight);
+      drawMesh(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }
 }
 

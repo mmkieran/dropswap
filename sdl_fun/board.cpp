@@ -17,7 +17,7 @@ Tile* _boardCreateArray(int width, int height) {
 }
 
 Board* boardCreate(Game* game) {
-   Board* board = (Board*)malloc(sizeof(Board));
+   Board* board = new Board;
    if (board) {
       Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
       if (tiles) {
@@ -70,7 +70,8 @@ void boardDestroy(Board* board) {
    }
 
    free(board->tiles);
-   free(board);
+   //free(board);
+   delete board;
 }
 
 Tile* boardGetTile(Board* board, int row, int col) {
@@ -281,6 +282,7 @@ void boardUpdateFalling(Board* board, float velocity) {
 
          if (tile->type == tile_garbage) {
             //todo add garbage logic here
+            continue;
          }
 
          Tile* below = boardGetTile(board, row + 1, col);
@@ -434,6 +436,10 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       t.mesh = current->mesh;
       *current = t;
       tileSetTexture(board, current);
+
+      if (current->type == tile_garbage && current->garbage != nullptr) {
+         current->garbage->start = current;
+      }
    }
 
    //std::vector <Tile*> checkTiles;

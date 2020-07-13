@@ -35,7 +35,6 @@ struct Board {
    int combo;
 
    std::vector <Garbage*> garbage;
-   Garbage* debug;
 
    std::default_random_engine generator;
    std::uniform_int_distribution<int> distribution;

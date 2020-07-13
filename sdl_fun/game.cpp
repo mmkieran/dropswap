@@ -133,10 +133,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->board->paused = false;
    game->board->pauseLength = 0;
 
-   Garbage* test = garbageCreate(game->board, 6, 2);
-   game->board->garbage.reserve(100);
-   game->board->garbage.push_back(test);  //debug
-
    //todo: Use premade boards or fix algorithm so there are no matches at the start
    boardFillTiles(game->board);
 
@@ -183,9 +179,8 @@ void gameHandleEvents(Game* game) {
             }
             break;
          case SDLK_g:
-            //Garbage* garbage = garbageCreate(game->board, 6, 2);
-            //game->board->garbage.push_back(garbage);  //debug
-            //game->board->debug = garbage;
+            Garbage* garbage = garbageCreate(game->board, 6, 2);
+            game->board->garbage.push_back(garbage);  //debug
             break;
          }
    }
