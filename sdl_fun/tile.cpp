@@ -51,9 +51,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool fi
       tile->mesh = createMesh(board->game);
    }
 
-   if (tile->type != tile_garbage) {
-      tile->garbage = nullptr;
-   }
+   tile->garbage = nullptr;
 
    tileSetTexture(board, tile);
 

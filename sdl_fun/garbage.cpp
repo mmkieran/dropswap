@@ -122,7 +122,7 @@ void garbageDraw(Board* board) {
       float xpos, ypos;
 
       xpos = garbage->start->xpos;
-      ypos = garbage->start->ypos; - (board->tileHeight * garbage->layers );
+      ypos = garbage->start->ypos;
 
       drawMesh(board->game, garbage->mesh, xpos, ypos - board->tileHeight, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }

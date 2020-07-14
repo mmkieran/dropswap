@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 typedef struct Board Board;
 typedef struct Tile Tile;
 typedef struct Mesh Mesh;
@@ -13,7 +11,6 @@ struct Garbage {
    int layers;
 
    Tile* start;  //top left of garbage
-   std::vector <Tile*> tiles;
    Mesh* mesh;
 
    bool falling;
