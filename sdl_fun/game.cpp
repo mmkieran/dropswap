@@ -250,7 +250,7 @@ void gameRender(Game* game) {
       for (int col = 0; col < game->board->w; col++){
          Tile* tile = boardGetTile(game->board, row, col);
          if (tile->type == tile_garbage) {
-            ImGui::Text("%0.1f x, %0.1f y, %d", tile->xpos, tile->ypos, tile->garbage);
+            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", tile->xpos, tile->ypos, tile->garbage, tile->falling);
          }
       }
    }

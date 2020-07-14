@@ -68,19 +68,20 @@ void garbageFall(Board* board, float velocity) {
 
       garbage->falling = true;
 
-      int row = (garbage->start->ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;
+      int row = (garbage->start->ypos + board->tileHeight) / board->tileHeight + board->startH;
+      //int row = yPosToRow(board, garbage->start->ypos);
       int col = xPosToCol(board, garbage->start->xpos);
 
       //Loop through and find out if the bottom layer can fall
       for (int i = 0; i < garbage->width; i++) {
          Tile* tile = boardGetTile(board, row, i);
-         tile->falling = false;
          if (row < board->endH) {
             Tile* below = boardGetTile(board, row + 1, i);
 
             if (below->type == tile_empty || below->falling == true) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
-                  float potentialDrop = below->ypos - (tile->ypos + board->tileHeight);  //check how far we can drop it
+                  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+                  if (potentialDrop < 0.0f) { potentialDrop = 0.0f; }
                   if (potentialDrop < drop) { 
                      drop = potentialDrop; 
                   }  //if this tile can't fall as far as others, adjust the max drop for all
@@ -89,7 +90,8 @@ void garbageFall(Board* board, float velocity) {
 
             else if (below->falling == false) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
-                  float potentialDrop = below->ypos - (tile->ypos + board->tileHeight);  //check how far we can drop it
+                  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+                  if (potentialDrop < 0.0f) { potentialDrop = 0.0f; }
                   if (potentialDrop < drop) {
                      drop = potentialDrop; 
                   }  //if this tile can't fall as far as others, adjust the max drop for all
@@ -104,12 +106,18 @@ void garbageFall(Board* board, float velocity) {
       }
 
       //If the bottom layer can fall, adjust the ypos with the max drop
-      if (garbage->falling == true && drop > 0) {
+      if (garbage->falling == true && drop > 0.0f) {
          for (int r = row; r >= row - garbage->layers; r--) {
             for (int c = 0; c < garbage->width; c++) {
                Tile* tile = boardGetTile(board, r, c);
                tile->ypos += drop;
-               tile->falling = true;
+               if (drop == velocity) {
+                  tile->falling = true;
+               }
+               else { 
+                  tile->falling = false; 
+                  garbage->falling = false;
+               }
             }
          }
       }

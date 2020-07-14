@@ -243,9 +243,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
          //clear block and set timer
-         if (m->type == tile_garbage) {
-            int a = 0;
-         }
          m->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared); 
          m->type = tile_cleared;
          m->clearTime = clearTime;
@@ -438,6 +435,9 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
+      if (current->type != tile_empty) {
+         int a = 0;
+      }
       t.mesh = current->mesh;
       *current = t;
       tileSetTexture(board, current);
