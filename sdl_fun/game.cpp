@@ -179,7 +179,7 @@ void gameHandleEvents(Game* game) {
             }
             break;
          case SDLK_g:
-            Garbage* garbage = garbageCreate(game->board, 6, 2);
+            Garbage* garbage = garbageCreate(game->board, 6, 3);
             game->board->garbage.push_back(garbage);  //debug
             break;
          }
@@ -249,7 +249,7 @@ void gameRender(Game* game) {
    for (int row = 0; row < game->board->endH; row++) {
       for (int col = 0; col < game->board->w; col++){
          Tile* tile = boardGetTile(game->board, row, col);
-         if (tile->type == tile_garbage) {
+         if (tile->type == tile_garbage && tile->garbage) {
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", tile->xpos, tile->ypos, tile->garbage, tile->falling);
          }
       }
