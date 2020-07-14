@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "tile.h"
 #include "cursor.h"
+#include "garbage.h"
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -93,7 +94,8 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH - 1; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
+         //if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
+         if (tile->mesh->texture == nullptr) {  //debug for garbage
             continue; 
          }
          tileDraw(board, tile);
@@ -439,6 +441,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
       if (current->type == tile_garbage && current->garbage != nullptr) {
          current->garbage->start = current;
+         current->garbage->tiles.push_back(current);
       }
    }
 

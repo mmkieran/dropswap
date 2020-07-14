@@ -246,6 +246,15 @@ void gameRender(Game* game) {
 
    ImGui::Begin("Drop and Swap");
 
+   for (int row = 0; row < game->board->endH; row++) {
+      for (int col = 0; col < game->board->w; col++){
+         Tile* tile = boardGetTile(game->board, row, col);
+         if (tile->type == tile_garbage) {
+            ImGui::Text("%0.1f x, %0.1f y", tile->xpos, tile->ypos);
+         }
+      }
+   }
+
    int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
    int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
 

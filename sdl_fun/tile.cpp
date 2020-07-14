@@ -34,6 +34,9 @@ void tileSetTexture(Board* board, Tile* tile) {
    case tile_cleared:
       tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared);
       break;
+   case tile_garbage:
+      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_g);
+      break;
    default:
       tile->mesh->texture = nullptr;
    }

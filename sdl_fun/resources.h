@@ -15,6 +15,7 @@ enum TextureEnum {
    Texture_cleared,
    Texture_cursor,
    Texture_frame,
+   Texture_g,
    Texture_COUNT  //this one is used to get the count of all the textures
 };
 

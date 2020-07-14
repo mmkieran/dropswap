@@ -21,9 +21,12 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    garbage->ID = id;
    garbage->width = width;
    garbage->layers = layers;
+   garbage->falling = true;
 
-   //todo For now always start on the top left
-   Tile* tile = boardGetTile(board, 12, 0);
+   int start = 13;
+
+   //todo For now always start on the bottom left
+   Tile* tile = boardGetTile(board, start, 0);
    garbage->start = tile;  //do this for now to start
    tile->garbage = garbage;
 
@@ -31,10 +34,11 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
       board->bust = false;  //todo add bust logic
    }
 
-   for (int row = 12; row >= 12 - layers; row--) {
+   for (int row = start; row > start - layers; row--) {  //start at bottom left and go up for each layer
       for (int col = 0; col < width; col++) {
          Tile* tile = boardGetTile(board, row, col);
          tile->type = tile_garbage;
+         tileSetTexture(board, tile);
       }
    }
    id++;
@@ -62,44 +66,50 @@ void garbageFall(Board* board, float velocity) {
 
       float drop = 1.0f * velocity;
 
-      bool letFall = true;
+      garbage->falling = true;
 
-      int row = yPosToRow(board, garbage->start->ypos);
+      int row = (garbage->start->ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;
       int col = xPosToCol(board, garbage->start->xpos);
 
       //Loop through and find out if the bottom layer can fall
-      for (int i = col; i < garbage->width; i++) {
+      for (int i = 0; i < garbage->width; i++) {
          Tile* tile = boardGetTile(board, row, i);
+         tile->falling = false;
          if (row < board->endH) {
             Tile* below = boardGetTile(board, row + 1, i);
 
             if (below->type == tile_empty || below->falling == true) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
                   float potentialDrop = below->ypos - (tile->ypos + board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop < drop) { drop = potentialDrop; }  //if this tile can't fall as far as others, adjust the max drop for all
+                  if (potentialDrop < drop) { 
+                     drop = potentialDrop; 
+                  }  //if this tile can't fall as far as others, adjust the max drop for all
                }
             }
 
             else if (below->falling == false) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
                   float potentialDrop = below->ypos - (tile->ypos + board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop < drop) { drop = potentialDrop; }  //if this tile can't fall as far as others, adjust the max drop for all
+                  if (potentialDrop < drop) {
+                     drop = potentialDrop; 
+                  }  //if this tile can't fall as far as others, adjust the max drop for all
                }
             }
 
             else {
-               letFall = false;
+               garbage->falling = false;
             }
 
          }
       }
 
       //If the bottom layer can fall, adjust the ypos with the max drop
-      if (letFall == true && drop > 0) {
+      if (garbage->falling == true && drop > 0) {
          for (int r = row; r >= row - garbage->layers; r--) {
             for (int c = 0; c < garbage->width; c++) {
                Tile* tile = boardGetTile(board, r, c);
                tile->ypos += drop;
+               tile->falling = true;
             }
          }
       }
@@ -112,9 +122,9 @@ void garbageDraw(Board* board) {
       float xpos, ypos;
 
       xpos = garbage->start->xpos;
-      ypos = garbage->start->ypos; //- (board->tileHeight * garbage->layers );
+      ypos = garbage->start->ypos; - (board->tileHeight * garbage->layers );
 
-      drawMesh(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
+      drawMesh(board->game, garbage->mesh, xpos, ypos - board->tileHeight, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }
 }
 
