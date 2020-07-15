@@ -178,8 +178,18 @@ void boardSwap(Board* board) {
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
 
-   if (tile1->ypos != tile2->ypos) {
+   if (tile1->type == tile_empty) {
+      Tile* above = boardGetTile(board, row - 1, col);
+      if (above && above->type != tile_empty && above->type != tile_garbage && above->ypos + board->tileHeight - 0.01 >= tile1->ypos) {
+         tile2 = above;
+      }
+   }
 
+   if (tile2->type == tile_empty) {
+      Tile* above = boardGetTile(board, row - 1, col + 1);
+      if (above && above->type != tile_empty && above->type != tile_garbage && above->ypos + board->tileHeight - 0.01 >= tile2->ypos) {
+         tile1 = above;
+      }
    }
 
    _swapTiles(tile1, tile2);
