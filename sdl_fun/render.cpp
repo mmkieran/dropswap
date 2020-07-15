@@ -318,8 +318,8 @@ void destroyMesh(Mesh* mesh) {
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botRight = { 1, -1 };
-   Vec2 topLeft = { -1, 1 };
+   Vec2 botRight = { 1.0f, -1.0f };
+   Vec2 topLeft = { -1.0f, 1.0f };
 
    //world coordinates
    Vec2 worldTopLeft = { xOrigin, yOrigin };
@@ -341,8 +341,8 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
-   Vec2 botRight = { 1, -1 };
-   Vec2 topLeft = { -1, 1 };
+   Vec2 botRight = { 1.0f, -1.0f };
+   Vec2 topLeft = { -1.0f, 1.0f };
 
    //world coordinates
    Vec2 worldTopLeft = { xOrigin, yOrigin };

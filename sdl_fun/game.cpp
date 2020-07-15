@@ -211,7 +211,7 @@ void gameUpdate(Game* game) {
 
    if (game->timer > 2000) {
       if (game->board->paused == false) {
-         boardMoveUp(game->board, game->board->speed/4);
+         boardMoveUp(game->board, game->board->speed/4.0f);
       }
    }
 

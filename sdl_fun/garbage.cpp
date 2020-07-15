@@ -68,7 +68,7 @@ void garbageFall(Board* board, float velocity) {
 
       garbage->falling = true;
 
-      int row = (garbage->start->ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;
+      int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
       //int row = yPosToRow(board, garbage->start->ypos);
       int col = xPosToCol(board, garbage->start->xpos);
 

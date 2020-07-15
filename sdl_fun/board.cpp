@@ -50,7 +50,9 @@ Board* boardCreate(Game* game) {
          std::uniform_int_distribution<int> dist (1, 6);
          board->distribution = dist;
 
-         board->cursor = cursorCreate(board, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
+         float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
+         float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
+         board->cursor = cursorCreate(board, cursorX, cursorY);
 
          return board;
       }
@@ -111,11 +113,11 @@ void boardRender(Game* game, Board* board) {
 //-----Helpful functions----------
 //todo: Maybe put these somewhere else later
 int yPosToRow(Board* board, float y) {
-   return (y - board->offset) / board->tileHeight + board->startH;
+   return (int)(y - board->offset) / board->tileHeight + board->startH;
 }
 
 int xPosToCol(Board* board, float x) {
-   return x / board->tileWidth;
+   return (int)x / board->tileWidth;
 }
 
 std::vector <Tile*> boardGetCol(Board* board, int col) {
@@ -442,7 +444,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
    }
 
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
-      int row = (t.ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      int row = (t.ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
