@@ -42,7 +42,7 @@ float cursorGetY(Cursor* cursor) {
 
 void cursorUpdate(Board* board) {
    if (board->cursor->y <= 0) {
-      board->cursor->y = board->tileHeight;
+      board->cursor->y = board->tileHeight + board->offset;
    }
    //todo put something here...
 }
