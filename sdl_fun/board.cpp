@@ -428,6 +428,7 @@ int boardFillTiles(Board* board) {
 }
 
 void boardUpdateArray(Board* board, bool buffer = false) {
+
    std::vector <Tile> tileList;
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector

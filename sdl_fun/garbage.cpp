@@ -81,8 +81,11 @@ void garbageFall(Board* board, float velocity) {
             if (below->type == tile_empty || below->falling == true) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
                   float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop < 0.0f) { potentialDrop = 0.0f; }
-                  if (potentialDrop < drop) { 
+                  if (potentialDrop <= 0) { 
+                     potentialDrop = 0; 
+                     garbage->falling = false;
+                  }
+                  else if (potentialDrop < drop) { 
                      drop = potentialDrop; 
                   }  //if this tile can't fall as far as others, adjust the max drop for all
                }
@@ -91,8 +94,11 @@ void garbageFall(Board* board, float velocity) {
             else if (below->falling == false) {
                if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
                   float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop < 0.0f) { potentialDrop = 0.0f; }
-                  if (potentialDrop < drop) {
+                  if (potentialDrop <= 0) { 
+                     potentialDrop = 0; 
+                     garbage->falling = false;
+                  }
+                  else if (potentialDrop < drop) {
                      drop = potentialDrop; 
                   }  //if this tile can't fall as far as others, adjust the max drop for all
                }
@@ -106,7 +112,7 @@ void garbageFall(Board* board, float velocity) {
       }
 
       //If the bottom layer can fall, adjust the ypos with the max drop
-      if (garbage->falling == true && drop > 0.0f) {
+      if (garbage->falling == true && drop > 0) {
          for (int r = row; r >= row - garbage->layers; r--) {
             for (int c = 0; c < garbage->width; c++) {
                Tile* tile = boardGetTile(board, r, c);
