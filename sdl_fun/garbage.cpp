@@ -23,7 +23,7 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    garbage->layers = layers;
    garbage->falling = true;
 
-   int start = 13;
+   int start = layers;
 
    //todo For now always start on the bottom left
    Tile* tile = boardGetTile(board, start, 0);
