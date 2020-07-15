@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <unordered_map>
+#include <math.h>
 #include <vector>
 
 
@@ -14,41 +15,10 @@ struct Vec2
    float x, y;
 };
 
-struct Garbage {
-   int ID;
-
-   int width;
-   int layers;
-
-   Vec2* vec2;
-};
-
-struct Holder {
-   std::vector <Garbage*> garbage;
-};
-
-Garbage* createGarbage() {
-   Garbage* garbage = new Garbage;
-   return garbage;
-}
-
 int main()
 {
-   Holder* holder = new Holder;
 
-   for (int i = 0; i < 5; i++) {
-      holder->garbage.push_back(createGarbage());
-   }
-
-   for (int i = 0; i < 5; i++) {
-      printf("%d\n", holder->garbage[i]->ID);
-   }
-
-   for (int i = 0; i < 5; i++) {
-      delete holder->garbage[i];
-   }
-
-   delete holder;
-
+   float a = round(1.29);
+   printf("%f\n", a);
    printf("Worked great...\n");
 }

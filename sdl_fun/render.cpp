@@ -8,6 +8,7 @@
 
 #include <gl/GL.h>
 #include <SDL.h>
+#include <math.h>
 
 
 const char* vertexSource = R"glsl(
@@ -297,8 +298,8 @@ void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
-   Vec2 dest = {destX , destY};
-
+   Vec2 dest = {round(destX) , round(destY)};
+   
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
