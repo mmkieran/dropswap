@@ -68,7 +68,7 @@ void garbageFall(Board* board, float velocity) {
 
       garbage->falling = true;
 
-      int row = (garbage->start->ypos + board->tileHeight) / board->tileHeight + board->startH;
+      int row = (garbage->start->ypos + board->tileHeight - 0.01) / board->tileHeight + board->startH;
       //int row = yPosToRow(board, garbage->start->ypos);
       int col = xPosToCol(board, garbage->start->xpos);
 
@@ -113,7 +113,7 @@ void garbageFall(Board* board, float velocity) {
 
       //If the bottom layer can fall, adjust the ypos with the max drop
       if (garbage->falling == true && drop > 0) {
-         for (int r = row; r >= row - garbage->layers; r--) {
+         for (int r = row; r > row - garbage->layers; r--) {
             for (int c = 0; c < garbage->width; c++) {
                Tile* tile = boardGetTile(board, r, c);
                tile->ypos += drop;

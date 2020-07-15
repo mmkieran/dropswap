@@ -352,13 +352,13 @@ void boardRemoveClears(Board* board) {
 void boardMoveUp(Board* board, float height) {
    float nudge = height;
    board->offset -= nudge;
-   bool update = false;
+   bool newRow = false;
 
    cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
-      update = true;
+      newRow = true;
    }
 
    std::vector <Tile*> checkTiles;
@@ -383,7 +383,7 @@ void boardMoveUp(Board* board, float height) {
 
    boardCheckClear(board, checkTiles, false);
 
-   boardUpdateArray(board, update);
+   boardUpdateArray(board, newRow);
 }
 
 int boardFillTiles(Board* board) {
