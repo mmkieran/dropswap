@@ -76,21 +76,18 @@ void garbageClear(Board* board, Tile* tile) {
          for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
             Tile* tile = boardGetTile(board, row, col);
             if (tile->garbage && garbage->layers > 1) {
-               garbage->start = boardGetTile(board, row - 1, col);
+               Tile* newStart = boardGetTile(board, row - 1, col);
+               garbage->start = newStart;
+               newStart->garbage = tile->garbage;
+               tile->garbage = nullptr;
             }
-            tile->clearTime = clearTime + (100 * col + 1000);
+            tile->clearTime = clearTime + (200 * col + 1000);
             tile->type = tile_cleared;
+            tile->falling = false;
          }
          garbage->layers -= 1;
       }
    }
-   /*Find all related tiles
-turn them into ordinary, random tiles
-stop the board during this process
-Make the new tiles part of a chain
-Let them fall
-*/
-
 }
 
 void garbageFall(Board* board, float velocity) {
@@ -140,7 +137,12 @@ void garbageFall(Board* board, float velocity) {
             else {
                garbage->falling = false;
             }
-
+            //if (below) {
+            //   int a = (below->ypos - (tile->ypos + board->tileHeight)); //debug small vertical diff
+            //   if (a != 0 && garbage->falling == false) {
+            //      int b = 0;  //this is bad... it means they aren't the same elevation
+            //   }
+            //}
          }
       }
 

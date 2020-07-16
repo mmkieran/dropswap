@@ -343,16 +343,33 @@ void boardRemoveClears(Board* board) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_cleared) {
             if (tile->idGarbage >= 0 && tile->clearTime <= current) {
-               tile->type = (TileEnum)board->distribution(board->generator);
 
-               tile->garbage = nullptr;
-               tile->idGarbage = -1;
+               int current = board->distribution(board->generator);
+               TileEnum type = (TileEnum)current;
+
+               //make sure we don't create any matches in new tiles
+               Tile* left = boardGetTile(board, row, col - 1);
+               Tile* left2 = boardGetTile(board, row, col - 2);
+               Tile* up = boardGetTile(board, row - 1, col);
+               Tile* up2 = boardGetTile(board, row - 2, col);
+
+               int total = 6;
+               while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type)) {
+                  current++;
+                  if (current > total) {
+                     current = current % total;
+                  }
+                  type = (TileEnum)current;
+               }
+               tile->type = type;
                tileSetTexture(board, tile);
 
-               tile->falling = false;
+               tile->falling = true;
                tile->chain = true;
+               tile->idGarbage = -1;
             }
-            if (tile->clearTime + 2000 <= current) {
+
+            else if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                tile->mesh->texture = nullptr; //board->game->textures[6];
                //todo flag all blocks above as part of a chain
@@ -460,8 +477,8 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
-      if (current->type != tile_empty) {
-         printf("Two tiles are being written to the same place in the array");  //todo if you got here, it's two tiles writing to the same place... what to do?
+       if (current->type != tile_empty) {
+           printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
       }
       t.mesh = current->mesh;
       *current = t;
