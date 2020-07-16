@@ -32,7 +32,7 @@ struct Tile {
    bool chain;
 
    Garbage* garbage;
-
+   int idGarbage;
 };
 
 void tileSetTexture(Board* board, Tile* tile);

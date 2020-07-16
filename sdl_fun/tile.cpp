@@ -49,6 +49,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool fi
 
    if (firstTime == true) {
       tile->mesh = createMesh(board->game);
+      tile->idGarbage = -1;
    }
 
    tile->garbage = nullptr;
@@ -57,7 +58,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool fi
 
    tile->clearTime = 0;
    tile->falling = false;
-   tile->chain = 0;
+   tile->chain = false;
 }
 
 void tileUpdate(Board* board, Tile* tile) {

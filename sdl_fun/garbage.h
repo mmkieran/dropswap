@@ -19,7 +19,8 @@ struct Garbage {
 Garbage* garbageCreate(Board* board, int width, int layers);
 void garbageDestroy(Garbage* garbage);
 
-void garbageClear();
+void garbageCheckClear(Board* board, Tile* tile);
+void garbageClear(Board* board, Tile* tile);
 
 void garbageFall(Board* board, float velocity);
 

@@ -38,6 +38,7 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
       for (int col = 0; col < width; col++) {
          Tile* tile = boardGetTile(board, row, col);
          tile->type = tile_garbage;
+         tile->idGarbage = id;
          tileSetTexture(board, tile);
       }
    }
@@ -50,7 +51,39 @@ void garbageDestroy(Garbage* garbage) {
    delete garbage;
 }
 
-void garbageClear() {
+void garbageCheckClear(Board* board, Tile* tile) {
+   int row = yPosToRow(board, tile->ypos);
+   int col = xPosToCol(board, tile->xpos);
+
+   for (int i = -1; i < 2; i += 2) {
+      for (int j = -1; j < 2; j += 2) {
+         Tile* tile = boardGetTile(board, row + i, col + j);
+         if (tile && tile->type == tile_garbage) {
+            //check if it touches any other garbage that is <2 layers
+            garbageClear(board, tile);
+         }
+      }
+   }
+}
+
+void garbageClear(Board* board, Tile* tile) {
+   for (auto&& garbage : board->garbage) {
+      if (garbage->ID == tile->idGarbage) {  //todo maybe make a lookup table instead
+
+         int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
+
+         uint64_t clearTime = SDL_GetTicks();
+         for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
+            Tile* tile = boardGetTile(board, row, col);
+            if (tile->garbage && garbage->layers > 1) {
+               garbage->start = boardGetTile(board, row - 1, col);
+            }
+            tile->clearTime = clearTime + (100 * col + 1000);
+            tile->type = tile_cleared;
+         }
+         garbage->layers -= 1;
+      }
+   }
    /*Find all related tiles
 turn them into ordinary, random tiles
 stop the board during this process

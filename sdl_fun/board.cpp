@@ -254,6 +254,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    if (matches.size() > 0) {
       int clearTime = SDL_GetTicks();
       for (auto&& m : matches) {
+
+         garbageCheckClear(board, m);
          //clear block and set timer
          m->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared); 
          m->type = tile_cleared;
@@ -340,6 +342,16 @@ void boardRemoveClears(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_cleared) {
+            if (tile->idGarbage >= 0 && tile->clearTime <= current) {
+               tile->type = (TileEnum)board->distribution(board->generator);
+
+               tile->garbage = nullptr;
+               tile->idGarbage = -1;
+               tileSetTexture(board, tile);
+
+               tile->falling = false;
+               tile->chain = true;
+            }
             if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                tile->mesh->texture = nullptr; //board->game->textures[6];
