@@ -449,7 +449,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
       Tile* current = boardGetTile(board, row, col);
       if (current->type != tile_empty) {
-         int a = 0;
+         printf("Two tiles are being written to the same place in the array");  //todo if you got here, it's two tiles writing to the same place... what to do?
       }
       t.mesh = current->mesh;
       *current = t;

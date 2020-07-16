@@ -298,7 +298,7 @@ void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
-   Vec2 dest = {round(destX) , round(destY)};
+   Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
    
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
 
