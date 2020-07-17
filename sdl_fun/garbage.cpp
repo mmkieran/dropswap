@@ -55,13 +55,13 @@ void garbageCheckClear(Board* board, Tile* tile) {
    int row = yPosToRow(board, tile->ypos);
    int col = xPosToCol(board, tile->xpos);
 
-   for (int i = -1; i < 2; i += 2) {
-      for (int j = -1; j < 2; j += 2) {
-         Tile* tile = boardGetTile(board, row + i, col + j);
-         if (tile && tile->type == tile_garbage) {
-            //check if it touches any other garbage that is <2 layers
-            garbageClear(board, tile);
-         }
+   int indices[8] = { -1, 0, 0, -1, 1, 0, 0, 1 };
+
+   for (int i = 0; i < 4; i += 2) {
+      Tile* tile = boardGetTile(board, row + indices[i], col + indices[i + 1]);
+      if (tile && tile->type == tile_garbage) {
+         //check if it touches any other garbage that is <2 layers
+         garbageClear(board, tile);
       }
    }
 }
@@ -98,8 +98,8 @@ void garbageFall(Board* board, float velocity) {
 
       garbage->falling = true;
 
-      int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
-      //int row = yPosToRow(board, garbage->start->ypos);
+      //int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
+      int row = (garbage->start - board->tiles) / board->w;
       int col = xPosToCol(board, garbage->start->xpos);
 
       //Loop through and find out if the bottom layer can fall
@@ -137,10 +137,11 @@ void garbageFall(Board* board, float velocity) {
             else {
                garbage->falling = false;
             }
-            //if (below) {
+            //debug for mismatched elevation
+            //if (below->type != tile_empty && tile->type != tile_empty && below->falling == false) {
             //   int a = (below->ypos - (tile->ypos + board->tileHeight)); //debug small vertical diff
-            //   if (a != 0 && garbage->falling == false) {
-            //      int b = 0;  //this is bad... it means they aren't the same elevation
+            //   if (a != 0 && garbage->falling == false) { 
+            //       int b = 0;  //this is bad... it means they aren't the same elevation
             //   }
             //}
          }

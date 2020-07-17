@@ -406,9 +406,10 @@ void boardMoveUp(Board* board, float height) {
 
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
-         if (tile->falling == false) {  //Only nudge up blocks that aren't falling
-            tile->ypos -= nudge;
-         }
+         tile->ypos -= nudge;  //debug let's try moving all blocks
+         //if (tile->falling == false) {  //Only nudge up blocks that aren't falling
+         //   tile->ypos -= nudge;
+         //}
       }
    }
 
@@ -473,12 +474,12 @@ void boardUpdateArray(Board* board, bool buffer = false) {
    }
 
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
-      int row = (t.ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      int row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
        if (current->type != tile_empty) {
-           printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
+            printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
       }
       t.mesh = current->mesh;
       *current = t;
