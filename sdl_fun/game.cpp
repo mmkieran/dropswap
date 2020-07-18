@@ -179,7 +179,7 @@ void gameHandleEvents(Game* game) {
             }
             break;
          case SDLK_g:
-            Garbage* garbage = garbageCreate(game->board, 3, 2);
+            Garbage* garbage = garbageCreate(game->board, game->timer % 3 + 3, game->timer % 3);
             game->board->garbage.push_back(garbage);  //debug
             break;
          }
