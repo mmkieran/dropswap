@@ -171,8 +171,11 @@ void boardSwap(Board* board) {
 
    //todo add logic for falling blocks...
 
-   int col = xPosToCol(board, cursorGetX(board->cursor));
-   int row = yPosToRow(board, cursorGetY(board->cursor));
+   float xCursor = cursorGetX(board->cursor);
+   float yCursor = cursorGetY(board->cursor);
+
+   int col = xPosToCol(board, xCursor);
+   int row = yPosToRow(board, yCursor);
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -180,21 +183,27 @@ void boardSwap(Board* board) {
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
 
-   if (tile1->type == tile_empty) {
-      Tile* above = boardGetTile(board, row - 1, col);
-      if (above && above->type != tile_empty && above->type != tile_garbage && above->ypos + board->tileHeight - 0.01 >= tile1->ypos) {
-         tile2 = above;
+   if (tile1->type == tile_empty && tile2->type != tile_empty) {  
+      if (tile2->falling = true && tile2->ypos > yCursor + 1) {  //Don't swap non-empty if it's already below
+         return;
+      }
+      else {
+         _swapTiles(tile1, tile2);
+         tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
       }
    }
-
-   if (tile2->type == tile_empty) {
-      Tile* above = boardGetTile(board, row - 1, col + 1);
-      if (above && above->type != tile_empty && above->type != tile_garbage && above->ypos + board->tileHeight - 0.01 >= tile2->ypos) {
-         tile1 = above;
+   else if (tile2->type == tile_empty && tile1->type != tile_empty) {
+      if (tile1->falling = true && tile1->ypos > yCursor + 1) {  //Don't swap non-empty if it's already below
+         return;
+      }
+      else { 
+         _swapTiles(tile1, tile2);
+         tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
       }
    }
-
-   _swapTiles(tile1, tile2);
+   else {
+      _swapTiles(tile1, tile2);
+   }
 
    std::vector <Tile*> tiles = { tile1, tile2 };
    boardCheckClear(board, tiles, false);

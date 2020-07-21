@@ -137,13 +137,6 @@ void garbageFall(Board* board, float velocity) {
             else {
                garbage->falling = false;
             }
-            //debug for mismatched elevation
-            //if (below->type != tile_empty && tile->type != tile_empty && below->falling == false) {
-            //   int a = (below->ypos - (tile->ypos + board->tileHeight)); //debug small vertical diff
-            //   if (a != 0 && garbage->falling == false) { 
-            //       int b = 0;  //this is bad... it means they aren't the same elevation
-            //   }
-            //}
          }
       }
 

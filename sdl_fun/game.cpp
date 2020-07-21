@@ -219,8 +219,8 @@ void gameUpdate(Game* game) {
       game->isRunning = false;
    }
 
-   boardUpdateFalling(game->board, 4.0f);
-   garbageFall(game->board, 4.0f);
+   boardUpdateFalling(game->board, 8.0f);
+   garbageFall(game->board, 8.0f);
    boardUpdateArray(game->board, false);
 
    cursorUpdate(game->board);  //todo make this do something more
@@ -255,6 +255,9 @@ void gameRender(Game* game) {
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d, garbage %d", tile->xpos, tile->ypos, tile->garbage, tile->falling, tile->garbage->falling);
          }
+         if (tile->falling == true) {
+            ImGui::Text("%d row, %d col, %0.1f x, %0.1f y", row, col, tile->xpos, tile->ypos);
+         }
       }
    }
 
@@ -267,7 +270,7 @@ void gameRender(Game* game) {
    }
 
    ImGui::Text("Cursor x %0.1f, y %0.1f", game->board->cursor->x, game->board->cursor->y);
-   ImGui::Text("%d col, %d row", col, row);
+   ImGui::Text("%d row, %d col", row, col);
    ImGui::NewLine();
 
    //Tile* bufferTile = boardGetTile(game->board, 24, 2);
