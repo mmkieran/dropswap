@@ -93,7 +93,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
 }
 
 void boardRender(Game* game, Board* board) {
-   for (int row = board->startH - 1; row < board->wBuffer; row++) {
+   for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          //if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
@@ -107,7 +107,7 @@ void boardRender(Game* game, Board* board) {
    cursorDraw(board);
 
    //debug basic frame
-   drawMesh(board->game, board->frame, 0, 0, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
+   drawMesh(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //-----Helpful functions----------

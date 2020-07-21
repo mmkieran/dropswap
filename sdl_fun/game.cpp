@@ -179,7 +179,7 @@ void gameHandleEvents(Game* game) {
             }
             break;
          case SDLK_g:
-            Garbage* garbage = garbageCreate(game->board, game->timer % 3 + 3, game->timer % 3);
+            Garbage* garbage = garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1);
             game->board->garbage.push_back(garbage);  //debug
             break;
          }
@@ -219,9 +219,9 @@ void gameUpdate(Game* game) {
       game->isRunning = false;
    }
 
-   boardUpdateFalling(game->board, 8.0f);
+   boardUpdateFalling(game->board, 4.0f);
    boardUpdateArray(game->board, false);
-   garbageFall(game->board, 8.0f);
+   garbageFall(game->board, 4.0f);
 
    cursorUpdate(game->board);  //todo make this do something more
 

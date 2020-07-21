@@ -51,7 +51,9 @@ void cursorDraw(Board* board) {
    Cursor* cursor = board->cursor;
    Game* game = board->game;
 
-   drawMesh(game, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
+   Vec2 adj = board->origin;
+
+   drawMesh(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
 void cursorMove(Board* board, MoveEnum dir) {

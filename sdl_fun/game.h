@@ -3,7 +3,8 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <imgui/imgui.h>
-#include <vector>
+
+#include "mymath.h"
 
 typedef struct Board Board;
 typedef struct Mesh Mesh;
@@ -15,8 +16,6 @@ struct Game {
 
    SDL_GLContext gl_context;
    ImGuiIO* io;
-
-   std::vector <Mesh*> testMesh;
 
    unsigned int VAO;
 

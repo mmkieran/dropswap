@@ -19,6 +19,7 @@ struct Board {
    int tileHeight;
    float offset = 0;
 
+   Vec2 origin = { 0, 0 };  //the frame of the board starts here
    Mesh* frame;
 
    Tile* tiles;
@@ -30,9 +31,9 @@ struct Board {
    int fallTimer = 0;
    bool paused = false;
    int pauseLength = 0;
-   double score;
-   bool bust;
-   int combo;
+   double score = 0;
+   bool bust = false;
+   int combo = 1;
 
    std::vector <Garbage*> garbage;
 
