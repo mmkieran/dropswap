@@ -36,15 +36,18 @@ int main(int argc, char* args[])
    while (gameRunning(game)) {
       frameStart = getTime();
 
+      showGameMenu(game);
+
       gameHandleEvents(game);
 
       if (!game->paused) {
-         gameUpdate(game);
-         gameRender(game);
+         gameUpdate(game);  //update game and board state
       }
       else {
          game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
       }
+
+      gameRender(game);  //draw the board, cursor, and other things
 
       frameTime = getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate

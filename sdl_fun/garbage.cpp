@@ -52,12 +52,13 @@ void garbageDestroy(Garbage* garbage) {
 }
 
 void garbageCheckClear(Board* board, Tile* tile) {
-   int row = yPosToRow(board, tile->ypos);
-   int col = xPosToCol(board, tile->xpos);
+   
+   int row = tileGetRow(board, tile);
+   int col = tileGetCol(board, tile);
 
    int indices[8] = { -1, 0, 0, -1, 1, 0, 0, 1 };
 
-   for (int i = 0; i < 4; i += 2) {
+   for (int i = 0; i < 8; i += 2) {
       Tile* tile = boardGetTile(board, row + indices[i], col + indices[i + 1]);
       if (tile && tile->type == tile_garbage) {
          //check if it touches any other garbage that is <2 layers
@@ -70,7 +71,7 @@ void garbageClear(Board* board, Tile* tile) {
    for (auto&& garbage : board->garbage) {
       if (garbage->ID == tile->idGarbage) {  //todo maybe make a lookup table instead
 
-         int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
+         int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
 
          uint64_t clearTime = SDL_GetTicks();
          for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer

@@ -56,3 +56,8 @@ void gameUpdate(Game* game);
 void gameRender(Game* game);
 
 void gameDestroy(Game* game);
+
+void showGameMenu(Game* game);
+
+void debugGarbage(Game* game);
+void debugCursor(Game* game);

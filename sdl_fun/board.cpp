@@ -120,7 +120,16 @@ int xPosToCol(Board* board, float x) {
    return (int)x / board->tileWidth;
 }
 
-std::vector <Tile*> boardGetCol(Board* board, int col) {
+int tileGetRow(Board* board, Tile* tile) {
+   int out = (tile - board->tiles) / board->w;
+   return out;
+}
+
+int tileGetCol(Board* board, Tile* tile) {
+   return (tile - board->tiles) % board->w;
+}
+
+std::vector <Tile*> boardGetAllTilesInCol(Board* board, int col) {
    std::vector <Tile*> tiles;
    for (int i = board->startH -1; i < board->endH; i++) {
       tiles.push_back(boardGetTile(board, i, col));
@@ -128,7 +137,7 @@ std::vector <Tile*> boardGetCol(Board* board, int col) {
    return tiles;
 }
 
-std::vector <Tile*> boardGetRow(Board* board, int row) {
+std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
    std::vector <Tile*> tiles;
    //Left to right because it doesn't matter
    for (int i = 0; i < board->w; i++) {
@@ -253,8 +262,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    std::vector <Tile*> matches;
 
    for (auto&& tile : tileList) {
-      std::vector <Tile*> cols = boardGetCol(board, xPosToCol(board, tile->xpos));
-      std::vector <Tile*> rows = boardGetRow(board, yPosToRow(board, tile->ypos));
+      std::vector <Tile*> cols = boardGetAllTilesInCol(board, xPosToCol(board, tile->xpos));
+      std::vector <Tile*> rows = boardGetAllTilesInRow(board, yPosToRow(board, tile->ypos));
 
       _checkClear(cols, matches);
       _checkClear(rows, matches);
@@ -510,6 +519,48 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       }
    }
    //boardCheckClear(board, checkTiles, false);
+}
+
+//This is copied from Fill Tiles
+void makeItRain(Board* board) {
+   int row = 0;
+   for (int col = 0; col < board->w; col++) {
+      Tile* tile = boardGetTile(board, row, col);
+
+      int current = board->distribution(board->generator);
+      TileEnum type = (TileEnum)current;
+
+      //make sure we don't create any matches on startup
+      Tile* left = boardGetTile(board, row, col - 1);
+      Tile* left2 = boardGetTile(board, row, col - 2);
+
+      int total = 6;
+      while ((type == left->type && type == left2->type) ) {
+         current++;
+         if (current > total) {
+            current = current % total;
+         }
+         type = (TileEnum)current;
+      }
+      if (col % 2 == 0) {
+         tileInit(board, tile, row, col, type, true);
+      }
+      else {
+         tileInit(board, tile, row + 1, col, type, true);
+      }
+   }
+}
+
+void boardClear(Board* board) {
+   for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type == tile_garbage) {
+            garbageClear(board, tile);
+         }
+         tileInit(board, tile, row, col, tile_empty);
+      }
+   }
 }
 
 std::vector <Tile> boardDebug(Board* board) {

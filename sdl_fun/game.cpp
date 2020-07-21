@@ -149,49 +149,50 @@ void gameHandleEvents(Game* game) {
       game->isRunning = false;
       break;
 
-      case SDL_KEYDOWN:
+   case SDL_KEYDOWN:
+      if (game->paused == false) {
          switch (event.key.keysym.sym) {
 
-         case SDLK_LEFT:
-            cursorMove(game->board, move_left);
-            break;
-
-         case SDLK_RIGHT:
-            cursorMove(game->board, move_right);
-            break;
-
-         case SDLK_UP:
-            cursorMove(game->board, move_up);
-            break;
-
-         case SDLK_DOWN:
-            cursorMove(game->board, move_down);
-            break;
-
-         case SDLK_SPACE:
-            boardSwap(game->board);
-            break;
-
-         case SDLK_r:
-            if (!game->board->paused) {
-               boardMoveUp(game->board, 8.0f);
+            case SDLK_LEFT:
+               cursorMove(game->board, move_left);
                break;
-            }
-            break;
-         case SDLK_g:
-            Garbage* garbage = garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1);
-            game->board->garbage.push_back(garbage);  //debug
-            break;
+
+            case SDLK_RIGHT:
+               cursorMove(game->board, move_right);
+               break;
+
+            case SDLK_UP:
+               cursorMove(game->board, move_up);
+               break;
+
+            case SDLK_DOWN:
+               cursorMove(game->board, move_down);
+               break;
+
+            case SDLK_SPACE:
+               boardSwap(game->board);
+               break;
+
+            case SDLK_r:
+               if (!game->board->paused) {
+                  boardMoveUp(game->board, 8.0f);
+                  break;
+               }
+               break;
+
+            case SDLK_g:
+               game->board->garbage.push_back(garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1));  //debug
+               break;
+
+            case SDLK_a:
+               makeItRain(game->board);
+               break;
          }
+      }
    }
 }
 
 void gameUpdate(Game* game) {
-
-   // Start the Dear ImGui frame
-   ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window);
-   ImGui::NewFrame();
 
    boardRemoveClears(game->board);
    if (game->board->pauseLength > 0) {
@@ -243,43 +244,7 @@ void gameRender(Game* game) {
    boardRender(game, game->board);
    garbageDraw(game->board);
 
-   //ImGui debug
-
-   ImGui::Begin("Drop and Swap");
-
-   for (int row = 0; row < game->board->endH; row++) {
-      for (int col = 0; col < game->board->w; col++){
-         Tile* tile = boardGetTile(game->board, row, col);
-         if (tile->type == tile_garbage && tile->garbage) {
-            Tile* above = boardGetTile(game->board, row-1, col);
-            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
-            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d, garbage %d", tile->xpos, tile->ypos, tile->garbage, tile->falling, tile->garbage->falling);
-         }
-         if (tile->falling == true) {
-            ImGui::Text("%d row, %d col, %0.1f x, %0.1f y", row, col, tile->xpos, tile->ypos);
-         }
-      }
-   }
-
-   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
-   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
-
-   Tile* tile = boardGetTile(game->board, row, col);
-   if (tile->mesh->texture) {
-      ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-   }
-
-   ImGui::Text("Cursor x %0.1f, y %0.1f", game->board->cursor->x, game->board->cursor->y);
-   ImGui::Text("%d row, %d col", row, col);
-   ImGui::NewLine();
-
-   //Tile* bufferTile = boardGetTile(game->board, 24, 2);
-   //ImGui::Text("%.1f col, %.1f row", bufferTile->ypos, tile->ypos);
-
-   ImGui::Text("%d combo", game->board->combo);
-   ImGui::Text("%.1f offset", game->board->offset);
-
-   ImGui::End();
+   debugCursor(game);  //imgui debug tools
 
    ImGui::Render();
 
@@ -315,4 +280,83 @@ void gameDestroy(Game* game) {
 
 bool gameRunning(Game* game) {
    return game->isRunning;
+}
+
+void debugGarbage(Game* game) {
+   //ImGui debug
+
+   ImGui::Begin("Debug Garbage");
+
+   for (int row = 0; row < game->board->endH; row++) {
+      for (int col = 0; col < game->board->w; col++) {
+         Tile* tile = boardGetTile(game->board, row, col);
+         if (tile->type == tile_garbage && tile->garbage) {
+            Tile* above = boardGetTile(game->board, row - 1, col);
+            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
+            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d, garbage %d", tile->xpos, tile->ypos, tile->garbage, tile->falling, tile->garbage->falling);
+         }
+      }
+   }
+
+   ImGui::End();
+}
+
+void debugCursor(Game* game) {
+   ImGui::Begin("Cursor Debug");
+
+   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
+   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
+
+   Tile* tile = boardGetTile(game->board, row, col);
+   if (tile->mesh->texture) {
+      ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+   }
+
+   ImGui::Text("Cursor x %0.1f, y %0.1f", game->board->cursor->x, game->board->cursor->y);
+   ImGui::Text("%d row, %d col", row, col);
+   ImGui::NewLine();
+
+   ImGui::Text("%d combo", game->board->combo);
+   ImGui::Text("%.1f offset", game->board->offset);
+
+   ImGui::End();
+}
+
+void showGameMenu(Game* game) {
+
+   // Start the Dear ImGui frame
+   ImGui_ImplOpenGL3_NewFrame();
+   ImGui_ImplSDL2_NewFrame(game->window);
+   ImGui::NewFrame();
+
+   if (!ImGui::Begin("Game Menus")) {
+      ImGui::End();
+      return;
+   }
+
+   if(ImGui::Button("Start Game") ) {
+      game->paused = false;
+   }
+
+   if (ImGui::Button("Pause Game")) {
+      game->paused = true;
+   }
+
+   ImGui::Button("Load Board");
+   ImGui::Button("Save Board");
+   if (ImGui::Button("Clear Board")) {
+      boardClear(game->board);
+   }
+
+   if (ImGui::Button("Make it rain") ) {
+      makeItRain(game->board);
+   }
+
+   //start game
+   //pause game
+   //load board
+   //save board
+   //clear board
+
+   ImGui::End();
 }
