@@ -415,7 +415,7 @@ void boardMoveUp(Board* board, float height) {
 
    boardCheckClear(board, checkTiles, false);
 
-   boardUpdateArray(board, newRow);
+   //boardUpdateArray(board, newRow);
 }
 
 int boardFillTiles(Board* board) {

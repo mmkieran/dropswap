@@ -207,7 +207,7 @@ void gameUpdate(Game* game) {
    }
 
    //Update board
-   boardUpdateArray(game->board, false);
+   //boardUpdateArray(game->board, false);
 
    if (game->timer > 2000) {
       if (game->board->paused == false) {
@@ -220,8 +220,8 @@ void gameUpdate(Game* game) {
    }
 
    boardUpdateFalling(game->board, 4.0f);
-   boardUpdateArray(game->board, false);
    garbageFall(game->board, 4.0f);
+   boardUpdateArray(game->board, false);
 
    cursorUpdate(game->board);  //todo make this do something more
 
