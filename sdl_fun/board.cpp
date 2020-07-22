@@ -13,7 +13,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
 Tile* _boardCreateArray(int width, int height) {
    Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
-   //memset(tiles, 0, sizeof(Tile) * (height * 2 + 1) * width);
    return tiles;
 }
 
@@ -30,16 +29,9 @@ Board* boardCreate(Game* game) {
          board->endH = game->bHeight * 2;  //end playing area of the board
          board->wBuffer = board->endH + 1;  //Extra row upcoming rows
          board->w = game->bWidth;
-         board->offset = 0;
 
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
-         board->speed = 0.5;
-         board->paused = false;
-         board->pauseLength = 0;
-         board->bust = false;
-         board->score = 0;
-         board->combo = 1;
 
          board->frame = createMesh(board->game);
          board->frame->texture = resourcesGetTexture(game->resources, Texture_frame);
@@ -73,7 +65,6 @@ void boardDestroy(Board* board) {
    }
 
    free(board->tiles);
-   //free(board);
    delete board;
 }
 
@@ -103,7 +94,6 @@ void boardRender(Game* game, Board* board) {
          tileDraw(board, tile);
       }
    }
-   //Does Cursor rendering belong here? It's part of the board...
    cursorDraw(board);
 
    //debug basic frame
@@ -120,11 +110,13 @@ int xPosToCol(Board* board, float x) {
    return (int)x / board->tileWidth;
 }
 
+//Calculates the row based on the pointer difference in the array
 int tileGetRow(Board* board, Tile* tile) {
    int out = (tile - board->tiles) / board->w;
    return out;
 }
 
+//Calculates the col based on the pointer difference in the array
 int tileGetCol(Board* board, Tile* tile) {
    return (tile - board->tiles) % board->w;
 }
@@ -150,7 +142,7 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
 
 
 //todo adjust it so you can't swap a tile under and push things up
-void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
+void _swapTiles(Tile* tile1, Tile* tile2) {
 
    Tile tmp = *tile2;
 
@@ -160,20 +152,6 @@ void _swapTiles(Tile* tile1, Tile* tile2, bool pos = false, bool fall = false) {
 
    tile1->type = tmp.type;
    tile1->mesh = tmp.mesh;
-
-   if (pos) {  //swap positions
-      tile2->ypos = tile1->ypos;
-      tile2->xpos = tile1->xpos;
-
-      tile1->ypos = tmp.ypos;
-      tile1->xpos = tmp.xpos;
-   }
-
-   if (fall) {  //swap and maintain falling status
-      tile1->falling = tmp.falling;
-
-      tile2->falling = tile1->falling;
-   }
 }
 
 void boardSwap(Board* board) {
@@ -189,11 +167,14 @@ void boardSwap(Board* board) {
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
 
+   Tile* below1 = boardGetTile(board, row + 1, col);
+   Tile* below2 = boardGetTile(board, row + 1, col + 1);
+
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  
-      if (tile2->falling = true && tile2->ypos > yCursor + 1) {  //Don't swap non-empty if it's already below
+      if (tile2->falling = true && tile2->ypos > yCursor + 1) {  //Don't swap non-empty if it's already falling below
          return;
       }
       else {
@@ -202,7 +183,7 @@ void boardSwap(Board* board) {
       }
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {
-      if (tile1->falling = true && tile1->ypos > yCursor + 1) {  //Don't swap non-empty if it's already below
+      if (tile1->falling = true && tile1->ypos > yCursor + 1) {  //Don't swap non-empty if it's already falling below
          return;
       }
       else { 
@@ -214,7 +195,17 @@ void boardSwap(Board* board) {
       _swapTiles(tile1, tile2);
    }
 
-   std::vector <Tile*> tiles = { tile1, tile2 };
+   std::vector <Tile*> tiles;
+   //Check if after we swapped them, either tile is falling... these don't get cleared
+   if (below1 && (below1->type == tile_empty || below1->falling == true)) {
+      tile1->falling = true;
+   }
+   else { tiles.push_back(tile2); }
+   if (below2 && (below2->type == tile_empty || below2->falling == true)) {
+      tile2->falling = true;
+   }
+   else { tiles.push_back(tile1); }
+
    boardCheckClear(board, tiles, false);
 
    return;
@@ -284,11 +275,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          if (fallCombo && m->chain == true) {
             board->combo += 1;
             fallCombo = false;
-
-            if (board->combo > 1) {  //debug
-               //printf("combo count: %d\n", board->combo); //debug
-               //todo add some score stuff here?
-            }
          }
          m->chain = false;
 
@@ -353,6 +339,30 @@ void boardUpdateFalling(Board* board, float velocity) {
    }
 }
 
+TileEnum _tileGenType(Board* board, Tile* tile) {
+   int current = board->distribution(board->generator);
+   TileEnum type = (TileEnum)current;
+
+   int row = tileGetRow(board, tile);
+   int col = tileGetCol(board, tile);
+
+   //make sure we don't create any matches in new tiles
+   Tile* left = boardGetTile(board, row, col - 1);
+   Tile* left2 = boardGetTile(board, row, col - 2);
+   Tile* up = boardGetTile(board, row - 1, col);
+   Tile* up2 = boardGetTile(board, row - 2, col);
+
+   int total = 6;
+   while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type)) {
+      current++;
+      if (current > total) {
+         current = current % total;
+      }
+      type = (TileEnum)current;
+   }
+   return type;
+}
+
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
    int current = SDL_GetTicks();
@@ -362,24 +372,7 @@ void boardRemoveClears(Board* board) {
          if (tile->type == tile_cleared) {
             if (tile->idGarbage >= 0 && tile->clearTime <= current) {
 
-               int current = board->distribution(board->generator);
-               TileEnum type = (TileEnum)current;
-
-               //make sure we don't create any matches in new tiles
-               Tile* left = boardGetTile(board, row, col - 1);
-               Tile* left2 = boardGetTile(board, row, col - 2);
-               Tile* up = boardGetTile(board, row - 1, col);
-               Tile* up2 = boardGetTile(board, row - 2, col);
-
-               int total = 6;
-               while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type)) {
-                  current++;
-                  if (current > total) {
-                     current = current % total;
-                  }
-                  type = (TileEnum)current;
-               }
-               tile->type = type;
+               tile->type = _tileGenType(board, tile);
                tileSetTexture(board, tile);
 
                tile->falling = true;
@@ -446,34 +439,16 @@ int boardFillTiles(Board* board) {
             tileInit(board, tile, row, col, tile_empty, true);
             continue;
          }
-         else {  
-            int current = board->distribution(board->generator);
-            TileEnum type = (TileEnum)current;
-
-            //make sure we don't create any matches on startup
-            Tile* left = boardGetTile(board, row, col - 1);
-            Tile* left2 = boardGetTile(board, row, col - 2);
-            Tile* up = boardGetTile(board, row - 1, col);
-            Tile* up2 = boardGetTile(board, row - 2, col);
-
-            int total = 6;
-            while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type) ) {
-               current++;
-               if (current > total) {
-                  current = current % total;
-               }
-               type = (TileEnum)current;
-            }
-            if (col % 2 == 0) {
-               tileInit(board, tile, row - board->startH, col, type, true);
-            }
-            else {
-               tileInit(board, tile, row - board->startH + 1, col, type, true);
-            }
+         
+         TileEnum type = _tileGenType(board, tile);
+         if (col % 2 == 0) {
+            tileInit(board, tile, row - board->startH, col, type, true);
+         }
+         else {
+            tileInit(board, tile, row - board->startH + 1, col, type, true);
          }
       }
    }
-   
    return 0;
 }
 
@@ -552,13 +527,17 @@ void makeItRain(Board* board) {
 }
 
 void boardClear(Board* board) {
+   for (auto&& garbage : board->garbage) {
+      garbageDestroy(garbage);
+   }
+   board->garbage.clear();
+
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_garbage) {
-            garbageClear(board, tile);
-         }
          tileInit(board, tile, row, col, tile_empty);
+         tile->idGarbage = -1;
+         tile->garbage = nullptr;
       }
    }
 }

@@ -27,8 +27,6 @@ struct Board {
    Game* game;
 
    double speed = 0.5;
-   int moveTimer = 0;
-   int fallTimer = 0;
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
