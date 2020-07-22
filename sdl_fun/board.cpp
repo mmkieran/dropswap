@@ -100,16 +100,6 @@ void boardRender(Game* game, Board* board) {
    drawMesh(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
-//-----Helpful functions----------
-//todo: Maybe put these somewhere else later
-int yPosToRow(Board* board, float y) {
-   return (int)(y - board->offset) / board->tileHeight + board->startH;
-}
-
-int xPosToCol(Board* board, float x) {
-   return (int)x / board->tileWidth;
-}
-
 //Calculates the row based on the pointer difference in the array
 int tileGetRow(Board* board, Tile* tile) {
    int out = (tile - board->tiles) / board->w;
@@ -138,10 +128,6 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
    return tiles;
 }
 
-//End Helper stuff------------------
-
-
-//todo adjust it so you can't swap a tile under and push things up
 void _swapTiles(Tile* tile1, Tile* tile2) {
 
    Tile tmp = *tile2;
@@ -161,8 +147,8 @@ void boardSwap(Board* board) {
    float xCursor = cursorGetX(board->cursor);
    float yCursor = cursorGetY(board->cursor);
 
-   int col = xPosToCol(board, xCursor);
-   int row = yPosToRow(board, yCursor);
+   int col = cursorGetCol(board);
+   int row = cursorGetRow(board);
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -253,8 +239,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    std::vector <Tile*> matches;
 
    for (auto&& tile : tileList) {
-      std::vector <Tile*> cols = boardGetAllTilesInCol(board, xPosToCol(board, tile->xpos));
-      std::vector <Tile*> rows = boardGetAllTilesInRow(board, yPosToRow(board, tile->ypos));
+      std::vector <Tile*> cols = boardGetAllTilesInCol(board, tileGetCol(board, tile));
+      std::vector <Tile*> rows = boardGetAllTilesInRow(board, tileGetRow(board, tile));
 
       _checkClear(cols, matches);
       _checkClear(rows, matches);

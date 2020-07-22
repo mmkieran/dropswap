@@ -40,6 +40,14 @@ float cursorGetY(Cursor* cursor) {
    return cursor->y;
 }
 
+int cursorGetRow(Board* board) {
+   return (int)(board->cursor->y - board->offset) / board->tileHeight + board->startH;
+}
+
+int cursorGetCol(Board* board) {
+   return (int)board->cursor->x / board->tileWidth;
+}
+
 void cursorUpdate(Board* board) {
    if (board->cursor->y <= 0) {
       board->cursor->y = board->tileHeight + board->offset;

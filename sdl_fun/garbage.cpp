@@ -100,8 +100,8 @@ void garbageFall(Board* board, float velocity) {
       garbage->falling = true;
 
       //int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
-      int row = (garbage->start - board->tiles) / board->w;
-      int col = xPosToCol(board, garbage->start->xpos);
+      int row = tileGetRow(board, garbage->start);
+      int col = tileGetCol(board, garbage->start);
 
       //Loop through and find out if the bottom layer can fall
       for (int i = 0; i < garbage->width; i++) {

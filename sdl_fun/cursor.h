@@ -30,6 +30,9 @@ void cursorSetY(Cursor* cursor, float y);
 float cursorGetX(Cursor* cursor);
 float cursorGetY(Cursor* cursor);
 
+int cursorGetRow(Board* board);
+int cursorGetCol(Board* board);
+
 void cursorUpdate(Board* board);
 void cursorDraw(Board* board);
 void cursorMove(Board* board, MoveEnum dir);

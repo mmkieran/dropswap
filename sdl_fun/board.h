@@ -61,9 +61,6 @@ std::vector <Tile> boardDebug(Board* board);
 void makeItRain(Board* board);
 void boardClear(Board* board);
 
-int yPosToRow(Board* board, float y);
-int xPosToCol(Board* board, float x);
-
 int tileGetRow(Board* board, Tile* tile);
 int tileGetCol(Board* board, Tile* tile);
 

@@ -304,8 +304,8 @@ void debugGarbage(Game* game) {
 void debugCursor(Game* game) {
    ImGui::Begin("Cursor Debug");
 
-   int row = yPosToRow(game->board, cursorGetY(game->board->cursor));
-   int col = xPosToCol(game->board, cursorGetX(game->board->cursor));
+   int row = cursorGetRow(game->board);
+   int col = cursorGetCol(game->board);
 
    Tile* tile = boardGetTile(game->board, row, col);
    if (tile->mesh->texture) {
