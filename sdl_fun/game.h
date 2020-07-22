@@ -57,6 +57,9 @@ void gameRender(Game* game);
 
 void gameDestroy(Game* game);
 
+void imguiStartFrame(Game* game);
+void imguiShowDemo();
+
 void showGameMenu(Game* game);
 
 void debugGarbage(Game* game);

@@ -36,6 +36,9 @@ int main(int argc, char* args[])
    while (gameRunning(game)) {
       frameStart = getTime();
 
+      imguiStartFrame(game);
+
+      imguiShowDemo();
       showGameMenu(game);
 
       gameHandleEvents(game);

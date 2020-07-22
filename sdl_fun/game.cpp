@@ -51,6 +51,13 @@ void setupImGui(Game* game) {
 
 }
 
+void imguiStartFrame(Game* game) {
+   // Start the Dear ImGui frame
+   ImGui_ImplOpenGL3_NewFrame();
+   ImGui_ImplSDL2_NewFrame(game->window);
+   ImGui::NewFrame();
+}
+
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
 
@@ -318,16 +325,17 @@ void debugCursor(Game* game) {
 
    ImGui::Text("%d combo", game->board->combo);
    ImGui::Text("%.1f offset", game->board->offset);
+   ImGui::Text("%.1f speed", game->board->speed);
 
    ImGui::End();
 }
 
-void showGameMenu(Game* game) {
+void imguiShowDemo() {
+   bool show = true;
+   ImGui::ShowDemoWindow(&show);
+}
 
-   // Start the Dear ImGui frame
-   ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window);
-   ImGui::NewFrame();
+void showGameMenu(Game* game) {
 
    if (!ImGui::Begin("Game Menus")) {
       ImGui::End();
@@ -343,6 +351,7 @@ void showGameMenu(Game* game) {
    }
 
    ImGui::Button("Load Board");
+
    ImGui::Button("Save Board");
    if (ImGui::Button("Clear Board")) {
       boardClear(game->board);
@@ -352,11 +361,12 @@ void showGameMenu(Game* game) {
       makeItRain(game->board);
    }
 
-   //start game
-   //pause game
-   //load board
-   //save board
-   //clear board
+   float min = 0;
+   float max = 8.0;
+   float speed = game->board->speed;
+
+   ImGui::SliderScalar("Game Speed", ImGuiDataType_Float, &speed, &min, &max);
+   game->board->speed = speed;
 
    ImGui::End();
 }
