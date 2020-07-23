@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <chrono>
+#include <SDL.h>
+#include <SDL_ttf.h>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -15,18 +17,27 @@
 #include "mymath.h"
 #include "garbage.h"
 
+struct GameWindow {
+   SDL_Window *window;
+   SDL_GLContext gl_context;
+
+   unsigned int VAO;
+
+   TTF_Font* font;
+};
+
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
-   game->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
-   if (!game->window) {
+   game->sdl->window = SDL_CreateWindow(title, xpos, ypos, width, height, window_flags);
+   if (!game->sdl->window) {
       printf("Failed to create SDL window...\n");
       return false;
    }
 
-   game->gl_context = SDL_GL_CreateContext(game->window);
-   SDL_GL_MakeCurrent(game->window, game->gl_context);
+   game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
+   SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
    SDL_GL_SetSwapInterval(1); // Enable vsync
 
    return true;
@@ -36,7 +47,7 @@ void setupImGui(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
-   game->io = &ImGui::GetIO(); (void)game->io;
+   //game->io = &ImGui::GetIO(); (void)game->io;
    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -46,7 +57,7 @@ void setupImGui(Game* game) {
 
    // Setup Platform/Renderer bindings
    const char* glsl_version = "#version 130";
-   ImGui_ImplSDL2_InitForOpenGL(game->window, game->gl_context);
+   ImGui_ImplSDL2_InitForOpenGL(game->sdl->window, game->sdl->gl_context);
    ImGui_ImplOpenGL3_Init(glsl_version);
 
 }
@@ -54,12 +65,13 @@ void setupImGui(Game* game) {
 void imguiStartFrame(Game* game) {
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->window);
+   ImGui_ImplSDL2_NewFrame(game->sdl->window);
    ImGui::NewFrame();
 }
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
+   game->sdl = new GameWindow;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
       printf("Failed to initialize SDL...\n");
@@ -103,7 +115,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->resources = initResources();
 
    //Make a vertex array object... stores the links between attributes and vbos
-   game->VAO = createVAO();
+   game->sdl->VAO = createVAO();
 
    //initialize IMGUI
    setupImGui(game);
@@ -115,8 +127,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    originToWorld(game, 0.0f, 0.0f, width, height);
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   game->font = TTF_OpenFont("assets/arial.ttf", 14);
-   if (!game->font) {
+   game->sdl->font = TTF_OpenFont("assets/arial.ttf", 14);
+   if (!game->sdl->font) {
       printf("Couldn't load font?.\n");
    }
 
@@ -240,7 +252,7 @@ void gameRender(Game* game) {
    clearRenderer(0.0, 0.0, 0.0, 0.0);
 
    int width, height;
-   SDL_GetWindowSize(game->window, &width, &height);
+   SDL_GetWindowSize(game->sdl->window, &width, &height);
 
    setRenderTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
 
@@ -256,30 +268,31 @@ void gameRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->window);
+   SDL_GL_SwapWindow(game->sdl->window);
 
 }
 
 void gameDestroy(Game* game) {
 
-   TTF_CloseFont(game->font);  //free the font
+   TTF_CloseFont(game->sdl->font);  //free the font
 
    boardDestroy(game->board);
 
    destroyResources(game->resources);
 
-   destroyVAO(game->VAO);
+   destroyVAO(game->sdl->VAO);
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();
    ImGui_ImplSDL2_Shutdown();
    ImGui::DestroyContext();
-   SDL_GL_DeleteContext(game->gl_context);
+   SDL_GL_DeleteContext(game->sdl->gl_context);
 
    //SDL cleanup
-   SDL_DestroyWindow(game->window);
+   SDL_DestroyWindow(game->sdl->window);
    TTF_Quit();  //close ttf
    SDL_Quit();
+   delete game->sdl;
    delete game;
 
    printf("Cleanup successful.\n");

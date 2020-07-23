@@ -292,9 +292,6 @@ void bindTexture(Mesh* mesh) {
 }
 
 void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
-   
-   int width, height;
-   SDL_GetWindowSize(game->window, &width, &height);
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};

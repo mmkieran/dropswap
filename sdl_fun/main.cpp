@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <SDL.h>
 
 #include "game.h"
 #include "render.h"
