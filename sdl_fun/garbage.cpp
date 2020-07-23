@@ -95,7 +95,7 @@ void garbageFall(Board* board, float velocity) {
 
    for (auto&& garbage : board->garbage) {
 
-      float drop = 1.0f * velocity;
+      float drop = board->level * velocity;
 
       garbage->falling = true;
 

@@ -219,7 +219,7 @@ void gameUpdate(Game* game) {
 
    if (game->timer > 2000) {
       if (game->board->paused == false) {
-         boardMoveUp(game->board, game->board->speed/4.0f);
+         boardMoveUp(game->board, game->board->level/8.0f);
       }
    }
 
@@ -227,8 +227,8 @@ void gameUpdate(Game* game) {
       game->isRunning = false;
    }
 
-   boardUpdateFalling(game->board, 8.0f);
-   garbageFall(game->board, 8.0f);
+   boardUpdateFalling(game->board, game->board->speed * 4.0f);
+   garbageFall(game->board, game->board->speed * 4.0f);
    boardUpdateArray(game->board, false);
 
    cursorUpdate(game->board);  //todo make this do something more
@@ -325,7 +325,7 @@ void debugCursor(Game* game) {
 
    ImGui::Text("%d combo", game->board->combo);
    ImGui::Text("%.1f offset", game->board->offset);
-   ImGui::Text("%.1f speed", game->board->speed);
+   ImGui::Text("%.1f level", game->board->level);
 
    ImGui::End();
 }
@@ -361,12 +361,18 @@ void showGameMenu(Game* game) {
       makeItRain(game->board);
    }
 
-   float min = 0;
-   float max = 8.0;
+   float minSpeed = 0;
+   float maxSpeed = 8.0;
    float speed = game->board->speed;
 
-   ImGui::SliderScalar("Game Speed", ImGuiDataType_Float, &speed, &min, &max);
+   ImGui::SliderScalar("Game Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
    game->board->speed = speed;
+
+   float minLevel = 0;
+   float maxLevel = 10.0;
+   float level = game->board->level;
+   ImGui::SliderScalar("Game Level", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
+   game->board->level = level;
 
    ImGui::End();
 }

@@ -271,7 +271,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
 void boardUpdateFalling(Board* board, float velocity) {
    std::vector <Tile*> tilesToCheck;
-   float drop = 1.0f * velocity;
+   float drop = board->level * velocity;
 
    for (int col = 0; col < board->w; col++) {
       for (int row = board->wBuffer - 1; row >= 0; row--) {
@@ -452,13 +452,16 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       }
    }
 
+   std::vector <Tile> conflicts;
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
       int row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
-       if (current->type != tile_empty) {
-            printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
+      if (current->type != tile_empty) {
+         printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
+         conflicts.push_back(t);
+         continue;
       }
       t.mesh = current->mesh;
       *current = t;
@@ -466,6 +469,30 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
       if (current->type == tile_garbage && current->garbage != nullptr) {
          current->garbage->start = current;
+      }
+   }
+
+   //todo should be smarter about giving information about the tile it conflicted with (y position especially)
+   for (auto&& conflict : conflicts) {
+      //try our best
+      int row = (conflict.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      int col = conflict.xpos / board->tileWidth;
+
+      Tile* left = boardGetTile(board, row, col - 1);
+      Tile* right = boardGetTile(board, row, col + 1);
+      Tile* up = boardGetTile(board, row - 1, col);
+      Tile* down = boardGetTile(board, row + 1, col);
+
+      Tile* tiles[4] = { up, down, left, right };
+
+      for (int i = 0; i < 4; i++) {
+         if (tiles[i] && tiles[i]->type == tile_empty) {
+            destroyMesh(conflict.mesh);
+            conflict.mesh = tiles[i]->mesh;
+            *tiles[i] = conflict;
+            tileSetTexture(board, tiles[i]);
+            break;
+         }
       }
    }
 
@@ -487,6 +514,7 @@ void makeItRain(Board* board) {
    int row = 0;
    for (int col = 0; col < board->w; col++) {
       Tile* tile = boardGetTile(board, row, col);
+      if (tile->type != tile_empty) { continue; }
 
       int current = board->distribution(board->generator);
       TileEnum type = (TileEnum)current;

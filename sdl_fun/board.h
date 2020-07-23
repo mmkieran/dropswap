@@ -26,7 +26,8 @@ struct Board {
    Cursor* cursor;
    Game* game;
 
-   double speed = 0.5;
+   float level = 1;
+   float speed = 0.5;
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
