@@ -9,6 +9,19 @@
 
 #include <vector>
 
+struct Garbage {
+   int ID;
+
+   int width;
+   int layers;
+
+   Tile* start;  //top left of garbage
+   Mesh* mesh;
+
+   bool falling;
+};
+
+
 Garbage* garbageCreate(Board* board, int width, int layers) {
 
    Garbage* garbage = new Garbage;
@@ -42,6 +55,7 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
          tileSetTexture(board, tile);
       }
    }
+   board->garbage[garbage->ID] = garbage;
    id++;
 
    return garbage;
@@ -68,32 +82,33 @@ void garbageCheckClear(Board* board, Tile* tile) {
 }
 
 void garbageClear(Board* board, Tile* tile) {
-   for (auto&& garbage : board->garbage) {
-      if (garbage->ID == tile->idGarbage) {  //todo maybe make a lookup table instead
 
-         int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
+   Garbage* garbage = board->garbage[tile->idGarbage];
+   if (garbage) {
 
-         uint64_t clearTime = SDL_GetTicks();
-         for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
-            Tile* tile = boardGetTile(board, row, col);
-            if (tile->garbage && garbage->layers > 1) {
-               Tile* newStart = boardGetTile(board, row - 1, col);
-               garbage->start = newStart;
-               newStart->garbage = tile->garbage;
-               tile->garbage = nullptr;
-            }
-            tile->clearTime = clearTime + (200 * col + 1000);
-            tile->type = tile_cleared;
-            tile->falling = false;
+      int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
+
+      uint64_t clearTime = SDL_GetTicks();
+      for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->garbage && garbage->layers > 1) {
+            Tile* newStart = boardGetTile(board, row - 1, col);
+            garbage->start = newStart;
+            newStart->garbage = tile->garbage;
+            tile->garbage = nullptr;
          }
-         garbage->layers -= 1;
+         tile->clearTime = clearTime + (200 * col + 1000);
+         tile->type = tile_cleared;
+         tile->falling = false;
       }
+      garbage->layers -= 1;
    }
 }
 
 void garbageFall(Board* board, float velocity) {
 
-   for (auto&& garbage : board->garbage) {
+   for (auto&& pair : board->garbage) {  //iterating a map gives std::pair (use first and second)
+      Garbage* garbage = pair.second;
 
       float drop = board->level * velocity;
 
@@ -160,9 +175,10 @@ void garbageFall(Board* board, float velocity) {
    }
 }
 
-void garbageDraw(Board* board) {
+void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first and second)
    
-   for (auto&& garbage : board->garbage) {
+   for (auto&& pair : board->garbage) {
+      Garbage* garbage = pair.second;
       float xpos, ypos;
 
       xpos = garbage->start->xpos;
@@ -172,3 +188,6 @@ void garbageDraw(Board* board) {
    }
 }
 
+void garbageSetStart(Board* board, Tile* tile) {
+   board->garbage[tile->idGarbage]->start = tile;
+}

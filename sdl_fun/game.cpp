@@ -43,7 +43,7 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
    return true;
 }
 
-void setupImGui(Game* game) {
+void imguiSetup(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
@@ -77,39 +77,25 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       printf("Failed to initialize SDL...\n");
       return nullptr;
    }
-   else {
-      printf("Initialized SDL...\n");
-   }
+   else {printf("Initialized SDL...\n"); }
    
-   if (TTF_Init() != 0) {
-      printf("Failed to initialize True Text Fonts...\n");
-   }
-   else {
-      printf("Initialized True Text Fonts...\n");
-   }
+   if (TTF_Init() != 0) {printf("Failed to initialize True Text Fonts...\n"); }
+   else {printf("Initialized True Text Fonts...\n"); }
 
-   if (openglContext() != 0) {
-      printf("Failed to create OpenGL Context?...\n");
-   }
-   else {
-      printf("Created OpenGL Context...\n");
-   }
+   if (openglContext() != 0) {printf("Failed to create OpenGL Context?...\n"); }
+   else {printf("Created OpenGL Context...\n"); }
 
    if (!createGameWindow(game, title, xpos, ypos, width, height)) {
       printf("Failed to create SDL window...\n");
       return nullptr;
    }
-   else {
-      printf("Created SDL window...\n");
-   }
+   else {printf("Created SDL window...\n"); }
 
    if (gl3wInit() != 0) {
       printf("Failed to initialize gl3w...\n");
       return nullptr;
    }
-   else {
-      printf("Initialized gl3w...\n");
-   }
+   else {printf("Initialized gl3w...\n"); }
 
    //Load game resources
    game->resources = initResources();
@@ -118,7 +104,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->sdl->VAO = createVAO();
 
    //initialize IMGUI
-   setupImGui(game);
+   imguiSetup(game);
 
    //Use the Shader Program once it's created in resources
    useShaderProgram(resourcesGetShader(game));
@@ -128,9 +114,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
    game->sdl->font = TTF_OpenFont("assets/arial.ttf", 14);
-   if (!game->sdl->font) {
-      printf("Couldn't load font?.\n");
-   }
+   if (!game->sdl->font) {printf("Couldn't load font?.\n"); }
 
    //Setting up the game settings
    game->bHeight = 12;
@@ -157,7 +141,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->isRunning = true;
    return game;
-
 }
 
 void gameHandleEvents(Game* game) {
@@ -200,7 +183,7 @@ void gameHandleEvents(Game* game) {
                break;
 
             case SDLK_g:
-               game->board->garbage.push_back(garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1));  //debug
+               garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1);
                break;
 
             case SDLK_a:
@@ -226,9 +209,6 @@ void gameUpdate(Game* game) {
       game->board->paused = false;
    }
 
-   //Update board
-   //boardUpdateArray(game->board, false);
-
    if (game->timer > 2000) {
       if (game->board->paused == false) {
          boardMoveUp(game->board, game->board->level/8.0f);
@@ -244,7 +224,6 @@ void gameUpdate(Game* game) {
    boardUpdateArray(game->board, false);
 
    cursorUpdate(game->board);  //todo make this do something more
-
 }
 
 void gameRender(Game* game) {
@@ -303,7 +282,7 @@ bool gameRunning(Game* game) {
 }
 
 void debugGarbage(Game* game) {
-   //ImGui debug
+   //ImGui debug window
 
    ImGui::Begin("Debug Garbage");
 
@@ -313,7 +292,7 @@ void debugGarbage(Game* game) {
          if (tile->type == tile_garbage && tile->garbage) {
             Tile* above = boardGetTile(game->board, row - 1, col);
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
-            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d, garbage %d", tile->xpos, tile->ypos, tile->garbage, tile->falling, tile->garbage->falling);
+            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", tile->xpos, tile->ypos, tile->garbage, tile->falling);
          }
       }
    }

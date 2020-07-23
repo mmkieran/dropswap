@@ -60,8 +60,8 @@ void boardDestroy(Board* board) {
       }
    }
 
-   for (auto&& garbage : board->garbage) {
-      garbageDestroy(garbage);
+   for (auto&& pair : board->garbage) {
+      garbageDestroy(pair.second);
    }
 
    free(board->tiles);
@@ -467,8 +467,8 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       *current = t;
       tileSetTexture(board, current);
 
-      if (current->type == tile_garbage && current->garbage != nullptr) {
-         current->garbage->start = current;
+      if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
+         garbageSetStart(board, current);
       }
    }
 
@@ -541,8 +541,8 @@ void makeItRain(Board* board) {
 }
 
 void boardClear(Board* board) {
-   for (auto&& garbage : board->garbage) {
-      garbageDestroy(garbage);
+   for (auto&& pair : board->garbage) {
+      garbageDestroy(pair.second);
    }
    board->garbage.clear();
 

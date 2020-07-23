@@ -4,7 +4,7 @@
 #include "garbage.h"
 
 #include <random>
-#include <vector>
+#include <map>
 
 struct Tile;
 struct Cursor;
@@ -27,14 +27,14 @@ struct Board {
    Game* game;
 
    float level = 1;
-   float speed = 0.5;
+   float speed = 2;
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
    bool bust = false;
    int combo = 1;
 
-   std::vector <Garbage*> garbage;
+   std::map <int, Garbage*> garbage;
 
    std::default_random_engine generator;
    std::uniform_int_distribution<int> distribution;
