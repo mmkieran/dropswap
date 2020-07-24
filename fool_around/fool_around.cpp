@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <math.h>
 #include <vector>
+#include "sdl_fun/myvector.h"
 
 
 //I really recommend having your own struct that looks like this!
@@ -49,28 +50,16 @@ Tile* _boardCreateArray(int width, int height) {
 
 int main()
 {
-   int w = 6;
-   int h = 12;
+   Vector<Tile>* vec = vectorCreate<Tile>(20, 2);
 
-   int row = 2;
-   int col = 3;
+   for (int i = 0; i < 8; i++) {
+      Tile tile;
+      tile.type = (TileEnum)(tile_empty + i);
+      tile.ypos = 64 * i;
+      vectorPushBack(vec, tile);
+   }
 
-   Tile* tiles = _boardCreateArray(w, h);
-
-   Tile* tile = &tiles[(w * row + col)];
-   Tile* above = &tiles[(w * (row + 1) + col)];
-
-   int calcRow = (tile - tiles) / w;
-   int calcCol = (tile - tiles) % w;
-
-   int calcRow2 = (above - tiles) / w;
-   int calcCol2 = (above - tiles) % w;
-
-   printf("row: %d\n", calcRow);
-   printf("row: %d\n", calcCol);
-
-   printf("row: %d\n", calcRow2);
-   printf("row: %d\n", calcCol2);
-
-   free(tiles);
+   for (int i = 1; i < 9; i++) {
+      printf("Type int: %d, ypos: %0.1f \n", vectorGet(vec, i)->type, vectorGet(vec, i)->ypos);
+   }
 }
