@@ -104,7 +104,7 @@ int vectorReserve(Vector<T>* vector, int newSize) {
 }
 
 template <typename T>
-static int _vectorSetOutside(Vector<T>* vector, int index, int value) {
+static int _vectorSetOutside(Vector<T>* vector, int index, T value) {
    if (vector) {
       if (index > 0 && index <= vector->capacity) {
          vector->data[index - 1] = value;
@@ -158,14 +158,15 @@ static T* _vectorGet(Vector<T>* vector, int index) {
 }
 
 template <typename T>
-int vectorGet(Vector<T>* vector, int index) {
-   T* loc = _vectorGet(vector, index);
-   if (loc) { return *loc; }
-   return INT_MIN;
+T* vectorGet(Vector<T>* vector, int index) {
+   T* out = nullptr;
+   out = _vectorGet(vector, index);
+   if (!out) { return nullptr; }
+   return out;
 }
 
-
-int vectorSet(Vector* vector, int index, int value) {
+template <typename T>
+int vectorSet(Vector<T>* vector, int index, T* value) {
    if (vector) {
       if (index > 0 && index <= vector->length) {
          vector->data[index - 1] = value;
@@ -175,7 +176,8 @@ int vectorSet(Vector* vector, int index, int value) {
    return 0;
 }
 
-int vectorPushBack(Vector* vector, int value) {
+template <typename T>
+int vectorPushBack(Vector<T>* vector, T value) {
    int check = 0;
    if (vector) {
       if (vector->length == vector->capacity) {
@@ -192,46 +194,48 @@ int vectorPushBack(Vector* vector, int value) {
    return 0;
 }
 
-int vectorPopBack(Vector* vector) {
-   int out;
+template <typename T>
+T vectorPopBack(Vector<T>* vector) {
+   T out;
    if (vector) {
       if (vector->length > 0) {
-         int* end = _vectorGet(vector, vector->length);
+         T* end = _vectorGet(vector, vector->length);
          if (end) {
             out = *end;
             vector->length -= 1;
-            *end = NULL;
             return out;
          }
       }
    }
+   return NULL;
+}
+
+template <typename T>
+T* vectorFront(Vector<T>* vector) {
+   T* out = _vectorGet(vector, 1);
+   if (out) { return out; }
+   return nullptr;
+}
+
+template <typename T>
+T* vectorBack(Vector<T>* vector) {
+   T* out = _vectorGet(vector, vector->length);
+   if (out) { return out; }
    return INT_MIN;
 }
 
-int vectorFront(Vector* vector) {
-   int* loc = _vectorGet(vector, 1);
-   if (loc) { return *loc; }
-   return INT_MIN;
-}
-
-int vectorBack(Vector* vector) {
-   int* loc = _vectorGet(vector, vector->length);
-   if (loc) { return *loc; }
-   return INT_MIN;
-}
-
-
-int vectorSwap(Vector* vector, int first, int second) {
+template <typename T>
+int vectorSwap(Vector<T>* vector, int first, int second) {
    if (first < 0 && first > vector->length) {
       return 0;
    }
    if (second <= 0 && second > vector->length) {
       return 0;
    }
-   int* t1 = _vectorGet(vector, first);
-   int* t2 = _vectorGet(vector, second);
+   T* t1 = _vectorGet(vector, first);
+   T* t2 = _vectorGet(vector, second);
    if (t1 && t2) {
-      int temp = *t1;
+      T temp = *t1;
       *t1 = *t2;
       *t2 = temp;
       return 1;
@@ -239,7 +243,8 @@ int vectorSwap(Vector* vector, int first, int second) {
    return 0;
 }
 
-int vectorInsert(Vector* vector, int index, int value) {
+template <typename T>
+int vectorInsert(Vector<T>* vector, int index, T value) {
    if (index < 0 || index > vector->length) {
       return 0;
    }
@@ -250,11 +255,11 @@ int vectorInsert(Vector* vector, int index, int value) {
          if (check == 0) { return 0; }
       }
 
-      int current = vectorGet(vector, index);
+      T current = *vectorGet(vector, index);
       vectorSet(vector, index, value);
 
       for (int i = index + 1; i <= vector->length + 1; i++) {
-         int next = vectorGet(vector, i);
+         T next = *vectorGet(vector, i);
          _vectorSetOutside(vector, i, current);
          current = next;
       }
@@ -265,7 +270,8 @@ int vectorInsert(Vector* vector, int index, int value) {
    return 0;
 }
 
-int vectorErase(Vector* vector, int index) {
+template <typename T>
+int vectorErase(Vector<T>* vector, int index) {
    if (index < 0 || index > vector->length) {
       return 0;
    }
@@ -273,7 +279,7 @@ int vectorErase(Vector* vector, int index) {
 
    if (vector) {
       for (int i = index; i < vector->length; i++) {
-         int next = vectorGet(vector, i + 1);
+         T next = *vectorGet(vector, i + 1);
          vectorSet(vector, i, next);
       }
       vector->length -= 1;
@@ -282,25 +288,17 @@ int vectorErase(Vector* vector, int index) {
    return 0;
 }
 
-int vectorEmplace(Vector* vector, int index, int value) {
+template <typename T>
+int vectorEmplace(Vector<T>* vector, int index, int value) {
    //How is this different from Insert?
    return 0;
 }
 
-int vectorClear(Vector* vector) {
+template <typename T>
+int vectorClear(Vector<T>* vector) {
    if (vector) {
       vector->length = 0;
       return 1;
    }
    return 0;
-}
-
-void vectortPrintItems(Vector* vector) {
-   fprintf(stdout, "----CURRENT LIST-----\n");
-   int* cursor = vector->data;
-   for (int count = 1; count <= vector->length; count++) {
-      fprintf(stdout, "%d %d\n", count, *cursor);
-      cursor = cursor + 1;
-   }
-   fprintf(stdout, "---------\n");
 }
