@@ -16,4 +16,5 @@ void garbageFall(Board* board, float velocity);
 
 void garbageDraw(Board* board);
 
+Garbage* garbageGet(Board* board, int id);
 void garbageSetStart(Board* board, Tile* tile);

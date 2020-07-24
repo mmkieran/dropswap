@@ -72,10 +72,15 @@ void garbageCheckClear(Board* board, Tile* tile) {
 
    int indices[8] = { -1, 0, 0, -1, 1, 0, 0, 1 };
 
+   std::vector <int> keys;
+   std::vector <Tile*> cleared;
+
    for (int i = 0; i < 8; i += 2) {
       Tile* tile = boardGetTile(board, row + indices[i], col + indices[i + 1]);
       if (tile && tile->type == tile_garbage) {
          //check if it touches any other garbage that is <2 layers
+         Garbage* garbage = garbageGet(board, tile->idGarbage);
+
          garbageClear(board, tile);
       }
    }
@@ -83,7 +88,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
 
 void garbageClear(Board* board, Tile* tile) {
 
-   Garbage* garbage = board->garbage[tile->idGarbage];
+   Garbage* garbage = garbageGet(board, tile->idGarbage);
    if (garbage) {
 
       int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
@@ -186,6 +191,11 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
 
       //drawMesh(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }
+}
+Garbage* garbageGet(Board* board, int id) {
+   Garbage* garbage = board->garbage[id];
+   if (!garbage) { return nullptr; }
+   return garbage;
 }
 
 void garbageSetStart(Board* board, Tile* tile) {

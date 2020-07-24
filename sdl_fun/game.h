@@ -3,7 +3,6 @@
 #include "mymath.h"
 
 typedef struct Board Board;
-typedef struct Mesh Mesh;
 typedef struct Resources Resources;
 
 struct GameWindow;

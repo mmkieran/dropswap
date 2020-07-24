@@ -311,13 +311,13 @@ void debugCursor(Game* game) {
       ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
    }
 
-   ImGui::Text("Cursor x %0.1f, y %0.1f", game->board->cursor->x, game->board->cursor->y);
    ImGui::Text("%d row, %d col", row, col);
    ImGui::NewLine();
 
    ImGui::Text("%d combo", game->board->combo);
    ImGui::Text("%.1f offset", game->board->offset);
    ImGui::Text("%.1f level", game->board->level);
+   ImGui::Text("%d time", game->timer);
 
    ImGui::End();
 }
@@ -338,8 +338,15 @@ void showGameMenu(Game* game) {
       game->paused = false;
    }
 
-   if (ImGui::Button("Pause Game")) {
-      game->paused = true;
+   if (game->paused == true) {
+      if (ImGui::Button("Unpause Game")) {
+         game->paused = false;
+      }
+   }
+   else if (game->paused == false) {
+      if (ImGui::Button("Pause Game")) {
+         game->paused = true;
+      }
    }
 
    ImGui::Button("Load Board");
@@ -357,13 +364,13 @@ void showGameMenu(Game* game) {
    float maxSpeed = 8.0;
    float speed = game->board->speed;
 
-   ImGui::SliderScalar("Game Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
+   ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
    game->board->speed = speed;
 
    float minLevel = 0;
    float maxLevel = 10.0;
    float level = game->board->level;
-   ImGui::SliderScalar("Game Level", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
+   ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
    game->board->level = level;
 
    ImGui::End();

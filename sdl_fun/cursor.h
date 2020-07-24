@@ -2,16 +2,9 @@
 #include <SDL.h>
 #include "game.h"
 
-struct Cursor {
+typedef struct Mesh Mesh;
 
-   float x;
-   float y;
-
-   Mesh* mesh;
-
-   int h;
-   int w;
-};
+struct Cursor;
 
 enum MoveEnum {
    move_up = 0,
@@ -19,7 +12,6 @@ enum MoveEnum {
    move_right,
    move_left
 };
-
 
 Cursor* cursorCreate(Board* board, float xpos, float ypos);
 void cursorDestroy(Cursor* cursor);

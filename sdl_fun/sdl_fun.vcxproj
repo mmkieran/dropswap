@@ -185,6 +185,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClInclude Include="cursor.h" />
     <ClInclude Include="garbage.h" />
     <ClInclude Include="mymath.h" />
+    <ClInclude Include="myvector.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="resources.h" />
     <ClInclude Include="tile.h" />

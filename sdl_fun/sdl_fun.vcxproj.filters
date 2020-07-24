@@ -71,6 +71,9 @@
     <ClInclude Include="garbage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="myvector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\circle.png">
