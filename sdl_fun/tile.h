@@ -5,7 +5,7 @@
 #include "board.h"
 #include "garbage.h"
 
-enum TileEnum {
+enum TileType {
    tile_empty = 0,
    tile_circle,
    tile_diamond,
@@ -18,9 +18,18 @@ enum TileEnum {
    tile_cleared
 };
 
+enum TileStatus {
+   status_normal = 0,
+   status_clear,  //cleared
+   status_fall,
+   status_stop,  //no falling
+   status_disable //no clearing, no falling, no swapping
+};
+
 struct Tile {
 
-   TileEnum type;
+   TileType type;
+   TileStatus status;
 
    float xpos;
    float ypos;
@@ -36,7 +45,7 @@ struct Tile {
 };
 
 void tileSetTexture(Board* board, Tile* tile);
-void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool firstTime = false);
+void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime = false);
 
 void tileUpdate(Board* board, Tile* tile);
 void tileDraw(Board* board, Tile* tile);

@@ -42,7 +42,7 @@ void tileSetTexture(Board* board, Tile* tile) {
    }
 }
 
-void tileInit(Board* board, Tile* tile, int row, int col, TileEnum type, bool firstTime) {
+void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime) {
    tile->type = type;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;

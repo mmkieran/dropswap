@@ -158,6 +158,7 @@ void boardSwap(Board* board) {
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
+   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  
       if (tile2->falling = true && tile2->ypos > yCursor + 1) {  //Don't swap non-empty if it's already falling below
@@ -206,6 +207,11 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       Tile* t3 = tiles[current + 2];
 
       if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
+         current++;
+         continue;
+      }
+
+      if (t1->status == status_disable || t2->status == status_disable || t3->status == status_disable) {  // if it's disabled, don't match it
          current++;
          continue;
       }
@@ -281,6 +287,8 @@ void boardUpdateFalling(Board* board, float velocity) {
          if (tile->type == tile_empty || tile->type == tile_cleared) {  //Don't update empty or cleared tiles
             continue;
          }
+         if (tile->status == status_disable) { continue; }  //Don't fall if disabled
+
          if (row >= board->wBuffer - 1) { //skip the bottom row
             tile->falling = false;
             continue;
@@ -325,9 +333,9 @@ void boardUpdateFalling(Board* board, float velocity) {
    }
 }
 
-static TileEnum _tileGenType(Board* board, Tile* tile) {
+static TileType _tileGenType(Board* board, Tile* tile) {
    int current = board->distribution(board->generator);
-   TileEnum type = (TileEnum)current;
+   TileType type = (TileType)current;
 
    int row = tileGetRow(board, tile);
    int col = tileGetCol(board, tile);
@@ -344,7 +352,7 @@ static TileEnum _tileGenType(Board* board, Tile* tile) {
       if (current > total) {
          current = current % total;
       }
-      type = (TileEnum)current;
+      type = (TileType)current;
    }
    return type;
 }
@@ -426,7 +434,7 @@ int boardFillTiles(Board* board) {
             continue;
          }
          
-         TileEnum type = _tileGenType(board, tile);
+         TileType type = _tileGenType(board, tile);
          if (col % 2 == 0) {
             tileInit(board, tile, row - board->startH, col, type, true);
          }
@@ -501,7 +509,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
       int row = board->wBuffer - 1;
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
-         tileInit(board, current, row, col, (TileEnum)board->distribution(board->generator));
+         tileInit(board, current, row, col, (TileType)board->distribution(board->generator));
          current->ypos += board->offset;
          //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
@@ -517,7 +525,7 @@ void makeItRain(Board* board) {
       if (tile->type != tile_empty) { continue; }
 
       int current = board->distribution(board->generator);
-      TileEnum type = (TileEnum)current;
+      TileType type = (TileType)current;
 
       //make sure we don't create any matches on startup
       Tile* left = boardGetTile(board, row, col - 1);
@@ -529,7 +537,7 @@ void makeItRain(Board* board) {
          if (current > total) {
             current = current % total;
          }
-         type = (TileEnum)current;
+         type = (TileType)current;
       }
       if (col % 2 == 0) {
          tileInit(board, tile, row, col, type, true);
