@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <math.h>
 #include <vector>
+#include <map>
 #include "sdl_fun/myvector.h"
 
 
@@ -50,24 +51,38 @@ Tile* _boardCreateArray(int width, int height) {
 
 int main()
 {
-   Vector<Tile>* vec = vectorCreate<Tile>(20, 2);
+   //Vector<Tile>* vec = vectorCreate<Tile>(20, 2);
 
-   for (int i = 0; i < 8; i++) {
-      Tile tile;
-      tile.type = (TileEnum)(tile_empty + i);
-      tile.ypos = 64 * i;
-      vectorPushBack(vec, tile);
-   }
+   //for (int i = 0; i < 8; i++) {
+   //   Tile tile;
+   //   tile.type = (TileEnum)(tile_empty + i);
+   //   tile.ypos = 64 * i;
+   //   vectorPushBack(vec, tile);
+   //}
 
-   vectorErase(vec, 2);
-   vectorSwap(vec, 1, 3);
+   //vectorErase(vec, 2);
+   //vectorSwap(vec, 1, 3);
 
-   for (int i = 1; i <= vectorSize(vec); i++) {
-      printf("Type int: %d, ypos: %0.1f \n", vectorGet(vec, i)->type, vectorGet(vec, i)->ypos);
-   }
+   //for (int i = 1; i <= vectorSize(vec); i++) {
+   //   printf("Type int: %d, ypos: %0.1f \n", vectorGet(vec, i)->type, vectorGet(vec, i)->ypos);
+   //}
 
    //Tile tile2;
    //tile2.type = (TileEnum)(tile_diamond);
    //tile2.ypos = 64;
    //printf("Found: %d\n", vectorFind(vec, tile2.type));
+
+
+
+   std::map <int, const char*> dict;
+   dict[1] = "One";
+   dict[3] = "Three";
+
+   if (!dict[2]) {
+      printf("It's not there.");
+   }
+
+   if (dict[3]) {
+      printf("Go it.");
+   }
 }
