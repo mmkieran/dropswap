@@ -65,6 +65,10 @@ void garbageDestroy(Garbage* garbage) {
    delete garbage;
 }
 
+static void _checkClear(Board* board, Garbage* garbage) {
+
+}
+
 void garbageCheckClear(Board* board, Tile* tile) {
    
    int row = tileGetRow(board, tile);
@@ -80,10 +84,35 @@ void garbageCheckClear(Board* board, Tile* tile) {
       if (tile && tile->type == tile_garbage) {
          //check if it touches any other garbage that is <2 layers
          Garbage* garbage = garbageGet(board, tile->idGarbage);
+         
+         int startRow = tileGetRow(board, garbage->start);
+         int endRow = startRow + garbage->layers - 1;
 
-         garbageClear(board, tile);
+         int startCol = tileGetCol(board, garbage->start);
+         int endCol = garbage->width - 1;
+
+         for (int row = startRow; row > startRow - garbage->layers; row--) {  //start at bottom left and go up for each layer
+            for (int col = 0; col < garbage->width; col++) {
+               if (row == startRow) {
+                  //get the tile below
+               }
+               if (col == startCol) {
+                  //get the tile to the left
+               }
+               if (row == endRow && endRow != startRow) {
+                  //check above
+               }
+               if (col == endCol && endCol != startCol) {
+                  //check the tile to the right
+               }
+            }
+         }
+
       }
    }
+
+   //todo fix clear once you get the looping right
+   garbageClear(board, tile);
 }
 
 void garbageClear(Board* board, Tile* tile) {

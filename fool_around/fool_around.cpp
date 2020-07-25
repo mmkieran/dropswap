@@ -59,7 +59,15 @@ int main()
       vectorPushBack(vec, tile);
    }
 
-   for (int i = 1; i < 9; i++) {
+   vectorErase(vec, 2);
+   vectorSwap(vec, 1, 3);
+
+   for (int i = 1; i <= vectorSize(vec); i++) {
       printf("Type int: %d, ypos: %0.1f \n", vectorGet(vec, i)->type, vectorGet(vec, i)->ypos);
    }
+
+   //Tile tile2;
+   //tile2.type = (TileEnum)(tile_diamond);
+   //tile2.ypos = 64;
+   //printf("Found: %d\n", vectorFind(vec, tile2.type));
 }

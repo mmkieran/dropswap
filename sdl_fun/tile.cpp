@@ -67,6 +67,8 @@ void tileUpdate(Board* board, Tile* tile) {
 
 void tileDraw(Board* board, Tile* tile) {
    Vec2 adj = board->origin;
-   drawMesh(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
+   if (tile->mesh->texture) {
+      drawMesh(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
+   }
 }
 

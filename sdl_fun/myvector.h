@@ -166,7 +166,7 @@ T* vectorGet(Vector<T>* vector, int index) {
 }
 
 template <typename T>
-int vectorSet(Vector<T>* vector, int index, T* value) {
+int vectorSet(Vector<T>* vector, int index, T value) {
    if (vector) {
       if (index > 0 && index <= vector->length) {
          vector->data[index - 1] = value;
@@ -221,7 +221,7 @@ template <typename T>
 T* vectorBack(Vector<T>* vector) {
    T* out = _vectorGet(vector, vector->length);
    if (out) { return out; }
-   return INT_MIN;
+   return nullptr;
 }
 
 template <typename T>
@@ -290,7 +290,7 @@ int vectorErase(Vector<T>* vector, int index) {
 
 template <typename T>
 int vectorEmplace(Vector<T>* vector, int index, int value) {
-   //How is this different from Insert?
+   //todo emplace should initialize the object and add it
    return 0;
 }
 
@@ -302,3 +302,14 @@ int vectorClear(Vector<T>* vector) {
    }
    return 0;
 }
+
+//template <typename T>
+//int vectorFind(Vector<T>* vector, T value) {
+//   for (int i = 1; i <= vector->length; i++) {
+//      T found = *vectorGet(vector, i);
+//      if (found == value) {
+//         return i;
+//      }
+//   }
+//   return 0;
+//}

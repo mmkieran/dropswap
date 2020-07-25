@@ -128,7 +128,7 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
    return tiles;
 }
 
-void _swapTiles(Tile* tile1, Tile* tile2) {
+static void _swapTiles(Tile* tile1, Tile* tile2) {
 
    Tile tmp = *tile2;
 
@@ -197,7 +197,7 @@ void boardSwap(Board* board) {
    return;
 }
 
-void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
+static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
    while (current + 2 < tiles.size()) {
@@ -325,7 +325,7 @@ void boardUpdateFalling(Board* board, float velocity) {
    }
 }
 
-TileEnum _tileGenType(Board* board, Tile* tile) {
+static TileEnum _tileGenType(Board* board, Tile* tile) {
    int current = board->distribution(board->generator);
    TileEnum type = (TileEnum)current;
 
