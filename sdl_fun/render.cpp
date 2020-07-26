@@ -10,6 +10,43 @@
 #include <SDL.h>
 #include <math.h>
 
+struct Texture {
+   GLuint handle;
+   int w, h;  //pixels
+};
+
+struct Mesh {
+   GLuint vbo;  //vbo handle
+   Texture* texture;
+   TextureEnum type;
+
+   int ptCount = 6;  //to draw it
+
+   float positions[12] =
+   {
+      -0.5f, 0.5f,
+      -0.5f, -0.5f,
+      0.5f, -0.5f,
+
+      0.5f, 0.5f,
+      0.5f, -0.5f,
+      -0.5f, 0.5f,
+   };
+
+
+   float texcoords[12] =
+   {
+      0.0f, 1.0f,
+      0.0f, 0.0f,
+      1.0f, 0.0f,
+
+      1.0f, 1.0f,
+      1.0f, 0.0f,
+      0.0f, 1.0f,
+   };
+
+};
+
 
 const char* vertexSource = R"glsl(
 #version 150 core
@@ -163,7 +200,6 @@ void shaderDestroyProgram(GLuint program) {
    glDeleteProgram(program);
 }
 
-
 Texture* textureCreate(unsigned char* image, int width, int height) {
    Texture* texture = new Texture;
 
@@ -192,6 +228,12 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 
    return texture;
+}
+
+void textureAttach(Mesh* mesh) {
+   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
 void textureParams(Texture* texture, TextureWrap wrap) {
@@ -285,12 +327,6 @@ Mesh* meshCreate(Game* game) {
    return mesh;
 };
 
-void textureAttach(Mesh* mesh) {
-   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
-}
-
 void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
 
    //Vec2 scale = { destW / width, destH / height};
@@ -306,6 +342,16 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    
    glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+}
+
+TextureEnum meshGetTexture(Mesh* mesh) {
+   if (mesh->texture) { return mesh->type; }
+   else { return Texture_empty; }
+}
+
+void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture) {
+   mesh->texture = resourcesGetTexture(game->resources, texture);
+   mesh->type = texture;
 }
 
 void meshDestroy(Mesh* mesh) {

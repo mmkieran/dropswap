@@ -22,7 +22,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->y = ypos;
 
    cursor->mesh = meshCreate(board->game);
-   cursor->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cursor);
+   meshSetTexture(board->game, cursor->mesh, Texture_cursor);
 
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;

@@ -16,6 +16,7 @@ struct Resources {
 
 static const char* _texturePaths[] =
 {
+   "",
    "assets/circle.png",
    "assets/diamond.png",
    "assets/utriangle.png",
@@ -34,6 +35,10 @@ Resources* initResources() {
    Resources* resources = new Resources;
 
    for (int i = 0; i < Texture_COUNT; i++) {
+      if (i == 0){
+         resources->textures.push_back(nullptr);
+         continue;
+      }
       resources->textures.push_back(textureLoadFromFile(_texturePaths[i]) );
    }
 

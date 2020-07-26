@@ -31,8 +31,8 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    static int id = 0;
 
    garbage->mesh = meshCreate(board->game);
-   garbage->mesh->texture = resourcesGetTexture(board->game->resources, Texture_garbage);
-   textureParams(garbage->mesh->texture, mirror);
+   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
+   //textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
    garbage->ID = id;
    garbage->width = width;
    garbage->layers = layers;

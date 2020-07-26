@@ -307,8 +307,8 @@ void debugCursor(Game* game) {
    int col = cursorGetCol(game->board);
 
    Tile* tile = boardGetTile(game->board, row, col);
-   if (tile->mesh->texture) {
-      ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+   if (meshGetTexture(tile->mesh) != Texture_empty) {
+      //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
    }
 
    ImGui::Text("%d row, %d col", row, col);

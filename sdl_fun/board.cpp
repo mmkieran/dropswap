@@ -34,7 +34,7 @@ Board* boardCreate(Game* game) {
          board->tileWidth = game->tWidth;
 
          board->frame = meshCreate(board->game);
-         board->frame->texture = resourcesGetTexture(game->resources, Texture_frame);
+         meshSetTexture(board->game, board->frame, Texture_frame);
 
          std::default_random_engine gen(time(0));
          board->generator = gen;
@@ -88,7 +88,7 @@ void boardRender(Game* game, Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          //if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
-         if (tile->mesh->texture == nullptr) {  //debug for garbage
+         if (meshGetTexture(tile->mesh) == Texture_empty) {  //debug for garbage
             continue; 
          }
          tileDraw(board, tile);
@@ -252,12 +252,12 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (matches.size() > 0) {
-      int clearTime = SDL_GetTicks();
+      int clearTime = SDL_GetTicks();  //todo use game timer
       for (auto&& m : matches) {
 
          garbageCheckClear(board, m);
          //clear block and set timer
-         m->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared); 
+         meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;
@@ -383,7 +383,7 @@ void boardRemoveClears(Board* board) {
 
             else if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
-               tile->mesh->texture = nullptr; 
+               meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
                //todo flag all blocks above as part of a chain
             }

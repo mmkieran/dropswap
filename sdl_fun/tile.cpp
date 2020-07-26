@@ -7,38 +7,37 @@ void tileSetTexture(Board* board, Tile* tile) {
    //hard code this for now
    switch (tile->type) {
    case tile_empty:
-      tile->mesh->texture = nullptr;
-      //tile->mesh->texture = board->game->resources->textures[10];
+      meshSetTexture(board->game, tile->mesh, Texture_empty);
       break;
    case tile_circle:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_circle);
+      meshSetTexture(board->game, tile->mesh, Texture_circle);
       break;
    case tile_diamond:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_diamond);
+      meshSetTexture(board->game, tile->mesh, Texture_diamond);
       break;
    case tile_utriangle:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_utriangle);
+      meshSetTexture(board->game, tile->mesh, Texture_utriangle);
       break;
    case tile_dtriangle:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_dtriangle);
+      meshSetTexture(board->game, tile->mesh, Texture_dtriangle);
       break;
    case tile_star:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_star);
+      meshSetTexture(board->game, tile->mesh, Texture_star);
       break;
    case tile_heart:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_heart);
+      meshSetTexture(board->game, tile->mesh, Texture_heart);
       break;
    case tile_silver:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_silver);
+      meshSetTexture(board->game, tile->mesh, Texture_silver);
       break;
    case tile_cleared:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cleared);
+      meshSetTexture(board->game, tile->mesh, Texture_cleared);
       break;
    case tile_garbage:
-      tile->mesh->texture = resourcesGetTexture(board->game->resources, Texture_g);
+      meshSetTexture(board->game, tile->mesh, Texture_g);
       break;
    default:
-      tile->mesh->texture = nullptr;
+      meshSetTexture(board->game, tile->mesh, Texture_empty);
    }
 }
 
@@ -69,7 +68,7 @@ void tileUpdate(Board* board, Tile* tile) {
 
 void tileDraw(Board* board, Tile* tile) {
    Vec2 adj = board->origin;
-   if (tile->mesh->texture) {
+   if (meshGetTexture(tile->mesh) != Texture_empty) {
       meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
    }
 }
