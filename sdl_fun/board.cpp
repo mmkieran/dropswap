@@ -362,20 +362,29 @@ void boardRemoveClears(Board* board) {
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+
+         if (tile->status != status_normal && tile->statusTime <= current) {
+            tile->status = status_normal;
+            tile->falling = true;
+            tile->chain = true;
+            tile->statusTime = 0;
+         }
+
          if (tile->type == tile_cleared) {
             if (tile->idGarbage >= 0 && tile->clearTime <= current) {
 
                tile->type = _tileGenType(board, tile);
                tileSetTexture(board, tile);
-
-               tile->falling = true;
-               tile->chain = true;
                tile->idGarbage = -1;
+               tile->status = status_disable;
+               tile->statusTime += current + 1000;
+               tile->clearTime = 0;
             }
 
             else if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
-               tile->mesh->texture = nullptr; //board->game->textures[6];
+               tile->mesh->texture = nullptr; 
+               tile->clearTime = 0;
                //todo flag all blocks above as part of a chain
             }
          }

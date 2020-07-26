@@ -193,8 +193,8 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
             tile->garbage = nullptr;
          }
          tile->clearTime = clearTime + (200 * col + 1000);
+         tile->statusTime -= 200 * col;
          tile->type = tile_cleared;
-         tile->status = status_disable;  //no clearing, no falling, no swapping
          tile->falling = false;
       }
       garbage->layers -= 1;
