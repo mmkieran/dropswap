@@ -34,11 +34,11 @@ Resources* initResources() {
    Resources* resources = new Resources;
 
    for (int i = 0; i < Texture_COUNT; i++) {
-      resources->textures.push_back(loadTextureFromFile(_texturePaths[i]) );
+      resources->textures.push_back(textureLoadFromFile(_texturePaths[i]) );
    }
 
    //Might have more than 1 shader eventually?
-   resources->shaderProgram = createProgram();
+   resources->shaderProgram = shaderProgramCreate();
 
    return resources;
 }
@@ -46,11 +46,11 @@ Resources* initResources() {
 void destroyResources(Resources* resources) {
    if (resources->textures.size() > 0) {
       for (auto&& tex : resources->textures) {
-         destroyTexture(tex);
+         textureDestroy(tex);
       }
    }
    if (resources->shaderProgram) {
-      destroyProgram(resources->shaderProgram);
+      shaderDestroyProgram(resources->shaderProgram);
    }
    delete resources;
 }

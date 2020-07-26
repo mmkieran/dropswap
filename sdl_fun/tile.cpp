@@ -49,7 +49,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
    tile->ypos = (row - board->startH) * board->tileHeight;
 
    if (firstTime == true) {
-      tile->mesh = createMesh(board->game);
+      tile->mesh = meshCreate(board->game);
       tile->idGarbage = -1;
    }
 
@@ -70,7 +70,7 @@ void tileUpdate(Board* board, Tile* tile) {
 void tileDraw(Board* board, Tile* tile) {
    Vec2 adj = board->origin;
    if (tile->mesh->texture) {
-      drawMesh(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
+      meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
    }
 }
 

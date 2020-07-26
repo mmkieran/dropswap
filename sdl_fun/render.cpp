@@ -65,7 +65,7 @@ int openglContext() {
    return 0;
 }
 
-GLuint createVAO() {
+GLuint vaoCreate() {
    //Make a vertex array object... stores the links between attributes and vbos
    GLuint vao;
    glGenVertexArrays(1, &vao);
@@ -80,13 +80,13 @@ GLuint createVAO() {
    return vao;
 }
 
-void destroyVAO(GLuint vao) {
+void vaoDestroy(GLuint vao) {
    if (vao != 0) {
       glDeleteVertexArrays(1, &vao);
    }
 }
 
-GLuint createShader(ShaderStage shaderStage) {
+GLuint shaderCreate(ShaderStage shaderStage) {
    GLuint shader;
    if (shaderStage == vertex_shader) {
       shader = glCreateShader(GL_VERTEX_SHADER);
@@ -114,12 +114,12 @@ GLuint createShader(ShaderStage shaderStage) {
    return shader;
 }
 
-GLuint createProgram() {
+GLuint shaderProgramCreate() {
 
    GLuint shaderProgram;
 
-   GLuint vertexShader = createShader(vertex_shader);
-   GLuint fragShader = createShader(fragment_shader);
+   GLuint vertexShader = shaderCreate(vertex_shader);
+   GLuint fragShader = shaderCreate(fragment_shader);
 
    shaderProgram = glCreateProgram();
    glAttachShader(shaderProgram, vertexShader);
@@ -135,7 +135,7 @@ GLuint createProgram() {
    return shaderProgram;
 }
 
-void useShaderProgram(GLuint program) {
+void shaderUseProgram(GLuint program) {
    glUseProgram(program);
 }
 
@@ -154,17 +154,17 @@ void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat) {
    shaderSetMat4(location, mat);
 }
 
-void destroyShaders(GLuint shader) {
+void shaderDestroy(GLuint shader) {
    //glDetachShader(program, shader);
    glDeleteShader(shader);
 }
 
-void destroyProgram(GLuint program) {
+void shaderDestroyProgram(GLuint program) {
    glDeleteProgram(program);
 }
 
 
-Texture* createTexture(unsigned char* image, int width, int height) {
+Texture* textureCreate(unsigned char* image, int width, int height) {
    Texture* texture = new Texture;
 
    texture->w = width;
@@ -194,7 +194,7 @@ Texture* createTexture(unsigned char* image, int width, int height) {
    return texture;
 }
 
-void changeTexParams(Texture* texture, TextureWrap wrap) {
+void textureParams(Texture* texture, TextureWrap wrap) {
    if (!texture->handle) {return; }
 
    GLint wrapType;
@@ -217,14 +217,14 @@ void changeTexParams(Texture* texture, TextureWrap wrap) {
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 }
 
-void destroyTexture(Texture* texture) {
+void textureDestroy(Texture* texture) {
    if (!texture) { return; }
 
    glDeleteTextures(1, &texture->handle);
    delete texture;
 }
 
-Texture* loadTextureFromFile(const char* filename) {
+Texture* textureLoadFromFile(const char* filename) {
    int width, height;  //retrieve height and width of image
    int nChannels; //get number of channels
    int reqChannels = 4;  //required number of channels
@@ -236,14 +236,14 @@ Texture* loadTextureFromFile(const char* filename) {
       return nullptr;
    }
 
-   Texture* texture = createTexture(image, width, height);  //create texture using image data
+   Texture* texture = textureCreate(image, width, height);  //create texture using image data
 
    stbi_image_free(image);
 
    return texture;
 }
 
-Mesh* createMesh(Game* game) {
+Mesh* meshCreate(Game* game) {
 
    Mesh* mesh = new Mesh;
 
@@ -285,13 +285,13 @@ Mesh* createMesh(Game* game) {
    return mesh;
 };
 
-void bindTexture(Mesh* mesh) {
+void textureAttach(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
+void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
@@ -308,7 +308,7 @@ void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
-void destroyMesh(Mesh* mesh) {
+void meshDestroy(Mesh* mesh) {
    glDeleteBuffers(1, &mesh->vbo);
    delete mesh;
 }
@@ -357,18 +357,18 @@ void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float 
    shaderSetMat4UniformByName(resourcesGetShader(game), "deviceCoords", mat.values);
 }
 
-void clearRenderer(float r, float g, float b, float a) {
+void rendererClear(float r, float g, float b, float a) {
    glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void setRenderTarget(int originX, int originY, int width, int height) {
+void rendererSetTarget(int originX, int originY, int width, int height) {
    //Set the top left corner of the viewerport rectangle
    glViewport(originX, originY, width, height);
 }
 
 //Copies the VBO data to the graphics card... only do this when we changes the vertices
-void copyToRenderer(Mesh* mesh) {
+void rendererCopyTo(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
 
    //copy data from vertices to buffer

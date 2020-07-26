@@ -51,15 +51,15 @@ struct Mesh {
 
 int openglContext();
 
-GLuint createVAO();
-void destroyVAO(GLuint vao);
+GLuint vaoCreate();
+void vaoDestroy(GLuint vao);
 
-GLuint createShader(ShaderStage shaderStage);
-void destroyShaders(GLuint shader);
+GLuint shaderCreate(ShaderStage shaderStage);
+void shaderDestroy(GLuint shader);
 
-GLuint createProgram();
-void useShaderProgram(GLuint program);
-void destroyProgram(GLuint program);
+GLuint shaderProgramCreate();
+void shaderUseProgram(GLuint program);
+void shaderDestroyProgram(GLuint program);
 
 GLuint shaderGetUniform(GLuint shaderHandle, const char* name);
 
@@ -70,17 +70,17 @@ void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height);
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height);
 
-Texture* createTexture(unsigned char* image, int width, int height);
-void bindTexture(Mesh* mesh);
-void changeTexParams(Texture* texture, TextureWrap wrap);
-void destroyTexture(Texture* texture);
+Texture* textureCreate(unsigned char* image, int width, int height);
+void textureAttach(Mesh* mesh);
+void textureParams(Texture* texture, TextureWrap wrap);
+void textureDestroy(Texture* texture);
 
-Texture* loadTextureFromFile(const char* filename);
+Texture* textureLoadFromFile(const char* filename);
 
-Mesh* createMesh(Game* game);
-void destroyMesh(Mesh* mesh);
+Mesh* meshCreate(Game* game);
+void meshDestroy(Mesh* mesh);
 
-void drawMesh(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH);
+void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH);
 
-void setRenderTarget(int botLeftX, int botLeftY, int width, int height);
-void clearRenderer(float r, float g, float b, float a);
+void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);
+void rendererClear(float r, float g, float b, float a);

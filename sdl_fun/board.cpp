@@ -33,7 +33,7 @@ Board* boardCreate(Game* game) {
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
 
-         board->frame = createMesh(board->game);
+         board->frame = meshCreate(board->game);
          board->frame->texture = resourcesGetTexture(game->resources, Texture_frame);
 
          std::default_random_engine gen(time(0));
@@ -56,7 +56,7 @@ void boardDestroy(Board* board) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         destroyMesh(tile->mesh);
+         meshDestroy(tile->mesh);
       }
    }
 
@@ -97,7 +97,7 @@ void boardRender(Game* game, Board* board) {
    cursorDraw(board);
 
    //debug basic frame
-   drawMesh(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
+   meshDraw(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //Calculates the row based on the pointer difference in the array
@@ -503,7 +503,7 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
       for (int i = 0; i < 4; i++) {
          if (tiles[i] && tiles[i]->type == tile_empty) {
-            destroyMesh(conflict.mesh);
+            meshDestroy(conflict.mesh);
             conflict.mesh = tiles[i]->mesh;
             *tiles[i] = conflict;
             tileSetTexture(board, tiles[i]);

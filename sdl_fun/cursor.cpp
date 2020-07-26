@@ -21,7 +21,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->x = xpos;
    cursor->y = ypos;
 
-   cursor->mesh = createMesh(board->game);
+   cursor->mesh = meshCreate(board->game);
    cursor->mesh->texture = resourcesGetTexture(board->game->resources, Texture_cursor);
 
    cursor->h = board->game->tHeight;
@@ -71,7 +71,7 @@ void cursorDraw(Board* board) {
 
    Vec2 adj = board->origin;
 
-   drawMesh(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
+   meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
 void cursorMove(Board* board, MoveEnum dir) {

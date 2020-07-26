@@ -30,9 +30,9 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
 
    static int id = 0;
 
-   garbage->mesh = createMesh(board->game);
+   garbage->mesh = meshCreate(board->game);
    garbage->mesh->texture = resourcesGetTexture(board->game->resources, Texture_garbage);
-   changeTexParams(garbage->mesh->texture, mirror);
+   textureParams(garbage->mesh->texture, mirror);
    garbage->ID = id;
    garbage->width = width;
    garbage->layers = layers;
@@ -280,7 +280,7 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
       xpos = garbage->start->xpos;
       ypos = garbage->start->ypos - (board->tileHeight * (garbage->layers - 1));
 
-      //drawMesh(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
+      //meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }
 }
 Garbage* garbageGet(Board* board, int id) {
