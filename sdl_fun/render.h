@@ -32,6 +32,8 @@ enum TextureEnum {
 
 struct Mesh;
 struct Texture;
+struct Animation;
+struct Graphic;
 
 int openglContext();
 

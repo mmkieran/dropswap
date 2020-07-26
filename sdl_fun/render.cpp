@@ -15,6 +15,18 @@ struct Texture {
    int w, h;  //pixels
 };
 
+struct Animation {
+   Texture* texture;
+   int frames;  //How many key frames are in the animation
+   int delay;  //delay in milliseconds between frames
+   bool animated;  //is it animated currently
+};
+
+struct Graphic {
+   Texture* texture;
+   Animation* animation;
+};
+
 struct Mesh {
    GLuint vbo;  //vbo handle
    Texture* texture;
