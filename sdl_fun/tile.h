@@ -37,7 +37,8 @@ struct Tile {
    Mesh* mesh;
 
    bool falling;
-   int clearTime;
+   uint64_t clearTime;
+   uint64_t statusTime;
    bool chain;
 
    Garbage* garbage;

@@ -44,6 +44,7 @@ void tileSetTexture(Board* board, Tile* tile) {
 
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime) {
    tile->type = type;
+   tile->status = status_normal;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;
 
@@ -57,6 +58,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
    tileSetTexture(board, tile);
 
    tile->clearTime = 0;
+   tile->statusTime = 0;
    tile->falling = false;
    tile->chain = false;
 }

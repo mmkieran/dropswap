@@ -132,7 +132,6 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 
    Tile tmp = *tile2;
 
-   //basic swap
    tile2->type = tile1->type;
    tile2->mesh = tile1->mesh;
 
