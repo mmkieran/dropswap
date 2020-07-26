@@ -71,10 +71,11 @@ out vec2 v_texCoord;
 uniform mat4 transform;
 uniform mat4 projection;
 uniform mat4 deviceCoords;
+uniform mat4 texMatrix;
 
 void main() {
    gl_Position = deviceCoords*transform*projection*vec4(position, 0.0, 1.0);
-   v_texCoord = texCoord;
+   v_texCoord = texMatrix*texCoord;
 }
 )glsl";
 
@@ -348,6 +349,12 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+
+   ////todo add animation here
+   //Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight };
+   //Vec2 dest = { round(destX) , round(destY) };  //todo rounding here feels bad for the vibration issue. Maybe a better place?
+   //Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
+   //shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
