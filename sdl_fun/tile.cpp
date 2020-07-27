@@ -68,6 +68,7 @@ void tileUpdate(Board* board, Tile* tile) {
 
 void tileDraw(Board* board, Tile* tile) {
    Vec2 adj = board->origin;
+   textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
    if (meshGetTexture(tile->mesh) != Texture_empty) {
       meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
    }

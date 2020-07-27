@@ -71,7 +71,7 @@ void cursorDraw(Board* board) {
 
    Vec2 adj = board->origin;
 
-   textureTransform(game, cursor->mesh, 0, 0, 32, 32);
+   textureTransform(game, cursor->mesh, 64, 0, 64, 32);
    meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 

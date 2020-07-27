@@ -350,8 +350,6 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
-   textureTransform(game, mesh, 0, 0, 32, 32);
-
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
    
@@ -362,17 +360,19 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
    //This is for changing where the texture is sampled from the original image
 
-   Vec2 scale, dest;
+   //todo this feels unnecessary, just figure out the math later, lol
+   Mat4x4 projection = textureOriginToWorld(game, mesh->texture->w, mesh->texture->h);
+   Mat4x4 device = worldToTextureCoords(game, mesh->texture->w, mesh->texture->h);
 
-   //I like to start at the top left corner, texture coordinates are from bottom left
-   float x = sourceX / sourceW;
-   float y = (-1 * sourceY / sourceH) + 1;
-
-   scale = { (float)sourceW / mesh->texture->h, (float)sourceH / mesh->texture->h };
-   dest = { (float)round(x) , (float)round(y) };
+   Vec2 scale = { (float)sourceW / mesh->texture->w, (float)sourceH / mesh->texture->h };
+   Vec2 dest = { sourceX, sourceY };
    //dest = { 0.0f, 0.0f };
 
-   Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
+   Mat4x4 transform = transformMatrix(dest, 0.0f, scale);
+
+   Mat4x4 intermediate = multiplyMatrix(transform, projection);
+   Mat4x4 mat = multiplyMatrix(device, intermediate);
+
    shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
 }
 
