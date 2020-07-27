@@ -54,6 +54,9 @@ void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height);
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height);
 
+Mat4x4 worldToTextureCoords(Game* game, float width, float height);
+Mat4x4 textureOriginToWorld(Game* game, float width, float height);
+
 Texture* textureCreate(unsigned char* image, int width, int height);
 void textureAttach(Mesh* mesh);
 void textureParams(Texture* texture, TextureWrap wrap);

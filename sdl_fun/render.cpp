@@ -75,7 +75,7 @@ uniform mat4 texMatrix;
 
 void main() {
    gl_Position = deviceCoords*transform*projection*vec4(position, 0.0, 1.0);
-   v_texCoord = texMatrix*texCoord;
+   v_texCoord = (texMatrix*vec4(texCoord, 0.0, 1.0)).xy;
 }
 )glsl";
 
@@ -350,11 +350,7 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
-   ////todo add animation here
-   //Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight };
-   //Vec2 dest = { round(destX) , round(destY) };  //todo rounding here feels bad for the vibration issue. Maybe a better place?
-   //Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
-   //shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
+   textureTransform(game, mesh, 0, 0, 32, 32);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
@@ -370,10 +366,11 @@ void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int 
 
    //I like to start at the top left corner, texture coordinates are from bottom left
    float x = sourceX / sourceW;
-   float y = -sourceY / sourceH + 1;
+   float y = (-1 * sourceY / sourceH) + 1;
 
-   scale = { sourceW / mesh->texture->h, sourceH / mesh->texture->h };
-   dest = { round(x) , round(y) };
+   scale = { (float)sourceW / mesh->texture->h, (float)sourceH / mesh->texture->h };
+   dest = { (float)round(x) , (float)round(y) };
+   //dest = { 0.0f, 0.0f };
 
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
@@ -437,48 +434,48 @@ void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float 
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "deviceCoords", mat.values);
 }
-//
-//Mat4x4 worldToTextureCoords(Game* game, float width, float height) {
-//   //texture coordinates
-//   Vec2 botRight = { 1.0f, 0.0f };
-//   Vec2 topLeft = { 0.0f, 1.0f };
-//
-//   //world coordinates
-//   Vec2 worldTopLeft = { 0, 0 };
-//   Vec2 worldBotRight = { width, height };
-//
-//   Vec2 movement = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
-//   Vec2 scale = { (topLeft.x - botRight.x) / (worldTopLeft.x - worldBotRight.x), (topLeft.y - botRight.y) / (worldTopLeft.y - worldBotRight.y) };
-//
-//   Mat4x4 mMove = translateMatrix(movement);
-//   Mat4x4 mScale = scaleMatrix(scale);
-//
-//   Mat4x4 mat = multiplyMatrix(mMove, mScale);
-//
-//   return mat;
-//}
-//
-//Mat4x4 textureOriginToWorld(Game* game, float width, float height) {
-//
-//   //device coordinates
-//   Vec2 botRight = { 1.0f, 0.0f };
-//   Vec2 topLeft = { 0.0f, 1.0f };
-//
-//   //world coordinates
-//   Vec2 worldTopLeft = { 0, 0 };
-//   Vec2 worldBotRight = { width, height };
-//
-//   //I like to draw the meshes at the top left corner
-//   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
-//   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
-//
-//   Mat4x4 mMove = translateMatrix(movement);
-//   Mat4x4 mScale = scaleMatrix(scale);
-//
-//   Mat4x4 mat = multiplyMatrix(mScale, mMove);
-//   
-//   return mat;
-//}
+
+Mat4x4 worldToTextureCoords(Game* game, float width, float height) {
+   //texture coordinates
+   Vec2 botRight = { 1.0f, 0.0f };
+   Vec2 topLeft = { 0.0f, 1.0f };
+
+   //world coordinates
+   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldBotRight = { width, height };
+
+   Vec2 movement = { (topLeft.x - worldTopLeft.x), (topLeft.y - worldTopLeft.y) };
+   Vec2 scale = { (topLeft.x - botRight.x) / (worldTopLeft.x - worldBotRight.x), (topLeft.y - botRight.y) / (worldTopLeft.y - worldBotRight.y) };
+
+   Mat4x4 mMove = translateMatrix(movement);
+   Mat4x4 mScale = scaleMatrix(scale);
+
+   Mat4x4 mat = multiplyMatrix(mMove, mScale);
+
+   return mat;
+}
+
+Mat4x4 textureOriginToWorld(Game* game, float width, float height) {
+
+   //device coordinates
+   Vec2 botRight = { 1.0f, 0.0f };
+   Vec2 topLeft = { 0.0f, 1.0f };
+
+   //world coordinates
+   Vec2 worldTopLeft = { 0, 0 };
+   Vec2 worldBotRight = { width, height };
+
+   //I like to draw the meshes at the top left corner
+   Vec2 movement = { (worldTopLeft.x - topLeft.x), (worldTopLeft.y - topLeft.y) };
+   Vec2 scale = { (worldTopLeft.x - worldBotRight.x) / (topLeft.x - botRight.x),  (worldTopLeft.y - worldBotRight.y) / (topLeft.y - botRight.y) };
+
+   Mat4x4 mMove = translateMatrix(movement);
+   Mat4x4 mScale = scaleMatrix(scale);
+
+   Mat4x4 mat = multiplyMatrix(mScale, mMove);
+   
+   return mat;
+}
 
 void rendererClear(float r, float g, float b, float a) {
    glClearColor(r, g, b, a);
