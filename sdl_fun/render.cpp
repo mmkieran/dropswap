@@ -19,6 +19,8 @@ struct Animation {
    Texture* texture;
    int frames;  //How many key frames are in the animation
    int delay;  //delay in milliseconds between frames
+   int stride; //pixel distance to next sprite on texture sheet
+   int width;
    bool animated;  //is it animated currently
 };
 

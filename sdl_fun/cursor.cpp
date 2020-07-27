@@ -72,10 +72,10 @@ void cursorDraw(Board* board) {
    Vec2 adj = board->origin;
 
    int speed = 200;
-   int frames = 4;
+   int frames = 8;
    int current = (board->game->timer / speed) % frames;
 
-   textureTransform(game, cursor->mesh, 64 * current, 0, 64, 32);
+   textureTransform(game, cursor->mesh, (64 + 1) * current, 0, 64, 32);
    meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
