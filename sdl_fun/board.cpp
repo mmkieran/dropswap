@@ -64,6 +64,8 @@ void boardDestroy(Board* board) {
       garbageDestroy(pair.second);
    }
 
+   cursorDestroy(board->cursor);
+
    free(board->tiles);
    delete board;
 }

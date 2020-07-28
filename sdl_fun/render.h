@@ -32,8 +32,25 @@ enum TextureEnum {
 
 struct Mesh;
 struct Texture;
-struct Animation;
-struct Graphic;
+//struct Animation;
+//struct Graphic;
+
+struct Animation {
+   Texture* texture;
+   int frames;  //How many key frames are in the animation
+   int delay;  //delay in milliseconds between frames
+   int stride; //pixel X distance to next sprite on texture sheet
+   int rowStart; //pixel Y distance to top left of sprite on sheet
+   int width;
+   int height;
+   bool animated;  //is it animated currently
+};
+
+struct Graphic {
+   Texture* texture;
+   Animation* animation;
+};
+
 
 int openglContext();
 
@@ -70,6 +87,10 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
+
+Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
+void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);
+void animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);
 void rendererClear(float r, float g, float b, float a);

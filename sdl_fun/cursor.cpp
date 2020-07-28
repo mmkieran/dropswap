@@ -9,6 +9,7 @@ struct Cursor {
    float y;
 
    Mesh* mesh;
+   Animation* animation;
 
    int h;
    int w;
@@ -28,10 +29,14 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;
 
+   cursor->animation = animationCreate(7, 200, board->tileWidth + 1, 0, 64, 32, true);
+
    return cursor;
 }
 
 void cursorDestroy(Cursor* cursor) {
+   meshDestroy(cursor->mesh);
+   animationDestroy(cursor->animation);
    delete cursor;
 }
 
@@ -72,12 +77,8 @@ void cursorDraw(Board* board) {
 
    Vec2 adj = board->origin;
 
-   int speed = 200;
-   int frames = 7;
-   int current = (board->game->timer / speed) % frames;
-
-   textureTransform(game, cursor->mesh, (64 + 1) * current, 0, 64, 32);
-   meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
+   animationDraw(game, cursor->animation, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
+   //meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
 void cursorMove(Board* board, MoveEnum dir) {

@@ -15,20 +15,6 @@ struct Texture {
    int w, h;  //pixels
 };
 
-struct Animation {
-   Texture* texture;
-   int frames;  //How many key frames are in the animation
-   int delay;  //delay in milliseconds between frames
-   int stride; //pixel distance to next sprite on texture sheet
-   int width;
-   bool animated;  //is it animated currently
-};
-
-struct Graphic {
-   Texture* texture;
-   Animation* animation;
-};
-
 struct Mesh {
    GLuint vbo;  //vbo handle
    Texture* texture;
@@ -373,6 +359,37 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    
    glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
+}
+
+Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated) {
+   Animation* animation = new Animation;
+
+   animation->animated = animated;
+   animation->delay = delay;
+   animation->frames = frames;
+   animation->stride = stride;
+   animation->rowStart = rowStart;
+   animation->width = width;
+   animation->height = height;
+
+   return animation;
+}
+
+void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
+
+   int currentFrame = (game->timer / animation->delay) % animation->frames;
+   Vec2 src = { (animation->stride * currentFrame), animation->height };
+   Vec2 size = {animation->width, animation->height};
+
+   if (animation->animated == true) {
+      textureTransform(game, mesh, src.x, src.y, size.x, size.y);
+   }
+
+   meshDraw(game, mesh, destX, destY, destW, destH);
+}
+
+void animationDestroy(Animation* animation) {
+   delete animation;
 }
 
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
