@@ -39,12 +39,12 @@ int main(int argc, char* args[])
 
       imguiStartFrame(game);
 
-      imguiShowDemo();
+      //imguiShowDemo();
       showGameMenu(game);
 
       gameHandleEvents(game);
 
-      if (!game->paused) {
+      if (game->paused == false && game->playing == true) {
          gameUpdate(game);  //update game and board state
       }
       else {
@@ -58,6 +58,7 @@ int main(int argc, char* args[])
          SDL_Delay((frameDelay - frameTime) / 1000);
       }
 
+      if (game->playing == true && game->paused == false)
       game->timeDelta = (getTime() - frameStart) / 1000;
       game->timer += game->timeDelta;
    }

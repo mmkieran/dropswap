@@ -116,28 +116,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->sdl->font = TTF_OpenFont("assets/arial.ttf", 14);
    if (!game->sdl->font) {printf("Couldn't load font?.\n"); }
 
-   //Setting up the game settings
-   game->bHeight = 12;
-   game->bWidth = 6;
-
-   game->tWidth = 64;
-   game->tHeight = 64;
-
    game->windowHeight = height;
    game->windowWidth = width;
-
-   game->timer = 0;
-
-   //setting up board
-   game->board = boardCreate(game);
-   game->board->game = game;
-   game->board->cursor = cursorCreate(game->board, (game->bWidth / 2 - 1) * game->tWidth, (game->bHeight / 2 + 1) * game->tHeight);
-
-   game->board->paused = false;
-   game->board->pauseLength = 0;
-
-   //todo: Use premade boards or fix algorithm so there are no matches at the start
-   boardFillTiles(game->board);
 
    game->isRunning = true;
    return game;
@@ -152,7 +132,7 @@ void gameHandleEvents(Game* game) {
       break;
 
    case SDL_KEYDOWN:
-      if (game->paused == false) {
+      if (game->paused == false && game->playing == true) {
          switch (event.key.keysym.sym) {
 
             case SDLK_LEFT:
@@ -239,10 +219,10 @@ void gameRender(Game* game) {
    //worldToDevice(game, 0.0f, 0.0f, width, height);
 
    //Draw game objects
-   boardRender(game, game->board);
-   garbageDraw(game->board);
-
-   debugCursor(game);  //imgui debug tools
+   if (game->playing == true) {
+      boardRender(game, game->board);
+      debugCursor(game);  //imgui debug tools
+   }
 
    ImGui::Render();
 
@@ -254,8 +234,6 @@ void gameRender(Game* game) {
 void gameDestroy(Game* game) {
 
    TTF_CloseFont(game->sdl->font);  //free the font
-
-   boardDestroy(game->board);
 
    destroyResources(game->resources);
 
@@ -334,8 +312,22 @@ void showGameMenu(Game* game) {
       return;
    }
 
-   if(ImGui::Button("Start Game") ) {
-      game->paused = false;
+   if (game->playing == false) {
+      if (ImGui::Button("Start Game")) {
+
+         //setting up board
+         game->board = boardCreate(game);
+         boardFillTiles(game->board);
+
+         game->playing = true;
+      }
+   }
+   if (game->playing == true) {
+      if (ImGui::Button("End Game")) {
+
+         boardDestroy(game->board);
+         game->playing = false;
+      }
    }
 
    if (game->paused == true) {
@@ -353,25 +345,31 @@ void showGameMenu(Game* game) {
 
    ImGui::Button("Save Board");
    if (ImGui::Button("Clear Board")) {
-      boardClear(game->board);
+      if (game->playing == true) {
+         boardClear(game->board);
+      }
    }
 
    if (ImGui::Button("Make it rain") ) {
-      makeItRain(game->board);
+      if (game->playing == true) {
+         makeItRain(game->board);
+      }
    }
 
-   float minSpeed = 0;
-   float maxSpeed = 8.0;
-   float speed = game->board->speed;
+   if (game->playing == true) {
+      float minSpeed = 0;
+      float maxSpeed = 8.0;
+      float speed = game->board->speed;
 
-   ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
-   game->board->speed = speed;
+      ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
+      game->board->speed = speed;
 
-   float minLevel = 0;
-   float maxLevel = 10.0;
-   float level = game->board->level;
-   ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
-   game->board->level = level;
+      float minLevel = 0;
+      float maxLevel = 10.0;
+      float level = game->board->level;
+      ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
+      game->board->level = level;
+   }
 
    ImGui::End();
 }

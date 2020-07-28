@@ -371,6 +371,7 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
    animation->rowStart = rowStart;
    animation->width = width;
    animation->height = height;
+   animation->timer = 0;
 
    return animation;
 }
@@ -401,7 +402,6 @@ void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int 
 
    Vec2 scale = { (float)sourceW / mesh->texture->w, (float)sourceH / mesh->texture->h };
    Vec2 dest = { sourceX, sourceY };
-   //dest = { 0.0f, 0.0f };
 
    Mat4x4 transform = transformMatrix(dest, 0.0f, scale);
 

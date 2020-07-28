@@ -40,10 +40,11 @@ struct Animation {
    int frames;  //How many key frames are in the animation
    int delay;  //delay in milliseconds between frames
    int stride; //pixel X distance to next sprite on texture sheet
-   int rowStart; //pixel Y distance to top left of sprite on sheet
+   int rowStart; //pixel Y distance to top left of sprite sheet
    int width;
    int height;
    bool animated;  //is it animated currently
+   uint64_t timer;
 };
 
 struct Graphic {

@@ -42,6 +42,7 @@ Board* boardCreate(Game* game) {
          std::uniform_int_distribution<int> dist (1, 6);
          board->distribution = dist;
 
+         //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          board->cursor = cursorCreate(board, cursorX, cursorY);
@@ -97,6 +98,7 @@ void boardRender(Game* game, Board* board) {
       }
    }
    cursorDraw(board);
+   garbageDraw(board);
 
    //debug basic frame
    //meshDraw(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);

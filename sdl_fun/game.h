@@ -23,7 +23,8 @@ struct Game {
    int tWidth = 64;
    int tHeight = 64;
 
-   bool isRunning = false;
+   bool isRunning = false;  //used in main loop
+   bool playing = false;
 
    bool paused = false;
    int pauseTimer = 0;
