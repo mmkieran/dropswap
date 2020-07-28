@@ -235,6 +235,10 @@ void gameDestroy(Game* game) {
 
    TTF_CloseFont(game->sdl->font);  //free the font
 
+   if (game->board) {
+      boardDestroy(game->board);
+   }
+
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
