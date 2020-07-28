@@ -59,6 +59,7 @@ Mat4x4 textureOriginToWorld(Game* game, float width, float height);
 
 Texture* textureCreate(unsigned char* image, int width, int height);
 void textureAttach(Mesh* mesh);
+void textureChangeInterp(Mesh* mesh, bool nearest);
 void textureParams(Texture* texture, TextureWrap wrap);
 void textureDestroy(Texture* texture);
 Texture* textureLoadFromFile(const char* filename);

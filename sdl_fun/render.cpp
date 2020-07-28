@@ -233,7 +233,7 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  //Repeat on T axis
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  //Linear interpolation instead of nearest pixel when magnify (blurs)
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  //same for shrink
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  //same for shrink
 
    int internalFormat = GL_RGBA8;  //RGBA with one byte per component?
    int colorFormat = GL_RGBA;
@@ -243,6 +243,22 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 
    return texture;
+}
+
+void textureChangeInterp(Mesh* mesh, bool nearest = false) {
+
+   int flag = GL_LINEAR;
+   if (nearest){ flag = GL_NEAREST; }
+
+   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);  //and in the darkness bind it
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  //textures repeat on S axis
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  //Repeat on T axis
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, flag);  //Linear interpolation instead of nearest pixel when magnify (blurs)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, flag);  //same for shrink
+
+   glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 }
 
 void textureAttach(Mesh* mesh) {

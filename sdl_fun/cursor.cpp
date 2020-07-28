@@ -23,6 +23,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
 
    cursor->mesh = meshCreate(board->game);
    meshSetTexture(board->game, cursor->mesh, Texture_cursor);
+   textureChangeInterp(cursor->mesh, true);  //Changes Linear interpolation of the texture to Nearest
 
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;
@@ -72,7 +73,7 @@ void cursorDraw(Board* board) {
    Vec2 adj = board->origin;
 
    int speed = 200;
-   int frames = 8;
+   int frames = 7;
    int current = (board->game->timer / speed) % frames;
 
    textureTransform(game, cursor->mesh, (64 + 1) * current, 0, 64, 32);
