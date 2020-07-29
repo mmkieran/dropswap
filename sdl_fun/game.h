@@ -9,13 +9,13 @@ struct GameWindow;
 
 struct Game {
 
-   GameWindow* sdl;
+   GameWindow* sdl = nullptr;
 
    float windowWidth;
    float windowHeight;
 
-   Board* board;
-   Resources* resources;
+   Board* board = nullptr;
+   Resources* resources = nullptr;
 
    int bHeight = 12;
    int bWidth = 6;

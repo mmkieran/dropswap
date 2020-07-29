@@ -176,34 +176,7 @@ void gameHandleEvents(Game* game) {
 
 void gameUpdate(Game* game) {
 
-   boardRemoveClears(game->board);
-   if (game->board->pauseLength > 0) {
-      game->board->pauseLength -= game->timeDelta;
-
-      if (game->board->pauseLength < 0) {
-         game->board->paused = false;
-         game->board->pauseLength = 0;
-      }
-   }
-   else {
-      game->board->paused = false;
-   }
-
-   if (game->timer > 2000) {
-      if (game->board->paused == false) {
-         boardMoveUp(game->board, game->board->level/8.0f);
-      }
-   }
-
-   if (game->board->bust) {
-      game->isRunning = false;
-   }
-
-   boardUpdateFalling(game->board, game->board->speed * 4.0f);
-   garbageFall(game->board, game->board->speed * 4.0f);
-   boardUpdateArray(game->board, false);
-
-   cursorUpdate(game->board);  //todo make this do something more
+   boardUpdate(game->board);
 }
 
 void gameRender(Game* game) {
@@ -329,7 +302,7 @@ void showGameMenu(Game* game) {
    if (game->playing == true) {
       if (ImGui::Button("End Game")) {
 
-         boardDestroy(game->board);
+         game->board = boardDestroy(game->board);
          game->board = nullptr;
          game->playing = false;
       }

@@ -53,7 +53,7 @@ Board* boardCreate(Game* game) {
    return nullptr;
 }
 
-void boardDestroy(Board* board) {
+Board* boardDestroy(Board* board) {
    if (board) {
       for (int row = 0; row < board->wBuffer; row++) {
          for (int col = 0; col < board->w; col++) {
@@ -71,6 +71,7 @@ void boardDestroy(Board* board) {
       free(board->tiles);
       delete board;
    }
+   return nullptr;
 }
 
 Tile* boardGetTile(Board* board, int row, int col) {
@@ -86,6 +87,37 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
       return;
    }
    board->tiles[(board->w * row + col)] = tile;
+}
+
+void boardUpdate(Board* board) {
+   boardRemoveClears(board);
+   if (board->pauseLength > 0) {
+      board->pauseLength -= board->game->timeDelta;
+
+      if (board->pauseLength < 0) {
+         board->paused = false;
+         board->pauseLength = 0;
+      }
+   }
+   else {
+      board->paused = false;
+   }
+
+   if (board->game->timer > 2000) {  //2 second count in to start
+      if (board->paused == false) {
+         boardMoveUp(board, board->level / 8.0f);
+      }
+   }
+
+   if (board->bust) {
+      board->game->playing = false;
+   }
+
+   tileFall(board, board->speed * 4.0f);
+   garbageFall(board, board->speed * 4.0f);
+   boardAssignSlot(board, false);
+
+   cursorUpdate(board);  //todo make this do something more?
 }
 
 void boardRender(Game* game, Board* board) {
@@ -280,7 +312,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 }
 
-void boardUpdateFalling(Board* board, float velocity) {
+void tileFall(Board* board, float velocity) {
+   //Detects and adjusts all the positions of the tiles that are falling
    std::vector <Tile*> tilesToCheck;
    float drop = board->level * velocity;
 
@@ -339,6 +372,7 @@ void boardUpdateFalling(Board* board, float velocity) {
 }
 
 static TileType _tileGenType(Board* board, Tile* tile) {
+   //Used to randomly generate the type of a tile while not matching it to surrounding tiles
    int current = board->distribution(board->generator);
    TileType type = (TileType)current;
 
@@ -400,6 +434,7 @@ void boardRemoveClears(Board* board) {
 }
 
 void boardMoveUp(Board* board, float height) {
+   //Moves all tiles up a fixed amount
    float nudge = height;
    board->offset -= nudge;
    bool newRow = false;
@@ -434,11 +469,12 @@ void boardMoveUp(Board* board, float height) {
 
    boardCheckClear(board, checkTiles, false);
 
-   //boardUpdateArray(board, newRow);
+   //boardAssignSlot(board, newRow);
 }
 
 int boardFillTiles(Board* board) {
-   //todo: Might just have pre-made boards
+   //Fills the half board with tiles so that there are no matches
+   //Tiles are positioned so they fall from the top of the board
 
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -460,8 +496,8 @@ int boardFillTiles(Board* board) {
    return 0;
 }
 
-void boardUpdateArray(Board* board, bool buffer = false) {
-
+void boardAssignSlot(Board* board, bool buffer = false) {
+   //Takes all the non-empty tiles in the board and assigns them a slot based on their position
    std::vector <Tile> tileList;
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
@@ -509,7 +545,6 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
       for (int i = 0; i < 4; i++) {
          if (tiles[i] && tiles[i]->type == tile_empty) {
-            meshDestroy(conflict.mesh);
             conflict.mesh = tiles[i]->mesh;
             *tiles[i] = conflict;
             tileSetTexture(board, tiles[i]);
@@ -533,6 +568,8 @@ void boardUpdateArray(Board* board, bool buffer = false) {
 
 //This is copied from Fill Tiles
 void makeItRain(Board* board) {
+   //Debug tool
+   //Drops a row of tiles from the top of the board
    int row = 0;
    for (int col = 0; col < board->w; col++) {
       Tile* tile = boardGetTile(board, row, col);

@@ -20,11 +20,11 @@ struct Board {
    float offset = 0;
 
    Vec2 origin = { 64, 64 };  //the frame of the board starts here
-   Mesh* frame;
+   Mesh* frame = nullptr;
 
-   Tile* tiles;
-   Cursor* cursor;
-   Game* game;
+   Tile* tiles = nullptr;
+   Cursor* cursor = nullptr;
+   Game* game = nullptr;
 
    float level = 1;
    float speed = 2;
@@ -42,21 +42,22 @@ struct Board {
 };
 
 Board* boardCreate(Game* game);
-void boardDestroy(Board* board);
+Board* boardDestroy(Board* board);
 
 int boardFillTiles(Board* board);
 
 Tile* boardGetTile(Board* board, int row, int col);
 
+void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
-void boardMoveUp(Board* board, float height);
 
+void boardMoveUp(Board* board, float height);
 void boardSwap(Board* board);
 
-void boardUpdateFalling(Board* board, float velocity);
+void tileFall(Board* board, float velocity);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void boardRemoveClears(Board* board);
-void boardUpdateArray(Board* board, bool buffer);
+void boardAssignSlot(Board* board, bool buffer);
 
 std::vector <Tile> boardDebug(Board* board);
 void makeItRain(Board* board);

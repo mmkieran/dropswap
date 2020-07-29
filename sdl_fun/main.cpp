@@ -36,10 +36,9 @@ int main(int argc, char* args[])
 
    while (gameRunning(game)) {
       frameStart = getTime();
-
       imguiStartFrame(game);
 
-      //imguiShowDemo();
+      imguiShowDemo();
       showGameMenu(game);
 
       gameHandleEvents(game);
@@ -47,9 +46,9 @@ int main(int argc, char* args[])
       if (game->paused == false && game->playing == true) {
          gameUpdate(game);  //update game and board state
       }
-      else {
-         game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
-      }
+      //else {
+      //   game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
+      //}
 
       gameRender(game);  //draw the board, cursor, and other things
 
@@ -58,9 +57,10 @@ int main(int argc, char* args[])
          SDL_Delay((frameDelay - frameTime) / 1000);
       }
 
-      if (game->playing == true && game->paused == false)
-      game->timeDelta = (getTime() - frameStart) / 1000;
-      game->timer += game->timeDelta;
+      if (game->playing == true && game->paused == false) {  //If we're paused, update game timer
+         game->timeDelta = (getTime() - frameStart) / 1000;
+         game->timer += game->timeDelta;
+      }
    }
 
    gameDestroy(game);
