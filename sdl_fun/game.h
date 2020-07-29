@@ -17,11 +17,11 @@ struct Game {
    Board* board = nullptr;
    Resources* resources = nullptr;
 
-   int bHeight = 12;
-   int bWidth = 6;
+   int bHeight = 24;
+   int bWidth = 12;
 
-   int tWidth = 64;
-   int tHeight = 64;
+   int tWidth = 32;
+   int tHeight = 32;
 
    bool isRunning = false;  //used in main loop
    bool playing = false;

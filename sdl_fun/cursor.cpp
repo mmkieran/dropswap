@@ -29,7 +29,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;
 
-   cursor->animation = animationCreate(7, 200, board->tileWidth + 1, 0, 64, 32, true);
+   cursor->animation = animationCreate(7, 200, 64 + 1, 0, 64, 32, true);  //this is specific to the texture sheet
 
    return cursor;
 }

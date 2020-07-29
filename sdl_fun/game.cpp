@@ -21,7 +21,7 @@ struct GameWindow {
    SDL_Window *window;
    SDL_GLContext gl_context;
 
-   unsigned int VAO;
+   unsigned int VAO;  //This doesn't really belong here
 
    TTF_Font* font;
 };
