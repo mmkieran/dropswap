@@ -330,6 +330,7 @@ void showGameMenu(Game* game) {
       if (ImGui::Button("End Game")) {
 
          boardDestroy(game->board);
+         game->board = nullptr;
          game->playing = false;
       }
    }

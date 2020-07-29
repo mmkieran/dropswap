@@ -54,21 +54,23 @@ Board* boardCreate(Game* game) {
 }
 
 void boardDestroy(Board* board) {
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         meshDestroy(tile->mesh);
+   if (board) {
+      for (int row = 0; row < board->wBuffer; row++) {
+         for (int col = 0; col < board->w; col++) {
+            Tile* tile = boardGetTile(board, row, col);
+            meshDestroy(tile->mesh);
+         }
       }
+
+      for (auto&& pair : board->garbage) {
+         garbageDestroy(pair.second);
+      }
+
+      cursorDestroy(board->cursor);
+
+      free(board->tiles);
+      delete board;
    }
-
-   for (auto&& pair : board->garbage) {
-      garbageDestroy(pair.second);
-   }
-
-   cursorDestroy(board->cursor);
-
-   free(board->tiles);
-   delete board;
 }
 
 Tile* boardGetTile(Board* board, int row, int col) {
@@ -101,7 +103,7 @@ void boardRender(Game* game, Board* board) {
    garbageDraw(board);
 
    //debug basic frame
-   //meshDraw(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
+   meshDraw(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //Calculates the row based on the pointer difference in the array

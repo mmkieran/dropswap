@@ -387,6 +387,8 @@ void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, fl
    }
 
    meshDraw(game, mesh, destX, destY, destW, destH);
+
+   textureTransform(game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
 }
 
 void animationDestroy(Animation* animation) {

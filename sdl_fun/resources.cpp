@@ -49,15 +49,17 @@ Resources* initResources() {
 }
 
 void destroyResources(Resources* resources) {
-   if (resources->textures.size() > 0) {
-      for (auto&& tex : resources->textures) {
-         textureDestroy(tex);
+   if (resources) {
+      if (resources->textures.size() > 0) {
+         for (auto&& tex : resources->textures) {
+            textureDestroy(tex);
+         }
       }
+      if (resources->shaderProgram) {
+         shaderDestroyProgram(resources->shaderProgram);
+      }
+      delete resources;
    }
-   if (resources->shaderProgram) {
-      shaderDestroyProgram(resources->shaderProgram);
-   }
-   delete resources;
 }
 
 Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
