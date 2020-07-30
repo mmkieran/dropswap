@@ -25,7 +25,7 @@ uint64_t getTime() {
 
 int main(int argc, char* args[])
 {
-   game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 960, false);
+   game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
    if (!game) {
       printf("Failed to create game...\n");
       return -1;
