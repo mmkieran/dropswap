@@ -8,6 +8,11 @@ typedef struct Resources Resources;
 
 struct GameWindow;
 
+enum GameMode {
+   versus,
+   team
+};
+
 struct Game {
 
    GameWindow* sdl = nullptr;
@@ -26,6 +31,8 @@ struct Game {
    int tHeight = 64;
 
    bool isRunning = false;  //used in main loop
+
+   int players = 1;
    bool playing = false;
 
    bool paused = false;
