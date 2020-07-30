@@ -105,7 +105,7 @@ void boardUpdate(Board* board) {
 
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->level / 8.0f);
+         boardMoveUp(board, board->moveSpeed / 8.0f);
       }
    }
 
@@ -113,8 +113,8 @@ void boardUpdate(Board* board) {
       board->game->playing = false;
    }
 
-   tileFall(board, board->speed * 4.0f);
-   garbageFall(board, board->speed * 4.0f);
+   tileFall(board, board->fallSpeed * 4.0f);
+   garbageFall(board, board->fallSpeed * 4.0f);
    boardAssignSlot(board, false);
 
    cursorUpdate(board);  //todo make this do something more?
@@ -435,7 +435,7 @@ void boardRemoveClears(Board* board) {
 
 void boardMoveUp(Board* board, float height) {
    //Moves all tiles up a fixed amount
-   float nudge = height;
+   float nudge = height * board->level;
    board->offset -= nudge;
    bool newRow = false;
 

@@ -117,7 +117,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
-   game->boards = vectorCreate<Board*>(4, 2);
+   game->boards = vectorCreate<Board*>(4, 10);
 
    game->isRunning = true;
    return game;
@@ -347,17 +347,31 @@ void showGameMenu(Game* game) {
       return;
    }
 
+   ImGui::InputInt("Players", &game->players);
+
+   ImGui::InputInt("Tile Width", &game->tWidth, 16);
+   ImGui::InputInt("Tile Height", &game->tHeight, 16);
+
+   ImGui::InputInt("Board Width", &game->bWidth);
+   ImGui::InputInt("Board Height", &game->bHeight);
+
+
    if (game->playing == false) {
       if (ImGui::Button("Start Game")) {
 
          //setting up board
-         for (int i = 1; i <= 2; i++) {
+         for (int i = 1; i <= game->players; i++) {
             Board* board = boardCreate(game);
             vectorPushBack(game->boards, board);
             boardFillTiles(board);
 
             float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
             float yOrigin = game->tHeight;
+
+            if (i > 2) {
+               xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+               yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+            }
 
             board->origin = {xOrigin, yOrigin};
          }
@@ -408,20 +422,19 @@ void showGameMenu(Game* game) {
       }
    }
 
-   //if (game->playing == true) {
-   //   float minSpeed = 0;
-   //   float maxSpeed = 8.0;
-   //   float speed = game->board->speed;
+   if (game->playing == true) {
+      for (int i = 1; i <= vectorSize(game->boards); i++) {
+         Board* board = vectorGet(game->boards, i);
+         float minFallSpeed = 0;
+         float maxFallSpeed = 8.0;
 
-   //   ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
-   //   game->board->speed = speed;
+         ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
-   //   float minLevel = 0;
-   //   float maxLevel = 10.0;
-   //   float level = game->board->level;
-   //   ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
-   //   game->board->level = level;
-   //}
+         float minBoardSpeed = 0;
+         float maxBoardSpeed = 10.0;
+         ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
+      }
+   }
 
    ImGui::End();
 }
