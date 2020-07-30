@@ -138,56 +138,58 @@ void gameHandleEvents(Game* game) {
             Board* board = vectorGet(game->boards, i);
             if (i == 1) {
                switch (event.key.keysym.sym) {
-               case SDLK_LEFT:
-                  cursorMove(board, move_left);
-                  break;
-
-               case SDLK_RIGHT:
-                  cursorMove(board, move_right);
-                  break;
-
-               case SDLK_UP:
-                  cursorMove(board, move_up);
-                  break;
-
-               case SDLK_DOWN:
-                  cursorMove(board, move_down);
-                  break;
-
-               case SDLK_SPACE:
-                  boardSwap(board);
-                  break;
-
-               case SDLK_r:
-                  if (!board->paused) {
-                     boardMoveUp(board, 8.0f);
-                     break;
-                  }
-                  break;
-
-               case SDLK_g:
-                  garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
-                  break;
-
-               case SDLK_t:
-                  makeItRain(board);
-                  break;
-               }
-               if (i > 1) {
-                  switch (event.key.keysym.sym) {
-                  case SDLK_w:
+                  case SDLK_LEFT:
                      cursorMove(board, move_left);
                      break;
 
-                  case SDLK_a:
+                  case SDLK_RIGHT:
                      cursorMove(board, move_right);
                      break;
 
-                  case SDLK_s:
+                  case SDLK_UP:
                      cursorMove(board, move_up);
                      break;
 
+                  case SDLK_DOWN:
+                     cursorMove(board, move_down);
+                     break;
+
+                  case SDLK_SPACE:
+                     boardSwap(board);
+                     break;
+
+                  case SDLK_r:
+                     if (!board->paused) {
+                        boardMoveUp(board, 8.0f);
+                        break;
+                     }
+                     break;
+
+                  case SDLK_g:
+                     garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
+                     break;
+
+                  case SDLK_t:
+                     makeItRain(board);
+                     break;
+                  }
+               }
+
+               if (i > 1) {
+                  switch (event.key.keysym.sym) {
+                  case SDLK_a:
+                     cursorMove(board, move_left);
+                     break;
+
                   case SDLK_d:
+                     cursorMove(board, move_right);
+                     break;
+
+                  case SDLK_w:
+                     cursorMove(board, move_up);
+                     break;
+
+                  case SDLK_s:
                      cursorMove(board, move_down);
                      break;
 
@@ -209,7 +211,6 @@ void gameHandleEvents(Game* game) {
                   case SDLK_t:
                      makeItRain(board);
                      break;
-                  }
                }
             }
          }
