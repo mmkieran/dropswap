@@ -330,6 +330,11 @@ void showGameMenu(Game* game) {
             float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
             float yOrigin = game->tHeight;
 
+            if (i > 2) {
+               xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+               yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+            }
+
             board->origin = {xOrigin, yOrigin};
          }
 
