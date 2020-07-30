@@ -117,6 +117,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
+   game->boards = vectorCreate<Board*>(4, 2);
 
    game->isRunning = true;
    return game;
@@ -132,50 +133,56 @@ void gameHandleEvents(Game* game) {
 
    case SDL_KEYDOWN:
       if (game->paused == false && game->playing == true) {
-         switch (event.key.keysym.sym) {
 
-            case SDLK_LEFT:
-               cursorMove(game->board, move_left);
-               break;
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
 
-            case SDLK_RIGHT:
-               cursorMove(game->board, move_right);
-               break;
+            switch (event.key.keysym.sym) {
 
-            case SDLK_UP:
-               cursorMove(game->board, move_up);
-               break;
-
-            case SDLK_DOWN:
-               cursorMove(game->board, move_down);
-               break;
-
-            case SDLK_SPACE:
-               boardSwap(game->board);
-               break;
-
-            case SDLK_r:
-               if (!game->board->paused) {
-                  boardMoveUp(game->board, 8.0f);
+               case SDLK_LEFT:
+                  cursorMove(board, move_left);
                   break;
-               }
-               break;
 
-            case SDLK_g:
-               garbageCreate(game->board, game->timer % 3 + 3, game->timer % 2 + 1);
-               break;
+               case SDLK_RIGHT:
+                  cursorMove(board, move_right);
+                  break;
 
-            case SDLK_a:
-               makeItRain(game->board);
-               break;
+               case SDLK_UP:
+                  cursorMove(board, move_up);
+                  break;
+
+               case SDLK_DOWN:
+                  cursorMove(board, move_down);
+                  break;
+
+               case SDLK_SPACE:
+                  boardSwap(board);
+                  break;
+
+               case SDLK_r:
+                  if (!board->paused) {
+                     boardMoveUp(board, 8.0f);
+                     break;
+                  }
+                  break;
+
+               case SDLK_g:
+                  garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
+                  break;
+
+               case SDLK_a:
+                  makeItRain(board);
+                  break;
+            }
          }
       }
    }
 }
 
 void gameUpdate(Game* game) {
-
-   boardUpdate(game->board);
+   for (int i = 1; i <= vectorSize(game->boards); i++) {
+      boardUpdate(vectorGet(game->boards, i));
+   }
 }
 
 void gameRender(Game* game) {
@@ -187,12 +194,17 @@ void gameRender(Game* game) {
 
    rendererSetTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
 
-   ////Do this if we want the meshes to stay the same size when then window changes...
-   //worldToDevice(game, 0.0f, 0.0f, width, height);
+   //Do this if we want the meshes to stay the same size when then window changes...
+   worldToDevice(game, 0.0f, 0.0f, width, height);
 
    //Draw game objects
    if (game->playing == true) {
-      boardRender(game, game->board);
+      for (int i = 1; i <= vectorSize(game->boards); i++) {
+         Board* board = vectorGet(game->boards, i);
+         if (board) {
+            boardRender(game, board);
+         }
+      }
       debugCursor(game);  //imgui debug tools
    }
 
@@ -207,8 +219,11 @@ void gameDestroy(Game* game) {
 
    TTF_CloseFont(game->sdl->font);  //free the font
 
-   if (game->board) {
-      boardDestroy(game->board);
+   for (int i = 1; i <= vectorSize(game->boards); i++) {
+      Board* board = vectorGet(game->boards, i);
+      if (board) {
+         boardDestroy(board);
+      }
    }
 
    destroyResources(game->resources);
@@ -240,11 +255,12 @@ void debugGarbage(Game* game) {
 
    ImGui::Begin("Debug Garbage");
 
-   for (int row = 0; row < game->board->endH; row++) {
-      for (int col = 0; col < game->board->w; col++) {
-         Tile* tile = boardGetTile(game->board, row, col);
+   Board* board = vectorGet(game->boards, 0);
+   for (int row = 0; row < board->endH; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_garbage && tile->garbage) {
-            Tile* above = boardGetTile(game->board, row - 1, col);
+            Tile* above = boardGetTile(board, row - 1, col);
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
             ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", tile->xpos, tile->ypos, tile->garbage, tile->falling);
          }
@@ -255,25 +271,30 @@ void debugGarbage(Game* game) {
 }
 
 void debugCursor(Game* game) {
-   ImGui::Begin("Cursor Debug");
+   if (game->playing == true) {
+      ImGui::Begin("Cursor Debug");
 
-   int row = cursorGetRow(game->board);
-   int col = cursorGetCol(game->board);
+      Board* board = vectorGet(game->boards, 1);
+      if (board) {
+         int row = cursorGetRow(board);
+         int col = cursorGetCol(board);
 
-   Tile* tile = boardGetTile(game->board, row, col);
-   if (meshGetTexture(tile->mesh) != Texture_empty) {
-      //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         Tile* tile = boardGetTile(board, row, col);
+         if (meshGetTexture(tile->mesh) != Texture_empty) {
+            //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         }
+
+         ImGui::Text("%d row, %d col", row, col);
+         ImGui::NewLine();
+
+         ImGui::Text("%d combo", board->combo);
+         ImGui::Text("%.1f offset", board->offset);
+         ImGui::Text("%.1f level", board->level);
+         ImGui::Text("%d time", game->timer);
+      }
+
+      ImGui::End();
    }
-
-   ImGui::Text("%d row, %d col", row, col);
-   ImGui::NewLine();
-
-   ImGui::Text("%d combo", game->board->combo);
-   ImGui::Text("%.1f offset", game->board->offset);
-   ImGui::Text("%.1f level", game->board->level);
-   ImGui::Text("%d time", game->timer);
-
-   ImGui::End();
 }
 
 void imguiShowDemo() {
@@ -292,18 +313,28 @@ void showGameMenu(Game* game) {
       if (ImGui::Button("Start Game")) {
 
          //setting up board
-         game->board = boardCreate(game);
-         boardFillTiles(game->board);
+         for (int i = 1; i <= 2; i++) {
+            Board* board = boardCreate(game);
+            vectorPushBack(game->boards, board);
+            boardFillTiles(board);
+
+            float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
+            float yOrigin = game->tHeight;
+
+            board->origin = {xOrigin, yOrigin};
+         }
 
          game->playing = true;
       }
    }
    if (game->playing == true) {
       if (ImGui::Button("End Game")) {
-
-         game->board = boardDestroy(game->board);
-         game->board = nullptr;
-         game->playing = false;
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
+            boardDestroy(board);
+            vectorClear(game->boards);
+            game->playing = false;
+         }
       }
    }
 
@@ -323,30 +354,36 @@ void showGameMenu(Game* game) {
    ImGui::Button("Save Board");
    if (ImGui::Button("Clear Board")) {
       if (game->playing == true) {
-         boardClear(game->board);
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
+            boardClear(board);
+         }
       }
    }
 
    if (ImGui::Button("Make it rain") ) {
       if (game->playing == true) {
-         makeItRain(game->board);
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
+            makeItRain(board);
+         }
       }
    }
 
-   if (game->playing == true) {
-      float minSpeed = 0;
-      float maxSpeed = 8.0;
-      float speed = game->board->speed;
+   //if (game->playing == true) {
+   //   float minSpeed = 0;
+   //   float maxSpeed = 8.0;
+   //   float speed = game->board->speed;
 
-      ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
-      game->board->speed = speed;
+   //   ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &speed, &minSpeed, &maxSpeed);
+   //   game->board->speed = speed;
 
-      float minLevel = 0;
-      float maxLevel = 10.0;
-      float level = game->board->level;
-      ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
-      game->board->level = level;
-   }
+   //   float minLevel = 0;
+   //   float maxLevel = 10.0;
+   //   float level = game->board->level;
+   //   ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &level, &minLevel, &maxLevel);
+   //   game->board->level = level;
+   //}
 
    ImGui::End();
 }

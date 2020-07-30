@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mymath.h"
+#include "myvector.h"
 
 typedef struct Board Board;
 typedef struct Resources Resources;
@@ -14,14 +15,15 @@ struct Game {
    float windowWidth;
    float windowHeight;
 
-   Board* board = nullptr;
+   //Board* board = nullptr;
+   Vector<Board*>* boards = nullptr;
    Resources* resources = nullptr;
 
-   int bHeight = 24;
-   int bWidth = 12;
+   int bHeight = 12;
+   int bWidth = 6;
 
-   int tWidth = 32;
-   int tHeight = 32;
+   int tWidth = 64;
+   int tHeight = 64;
 
    bool isRunning = false;  //used in main loop
    bool playing = false;

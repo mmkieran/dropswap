@@ -15,6 +15,17 @@ struct Vector {
    T* data; //Pointer to memory allocated for data array
    int capacity;
 
+   //T &operator[] (int index) {
+   //   T out;
+   //   if (data) {
+   //      if (index >= 0 && index < length) {
+   //         out = data[index];
+   //         return out;
+   //      }
+   //   }
+   //   return NULL;
+   //};
+
 };
 
 template <typename T>
@@ -158,11 +169,11 @@ static T* _vectorGet(Vector<T>* vector, int index) {
 }
 
 template <typename T>
-T* vectorGet(Vector<T>* vector, int index) {
+T vectorGet(Vector<T>* vector, int index) {
    T* out = nullptr;
    out = _vectorGet(vector, index);
-   if (!out) { return nullptr; }
-   return out;
+   if (!out) { return NULL; }
+   return *out;
 }
 
 template <typename T>
@@ -211,17 +222,17 @@ T vectorPopBack(Vector<T>* vector) {
 }
 
 template <typename T>
-T* vectorFront(Vector<T>* vector) {
+T vectorFront(Vector<T>* vector) {
    T* out = _vectorGet(vector, 1);
-   if (out) { return out; }
-   return nullptr;
+   if (out) { return *out; }
+   return NULL;
 }
 
 template <typename T>
-T* vectorBack(Vector<T>* vector) {
+T vectorBack(Vector<T>* vector) {
    T* out = _vectorGet(vector, vector->length);
-   if (out) { return out; }
-   return nullptr;
+   if (out) { return *out; }
+   return NULL;
 }
 
 template <typename T>
@@ -255,11 +266,11 @@ int vectorInsert(Vector<T>* vector, int index, T value) {
          if (check == 0) { return 0; }
       }
 
-      T current = *vectorGet(vector, index);
+      T current = vectorGet(vector, index);
       vectorSet(vector, index, value);
 
       for (int i = index + 1; i <= vector->length + 1; i++) {
-         T next = *vectorGet(vector, i);
+         T next = vectorGet(vector, i);
          _vectorSetOutside(vector, i, current);
          current = next;
       }
@@ -279,7 +290,7 @@ int vectorErase(Vector<T>* vector, int index) {
 
    if (vector) {
       for (int i = index; i < vector->length; i++) {
-         T next = *vectorGet(vector, i + 1);
+         T next = vectorGet(vector, i + 1);
          vectorSet(vector, i, next);
       }
       vector->length -= 1;
@@ -306,7 +317,7 @@ int vectorClear(Vector<T>* vector) {
 //template <typename T>
 //int vectorFind(Vector<T>* vector, T value) {
 //   for (int i = 1; i <= vector->length; i++) {
-//      T found = *vectorGet(vector, i);
+//      T found = vectorGet(vector, i);
 //      if (found == value) {
 //         return i;
 //      }
