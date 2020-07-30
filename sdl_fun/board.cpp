@@ -290,7 +290,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (matches.size() > 0) {
-      int clearTime = SDL_GetTicks();  //todo use game timer
+      int clearTime = board->game->timer;  
       for (auto&& m : matches) {
 
          garbageCheckClear(board, m);
@@ -398,7 +398,7 @@ static TileType _tileGenType(Board* board, Tile* tile) {
 
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
-   int current = SDL_GetTicks();
+   int current = board->game->timer;
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);

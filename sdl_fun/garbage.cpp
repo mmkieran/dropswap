@@ -183,7 +183,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
       //int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
       int row = tileGetRow(board, garbage->start);
 
-      uint64_t clearTime = SDL_GetTicks();
+      uint64_t clearTime = board->game->timer;
       for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
          Tile* tile = boardGetTile(board, row, col);
          if (tile->garbage && garbage->layers > 1) {

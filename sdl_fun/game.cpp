@@ -1,6 +1,5 @@
 
 #include <stdio.h>
-#include <chrono>
 #include <SDL.h>
 #include <SDL_ttf.h>
 
