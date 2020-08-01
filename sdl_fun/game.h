@@ -10,6 +10,7 @@ typedef struct Resources Resources;
 
 struct GameWindow;
 
+//todo this isn't used right now
 enum GameMode {
    versus,
    team
@@ -64,3 +65,5 @@ void showGameMenu(Game* game);
 
 void debugGarbage(Game* game);
 void debugCursor(Game* game);
+
+FILE* gameSaveState(Game* game);

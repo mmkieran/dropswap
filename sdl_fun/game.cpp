@@ -407,7 +407,9 @@ void showGameMenu(Game* game) {
 
    ImGui::Button("Load Board");
 
-   ImGui::Button("Save Board");
+   if (ImGui::Button("Save Game")) {
+      gameSaveState(game);
+   }
 
    if (ImGui::Button("Clear Board")) {
       if (game->playing == true) {
@@ -443,3 +445,77 @@ void showGameMenu(Game* game) {
 
    ImGui::End();
 }
+
+static const char* gameStruct[] = {
+   "int bHeight",
+   "int bWidth",
+   "int tWidth",
+   "int tHeight",
+   "int players",
+   "bool playing",
+   "bool paused",
+   "int pauseTimer",
+   "int pauseLength",
+   "int timer",
+   "int timeDelta",
+   "int seed"
+};
+
+FILE* gameSaveState(Game* game) {
+   //game struct
+   //board struct
+   //tiles
+   //garbage
+   //cursor
+
+   FILE* out;
+
+   const char* missingValue = "empty";
+   int err = fopen_s(&out, "assets/game_state.csv", "w");
+   if (err == 0) {
+      fprintf(out, "##Game\n");
+      fprintf(out, "Struct, Type, Name, Value\n"); //Write the header
+      fprintf(out, "game, int, bHeight, %d\n",       game->bHeight);
+      fprintf(out, "game, int, bWidth, %d\n",        game->bWidth);
+      fprintf(out, "game, int, tWidth, %d\n",        game->tWidth);
+      fprintf(out, "game, int, tHeight, %d\n",       game->tHeight);
+      fprintf(out, "game, int, players, %d\n",       game->players);
+      fprintf(out, "game, bool, playing, %d\n",      game->playing);
+      fprintf(out, "game, bool, paused, %d\n",       game->paused);
+      fprintf(out, "game, int, pauseTimer, %d\n",    game->pauseTimer);
+      fprintf(out, "game, int, pauseLength, %d\n",   game->pauseLength);
+      fprintf(out, "game, int, timer, %d\n",         game->timer);
+      fprintf(out, "game, int, seed, %d\n",          game->seed);
+
+   }
+   printf("Failed to save file... Err: %d\n", err);
+   fclose(out);
+   return out;
+}
+
+
+int gameLoadState(Game* game, FILE* file) {
+
+   const char* missingValue = "empty";
+   FILE* out = fopen("assets/game_state.csv", "r");
+   if (out) {
+      fprintf(out, "##Game\n");
+      fprintf(out, "Struct, Type, Name, Value\n"); //Write the header
+      fprintf(out, "game, int, bHeight, %d\n", game->bHeight);
+      fprintf(out, "game, int, bWidth, %d\n", game->bWidth);
+      fprintf(out, "game, int, tWidth, %d\n", game->tWidth);
+      fprintf(out, "game, int, tHeight, %d\n", game->tHeight);
+      fprintf(out, "game, int, players, %d\n", game->players);
+      fprintf(out, "game, bool, playing, %d\n", game->playing);
+      fprintf(out, "game, bool, paused, %d\n", game->paused);
+      fprintf(out, "game, int, pauseTimer, %d\n", game->pauseTimer);
+      fprintf(out, "game, int, pauseLength, %d\n", game->pauseLength);
+      fprintf(out, "game, int, timer, %d\n", game->timer);
+      fprintf(out, "game, int, seed, %d\n", game->seed);
+
+   }
+
+   fclose(out);
+   return 1;
+}
+
