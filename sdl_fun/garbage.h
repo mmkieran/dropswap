@@ -7,8 +7,8 @@ typedef struct Mesh Mesh;
 struct GarbagePile;
 struct Garbage;
 
-GarbagePile* createGarbagePile();
-GarbagePile* destroyGarbagePile(GarbagePile* pile);
+GarbagePile* garbagePileCreate();
+GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
 Garbage* garbageCreate(Board* board, int width, int layers);
 void garbageDestroy(Garbage* garbage);
@@ -20,5 +20,5 @@ void garbageFall(Board* board, float velocity);
 
 void garbageDraw(Board* board);
 
-Garbage* garbageGet(Board* board, int id);
-void garbageSetStart(Board* board, Tile* tile);
+Garbage* garbageGet(GarbagePile* pile, int id);
+void garbageSetStart(GarbagePile* pile, Tile* tile);

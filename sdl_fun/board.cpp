@@ -36,7 +36,7 @@ Board* boardCreate(Game* game) {
          board->frame = meshCreate(board->game);
          meshSetTexture(board->game, board->frame, Texture_frame);
 
-         board->pile = createGarbagePile();
+         board->pile = garbagePileCreate();
 
          std::default_random_engine gen(time(0));
          board->generator = gen;
@@ -63,7 +63,7 @@ Board* boardDestroy(Board* board) {
             meshDestroy(tile->mesh);
          }
       }
-      destroyGarbagePile(board->pile);
+      garbagePileDestroy(board->pile);
       cursorDestroy(board->cursor);
       free(board->tiles);
       delete board;
@@ -523,7 +523,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       tileSetTexture(board, current);
 
       if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
-         garbageSetStart(board, current);
+         garbageSetStart(board->pile, current);
       }
    }
 
@@ -597,10 +597,8 @@ void makeItRain(Board* board) {
 }
 
 void boardClear(Board* board) {
-   for (auto&& pair : board->garbage) {
-      garbageDestroy(pair.second);
-   }
-   board->pile->garbage.clear();
+   garbagePileDestroy(board->pile);
+   board->pile = garbagePileCreate();
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
