@@ -7,7 +7,7 @@ struct Resources;
 
 Resources* initResources();
 
-void destroyResources(Resources* resources);
+Resources* destroyResources(Resources* resources);
 
 Texture* resourcesGetTexture(Resources* resources, TextureEnum texture);
 

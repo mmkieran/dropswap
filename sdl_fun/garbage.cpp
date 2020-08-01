@@ -33,7 +33,7 @@ GarbagePile* garbagePileCreate() {
    if (pile) {
       return pile;
    }
-   else { return nullptr; }
+   return nullptr;
 }
 
 GarbagePile* garbagePileDestroy(GarbagePile* pile) {

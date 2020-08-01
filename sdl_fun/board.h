@@ -34,7 +34,7 @@ struct Board {
    bool bust = false;
    int combo = 1;
 
-   GarbagePile* pile;
+   GarbagePile* pile = nullptr;
 
    uint64_t seed = 0;
    std::default_random_engine generator;

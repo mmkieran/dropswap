@@ -368,6 +368,7 @@ void showGameMenu(Game* game) {
             vectorPushBack(game->boards, board);
             boardFillTiles(board);
 
+            //todo add a smarter algorithm to tile boards in screen space if more than 2
             float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
             float yOrigin = game->tHeight;
 
@@ -407,6 +408,7 @@ void showGameMenu(Game* game) {
    ImGui::Button("Load Board");
 
    ImGui::Button("Save Board");
+
    if (ImGui::Button("Clear Board")) {
       if (game->playing == true) {
          for (int i = 1; i <= vectorSize(game->boards); i++) {

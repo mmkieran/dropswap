@@ -48,7 +48,7 @@ Resources* initResources() {
    return resources;
 }
 
-void destroyResources(Resources* resources) {
+Resources* destroyResources(Resources* resources) {
    if (resources) {
       if (resources->textures.size() > 0) {
          for (auto&& tex : resources->textures) {
@@ -60,6 +60,7 @@ void destroyResources(Resources* resources) {
       }
       delete resources;
    }
+   return nullptr;
 }
 
 Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
