@@ -87,8 +87,11 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    return garbage;
 }
 
-void garbageDestroy(Garbage* garbage) {
-   delete garbage;
+Garbage* garbageDestroy(Garbage* garbage) {
+   if (garbage) {
+      delete garbage;
+   }
+   return nullptr;
 }
 
 
@@ -165,7 +168,7 @@ static void _checkClear(Board* board, Garbage* garbage, std::map <int, Garbage*>
             }
          }
 
-         if (col == endCol && endCol != startCol) {  //check above
+         if (col == endCol && endCol != startCol) {  //check right
             Tile* right = boardGetTile(board, row, col + 1);
             if (right && right->type == tile_garbage) {  //found more garbage
                Garbage* rightGarbage = garbageGet(board->pile, right->idGarbage);
@@ -195,10 +198,10 @@ void garbageCheckClear(Board* board, Tile* tile) {
    std::vector <Garbage*> checkList;
 
    for (int i = 0; i < 8; i += 2) {
-      Tile* tile = boardGetTile(board, row + indices[i], col + indices[i + 1]);
-      if (tile && tile->type == tile_garbage) {
+      Tile* neighbor = boardGetTile(board, row + indices[i], col + indices[i + 1]);
+      if (neighbor && neighbor->type == tile_garbage) {
          //check if it touches any other garbage that is <2 layers
-         Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
+         Garbage* garbage = garbageGet(board->pile, neighbor->idGarbage);
          if (cleared[garbage->ID]) { continue; }
          else { 
             cleared[garbage->ID] = garbage; 
@@ -237,7 +240,12 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
          tile->type = tile_cleared;
          tile->falling = false;
       }
+
       garbage->layers -= 1;
+      if (garbage->layers == 0) {
+         garbage = garbageDestroy(garbage);
+         board->pile->garbage.erase(pair.first);
+      }
    }
 }
 

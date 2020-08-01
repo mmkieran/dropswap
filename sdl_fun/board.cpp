@@ -58,11 +58,11 @@ Board* boardDestroy(Board* board) {
       for (int row = 0; row < board->wBuffer; row++) {
          for (int col = 0; col < board->w; col++) {
             Tile* tile = boardGetTile(board, row, col);
-            meshDestroy(tile->mesh);
+            tile->mesh = meshDestroy(tile->mesh);
          }
       }
-      garbagePileDestroy(board->pile);
-      cursorDestroy(board->cursor);
+      board->pile = garbagePileDestroy(board->pile);
+      board->cursor = cursorDestroy(board->cursor);
       free(board->tiles);
       delete board;
    }
@@ -412,7 +412,7 @@ void boardRemoveClears(Board* board) {
                tileSetTexture(board, tile);
                tile->idGarbage = -1;
                tile->status = status_disable;
-               tile->statusTime += current + 1000;
+               tile->statusTime += current + 2000;
                tile->clearTime = 0;
             }
 

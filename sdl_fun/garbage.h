@@ -11,7 +11,7 @@ GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
 Garbage* garbageCreate(Board* board, int width, int layers);
-void garbageDestroy(Garbage* garbage);
+Garbage* garbageDestroy(Garbage* garbage);
 
 void garbageCheckClear(Board* board, Tile* tile);
 //void garbageClear(Board* board, std::map <int, Garbage*> cleared);
