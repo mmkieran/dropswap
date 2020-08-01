@@ -64,13 +64,17 @@ int main()
 {
    Vector<Board*>* vec = vectorCreate<Board*>(20, 2);
 
-   for (int i = 0; i < 2; i++) {
+   for (int i = 1; i <= 2; i++) {
       Board* board = new Board;
       board->w = i;
       vectorPushBack(vec, board);
    }
 
-   for (int i = 0; i < 2; i++) {
+   for (int i = 1; i <= 2; i++) {
+      printf("%d, %d\n", vectorGet(vec, i)->w, vec->data[i-1]->w);
+   }
+
+   for (int i = 1; i <= 2; i++) {
       delete vectorGet(vec, i);
    }
 }

@@ -14,7 +14,7 @@ enum MoveEnum {
 };
 
 Cursor* cursorCreate(Board* board, float xpos, float ypos);
-void cursorDestroy(Cursor* cursor);
+Cursor* cursorDestroy(Cursor* cursor);
 
 void cursorSetX(Cursor* cursor, float x);
 void cursorSetY(Cursor* cursor, float y);

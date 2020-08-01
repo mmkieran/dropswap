@@ -15,16 +15,9 @@ struct Vector {
    T* data; //Pointer to memory allocated for data array
    int capacity;
 
-   //T &operator[] (int index) {
-   //   T out;
-   //   if (data) {
-   //      if (index >= 0 && index < length) {
-   //         out = data[index];
-   //         return out;
-   //      }
-   //   }
-   //   return NULL;
-   //};
+   T& operator[] (int index) {
+      return data[index];
+   };
 
 };
 

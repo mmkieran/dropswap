@@ -84,7 +84,7 @@ void textureDestroy(Texture* texture);
 Texture* textureLoadFromFile(const char* filename);
 
 Mesh* meshCreate(Game* game);
-void meshDestroy(Mesh* mesh);
+Mesh* meshDestroy(Mesh* mesh);
 void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
@@ -92,7 +92,7 @@ void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int 
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
 void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);
-void animationDestroy(Animation* animation);
+Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);
 void rendererClear(float r, float g, float b, float a);

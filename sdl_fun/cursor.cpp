@@ -34,10 +34,13 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    return cursor;
 }
 
-void cursorDestroy(Cursor* cursor) {
-   meshDestroy(cursor->mesh);
-   animationDestroy(cursor->animation);
-   delete cursor;
+Cursor* cursorDestroy(Cursor* cursor) {
+   if (cursor) {
+      cursor->mesh = meshDestroy(cursor->mesh);
+      cursor->animation = animationDestroy(cursor->animation);
+      delete cursor;
+   }
+   return nullptr;
 }
 
 void cursorSetX(Cursor* cursor, float x) {

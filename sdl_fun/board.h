@@ -4,7 +4,6 @@
 #include "garbage.h"
 
 #include <random>
-#include <map>
 
 struct Tile;
 struct Cursor;
@@ -35,8 +34,9 @@ struct Board {
    bool bust = false;
    int combo = 1;
 
-   std::map <int, Garbage*> garbage;
+   GarbagePile* pile;
 
+   uint64_t seed = 0;
    std::default_random_engine generator;
    std::uniform_int_distribution<int> distribution;
 

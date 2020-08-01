@@ -36,6 +36,8 @@ Board* boardCreate(Game* game) {
          board->frame = meshCreate(board->game);
          meshSetTexture(board->game, board->frame, Texture_frame);
 
+         board->pile = createGarbagePile();
+
          std::default_random_engine gen(time(0));
          board->generator = gen;
 
@@ -61,13 +63,8 @@ Board* boardDestroy(Board* board) {
             meshDestroy(tile->mesh);
          }
       }
-
-      for (auto&& pair : board->garbage) {
-         garbageDestroy(pair.second);
-      }
-
+      destroyGarbagePile(board->pile);
       cursorDestroy(board->cursor);
-
       free(board->tiles);
       delete board;
    }
@@ -603,7 +600,7 @@ void boardClear(Board* board) {
    for (auto&& pair : board->garbage) {
       garbageDestroy(pair.second);
    }
-   board->garbage.clear();
+   board->pile->garbage.clear();
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {

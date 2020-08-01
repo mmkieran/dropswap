@@ -10,6 +10,11 @@
 #include <vector>
 #include <map>
 
+struct GarbagePile {
+   std::map <int, Garbage*> garbage;
+   int nextID = 0;
+};
+
 struct Garbage {
    int ID;
 
@@ -22,18 +27,37 @@ struct Garbage {
    bool falling;
 };
 
+GarbagePile* createGarbagePile() {
+   GarbagePile* pile = nullptr;
+   pile = new GarbagePile;
+   if (pile) {
+      return pile;
+   }
+   else { return nullptr; }
+}
+
+GarbagePile* destroyGarbagePile(GarbagePile* pile) {
+   if (pile) {
+      for (auto&& pair : pile->garbage) {
+         if (pair.second) {
+            garbageDestroy(pair.second);
+         }
+      }
+      delete pile;
+   }
+   return nullptr;
+}
+
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
 Garbage* garbageCreate(Board* board, int width, int layers) {
 
    Garbage* garbage = new Garbage;
 
-   static int id = 0;
-
    garbage->mesh = meshCreate(board->game);
    meshSetTexture(board->game, garbage->mesh, Texture_garbage);
    //textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
-   garbage->ID = id;
+   garbage->ID = board->pile->nextID;
    garbage->width = width;
    garbage->layers = layers;
    garbage->falling = true;
@@ -53,18 +77,29 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
       for (int col = 0; col < width; col++) {
          Tile* tile = boardGetTile(board, row, col);
          tile->type = tile_garbage;
-         tile->idGarbage = id;
+         tile->idGarbage = garbage->ID;
          tileSetTexture(board, tile);
       }
    }
-   board->garbage[garbage->ID] = garbage;
-   id++;
+   board->pile->garbage[garbage->ID] = garbage;
+   board->pile->nextID++;
 
    return garbage;
 }
 
 void garbageDestroy(Garbage* garbage) {
    delete garbage;
+}
+
+
+Garbage* garbageGet(GarbagePile* pile, int id) {
+   Garbage* garbage = pile->garbage[id];
+   if (!garbage) { return nullptr; }
+   return garbage;
+}
+
+void garbageSetStart(GarbagePile* pile, Tile* tile) {
+   pile->garbage[tile->idGarbage]->start = tile;
 }
 
 static void _checkClear(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
@@ -203,7 +238,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
 
 void garbageFall(Board* board, float velocity) {
 
-   for (auto&& pair : board->garbage) {  //iterating a map gives std::pair (use first and second)
+   for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
       Garbage* garbage = pair.second;
 
       float drop = board->level * velocity;
@@ -273,7 +308,7 @@ void garbageFall(Board* board, float velocity) {
 
 void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first and second)
    
-   for (auto&& pair : board->garbage) {
+   for (auto&& pair : board->pile->garbage) {
       Garbage* garbage = pair.second;
       float xpos, ypos;
 
@@ -283,12 +318,4 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
       //meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
    }
 }
-Garbage* garbageGet(Board* board, int id) {
-   Garbage* garbage = board->garbage[id];
-   if (!garbage) { return nullptr; }
-   return garbage;
-}
 
-void garbageSetStart(Board* board, Tile* tile) {
-   board->garbage[tile->idGarbage]->start = tile;
-}

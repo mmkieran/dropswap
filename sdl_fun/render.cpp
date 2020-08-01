@@ -391,8 +391,11 @@ void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, fl
    textureTransform(game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
 }
 
-void animationDestroy(Animation* animation) {
-   delete animation;
+Animation* animationDestroy(Animation* animation) {
+   if (animation) {
+      delete animation;
+   }
+   return nullptr;
 }
 
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
@@ -423,9 +426,12 @@ void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture) {
    mesh->type = texture;
 }
 
-void meshDestroy(Mesh* mesh) {
-   glDeleteBuffers(1, &mesh->vbo);
-   delete mesh;
+Mesh* meshDestroy(Mesh* mesh) {
+   if (mesh) {
+      glDeleteBuffers(1, &mesh->vbo);
+      delete mesh;
+   }
+   return nullptr;
 }
 
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height) {
