@@ -3,6 +3,8 @@
 #include "mymath.h"
 #include "myvector.h"
 
+#include <stdint.h>
+
 typedef struct Board Board;
 typedef struct Resources Resources;
 
@@ -42,6 +44,7 @@ struct Game {
    int timer = 0;
    int timeDelta = 0;
 
+   uint64_t seed = 0;  //used for random number generation
 };
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);

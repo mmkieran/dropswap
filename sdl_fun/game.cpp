@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <time.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 
@@ -118,6 +119,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->windowHeight = height;
    game->windowWidth = width;
    game->boards = vectorCreate<Board*>(4, 10);
+   game->seed = time(0);  //generate the random seed for the board tiles
 
    game->isRunning = true;
    return game;

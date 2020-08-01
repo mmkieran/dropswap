@@ -1,6 +1,4 @@
 #include <vector>
-#include <time.h>
-#include <chrono>
 
 #include "board.h"
 #include "resources.h"
@@ -38,7 +36,7 @@ Board* boardCreate(Game* game) {
 
          board->pile = garbagePileCreate();
 
-         std::default_random_engine gen(time(0));
+         std::default_random_engine gen(game->seed);
          board->generator = gen;
 
          std::uniform_int_distribution<int> dist (1, 6);
