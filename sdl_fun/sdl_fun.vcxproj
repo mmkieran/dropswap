@@ -176,6 +176,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClCompile Include="mymath.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="resources.cpp" />
+    <ClCompile Include="serialize.cpp" />
     <ClCompile Include="tile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +189,7 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ClInclude Include="myvector.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="resources.h" />
+    <ClInclude Include="serialize.h" />
     <ClInclude Include="tile.h" />
   </ItemGroup>
   <ItemGroup>

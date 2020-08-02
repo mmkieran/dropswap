@@ -14,17 +14,18 @@ nl = "\n"
 name = None
 tab = "   "
 
-#typeLookup = {"int", "float", "bool", "uint64_t"}
-
 genCPP = open("serialize.cpp", "w")
 genH = open("serialize.h", "w")
 
 headerString = ""
+saveString = '#include "serialize.h"\n\n'
+genCPP.write(saveString)
 
 for fileName in files:
     baseName = fileName.split(".")[0]
     headerString += '#include "%s.h"\n' %(baseName)
 
+headerString += "\n"
 genH.write(headerString)
 
 for fileName in files:
@@ -65,7 +66,7 @@ for fileName in files:
                 loadString += tab + "//%s" %ln
                 continue
             elif len(split) >= 4:
-                saveString += tab + 'fwrite(%s->&%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
+                saveString += tab + 'fwrite(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
                 loadString += tab + 'fread(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
                 
 

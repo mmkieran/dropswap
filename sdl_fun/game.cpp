@@ -16,6 +16,7 @@
 #include "render.h"
 #include "mymath.h"
 #include "garbage.h"
+#include "serialize.h"
 
 struct GameWindow {
    SDL_Window *window;
