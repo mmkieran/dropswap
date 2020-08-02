@@ -463,43 +463,26 @@ static const char* gameStruct[] = {
    "int seed"
 };
 
+
+//game struct
+//board struct
+//tiles
+//garbage
+//cursor
 FILE* gameSaveState(Game* game) {
-   //game struct
-   //board struct
-   //tiles
-   //garbage
-   //cursor
-
    FILE* out;
-
    int err = fopen_s(&out, "assets/game_state.dat", "w");
    if (err == 0) {
       fwrite(&game->bHeight, sizeof(int), 1, out);
-      //fprintf(out, game->bWidth);
-      //fprintf(out, game->tWidth);
-      //fprintf(out, game->tHeight);
-      //fprintf(out, game->players);
-      //fprintf(out, game->playing);
-      //fprintf(out, game->paused);
-      //fprintf(out, game->pauseTimer);
-      //fprintf(out, game->pauseLength);
-      //fprintf(out, game->timer);
-      //fprintf(out, game->seed);
-
    }
    else { printf("Failed to save file... Err: %d\n", err); }
-
    fclose(out);
    return out;
 }
 
 
 int gameLoadState(Game* game, const char* path) {
-
-   const int bufferLength = 2048;
-   char buffer[bufferLength];
    FILE* in;
-
    int err = fopen_s(&in, path, "r");
    if (err == 0) {
       while (!feof(in)) {
@@ -507,7 +490,7 @@ int gameLoadState(Game* game, const char* path) {
       }
 
    }
-
+   else { printf("Failed to load file... Err: %d\n", err); }
    fclose(in);
    return 1;
 }

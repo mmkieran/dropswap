@@ -5,11 +5,12 @@ nl = "\n"
 name = None
 saveString = ""
 loadString = ""
+tab = "   "
 
 #typeLookup = {"int", "float", "bool", "uint64_t"}
 
-fileOut = open("save.h", "w")
-fileOut = open("load.h", "w")
+fileSave = open("serialize.h", "w")
+#fileLoad = open("load.h", "w")
 
 for fileName in files:
     cpp = open(fileName, "r")
@@ -19,26 +20,38 @@ for fileName in files:
         if "struct" in ln and "{" in ln:
             split = ln.strip().split(delim)
             structName = split[1]
-            saveString += "FILE* %sSave(%s* %s) {\n" %(baseName, structName, baseName)
-            loadString += "int %sLoad(%s* %s, const char* path) {\n" %(baseName, structName, baseName) 
+            saveString += "FILE* %sSerialize(%s* %s) {\n" %(baseName, structName, baseName)
+            saveString += tab + "FILE* out;\n"
+            saveString += tab + 'int err = fopen_s(&out, "assets/game_state.dat", "w");\n'
+            saveString += tab + 'if (err == 0) {\n'
+            
+            loadString += "int %sDeserialize(%s* %s, const char* path) {\n" %(baseName, structName, baseName) 
             found = True
             continue
         
         if found == True:
             split = ln.strip().split(delim)
             if "*" in split[0]:
-                string += "//%s\n" %ln
+                saveString += tab*2 + "//%s" %ln
                 continue
             if len(split) >= 4:
-                saveString += '''fprintf(out, "%s,%s,%s,%%d\n", %s->%s);''' %(baseName, split[0], split[1], baseName, split[1])
-                if (
-                loadString += '''if (%s) %s->%s = atoi(%s);''' %(split[3], baseName, split[1], split[3])
+                saveString += tab*2 + 'fwrite(%s->&%s, sizeof(%s), 1, out);\n' %(baseName, split[1], split[0])
+                loadString += 'if (%s) %s->%s = atoi(%s);' %(split[3], baseName, split[1], split[3])
             
         if "};" in ln:
             
             found = False
             continue
 
+    saveString += 'else { printf("Failed to save file... Err: %d\\n", err); }\n'
+    saveString + "fclose(out);\n"
+    saveString + "return out;\n"
+    saveString += "}\n\n"
+    
+    fileSave.write(saveString)
+    fileSave.write(loadString)
+    #fileLoad.write(loadString)
     cpp.close()
-    fileOut.close()
+    fileSave.close()
+    #fileLoad.close()
 
