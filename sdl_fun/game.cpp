@@ -497,7 +497,13 @@ int gameLoadState(Game* game, const char* path) {
          _gameDeserialize(game, in);
 
          for (int i = 1; i <= game->players; i++) {
-            Board* board = boardCreate(game);
+            Board* board = nullptr;
+            if (game->playing) {
+               board = vectorGet(game->boards, i);
+            }
+            else {
+               board = boardCreate(game);
+            }
             if (board) {
                _boardDeserialize(board, in);
             }

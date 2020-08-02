@@ -96,3 +96,67 @@ void _boardDeserialize(Board* board, FILE* file) {
    fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
 
+void _tileSerialize(Tile* tile, FILE* file) {
+   fwrite(&tile->type, sizeof(TileType), 1, file);
+   fwrite(&tile->status, sizeof(TileStatus), 1, file);
+   fwrite(&tile->xpos, sizeof(float), 1, file);
+   fwrite(&tile->ypos, sizeof(float), 1, file);
+   //   Mesh* mesh;
+   fwrite(&tile->falling, sizeof(bool), 1, file);
+   fwrite(&tile->clearTime, sizeof(uint64_t), 1, file);
+   fwrite(&tile->statusTime, sizeof(uint64_t), 1, file);
+   fwrite(&tile->chain, sizeof(bool), 1, file);
+   //   Garbage* garbage;
+   fwrite(&tile->idGarbage, sizeof(int), 1, file);
+}
+
+void _tileDeserialize(Tile* tile, FILE* file) {
+   fread(&tile->type, sizeof(TileType), 1, file);
+   fread(&tile->status, sizeof(TileStatus), 1, file);
+   fread(&tile->xpos, sizeof(float), 1, file);
+   fread(&tile->ypos, sizeof(float), 1, file);
+   //   Mesh* mesh;
+   fread(&tile->falling, sizeof(bool), 1, file);
+   fread(&tile->clearTime, sizeof(uint64_t), 1, file);
+   fread(&tile->statusTime, sizeof(uint64_t), 1, file);
+   fread(&tile->chain, sizeof(bool), 1, file);
+   //   Garbage* garbage;
+   fread(&tile->idGarbage, sizeof(int), 1, file);
+}
+
+void _cursorSerialize(Cursor* cursor, FILE* file) {
+   fwrite(&cursor->x, sizeof(float), 1, file);
+   fwrite(&cursor->y, sizeof(float), 1, file);
+   //   Mesh* mesh;
+   //   Animation* animation;
+   fwrite(&cursor->h, sizeof(int), 1, file);
+   fwrite(&cursor->w, sizeof(int), 1, file);
+}
+
+void _cursorDeserialize(Cursor* cursor, FILE* file) {
+   fread(&cursor->x, sizeof(float), 1, file);
+   fread(&cursor->y, sizeof(float), 1, file);
+   //   Mesh* mesh;
+   //   Animation* animation;
+   fread(&cursor->h, sizeof(int), 1, file);
+   fread(&cursor->w, sizeof(int), 1, file);
+}
+
+void _garbageSerialize(Garbage* garbage, FILE* file) {
+   fwrite(&garbage->ID, sizeof(int), 1, file);
+   fwrite(&garbage->width, sizeof(int), 1, file);
+   fwrite(&garbage->layers, sizeof(int), 1, file);
+   //   Tile* start;  //top left of garbage
+   //   Mesh* mesh;
+   fwrite(&garbage->falling, sizeof(bool), 1, file);
+}
+
+void _garbageDeserialize(Garbage* garbage, FILE* file) {
+   fread(&garbage->ID, sizeof(int), 1, file);
+   fread(&garbage->width, sizeof(int), 1, file);
+   fread(&garbage->layers, sizeof(int), 1, file);
+   //   Tile* start;  //top left of garbage
+   //   Mesh* mesh;
+   fread(&garbage->falling, sizeof(bool), 1, file);
+}
+

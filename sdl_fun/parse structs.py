@@ -8,7 +8,7 @@ and creates functions to read/write these in the serialize.h file
 It's up to me (the user) to use these helpers to build the final serialize
 '''
 
-files = ["game.h", "board.h"]
+files = ["game.h", "board.h", "tile.h", "cursor.h", "garbage.h"]
 delim = " "
 nl = "\n"
 name = None

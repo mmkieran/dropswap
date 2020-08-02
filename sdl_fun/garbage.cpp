@@ -15,18 +15,6 @@ struct GarbagePile {
    int nextID = 0;
 };
 
-struct Garbage {
-   int ID;
-
-   int width;
-   int layers;
-
-   Tile* start;  //top left of garbage
-   Mesh* mesh;
-
-   bool falling;
-};
-
 GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
    pile = new GarbagePile;

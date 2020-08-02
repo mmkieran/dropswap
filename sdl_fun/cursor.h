@@ -4,7 +4,20 @@
 
 typedef struct Mesh Mesh;
 
-struct Cursor;
+
+//@@Start Serialize
+struct Cursor {
+
+   float x;
+   float y;
+
+   Mesh* mesh;
+   Animation* animation;
+
+   int h;
+   int w;
+};
+//@@End Serialize
 
 enum MoveEnum {
    move_up = 0,

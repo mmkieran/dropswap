@@ -3,18 +3,6 @@
 #include "board.h"
 #include "render.h"
 
-struct Cursor {
-
-   float x;
-   float y;
-
-   Mesh* mesh;
-   Animation* animation;
-
-   int h;
-   int w;
-};
-
 Cursor* cursorCreate(Board* board, float xpos, float ypos) {
 
    Cursor* cursor = new Cursor;

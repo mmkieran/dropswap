@@ -24,6 +24,7 @@ enum TileStatus {
    status_disable //no clearing, no falling, no swapping
 };
 
+//@@Start Serialize
 struct Tile {
 
    TileType type;
@@ -42,6 +43,7 @@ struct Tile {
    Garbage* garbage;
    int idGarbage;
 };
+//@@End Serialize
 
 void tileSetTexture(Board* board, Tile* tile);
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime = false);

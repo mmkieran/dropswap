@@ -5,7 +5,20 @@ typedef struct Tile Tile;
 typedef struct Mesh Mesh;
 
 struct GarbagePile;
-struct Garbage;
+
+//@@Start Serialize
+struct Garbage {
+   int ID;
+
+   int width;
+   int layers;
+
+   Tile* start;  //top left of garbage
+   Mesh* mesh;
+
+   bool falling;
+};
+//@@End Serialize
 
 GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
