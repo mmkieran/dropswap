@@ -16,25 +16,28 @@ tab = "   "
 
 #typeLookup = {"int", "float", "bool", "uint64_t"}
 
-fileSave = open("serialize.h", "w")
-#fileLoad = open("load.h", "w")
+genCPP = open("serialize.cpp", "w")
+genH = open("serialize.h", "w")
+
+headerString = ""
 
 for fileName in files:
-    cpp = open(fileName, "r")
     baseName = fileName.split(".")[0]
-        
+    headerString += '#include "%s.h"\n' %(baseName)
+
+genH.write(headerString)
+
+for fileName in files:
+    codeFile = open(fileName, "r")
+    baseName = fileName.split(".")[0]
+
+    headerString = ""
     saveString = ""
     loadString = ""
 
     found = False
-    for ln in cpp:
-        if "//@@Start" in ln:
-            split = ln.strip().split(delim)
-            structName = split[1]
-            saveString += "void _%sSerialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
-            
-            loadString += "int _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
-            
+    for ln in codeFile:
+        if "//@@Start" in ln:       
             found = True
             continue
         
@@ -44,9 +47,17 @@ for fileName in files:
             continue
         
         elif found == True:
+            split = ln.strip().split(delim)             
             if "struct" in ln:
+                structName = split[1]
+                
+                saveString += "void _%sSerialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
+                headerString += "void _%sSerialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName) 
+            
+                loadString += "int _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
+                headerString += "int _%sDeserialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName)
+                
                 continue
-            split = ln.strip().split(delim)
             if "//" in split[0]:
                 continue
             elif "*" in split[0]:
@@ -61,9 +72,11 @@ for fileName in files:
     saveString += "}\n\n"
     loadString += "}\n\n"
     
-    fileSave.write(saveString)
-    fileSave.write(loadString)
-    cpp.close()
+    genCPP.write(saveString)
+    genCPP.write(loadString)
+    genH.write(headerString)
+    codeFile.close()
 
-fileSave.close()
+genCPP.close()
+genH.close()
 
