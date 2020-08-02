@@ -204,6 +204,9 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
       <Project>{bbaeb705-1669-40f3-8567-04cf6a991f4c}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="parse structs.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

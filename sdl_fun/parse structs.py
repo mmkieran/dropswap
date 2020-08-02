@@ -25,7 +25,10 @@ for fileName in files:
             saveString += tab + 'int err = fopen_s(&out, "assets/game_state.dat", "w");\n'
             saveString += tab + 'if (err == 0) {\n'
             
-            loadString += "int %sDeserialize(%s* %s, const char* path) {\n" %(baseName, structName, baseName) 
+            loadString += "int %sDeserialize(%s* %s, const char* path) {\n" %(baseName, structName, baseName)
+            loadString += tab + "FILE* in;\n"
+            loadString += tab + 'int err = fopen_s(&in, path, "r");\n'
+            loadString += tab + 'if (err == 0) {\n'
             found = True
             continue
         
@@ -36,7 +39,7 @@ for fileName in files:
                 continue
             if len(split) >= 4:
                 saveString += tab*2 + 'fwrite(%s->&%s, sizeof(%s), 1, out);\n' %(baseName, split[1], split[0])
-                loadString += 'if (%s) %s->%s = atoi(%s);' %(split[3], baseName, split[1], split[3])
+                loadString += 'fread(&%s->%s, sizeof(%s), 1, in);\n' %(baseName, split[1], split[0])
             
         if "};" in ln:
             
