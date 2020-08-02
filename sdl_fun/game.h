@@ -66,4 +66,5 @@ void showGameMenu(Game* game);
 void debugGarbage(Game* game);
 void debugCursor(Game* game);
 
+int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game);
