@@ -1,10 +1,17 @@
+'''
+Kieran McDonald
+8/2/2020
 
-files = ["game.h", ]
+This script parses the header and cpp files for structs using the //@@Start and //@@End tags around it
+If a struct is marked, then it parses all the variables except pointers
+and creates functions to read/write these in the serialize.h file
+It's up to me (the user) to use these helpers to build the final serialize
+'''
+
+files = ["game.h", "board.h"]
 delim = " "
 nl = "\n"
 name = None
-saveString = ""
-loadString = ""
 tab = "   "
 
 #typeLookup = {"int", "float", "bool", "uint64_t"}
@@ -15,46 +22,48 @@ fileSave = open("serialize.h", "w")
 for fileName in files:
     cpp = open(fileName, "r")
     baseName = fileName.split(".")[0]
+        
+    saveString = ""
+    loadString = ""
+
     found = False
     for ln in cpp:
-        if "struct" in ln and "{" in ln:
+        if "//@@Start" in ln:
             split = ln.strip().split(delim)
             structName = split[1]
-            saveString += "FILE* %sSerialize(%s* %s) {\n" %(baseName, structName, baseName)
-            saveString += tab + "FILE* out;\n"
-            saveString += tab + 'int err = fopen_s(&out, "assets/game_state.dat", "w");\n'
-            saveString += tab + 'if (err == 0) {\n'
+            saveString += "void _%sSerialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
             
-            loadString += "int %sDeserialize(%s* %s, const char* path) {\n" %(baseName, structName, baseName)
-            loadString += tab + "FILE* in;\n"
-            loadString += tab + 'int err = fopen_s(&in, path, "r");\n'
-            loadString += tab + 'if (err == 0) {\n'
+            loadString += "int _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
+            
             found = True
             continue
         
-        if found == True:
-            split = ln.strip().split(delim)
-            if "*" in split[0]:
-                saveString += tab*2 + "//%s" %ln
-                continue
-            if len(split) >= 4:
-                saveString += tab*2 + 'fwrite(%s->&%s, sizeof(%s), 1, out);\n' %(baseName, split[1], split[0])
-                loadString += 'fread(&%s->%s, sizeof(%s), 1, in);\n' %(baseName, split[1], split[0])
-            
-        if "};" in ln:
+        elif "//@@End" in ln:
             
             found = False
             continue
+        
+        elif found == True:
+            if "struct" in ln:
+                continue
+            split = ln.strip().split(delim)
+            if "//" in split[0]:
+                continue
+            elif "*" in split[0]:
+                saveString += tab + "//%s" %ln
+                loadString += tab + "//%s" %ln
+                continue
+            elif len(split) >= 4:
+                saveString += tab + 'fwrite(%s->&%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
+                loadString += tab + 'fread(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
+                
 
-    saveString += 'else { printf("Failed to save file... Err: %d\\n", err); }\n'
-    saveString + "fclose(out);\n"
-    saveString + "return out;\n"
     saveString += "}\n\n"
+    loadString += "}\n\n"
     
     fileSave.write(saveString)
     fileSave.write(loadString)
-    #fileLoad.write(loadString)
     cpp.close()
-    fileSave.close()
-    #fileLoad.close()
+
+fileSave.close()
 

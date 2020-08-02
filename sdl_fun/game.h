@@ -16,6 +16,7 @@ enum GameMode {
    team
 };
 
+//@@Start Serialize
 struct Game {
 
    GameWindow* sdl = nullptr;
@@ -47,6 +48,7 @@ struct Game {
 
    uint64_t seed = 0;  //used for random number generation
 };
+//@@End Serialize
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
 bool gameRunning(Game* game);

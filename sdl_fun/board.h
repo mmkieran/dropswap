@@ -9,6 +9,7 @@ struct Tile;
 struct Cursor;
 
 //The top left of the board is (0, 0) for rendering and for array indices
+//@@Start Serialize
 struct Board {
    int startH = 12;
    int endH;
@@ -41,6 +42,7 @@ struct Board {
    std::uniform_int_distribution<int> distribution;
 
 };
+//@@End Serialize
 
 Board* boardCreate(Game* game);
 Board* boardDestroy(Board* board);
