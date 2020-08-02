@@ -406,7 +406,7 @@ void showGameMenu(Game* game) {
    }
 
    if (ImGui::Button("Load Board")) {
-      gameLoadState(game, "assets/game_state.csv");
+      gameLoadState(game, "assets/game_state.dat");
    }
 
    if (ImGui::Button("Save Game")) {
@@ -472,22 +472,19 @@ FILE* gameSaveState(Game* game) {
 
    FILE* out;
 
-   const char* missingValue = "empty";
-   int err = fopen_s(&out, "assets/game_state.csv", "w");
+   int err = fopen_s(&out, "assets/game_state.dat", "w");
    if (err == 0) {
-      //fprintf(out, "##Game\n");
-      fprintf(out, "Struct, Type, Name, Value\n"); //Write the header
-      fprintf(out, "game,int,bHeight,%d\n",       game->bHeight);
-      fprintf(out, "game,int,bWidth,%d\n",        game->bWidth);
-      fprintf(out, "game,int,tWidth,%d\n",        game->tWidth);
-      fprintf(out, "game,int,tHeight,%d\n",       game->tHeight);
-      fprintf(out, "game,int,players,%d\n",       game->players);
-      fprintf(out, "game,bool,playing,%d\n",      game->playing);
-      fprintf(out, "game,bool,paused,%d\n",       game->paused);
-      fprintf(out, "game,int,pauseTimer,%d\n",    game->pauseTimer);
-      fprintf(out, "game,int,pauseLength,%d\n",   game->pauseLength);
-      fprintf(out, "game,int,timer,%d\n",         game->timer);
-      fprintf(out, "game,int,seed,%d\n",          game->seed);
+      fwrite(&game->bHeight, sizeof(int), 1, out);
+      //fprintf(out, game->bWidth);
+      //fprintf(out, game->tWidth);
+      //fprintf(out, game->tHeight);
+      //fprintf(out, game->players);
+      //fprintf(out, game->playing);
+      //fprintf(out, game->paused);
+      //fprintf(out, game->pauseTimer);
+      //fprintf(out, game->pauseLength);
+      //fprintf(out, game->timer);
+      //fprintf(out, game->seed);
 
    }
    else { printf("Failed to save file... Err: %d\n", err); }
@@ -499,31 +496,14 @@ FILE* gameSaveState(Game* game) {
 
 int gameLoadState(Game* game, const char* path) {
 
-   const char* missingValue = "empty";
-
    const int bufferLength = 2048;
    char buffer[bufferLength];
-   const char* delim = ",";
    FILE* in;
 
    int err = fopen_s(&in, path, "r");
-
    if (err == 0) {
-      fgets(buffer, bufferLength, in);  //header
-      
       while (!feof(in)) {
-         char* token = strtok(buffer, "\n");  //remove newline
-         char* container = strtok(token, delim); //get struct name
-
-         if ( token && strcmp(token, "game") == 0 ){
-            char* type = strtok(nullptr, delim); //type
-            char* name = strtok(nullptr, delim); //name
-            char* value = strtok(nullptr, delim); //value
-
-            if (value) game->bHeight = atoi(value);
-         }
-
-         fgets(buffer, bufferLength, in);
+         fread(&game->bHeight, sizeof(int), 1, in);
       }
 
    }
@@ -531,4 +511,5 @@ int gameLoadState(Game* game, const char* path) {
    fclose(in);
    return 1;
 }
+
 
