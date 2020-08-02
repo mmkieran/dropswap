@@ -449,27 +449,6 @@ void showGameMenu(Game* game) {
    ImGui::End();
 }
 
-static const char* gameStruct[] = {
-   "int bHeight",
-   "int bWidth",
-   "int tWidth",
-   "int tHeight",
-   "int players",
-   "bool playing",
-   "bool paused",
-   "int pauseTimer",
-   "int pauseLength",
-   "int timer",
-   "int timeDelta",
-   "int seed"
-};
-
-
-//game struct
-//board struct
-//tiles
-//garbage
-//cursor
 FILE* gameSaveState(Game* game) {
    FILE* out;
    int err = fopen_s(&out, "assets/game_state.dat", "w");
@@ -511,16 +490,21 @@ int gameLoadState(Game* game, const char* path) {
    int err = fopen_s(&in, path, "r");
    if (err == 0) {
       while (!feof(in)) {
+         //destroy the boards
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
+            boardDestroy(board);
+            vectorClear(game->boards);
+            game->playing = false;
+         }
+
          //deserialize game
          _gameDeserialize(game, in);
 
          for (int i = 1; i <= game->players; i++) {
             Board* board = nullptr;
             if (game->playing) {
-               board = vectorGet(game->boards, i);
-            }
-
-            if (board) {
+               board = boardCreate(game);
                //deserialize board
                _boardDeserialize(board, in);
 
@@ -529,9 +513,12 @@ int gameLoadState(Game* game, const char* path) {
                      Tile* tile = boardGetTile(board, row, col);
                      //deserialize tiles
                      _tileDeserialize(tile, in);
+                     tile->mesh = meshCreate(board->game);
+                     tileSetTexture(board, tile);
                   }
                }
                //deserialize cursor
+               board->cursor = cursorCreate(board, 0, 0);
                _cursorDeserialize(board->cursor, in);
 
                //deserialize garbage
