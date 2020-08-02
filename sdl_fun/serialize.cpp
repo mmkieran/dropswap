@@ -2,6 +2,8 @@
 
 void _gameSerialize(Game* game, FILE* file) {
    //   GameWindow* sdl = nullptr;
+   fwrite(&game->windowWidth, sizeof(float), 1, file);
+   fwrite(&game->windowHeight, sizeof(float), 1, file);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
    fwrite(&game->bHeight, sizeof(int), 1, file);
@@ -19,8 +21,10 @@ void _gameSerialize(Game* game, FILE* file) {
    fwrite(&game->seed, sizeof(uint64_t), 1, file);
 }
 
-int _gameDeserialize(Game* game, FILE* file) {
+void _gameDeserialize(Game* game, FILE* file) {
    //   GameWindow* sdl = nullptr;
+   fread(&game->windowWidth, sizeof(float), 1, file);
+   fread(&game->windowHeight, sizeof(float), 1, file);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
    fread(&game->bHeight, sizeof(int), 1, file);
@@ -40,8 +44,11 @@ int _gameDeserialize(Game* game, FILE* file) {
 
 void _boardSerialize(Board* board, FILE* file) {
    fwrite(&board->startH, sizeof(int), 1, file);
-   fwrite(&board->wBuffer;, sizeof(int), 1, file);
+   fwrite(&board->endH, sizeof(int), 1, file);
+   fwrite(&board->wBuffer, sizeof(int), 1, file);
    fwrite(&board->w, sizeof(int), 1, file);
+   fwrite(&board->tileWidth, sizeof(int), 1, file);
+   fwrite(&board->tileHeight, sizeof(int), 1, file);
    fwrite(&board->offset, sizeof(float), 1, file);
    fwrite(&board->origin, sizeof(Vec2), 1, file);
    //   Mesh* frame = nullptr;
@@ -58,12 +65,17 @@ void _boardSerialize(Board* board, FILE* file) {
    fwrite(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fwrite(&board->seed, sizeof(uint64_t), 1, file);
+   fwrite(&board->generator, sizeof(std::default_random_engine), 1, file);
+   fwrite(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
 
-int _boardDeserialize(Board* board, FILE* file) {
+void _boardDeserialize(Board* board, FILE* file) {
    fread(&board->startH, sizeof(int), 1, file);
-   fread(&board->wBuffer;, sizeof(int), 1, file);
+   fread(&board->endH, sizeof(int), 1, file);
+   fread(&board->wBuffer, sizeof(int), 1, file);
    fread(&board->w, sizeof(int), 1, file);
+   fread(&board->tileWidth, sizeof(int), 1, file);
+   fread(&board->tileHeight, sizeof(int), 1, file);
    fread(&board->offset, sizeof(float), 1, file);
    fread(&board->origin, sizeof(Vec2), 1, file);
    //   Mesh* frame = nullptr;
@@ -80,5 +92,7 @@ int _boardDeserialize(Board* board, FILE* file) {
    fread(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fread(&board->seed, sizeof(uint64_t), 1, file);
+   fread(&board->generator, sizeof(std::default_random_engine), 1, file);
+   fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
 

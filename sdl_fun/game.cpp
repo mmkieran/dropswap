@@ -474,7 +474,14 @@ FILE* gameSaveState(Game* game) {
    FILE* out;
    int err = fopen_s(&out, "assets/game_state.dat", "w");
    if (err == 0) {
-      fwrite(&game->bHeight, sizeof(int), 1, out);
+      _gameSerialize(game, out);
+
+      for (int i = 1; i <= game->players; i++) {
+         Board* board = vectorGet(game->boards, i);
+         if (board) {
+            _boardSerialize(board, out);
+         }
+      }
    }
    else { printf("Failed to save file... Err: %d\n", err); }
    fclose(out);
@@ -487,7 +494,14 @@ int gameLoadState(Game* game, const char* path) {
    int err = fopen_s(&in, path, "r");
    if (err == 0) {
       while (!feof(in)) {
-         fread(&game->bHeight, sizeof(int), 1, in);
+         _gameDeserialize(game, in);
+
+         for (int i = 1; i <= game->players; i++) {
+            Board* board = boardCreate(game);
+            if (board) {
+               _boardDeserialize(board, in);
+            }
+         }
       }
 
    }

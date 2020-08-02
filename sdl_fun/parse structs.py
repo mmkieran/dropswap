@@ -55,8 +55,8 @@ for fileName in files:
                 saveString += "void _%sSerialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
                 headerString += "void _%sSerialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName) 
             
-                loadString += "int _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
-                headerString += "int _%sDeserialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName)
+                loadString += "void _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
+                headerString += "void _%sDeserialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName)
                 
                 continue
             if "//" in split[0]:
@@ -65,9 +65,13 @@ for fileName in files:
                 saveString += tab + "//%s" %ln
                 loadString += tab + "//%s" %ln
                 continue
-            elif len(split) >= 4:
-                saveString += tab + 'fwrite(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
-                loadString += tab + 'fread(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, split[1], split[0])
+            elif len(split) >= 2:
+                var = split[1]
+                vType = split[0]
+                if ";" in var:
+                    var = var[:-1]
+                saveString += tab + 'fwrite(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, var, vType)
+                loadString += tab + 'fread(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, var, vType)
                 
 
     saveString += "}\n\n"
