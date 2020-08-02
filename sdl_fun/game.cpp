@@ -474,12 +474,29 @@ FILE* gameSaveState(Game* game) {
    FILE* out;
    int err = fopen_s(&out, "assets/game_state.dat", "w");
    if (err == 0) {
+      //serialize game settings
       _gameSerialize(game, out);
 
       for (int i = 1; i <= game->players; i++) {
          Board* board = vectorGet(game->boards, i);
          if (board) {
+            //serialize board settings
             _boardSerialize(board, out);
+            
+            //serialize tiles
+            for (int row = 0; row < board->wBuffer; row++) {
+               for (int col = 0; col < board->w; col++) {
+                  Tile* tile = boardGetTile(board, row, col);
+                  if (tile) {
+                     _tileSerialize(tile, out);
+                  }
+               }
+            }
+
+            //serialize cursor
+            _cursorSerialize(board->cursor, out);
+
+            //serialize garbage
          }
       }
    }
@@ -494,6 +511,7 @@ int gameLoadState(Game* game, const char* path) {
    int err = fopen_s(&in, path, "r");
    if (err == 0) {
       while (!feof(in)) {
+         //deserialize game
          _gameDeserialize(game, in);
 
          for (int i = 1; i <= game->players; i++) {
@@ -501,11 +519,23 @@ int gameLoadState(Game* game, const char* path) {
             if (game->playing) {
                board = vectorGet(game->boards, i);
             }
-            else {
-               board = boardCreate(game);
-            }
+
             if (board) {
+               //deserialize board
                _boardDeserialize(board, in);
+
+               for (int row = 0; row < board->wBuffer; row++) {
+                  for (int col = 0; col < board->w; col++) {
+                     Tile* tile = boardGetTile(board, row, col);
+                     //deserialize tiles
+                     _tileDeserialize(tile, in);
+                  }
+               }
+               //deserialize cursor
+               _cursorDeserialize(board->cursor, in);
+
+               //deserialize garbage
+
             }
          }
       }

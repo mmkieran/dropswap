@@ -3,6 +3,7 @@
 #include "game.h"
 
 typedef struct Mesh Mesh;
+typedef struct Animation Animation;
 
 
 //@@Start Serialize
