@@ -65,6 +65,7 @@ void _boardSerialize(Board* board, FILE* file) {
    fwrite(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fwrite(&board->seed, sizeof(uint64_t), 1, file);
+   _serializeRandom(board);
    //fwrite(&board->generator, sizeof(std::default_random_engine), 1, file);
    //fwrite(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
@@ -92,6 +93,7 @@ void _boardDeserialize(Board* board, FILE* file) {
    fread(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fread(&board->seed, sizeof(uint64_t), 1, file);
+   _deserializeRandom(board);
    //fread(&board->generator, sizeof(std::default_random_engine), 1, file);
    //fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }

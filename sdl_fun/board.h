@@ -69,3 +69,6 @@ void boardClear(Board* board);
 int tileGetRow(Board* board, Tile* tile);
 int tileGetCol(Board* board, Tile* tile);
 
+void _serializeRandom(Board* board);
+void _deserializeRandom(Board* board);
+

@@ -1,4 +1,5 @@
 #include <vector>
+#include <fstream>
 
 #include "board.h"
 #include "resources.h"
@@ -618,4 +619,17 @@ std::vector <Tile> boardDebug(Board* board) {
       }
    }
    return tileList;
+}
+
+void _serializeRandom(Board* board) {
+   std::ofstream fout("seed.dat");
+   fout << board->generator;
+   fout << board->distribution;
+
+}
+
+void _deserializeRandom(Board* board) {
+   std::ifstream fin("seed.dat");
+   fin >> board->generator;
+   fin >> board->distribution;
 }
