@@ -622,14 +622,16 @@ std::vector <Tile> boardDebug(Board* board) {
 }
 
 void _serializeRandom(Board* board) {
-   std::ofstream fout("seed.dat");
+   std::ofstream fout;
+   fout.open("seed.dat", std::fstream::binary | std::fstream::out);
    fout << board->generator;
    fout << board->distribution;
 
 }
 
 void _deserializeRandom(Board* board) {
-   std::ifstream fin("seed.dat");
+   std::ifstream fin;
+   fin.open("seed.dat", std::fstream::binary | std::fstream::in);
    fin >> board->generator;
    fin >> board->distribution;
 }
