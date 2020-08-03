@@ -4,77 +4,65 @@
 #include "pch.h"
 #include <iostream>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unordered_map>
 #include <math.h>
 #include <vector>
 #include <map>
 #include "sdl_fun/myvector.h"
+#include "sdl_fun/serialize.h"
+#include "sdl_fun/tile.h"
 
 
-//I really recommend having your own struct that looks like this!
-struct Vec2
-{
-   float x, y;
-};
+FILE* _gameSaveState() {
+   FILE* out;
+   int err = fopen_s(&out, "../sdl_fun/assets/game_state.dat", "w");
+   if (err == 0) {
+      Tile myTile;
+      Tile* tile = &myTile;
+      tile->type = tile_heart;
+      tile->status = status_normal;
+      tile->xpos = 128;
+      tile->ypos = 700;
 
-enum TileEnum {
-   tile_empty = 0,
-   tile_circle,
-   tile_diamond,
-   tile_utriangle,
-   tile_dtriangle,
-   tile_star,
-   tile_heart,
-   tile_silver,
-   tile_garbage,
-   tile_cleared
-};
+      tile->clearTime = 0;
+      tile->statusTime = 0;
+      tile->falling = false;
+      tile->chain = false;
 
-struct Tile {
-
-   TileEnum type;
-
-   float xpos;
-   float ypos;
-
-   bool falling;
-   int clearTime;
-   bool chain;
-
-};
-
-Tile* _boardCreateArray(int width, int height) {
-   Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
-   //memset(tiles, 0, sizeof(Tile) * (height * 2 + 1) * width);
-   return tiles;
+      //_tileSerialize(tile, out);
+      fprintf(out, "testing");
+   }
+   else { printf("Failed to save file... Err: %d\n", err); }
+   fclose(out);
+   return out;
 }
 
-struct Board {
-   int startH = 12;
-   int endH;
-   int wBuffer;  //Create some extra board to store falling garbage and upcoming rows
-   int w = 6;
-   int tileWidth;
-   int tileHeight;
-   float offset = 0;
-};
+
+int _gameLoadState() {
+   FILE* in;
+   int err = fopen_s(&in, "../sdl_fun/assets/game_state.dat", "r");
+   if (err == 0) {
+      while (!feof(in)) {
+         Tile myTile;
+         //_tileDeserialize(&myTile, in);
+         int a = 0;
+      }
+   }
+   else { printf("Failed to load file... Err: %d\n", err); }
+   fclose(in);
+   return 1;
+}
 
 
-int main()
+int main(int argc, char* args[])
 {
-   Vector<Board*>* vec = vectorCreate<Board*>(20, 2);
+   printf("%d\n", sizeof(uint64_t));
+   printf("%d\n", sizeof(int));
+   printf("%d\n", sizeof(long long unsigned int));
 
-   for (int i = 1; i <= 2; i++) {
-      Board* board = new Board;
-      board->w = i;
-      vectorPushBack(vec, board);
-   }
+   _gameSaveState();
+   _gameLoadState();
 
-   for (int i = 1; i <= 2; i++) {
-      printf("%d, %d\n", vectorGet(vec, i)->w, vec->data[i-1]->w);
-   }
-
-   for (int i = 1; i <= 2; i++) {
-      delete vectorGet(vec, i);
-   }
+   return 0;
 }

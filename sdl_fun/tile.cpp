@@ -75,3 +75,37 @@ void tileDraw(Board* board, Tile* tile) {
    }
 }
 
+
+void _deserializeTileType(Tile* tile, FILE* file) {
+   int type;
+   fread(&type, sizeof(int), 1, file);
+   if (type >= 0 && type < tile_COUNT) {
+      tile->type = (TileType)type;
+   }
+   else { tile->type = tile_empty; }
+}
+
+void _serializeTileType(Tile* tile, FILE* file){
+   int type = 0;
+   if (tile->type) {
+      type = (int)tile->type;
+   }
+   fwrite(&type, sizeof(int), 1, file);
+}
+
+void _deserializeTileStatus(Tile* tile, FILE* file) {
+   int status;
+   fread(&status, sizeof(int), 1, file);
+   if (status >= 0 && status < status_COUNT) {
+      tile->status = (TileStatus)status;
+   }
+   else { tile->status = status_normal; }
+}
+
+void _serializeTileStatus(Tile* tile, FILE* file) {
+   int status = 0;
+   if (tile->status) {
+      status = (int)tile->status;
+   }
+   fwrite(&status, sizeof(int), 1, file);
+}

@@ -489,42 +489,53 @@ int gameLoadState(Game* game, const char* path) {
    FILE* in;
    int err = fopen_s(&in, path, "r");
    if (err == 0) {
-      while (!feof(in)) {
-         //destroy the boards
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            boardDestroy(board);
-            vectorClear(game->boards);
-            game->playing = false;
-         }
+      //destroy the boards
+      for (int i = 1; i <= vectorSize(game->boards); i++) {
+         Board* board = vectorGet(game->boards, i);
+         boardDestroy(board);
+         vectorClear(game->boards);
+         //game->playing = false;
+      }
 
-         //deserialize game
-         _gameDeserialize(game, in);
+      //deserialize game
+      _gameDeserialize(game, in);
 
-         for (int i = 1; i <= game->players; i++) {
-            Board* board = nullptr;
-            if (game->playing) {
-               board = boardCreate(game);
-               //deserialize board
+      for (int i = 1; i <= game->players; i++) {
+         Board* board = nullptr;
+         if (game->playing) {
+            board = boardCreate(game);
+            //deserialize board
+            if (board) {
                _boardDeserialize(board, in);
 
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {
                      Tile* tile = boardGetTile(board, row, col);
                      //deserialize tiles
-                     _tileDeserialize(tile, in);
                      tile->mesh = meshCreate(board->game);
+                     //tileInit(board, tile, row, col, tile_empty);
+
+                     _tileDeserialize(tile, in);
                      tileSetTexture(board, tile);
+
+                     tile->idGarbage = -1;
+                     tile->garbage = nullptr;
+                     int a = 0;
+
                   }
                }
+               std::vector <Tile> debug = boardDebug(board);
+
                //deserialize cursor
                board->cursor = cursorCreate(board, 0, 0);
                _cursorDeserialize(board->cursor, in);
 
                //deserialize garbage
 
+               vectorPushBack(game->boards, board);
             }
          }
+            
       }
 
    }

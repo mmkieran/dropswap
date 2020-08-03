@@ -65,8 +65,8 @@ void _boardSerialize(Board* board, FILE* file) {
    fwrite(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fwrite(&board->seed, sizeof(uint64_t), 1, file);
-   fwrite(&board->generator, sizeof(std::default_random_engine), 1, file);
-   fwrite(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
+   //fwrite(&board->generator, sizeof(std::default_random_engine), 1, file);
+   //fwrite(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
 
 void _boardDeserialize(Board* board, FILE* file) {
@@ -92,13 +92,15 @@ void _boardDeserialize(Board* board, FILE* file) {
    fread(&board->combo, sizeof(int), 1, file);
    //   GarbagePile* pile = nullptr;
    fread(&board->seed, sizeof(uint64_t), 1, file);
-   fread(&board->generator, sizeof(std::default_random_engine), 1, file);
-   fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
+   //fread(&board->generator, sizeof(std::default_random_engine), 1, file);
+   //fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
 }
 
 void _tileSerialize(Tile* tile, FILE* file) {
-   fwrite(&tile->type, sizeof(TileType), 1, file);
-   fwrite(&tile->status, sizeof(TileStatus), 1, file);
+   _serializeTileType(tile, file);
+   _serializeTileStatus(tile, file);
+   //fwrite(&tile->type, sizeof(TileType), 1, file);
+   //fwrite(&tile->status, sizeof(TileStatus), 1, file);
    fwrite(&tile->xpos, sizeof(float), 1, file);
    fwrite(&tile->ypos, sizeof(float), 1, file);
    //   Mesh* mesh;
@@ -111,8 +113,10 @@ void _tileSerialize(Tile* tile, FILE* file) {
 }
 
 void _tileDeserialize(Tile* tile, FILE* file) {
-   fread(&tile->type, sizeof(TileType), 1, file);
-   fread(&tile->status, sizeof(TileStatus), 1, file);
+   _deserializeTileType(tile, file);
+   _deserializeTileStatus(tile, file);
+   //fread(&tile->type, sizeof(TileType), 1, file);
+   //fread(&tile->status, sizeof(TileStatus), 1, file);
    fread(&tile->xpos, sizeof(float), 1, file);
    fread(&tile->ypos, sizeof(float), 1, file);
    //   Mesh* mesh;
