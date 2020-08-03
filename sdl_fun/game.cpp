@@ -366,6 +366,7 @@ void showGameMenu(Game* game) {
          //setting up board
          for (int i = 1; i <= game->players; i++) {
             Board* board = boardCreate(game);
+            board->player = i;
             vectorPushBack(game->boards, board);
             boardFillTiles(board);
 
@@ -407,7 +408,7 @@ void showGameMenu(Game* game) {
    }
 
    if (ImGui::Button("Load Board")) {
-      gameLoadState(game, "assets/game_state.dat");
+      gameLoadState(game, "saves/game_state.dat");
    }
 
    if (ImGui::Button("Save Game")) {
@@ -451,7 +452,7 @@ void showGameMenu(Game* game) {
 
 FILE* gameSaveState(Game* game) {
    FILE* out;
-   int err = fopen_s(&out, "assets/game_state.dat", "w");
+   int err = fopen_s(&out, "saves/game_state.dat", "w");
    if (err == 0) {
       //serialize game settings
       _gameSerialize(game, out);

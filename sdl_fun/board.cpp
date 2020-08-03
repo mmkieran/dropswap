@@ -1,5 +1,6 @@
 #include <vector>
 #include <fstream>
+#include <string>
 
 #include "board.h"
 #include "resources.h"
@@ -623,7 +624,12 @@ std::vector <Tile> boardDebug(Board* board) {
 
 void _serializeRandom(Board* board) {
    std::ofstream fout;
-   fout.open("seed.dat", std::fstream::binary | std::fstream::out);
+
+   std::string fileName = "saves/p";
+   fileName += std::to_string(board->player);
+   fileName += "random.dat";
+
+   fout.open(fileName, std::fstream::binary | std::fstream::out);
    fout << board->generator;
    fout << board->distribution;
 
@@ -631,7 +637,12 @@ void _serializeRandom(Board* board) {
 
 void _deserializeRandom(Board* board) {
    std::ifstream fin;
-   fin.open("seed.dat", std::fstream::binary | std::fstream::in);
+
+   std::string fileName = "saves/p";
+   fileName += std::to_string(board->player);
+   fileName += "random.dat";
+
+   fin.open(fileName, std::fstream::binary | std::fstream::in);
    fin >> board->generator;
    fin >> board->distribution;
 }

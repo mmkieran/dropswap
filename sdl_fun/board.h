@@ -35,6 +35,8 @@ struct Board {
    bool bust = false;
    int combo = 1;
 
+   int player = 1;
+
    GarbagePile* pile = nullptr;
 
    uint64_t seed = 0;
