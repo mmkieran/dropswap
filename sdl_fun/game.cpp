@@ -508,7 +508,7 @@ int gameLoadState(Game* game, const char* path) {
             //deserialize board
             if (board) {
                _boardDeserialize(board, in);
-			   boardLoadRandom(board);
+			   boardLoadRandom(board);  //Return random generator to saved state using discard
 
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {
@@ -522,8 +522,6 @@ int gameLoadState(Game* game, const char* path) {
 
                      tile->idGarbage = -1;
                      tile->garbage = nullptr;
-                     int a = 0;
-
                   }
                }
                std::vector <Tile> debug = boardDebug(board);
