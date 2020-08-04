@@ -98,7 +98,7 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
    }
 }
 
-static void _checkClear(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
+static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
    int startRow = tileGetRow(board, garbage->start);
    int endRow = startRow - (garbage->layers - 1);
 
@@ -176,7 +176,7 @@ static void _checkClear(Board* board, Garbage* garbage, std::map <int, Garbage*>
 }
 
 void garbageCheckClear(Board* board, Tile* tile) {
-   
+   //Check if cleared tiles are touching garbage blocks
    int row = tileGetRow(board, tile);
    int col = tileGetCol(board, tile);
 
@@ -199,7 +199,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
    }
 
    for (int i = 0; i < checkList.size(); i++) {  
-      _checkClear(board, checkList[i], cleared, checkList);
+      _findTouching(board, checkList[i], cleared, checkList);
    }
 
    //todo fix clear once you get the looping right
