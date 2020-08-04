@@ -40,6 +40,7 @@ struct Board {
    GarbagePile* pile = nullptr;
 
    uint64_t seed = 0;
+   uint64_t randomCalls = 0;
    std::default_random_engine generator;
    std::uniform_int_distribution<int> distribution;
 
@@ -74,3 +75,6 @@ int tileGetCol(Board* board, Tile* tile);
 void _serializeRandom(Board* board);
 void _deserializeRandom(Board* board);
 
+int boardRandomTile(Board* board);
+void boardStartRandom(Board* board);
+void boardLoadRandom(Board* board);

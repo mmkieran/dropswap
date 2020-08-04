@@ -508,6 +508,7 @@ int gameLoadState(Game* game, const char* path) {
             //deserialize board
             if (board) {
                _boardDeserialize(board, in);
+			   boardLoadRandom(board);
 
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {

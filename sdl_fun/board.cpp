@@ -16,6 +16,29 @@ Tile* _boardCreateArray(int width, int height) {
    return tiles;
 }
 
+int boardRandomTile(Board* board) {
+	int out = board->distribution(board->generator);
+	board->randomCalls++;
+	return out;
+}
+
+void boardStartRandom(Board* board) {
+	std::default_random_engine gen(board->game->seed);
+	board->generator = gen;
+
+	std::uniform_int_distribution<int> dist(1, 6);
+	board->distribution = dist;
+}
+
+
+void boardLoadRandom(Board* board) {
+	boardStartRandom(board);
+
+	if (board->randomCalls > 0) {
+		board->generator.discard(board->randomCalls);
+	}
+}
+
 Board* boardCreate(Game* game) {
    Board* board = new Board;
    if (board) {
@@ -38,11 +61,7 @@ Board* boardCreate(Game* game) {
 
          board->pile = garbagePileCreate();
 
-         std::default_random_engine gen(game->seed);
-         board->generator = gen;
-
-         std::uniform_int_distribution<int> dist (1, 6);
-         board->distribution = dist;
+		 boardStartRandom(board);
 
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
@@ -370,7 +389,7 @@ void tileFall(Board* board, float velocity) {
 
 static TileType _tileGenType(Board* board, Tile* tile) {
    //Used to randomly generate the type of a tile while not matching it to surrounding tiles
-   int current = board->distribution(board->generator);
+   int current = boardRandomTile(board);
    TileType type = (TileType)current;
 
    int row = tileGetRow(board, tile);
@@ -555,7 +574,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       int row = board->wBuffer - 1;
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
-         tileInit(board, current, row, col, (TileType)board->distribution(board->generator));
+         tileInit(board, current, row, col, (TileType)boardRandomTile(board) );
          current->ypos += board->offset;
          //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
@@ -572,7 +591,7 @@ void makeItRain(Board* board) {
       Tile* tile = boardGetTile(board, row, col);
       if (tile->type != tile_empty) { continue; }
 
-      int current = board->distribution(board->generator);
+      int current = boardRandomTile(board);
       TileType type = (TileType)current;
 
       //make sure we don't create any matches on startup
@@ -621,28 +640,28 @@ std::vector <Tile> boardDebug(Board* board) {
    }
    return tileList;
 }
-
-void _serializeRandom(Board* board) {
-   std::ofstream fout;
-
-   std::string fileName = "saves/p";
-   fileName += std::to_string(board->player);
-   fileName += "random.dat";
-
-   fout.open(fileName, std::fstream::binary | std::fstream::out);
-   fout << board->generator;
-   fout << board->distribution;
-
-}
-
-void _deserializeRandom(Board* board) {
-   std::ifstream fin;
-
-   std::string fileName = "saves/p";
-   fileName += std::to_string(board->player);
-   fileName += "random.dat";
-
-   fin.open(fileName, std::fstream::binary | std::fstream::in);
-   fin >> board->generator;
-   fin >> board->distribution;
-}
+//
+//void _serializeRandom(Board* board) {
+//   std::ofstream fout;
+//
+//   std::string fileName = "saves/p";
+//   fileName += std::to_string(board->player);
+//   fileName += "random.dat";
+//
+//   fout.open(fileName, std::fstream::binary | std::fstream::out);
+//   fout << board->generator;
+//   fout << board->distribution;
+//
+//}
+//
+//void _deserializeRandom(Board* board) {
+//   std::ifstream fin;
+//
+//   std::string fileName = "saves/p";
+//   fileName += std::to_string(board->player);
+//   fileName += "random.dat";
+//
+//   fin.open(fileName, std::fstream::binary | std::fstream::in);
+//   fin >> board->generator;
+//   fin >> board->distribution;
+//}
