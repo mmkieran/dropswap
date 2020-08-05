@@ -462,6 +462,9 @@ FILE* gameSaveState(Game* game) {
          if (board) {
             //serialize board settings
             _boardSerialize(board, out);
+
+			//serialize garbage
+			_garbageSerialize(board, out);
             
             //serialize tiles
             for (int row = 0; row < board->wBuffer; row++) {
@@ -475,8 +478,6 @@ FILE* gameSaveState(Game* game) {
 
             //serialize cursor
             _cursorSerialize(board->cursor, out);
-
-            //serialize garbage
 
          }
       }
@@ -511,18 +512,17 @@ int gameLoadState(Game* game, const char* path) {
                _boardDeserialize(board, in);
 			   boardLoadRandom(board);  //Return random generator to saved state using discard
 
+			   //deserialize garbage
+			   _garbagedeserialize(board, in);
+
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {
                      Tile* tile = boardGetTile(board, row, col);
                      //deserialize tiles
                      tile->mesh = meshCreate(board->game);
-                     //tileInit(board, tile, row, col, tile_empty);
-
-                     _tileDeserialize(tile, in);
+					 tile->garbage = nullptr;
+                     _tileDeserialize(board, tile, in);
                      tileSetTexture(board, tile);
-
-                     tile->idGarbage = -1;
-                     tile->garbage = nullptr;
                   }
                }
                std::vector <Tile> debug = boardDebug(board);
@@ -530,16 +530,6 @@ int gameLoadState(Game* game, const char* path) {
                //deserialize cursor
                board->cursor = cursorCreate(board, 0, 0);
                _cursorDeserialize(board->cursor, in);
-
-               //deserialize garbage
-
-			   Garbage garbage;
-
-			   garbage->mesh = meshCreate(board->game);
-			   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
-			   board->pile->garbage[garbage->ID] = garbage;
-			   board->pile->nextID++;
-
 
                vectorPushBack(game->boards, board);
             }

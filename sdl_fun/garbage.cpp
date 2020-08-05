@@ -333,7 +333,7 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
    }
 }
 
-void _serializeGarbage(Board* board, FILE* file) {
+void _garbageSerialize(Board* board, FILE* file) {
 
 	fwrite(&board->pile->nextID, sizeof(int), 1, file);
 	int count = board->pile->garbage.size();
@@ -352,7 +352,7 @@ void _serializeGarbage(Board* board, FILE* file) {
 	}
 }
 
-void _deserializeGarbage(Board* board, FILE* file) {
+void _garbagedeserialize(Board* board, FILE* file) {
 
 	fread(&board->pile->nextID, sizeof(int), 1, file);
 

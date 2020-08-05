@@ -3,6 +3,7 @@
 #include "tile.h"
 #include "resources.h"
 #include "render.h"
+#include "garbage.h"
 
 void tileSetTexture(Board* board, Tile* tile) {
    //hard code this for now
@@ -118,10 +119,10 @@ void _serializeTileGarbage(Tile* tile, FILE* file) {
 	fwrite(&start, sizeof(bool), 1, file);
 }
 
-void _deserializeTileGarbage(Tile* tile, FILE* file) {
+void _deserializeTileGarbage(Board* board, Tile* tile, FILE* file) {
 	bool start = false;
 	fread(&start, sizeof(bool), 1, file);
 	if (start == true) {
-
+		garbageSetStart(board->pile, tile);
 	}
 }

@@ -121,7 +121,7 @@ void _tileSerialize(Tile* tile, FILE* file) {
    _serializeTileGarbage(tile, file);
 }
 
-void _tileDeserialize(Tile* tile, FILE* file) {
+void _tileDeserialize(Board* board, Tile* tile, FILE* file) {
    _deserializeTileType(tile, file);
    _deserializeTileStatus(tile, file);
    //fread(&tile->type, sizeof(TileType), 1, file);
@@ -135,7 +135,7 @@ void _tileDeserialize(Tile* tile, FILE* file) {
    fread(&tile->chain, sizeof(bool), 1, file);
    //   Garbage* garbage;
    fread(&tile->idGarbage, sizeof(int), 1, file);
-   _deserializeTileGarbage(tile, file);
+   _deserializeTileGarbage(board, tile, file);
 }
 
 void _cursorSerialize(Cursor* cursor, FILE* file) {
@@ -154,23 +154,5 @@ void _cursorDeserialize(Cursor* cursor, FILE* file) {
    //   Animation* animation;
    fread(&cursor->h, sizeof(int), 1, file);
    fread(&cursor->w, sizeof(int), 1, file);
-}
-
-void _garbageSerialize(Garbage* garbage, FILE* file) {
-   fwrite(&garbage->ID, sizeof(int), 1, file);
-   fwrite(&garbage->width, sizeof(int), 1, file);
-   fwrite(&garbage->layers, sizeof(int), 1, file);
-   //   Tile* start;  //top left of garbage
-   //   Mesh* mesh;
-   fwrite(&garbage->falling, sizeof(bool), 1, file);
-}
-
-void _garbageDeserialize(Garbage* garbage, FILE* file) {
-   fread(&garbage->ID, sizeof(int), 1, file);
-   fread(&garbage->width, sizeof(int), 1, file);
-   fread(&garbage->layers, sizeof(int), 1, file);
-   //   Tile* start;  //top left of garbage
-   //   Mesh* mesh;
-   fread(&garbage->falling, sizeof(bool), 1, file);
 }
 
