@@ -477,6 +477,7 @@ FILE* gameSaveState(Game* game) {
             _cursorSerialize(board->cursor, out);
 
             //serialize garbage
+
          }
       }
    }
@@ -531,6 +532,14 @@ int gameLoadState(Game* game, const char* path) {
                _cursorDeserialize(board->cursor, in);
 
                //deserialize garbage
+
+			   Garbage garbage;
+
+			   garbage->mesh = meshCreate(board->game);
+			   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
+			   board->pile->garbage[garbage->ID] = garbage;
+			   board->pile->nextID++;
+
 
                vectorPushBack(game->boards, board);
             }

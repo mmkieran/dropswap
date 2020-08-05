@@ -12,5 +12,3 @@ void _tileSerialize(Tile* tile, FILE* file);
 void _tileDeserialize(Tile* tile, FILE* file);
 void _cursorSerialize(Cursor* cursor, FILE* file);
 void _cursorDeserialize(Cursor* cursor, FILE* file);
-void _garbageSerialize(Garbage* garbage, FILE* file);
-void _garbageDeserialize(Garbage* garbage, FILE* file);

@@ -58,3 +58,6 @@ void _serializeTileType(Tile* tile, FILE* file);
 
 void _deserializeTileStatus(Tile* tile, FILE* file);
 void _serializeTileStatus(Tile* tile, FILE* file);
+
+void _serializeTileGarbage(Tile* tile, FILE* file);
+void _deserializeTileGarbage(Tile* tile, FILE* file);

@@ -118,6 +118,7 @@ void _tileSerialize(Tile* tile, FILE* file) {
    fwrite(&tile->chain, sizeof(bool), 1, file);
    //   Garbage* garbage;
    fwrite(&tile->idGarbage, sizeof(int), 1, file);
+   _serializeTileGarbage(tile, file);
 }
 
 void _tileDeserialize(Tile* tile, FILE* file) {
@@ -134,6 +135,7 @@ void _tileDeserialize(Tile* tile, FILE* file) {
    fread(&tile->chain, sizeof(bool), 1, file);
    //   Garbage* garbage;
    fread(&tile->idGarbage, sizeof(int), 1, file);
+   _deserializeTileGarbage(tile, file);
 }
 
 void _cursorSerialize(Cursor* cursor, FILE* file) {

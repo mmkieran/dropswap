@@ -109,3 +109,19 @@ void _serializeTileStatus(Tile* tile, FILE* file) {
    }
    fwrite(&status, sizeof(int), 1, file);
 }
+
+void _serializeTileGarbage(Tile* tile, FILE* file) {
+	bool start = false;
+	if (tile->garbage != nullptr) {
+		start = true;
+	}
+	fwrite(&start, sizeof(bool), 1, file);
+}
+
+void _deserializeTileGarbage(Tile* tile, FILE* file) {
+	bool start = false;
+	fread(&start, sizeof(bool), 1, file);
+	if (start == true) {
+
+	}
+}

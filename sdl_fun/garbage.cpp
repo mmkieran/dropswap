@@ -320,3 +320,34 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
    }
 }
 
+void _serializeGarbage(Board* board, FILE* file) {
+	int count = board->pile->garbage.size();
+	fwrite(&count, sizeof(int), 1, file);
+
+	for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
+		Garbage* garbage = pair.second;
+
+		fwrite(&garbage->ID, sizeof(int), 1, file);
+		fwrite(&garbage->width, sizeof(int), 1, file);
+		fwrite(&garbage->layers, sizeof(int), 1, file);
+		//   Tile* start;  //top left of garbage
+		//   Mesh* mesh;
+		fwrite(&garbage->falling, sizeof(bool), 1, file);
+	}
+}
+
+void _serializeGarbage(Board* board, FILE* file) {
+	int count = 0;
+	fread(&count, sizeof(int), 1, file);
+
+	for (int i = 0; i < count; i++) {  //iterating a map gives std::pair (use first and second)
+		Garbage* garbage = garbageCreate(board);
+
+		fread(&garbage->ID, sizeof(int), 1, file);
+		fread(&garbage->width, sizeof(int), 1, file);
+		fread(&garbage->layers, sizeof(int), 1, file);
+		//   Tile* start;  //top left of garbage
+		//   Mesh* mesh;
+		fread(&garbage->falling, sizeof(bool), 1, file);
+	}
+}
