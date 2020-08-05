@@ -67,6 +67,35 @@ void garbageDeploy(Board* board, Garbage* garbage) {
 	//Add garbage oldest to latest (id)
 	//Anything that won't fit gets set as deployed false
 
+   if (board->paused) { return; } //don't deploy while the board is paused
+
+   int startRow = board->startH - 1;
+
+   for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
+      Garbage* garbage = pair.second;
+      if (garbage->deployed == false) {  //get all garbage ready to deploy
+
+         bool foundSpace = false;
+         bool noSpace = false;
+         while (foundSpace == false && noSpace == false) {
+
+            for (int row = startRow; row > startRow - garbage->layers; row--) {
+               for (int col = 0; col < board->w; col++) {
+                  Tile* tile = boardGetTile(board, startRow, col);
+                  if (tile->type != tile_empty) {}
+               }
+            }
+
+            if (startRow > 0) {
+               noSpace = true;
+            }
+
+            foundSpace = true;
+         }
+      }
+   }
+
+
 	int start = garbage->layers;
 
 	bool right = true;
@@ -355,11 +384,12 @@ void _garbageSerialize(Board* board, FILE* file) {
 		//   Tile* start;  
 		//   Mesh* mesh;
 		fwrite(&garbage->deployed, sizeof(bool), 1, file);
+      fwrite(&garbage->deployTime, sizeof(uint64_t), 1, file);
 		fwrite(&garbage->falling, sizeof(bool), 1, file);
 	}
 }
 
-void _garbagedeserialize(Board* board, FILE* file) {
+void _garbageDeserialize(Board* board, FILE* file) {
 
 	fread(&board->pile->nextID, sizeof(int), 1, file);
 
@@ -375,6 +405,7 @@ void _garbagedeserialize(Board* board, FILE* file) {
 		//   Tile* start;  
 		//   Mesh* mesh;
 		fread(&garbage->deployed, sizeof(bool), 1, file);
+      fread(&garbage->deployTime, sizeof(uint64_t), 1, file);
 		fread(&garbage->falling, sizeof(bool), 1, file);
 
 		board->pile->garbage[garbage->ID] = garbage;

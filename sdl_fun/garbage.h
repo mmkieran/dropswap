@@ -19,6 +19,8 @@ struct Garbage {
    Mesh* mesh;
 
    bool deployed = false;
+   uint64_t deployTime = 0;
+
    bool falling = true;
 };
 //@@End Serialize
@@ -40,4 +42,4 @@ Garbage* garbageGet(GarbagePile* pile, int id);
 void garbageSetStart(GarbagePile* pile, Tile* tile);
 
 void _garbageSerialize(Board* board, FILE* file);
-void _garbagedeserialize(Board* board, FILE* file);
+void _garbageDeserialize(Board* board, FILE* file);

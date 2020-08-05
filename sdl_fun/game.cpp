@@ -513,7 +513,7 @@ int gameLoadState(Game* game, const char* path) {
 			   boardLoadRandom(board);  //Return random generator to saved state using discard
 
 			   //deserialize garbage
-			   _garbagedeserialize(board, in);
+			   _garbageDeserialize(board, in);
 
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {
