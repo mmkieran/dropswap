@@ -61,41 +61,31 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
 	return garbage;
 }
 
-Garbage* garbageCreate(Board* board, int width, int layers) {
+void garbageDeploy(Board* board, Garbage* garbage) {
+	//Get a list of all garbage that is ready to deploy
+	//Find total size and start from bottom looking for space
+	//Add garbage oldest to latest (id)
+	//Anything that won't fit gets set as deployed false
 
-   Garbage* garbage = new Garbage;
+	int start = garbage->layers;
 
-   garbage->mesh = meshCreate(board->game);
-   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
-   //textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
-   garbage->ID = board->pile->nextID;
-   garbage->width = width;
-   garbage->layers = layers;
-   garbage->falling = true;
+	bool right = true;
+	if (garbage->width < 6) {
+		bool right = board->game->timer % 2;
+	}
 
-   int start = layers;
+	//todo For now always start on the bottom left
+	Tile* tile = boardGetTile(board, start, 0);
+	garbage->start = tile;  //do this for now to start
+	tile->garbage = garbage;
 
-   //todo For now always start on the bottom left
-   Tile* tile = boardGetTile(board, start, 0);
-   garbage->start = tile;  //do this for now to start
-   tile->garbage = garbage;
-
-   if (tile->type != tile_empty) {
-      board->bust = false;  //todo add bust logic
-   }
-
-   for (int row = start; row > start - layers; row--) {  //start at bottom left and go up for each layer
-      for (int col = 0; col < width; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         tile->type = tile_garbage;
-         tile->idGarbage = garbage->ID;
-         tileSetTexture(board, tile);
-      }
-   }
-   board->pile->garbage[garbage->ID] = garbage;
-   board->pile->nextID++;
-
-   return garbage;
+	for (int row = start; row > start - garbage->layers; row--) {  //start at bottom left and go up for each layer
+		for (int col = 0; col < garbage->width; col++) {
+			Tile* tile = boardGetTile(board, row, col);
+			tile->type = tile_garbage;
+			tileSetTexture(board, tile);
+		}
+	}
 }
 
 Garbage* garbageDestroy(Garbage* garbage) {
@@ -344,6 +334,8 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
 }
 
 void _serializeGarbage(Board* board, FILE* file) {
+
+	fwrite(&board->pile->nextID, sizeof(int), 1, file);
 	int count = board->pile->garbage.size();
 	fwrite(&count, sizeof(int), 1, file);
 
@@ -353,24 +345,31 @@ void _serializeGarbage(Board* board, FILE* file) {
 		fwrite(&garbage->ID, sizeof(int), 1, file);
 		fwrite(&garbage->width, sizeof(int), 1, file);
 		fwrite(&garbage->layers, sizeof(int), 1, file);
-		//   Tile* start;  //top left of garbage
+		//   Tile* start;  
 		//   Mesh* mesh;
+		fwrite(&garbage->deployed, sizeof(bool), 1, file);
 		fwrite(&garbage->falling, sizeof(bool), 1, file);
 	}
 }
 
-void _serializeGarbage(Board* board, FILE* file) {
+void _deserializeGarbage(Board* board, FILE* file) {
+
+	fread(&board->pile->nextID, sizeof(int), 1, file);
+
 	int count = 0;
 	fread(&count, sizeof(int), 1, file);
 
 	for (int i = 0; i < count; i++) {  //iterating a map gives std::pair (use first and second)
-		Garbage* garbage = garbageCreate(board);
+		Garbage* garbage = _garbageCreate(board);
 
 		fread(&garbage->ID, sizeof(int), 1, file);
 		fread(&garbage->width, sizeof(int), 1, file);
 		fread(&garbage->layers, sizeof(int), 1, file);
-		//   Tile* start;  //top left of garbage
+		//   Tile* start;  
 		//   Mesh* mesh;
+		fread(&garbage->deployed, sizeof(bool), 1, file);
 		fread(&garbage->falling, sizeof(bool), 1, file);
+
+		board->pile->garbage[garbage->ID] = garbage;
 	}
 }

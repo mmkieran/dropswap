@@ -13,9 +13,10 @@ struct Garbage {
    int width;
    int layers;
 
-   Tile* start;  //top left of garbage
+   Tile* start;  //bot left of garbage
    Mesh* mesh;
 
+   bool deployed = false;
    bool falling;
 };
 //@@End Serialize
