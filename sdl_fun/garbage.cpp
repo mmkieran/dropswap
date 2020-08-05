@@ -38,6 +38,29 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
+static Garbage* _garbageCreate(Board* board) {
+	Garbage* garbage = new Garbage;
+
+	garbage->mesh = meshCreate(board->game);
+	meshSetTexture(board->game, garbage->mesh, Texture_garbage);
+	//textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
+
+	return garbage;
+}
+
+Garbage* garbageCreate(Board* board, int width, int layers) {
+
+	Garbage* garbage = _garbageCreate(board);
+	garbage->ID = board->pile->nextID;
+	garbage->width = width;
+	garbage->layers = layers;
+
+	board->pile->garbage[garbage->ID] = garbage;
+	board->pile->nextID++;
+
+	return garbage;
+}
+
 Garbage* garbageCreate(Board* board, int width, int layers) {
 
    Garbage* garbage = new Garbage;
