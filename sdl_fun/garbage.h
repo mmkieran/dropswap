@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 typedef struct Board Board;
 typedef struct Tile Tile;
 typedef struct Mesh Mesh;
@@ -17,7 +19,7 @@ struct Garbage {
    Mesh* mesh;
 
    bool deployed = false;
-   bool falling;
+   bool falling = true;
 };
 //@@End Serialize
 

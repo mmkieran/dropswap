@@ -102,10 +102,9 @@
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
-copy $(SolutionDir)Depends\SDL2_image\lib\x64\*.dll $(TargetDir) /Y 
 copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y 
-xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ 
-xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ </Command>
+xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ /y 
+xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -165,10 +164,9 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ </Command>
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
-copy $(SolutionDir)Depends\SDL2_image\lib\x64\*.dll $(TargetDir) /Y 
 copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y 
-xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ 
-xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ </Command>
+xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ /y 
+xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

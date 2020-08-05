@@ -121,6 +121,8 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
    for (int row = startRow; row > startRow - garbage->layers; row--) {  //start at bottom left and go up for each layer
       for (int col = 0; col < garbage->width; col++) {
 
+		 //todo make this one function instead of 4, lol
+
          if (row == startRow) {  //check below for more garbage
             Tile* below = boardGetTile(board, row + 1, col);
             if (below && below->type == tile_garbage) {  //found more garbage
@@ -254,83 +256,88 @@ void garbageFall(Board* board, float velocity) {
 
    for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
       Garbage* garbage = pair.second;
+	  if (garbage->deployed == true) {
 
-      float drop = board->level * velocity;
+		  float drop = board->level * velocity;
 
-      garbage->falling = true;
+		  garbage->falling = true;
+		  int row = tileGetRow(board, garbage->start);
+		  int col = tileGetCol(board, garbage->start);
 
-      //int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;
-      int row = tileGetRow(board, garbage->start);
-      int col = tileGetCol(board, garbage->start);
+		  //Loop through and find out if the bottom layer can fall
+		  for (int i = 0; i < garbage->width; i++) {
+			  Tile* tile = boardGetTile(board, row, i);
+			  if (row < board->endH) {
+				  Tile* below = boardGetTile(board, row + 1, i);
 
-      //Loop through and find out if the bottom layer can fall
-      for (int i = 0; i < garbage->width; i++) {
-         Tile* tile = boardGetTile(board, row, i);
-         if (row < board->endH) {
-            Tile* below = boardGetTile(board, row + 1, i);
+				  if (below->type == tile_empty || below->falling == true) {
+					  if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
+						  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+						  if (potentialDrop <= 0) {
+							  potentialDrop = 0;
+							  garbage->falling = false;
+						  }
+						  else if (potentialDrop < drop) {
+							  drop = potentialDrop;
+						  }  //if this tile can't fall as far as others, adjust the max drop for all
+					  }
+				  }
 
-            if (below->type == tile_empty || below->falling == true) {
-               if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
-                  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop <= 0) { 
-                     potentialDrop = 0; 
-                     garbage->falling = false;
-                  }
-                  else if (potentialDrop < drop) { 
-                     drop = potentialDrop; 
-                  }  //if this tile can't fall as far as others, adjust the max drop for all
-               }
-            }
+				  else if (below->falling == false) {
+					  if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
+						  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+						  if (potentialDrop <= 0) {
+							  potentialDrop = 0;
+							  garbage->falling = false;
+						  }
+						  else if (potentialDrop < drop) {
+							  drop = potentialDrop;
+						  }  //if this tile can't fall as far as others, adjust the max drop for all
+					  }
+				  }
 
-            else if (below->falling == false) {
-               if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
-                  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-                  if (potentialDrop <= 0) { 
-                     potentialDrop = 0; 
-                     garbage->falling = false;
-                  }
-                  else if (potentialDrop < drop) {
-                     drop = potentialDrop; 
-                  }  //if this tile can't fall as far as others, adjust the max drop for all
-               }
-            }
+				  else {
+					  garbage->falling = false;
+				  }
+			  }
+		  }
 
-            else {
-               garbage->falling = false;
-            }
-         }
-      }
-
-      //If the bottom layer can fall, adjust the ypos with the max drop
-      if (garbage->falling == true && drop > 0) {
-         for (int r = row; r > row - garbage->layers; r--) {
-            for (int c = 0; c < garbage->width; c++) {
-               Tile* tile = boardGetTile(board, r, c);
-               tile->ypos += drop;
-               if (drop == velocity) {
-                  tile->falling = true;
-               }
-               else { 
-                  tile->falling = false; 
-                  garbage->falling = false;
-               }
-            }
-         }
-      }
+		  //If the bottom layer can fall, adjust the ypos with the max drop
+		  if (garbage->falling == true && drop > 0) {
+			  for (int r = row; r > row - garbage->layers; r--) {
+				  for (int c = 0; c < garbage->width; c++) {
+					  Tile* tile = boardGetTile(board, r, c);
+					  tile->ypos += drop;
+					  if (drop == velocity) {
+						  tile->falling = true;
+					  }
+					  else {
+						  tile->falling = false;
+						  garbage->falling = false;
+					  }
+				  }
+			  }
+		  }
+	  }
    }
 }
 
 void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first and second)
    
-   for (auto&& pair : board->pile->garbage) {
-      Garbage* garbage = pair.second;
-      float xpos, ypos;
+	for (auto&& pair : board->pile->garbage) {
+		Garbage* garbage = pair.second;
 
-      xpos = garbage->start->xpos;
-      ypos = garbage->start->ypos - (board->tileHeight * (garbage->layers - 1));
+		if (garbage->deployed == true) {
+			Garbage* garbage = pair.second;
+			float xpos, ypos;
 
-      //meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
-   }
+			xpos = garbage->start->xpos;
+			ypos = garbage->start->ypos - (board->tileHeight * (garbage->layers - 1));
+
+			//todo look at rendering two textures on one mesh
+			//meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
+		}
+	}
 }
 
 void _garbageSerialize(Board* board, FILE* file) {
