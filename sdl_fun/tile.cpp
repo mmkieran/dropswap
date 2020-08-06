@@ -51,9 +51,9 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
 
    if (firstTime == true) {
       tile->mesh = meshCreate(board->game);
-      tile->idGarbage = -1;
    }
 
+   tile->idGarbage = -1;
    tile->garbage = nullptr;
 
    tileSetTexture(board, tile);
@@ -124,5 +124,6 @@ void _deserializeTileGarbage(Board* board, Tile* tile, FILE* file) {
 	fread(&start, sizeof(bool), 1, file);
 	if (start == true) {
 		garbageSetStart(board->pile, tile);
+      tile->garbage = garbageGet(board->pile, tile->idGarbage);
 	}
 }

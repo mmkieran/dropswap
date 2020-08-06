@@ -30,10 +30,11 @@ enum TileStatus {
 struct Tile {
 
    TileType type;
-   TileStatus status;
 
    float xpos;
    float ypos;
+
+   TileStatus status;
 
    Mesh* mesh;
 

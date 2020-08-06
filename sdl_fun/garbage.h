@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <stdio.h>
 
 typedef struct Board Board;
@@ -15,8 +16,8 @@ struct Garbage {
    int width;
    int layers;
 
-   Tile* start;  //bot left of garbage
-   Mesh* mesh;
+   Tile* start = nullptr;  //bot left of garbage
+   Mesh* mesh = nullptr;
 
    bool deployed = false;
    uint64_t deployTime = 0;
@@ -29,6 +30,7 @@ GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
 Garbage* garbageCreate(Board* board, int width, int layers);
+void garbageDeploy(Board* board);
 Garbage* garbageDestroy(Garbage* garbage);
 
 void garbageCheckClear(Board* board, Tile* tile);

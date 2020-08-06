@@ -106,7 +106,9 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
 }
 
 void boardUpdate(Board* board) {
+
    boardRemoveClears(board);
+
    if (board->pauseLength > 0) {
       board->pauseLength -= board->game->timeDelta;
 
@@ -122,6 +124,7 @@ void boardUpdate(Board* board) {
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
          boardMoveUp(board, board->moveSpeed / 8.0f);
+         garbageDeploy(board);
       }
    }
 

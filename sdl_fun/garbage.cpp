@@ -39,82 +39,92 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
 static Garbage* _garbageCreate(Board* board) {
-	Garbage* garbage = new Garbage;
+   Garbage* garbage = new Garbage;
 
-	garbage->mesh = meshCreate(board->game);
-	meshSetTexture(board->game, garbage->mesh, Texture_garbage);
-	//textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
+   garbage->mesh = meshCreate(board->game);
+   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
+   //textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
 
-	return garbage;
+   return garbage;
 }
 
 Garbage* garbageCreate(Board* board, int width, int layers) {
+   
+   Garbage* garbage = _garbageCreate(board);
+   garbage->ID = board->pile->nextID;
+   garbage->width = width;
+   garbage->layers = layers;
+   garbage->deployTime = board->game->timer + 3000;
 
-	Garbage* garbage = _garbageCreate(board);
-	garbage->ID = board->pile->nextID;
-	garbage->width = width;
-	garbage->layers = layers;
+   board->pile->garbage[garbage->ID] = garbage;
+   board->pile->nextID++;
 
-	board->pile->garbage[garbage->ID] = garbage;
-	board->pile->nextID++;
-
-	return garbage;
+   return garbage;
 }
 
-void garbageDeploy(Board* board, Garbage* garbage) {
-	//Get a list of all garbage that is ready to deploy
-	//Find total size and start from bottom looking for space
-	//Add garbage oldest to latest (id)
-	//Anything that won't fit gets set as deployed false
+static int _findEmptySpace(Board* board, Garbage* garbage, int startRow, int startCol) {
+   //Returns zero if there's space to deploy garbage, otherwise returns the last row that was blocked
 
-   if (board->paused) { return; } //don't deploy while the board is paused
-
-   int startRow = board->startH - 1;
-
-   for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
-      Garbage* garbage = pair.second;
-      if (garbage->deployed == false) {  //get all garbage ready to deploy
-
-         bool foundSpace = false;
-         bool noSpace = false;
-         while (foundSpace == false && noSpace == false) {
-
-            for (int row = startRow; row > startRow - garbage->layers; row--) {
-               for (int col = 0; col < board->w; col++) {
-                  Tile* tile = boardGetTile(board, startRow, col);
-                  if (tile->type != tile_empty) {}
-               }
-            }
-
-            if (startRow > 0) {
-               noSpace = true;
-            }
-
-            foundSpace = true;
+   int failLayer = 0;
+   for (int row = startRow; row > startRow - garbage->layers; row--) {
+      for (int col = startCol ; col < garbage->width + startCol; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type != tile_empty) {
+            failLayer = row;
          }
       }
    }
 
+   return failLayer;
+}
 
-	int start = garbage->layers;
+void garbageDeploy(Board* board) {
 
-	bool right = true;
-	if (garbage->width < 6) {
-		bool right = board->game->timer % 2;
-	}
+   if (board->paused) { return; } //don't deploy while the board is paused
 
-	//todo For now always start on the bottom left
-	Tile* tile = boardGetTile(board, start, 0);
-	garbage->start = tile;  //do this for now to start
-	tile->garbage = garbage;
+   int startRow = board->startH - 1;  //Start deploying above visible board
+   bool noSpace = false;
 
-	for (int row = start; row > start - garbage->layers; row--) {  //start at bottom left and go up for each layer
-		for (int col = 0; col < garbage->width; col++) {
-			Tile* tile = boardGetTile(board, row, col);
-			tile->type = tile_garbage;
-			tileSetTexture(board, tile);
-		}
-	}
+   for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
+      Garbage* garbage = pair.second;
+      if (garbage->deployed == false && garbage->deployTime < board->game->timer) {  //get all garbage ready to deploy
+
+         int col = 0;
+         if (garbage->layers == 1 && garbage->width < 6 && garbage->ID % 2 == 0) {  //place on right side of board
+            col = board->w - garbage->width; 
+         }
+ 
+         bool searching = true; //looking for space to put the garbage
+         while (searching == true && noSpace == false) {
+
+            int rowFull = _findEmptySpace(board, garbage, startRow, col);
+
+            if (rowFull == 0) {
+               for (int row = startRow; row > startRow - garbage->layers; row--) {
+                  for (int c = col ; c < garbage->width + col; c++) {
+                     Tile* tile = boardGetTile(board, row, c);
+                     tile->type = tile_garbage;
+                     tileSetTexture(board, tile);
+                     tile->idGarbage = garbage->ID;
+
+                     if (row == startRow && c == col) {
+                        garbage->start = tile;
+                        tile->garbage = garbage;
+                     }
+                  }
+               }
+               garbage->deployed = true;
+               garbage->deployTime = 0;
+            }
+            else { startRow = rowFull + 1; }
+            std::vector <Tile> debug = boardDebug(board);
+            if (startRow > 0) {
+               noSpace = true;
+            }
+
+         }
+      }
+   }
 }
 
 Garbage* garbageDestroy(Garbage* garbage) {
@@ -141,6 +151,7 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
 }
 
 static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
+
    int startRow = tileGetRow(board, garbage->start);
    int endRow = startRow - (garbage->layers - 1);
 
@@ -148,9 +159,9 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
    int endCol = garbage->width - 1;
 
    for (int row = startRow; row > startRow - garbage->layers; row--) {  //start at bottom left and go up for each layer
-      for (int col = 0; col < garbage->width; col++) {
+      for (int col = startCol; col < garbage->width + startCol; col++) {
 
-		 //todo make this one function instead of 4, lol
+		 //todo make this one function instead of 4 chunk, lol
 
          if (row == startRow) {  //check below for more garbage
             Tile* below = boardGetTile(board, row + 1, col);
@@ -246,7 +257,6 @@ void garbageCheckClear(Board* board, Tile* tile) {
       _findTouching(board, checkList[i], cleared, checkList);
    }
 
-   //todo fix clear once you get the looping right
    garbageClear(board, cleared);
 }
 
@@ -255,20 +265,20 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
    for (auto&& pair : cleared) {
       Garbage* garbage = pair.second;
 
-      //int row = (garbage->start->ypos + board->tileHeight - 0.01f) / board->tileHeight + board->startH;  //todo check this
       int row = tileGetRow(board, garbage->start);
+      int col = tileGetCol(board, garbage->start);
 
       uint64_t clearTime = board->game->timer;
-      for (int col = 0; col < garbage->width; col++) {  //clear the bottom layer
-         Tile* tile = boardGetTile(board, row, col);
+      for (int c = col; c < garbage->width + col; c++) {  //clear the bottom layer
+         Tile* tile = boardGetTile(board, row, c);
          if (tile->garbage && garbage->layers > 1) {
-            Tile* newStart = boardGetTile(board, row - 1, col);
+            Tile* newStart = boardGetTile(board, row - 1, c);
             garbage->start = newStart;
             newStart->garbage = tile->garbage;
             tile->garbage = nullptr;
          }
-         tile->clearTime = clearTime + (200 * col + 1000);
-         tile->statusTime -= 200 * col;
+         tile->clearTime = clearTime + (200 * c + 1000);
+         tile->statusTime -= 200 * c;
          tile->type = tile_cleared;
          tile->falling = false;
       }
@@ -294,7 +304,7 @@ void garbageFall(Board* board, float velocity) {
 		  int col = tileGetCol(board, garbage->start);
 
 		  //Loop through and find out if the bottom layer can fall
-		  for (int i = 0; i < garbage->width; i++) {
+		  for (int i = col; i < garbage->width + col; i++) {
 			  Tile* tile = boardGetTile(board, row, i);
 			  if (row < board->endH) {
 				  Tile* below = boardGetTile(board, row + 1, i);
@@ -334,7 +344,7 @@ void garbageFall(Board* board, float velocity) {
 		  //If the bottom layer can fall, adjust the ypos with the max drop
 		  if (garbage->falling == true && drop > 0) {
 			  for (int r = row; r > row - garbage->layers; r--) {
-				  for (int c = 0; c < garbage->width; c++) {
+				  for (int c = col; c < garbage->width + col; c++) {
 					  Tile* tile = boardGetTile(board, r, c);
 					  tile->ypos += drop;
 					  if (drop == velocity) {

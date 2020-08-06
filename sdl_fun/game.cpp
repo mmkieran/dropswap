@@ -248,6 +248,7 @@ void gameRender(Game* game) {
          }
       }
       debugCursor(game);  //imgui debug tools
+      debugGarbage(game);
    }
 
    ImGui::Render();
@@ -297,14 +298,14 @@ void debugGarbage(Game* game) {
 
    ImGui::Begin("Debug Garbage");
 
-   Board* board = vectorGet(game->boards, 0);
+   Board* board = vectorGet(game->boards, 1);
    for (int row = 0; row < board->endH; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_garbage && tile->garbage) {
-            Tile* above = boardGetTile(board, row - 1, col);
-            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", above->xpos, above->ypos, above->garbage, above->falling);
-            ImGui::Text("%0.1f x, %0.1f y, ptr %d, fall %d", tile->xpos, tile->ypos, tile->garbage, tile->falling);
+            int start = 0;
+            if (tile->garbage) {start = 1; }
+            ImGui::Text("%d type, ptr %d, %d id", tile->type, start, tile->garbage->ID);
          }
       }
    }
@@ -520,12 +521,12 @@ int gameLoadState(Game* game, const char* path) {
                      Tile* tile = boardGetTile(board, row, col);
                      //deserialize tiles
                      tile->mesh = meshCreate(board->game);
-					 tile->garbage = nullptr;
+					      tile->garbage = nullptr;
                      _tileDeserialize(board, tile, in);
                      tileSetTexture(board, tile);
                   }
                }
-               std::vector <Tile> debug = boardDebug(board);
+               //std::vector <Tile> debug = boardDebug(board);
 
                //deserialize cursor
                board->cursor = cursorCreate(board, 0, 0);
