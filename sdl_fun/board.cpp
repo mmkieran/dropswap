@@ -448,11 +448,14 @@ void boardRemoveClears(Board* board) {
                tile->clearTime = 0;
                //flag all blocks above as potenially part of a chain
                std::vector <Tile*> column = boardGetAllTilesInCol(board, col);
-               //todo use a while loop here and stop if you hit an empty tile
-               for (auto&& t : column) {
-                  if (t->ypos < tile->ypos) {
-                     t->chain = true;
-                  }
+
+               //flag blocks above the clear as potentially part of a chain, stop if empty
+               int r = row - 1;
+               Tile* above = boardGetTile(board, r, col);
+               while (above->type != tile_empty && r >= 0) {
+                  above->chain = true;
+                  r--;
+                  above = boardGetTile(board, r, col);
                }
             }
          }
