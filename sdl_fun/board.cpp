@@ -198,8 +198,6 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 
 void boardSwap(Board* board) {
 
-   //todo add logic for falling blocks...
-
    float xCursor = cursorGetX(board->cursor);
    float yCursor = cursorGetY(board->cursor);
 
@@ -319,7 +317,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->clearTime = clearTime;
          m->falling = false;
          board->paused = true;
-         board->pauseLength = 3000;
+         board->pauseLength = 6000;
          if (fallCombo && m->chain == true) {
             board->combo += 1;
             fallCombo = false;
@@ -367,8 +365,11 @@ void tileFall(Board* board, float velocity) {
          }
 
          else if (below->falling == false) {
-            if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
-               if (below->type == tile_cleared || below->chain == true) { tile->chain = true; }  //If we're stopped by a clear, everything above could be a combo
+            if (tile->ypos + board->tileHeight == below->ypos) {  //We are already snapped to the tile below
+               tile->falling = false;
+               tile->chain = false;
+            }
+            else if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
@@ -438,13 +439,21 @@ void boardRemoveClears(Board* board) {
                tile->status = status_disable;
                tile->statusTime += current + 2000;
                tile->clearTime = 0;
+               tile->chain = true;
             }
 
             else if (tile->clearTime + 2000 <= current) {
                tile->type = tile_empty;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
-               //todo flag all blocks above as part of a chain
+               //flag all blocks above as potenially part of a chain
+               std::vector <Tile*> column = boardGetAllTilesInCol(board, col);
+               //todo use a while loop here and stop if you hit an empty tile
+               for (auto&& t : column) {
+                  if (t->ypos < tile->ypos) {
+                     t->chain = true;
+                  }
+               }
             }
          }
       }
@@ -479,10 +488,7 @@ void boardMoveUp(Board* board, float height) {
 
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
-         tile->ypos -= nudge;  //debug let's try moving all blocks
-         //if (tile->falling == false) {  //Only nudge up blocks that aren't falling
-         //   tile->ypos -= nudge;
-         //}
+         tile->ypos -= nudge;  
       }
    }
 
@@ -572,17 +578,14 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       }
    }
 
-   //std::vector <Tile*> checkTiles;
    for (int col = 0; col < board->w; col++) {  //Finally, check if the buffer row is empty and fill it
       int row = board->wBuffer - 1;
       Tile* current = boardGetTile(board, row, col);
       if (current->type == tile_empty) {
          tileInit(board, current, row, col, (TileType)boardRandomTile(board) );
          current->ypos += board->offset;
-         //checkTiles.push_back(boardGetTile(board, row - 1, col));  //Check the new row above for clears
       }
    }
-   //boardCheckClear(board, checkTiles, false);
 }
 
 //This is copied from Fill Tiles
