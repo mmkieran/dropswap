@@ -319,7 +319,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->clearTime = clearTime;
          m->falling = false;
          board->paused = true;
-         board->pauseLength = 6000;
+         board->pauseLength = 3000;
          if (fallCombo && m->chain == true) {
             board->combo += 1;
             fallCombo = false;
