@@ -302,74 +302,59 @@ void garbageFall(Board* board, float velocity) {
          int row = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
+         float potentialDrop = drop;
          //Loop through and find out if the bottom layer can fall
          for (int i = col; i < garbage->width + col; i++) {
-	         Tile* tile = boardGetTile(board, row, i);
+            Tile* tile = boardGetTile(board, row, i);
 
             int lookDown = 2;
-            Tile* below = boardGetTile(board, row + 1, col);
+            Tile* below = boardGetTile(board, row + 1, i);
             while (below && below->type == tile_empty) {
-               below = boardGetTile(board, row + lookDown, col);
+               below = boardGetTile(board, row + lookDown, i);
                lookDown++;
             }
 
-            float potentialDrop = drop;
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
-            //stuff below here is being REWRITTEN!
+            if (potentialDrop < 0) {  //Not sure if this can happen
+               garbage->falling = false;
+               break;
+            }
+            else if (potentialDrop == 0) { //It is stopped
+               garbage->falling = false;
+               break;
+            }
+            else if (potentialDrop < drop) {  //It can fall a little bit further
+               drop = potentialDrop;
+               garbage->falling = true;
+            }
+            else if (potentialDrop >= drop) {  //We can fall as much as we want
+               garbage->falling = true;
+            }
+            else {
+               printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
+               garbage->falling = false;
+               break;
+            }
+         }
 
-	         if (row < board->endH) {
-		         Tile* below = boardGetTile(board, row + 1, i);
-
-		         if (below->type == tile_empty || below->falling == true) {
-			         if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
-				         float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-				         if (potentialDrop <= 0) {
-					         potentialDrop = 0;
-					         garbage->falling = false;
-				         }
-				         else if (potentialDrop < drop) {
-					         drop = potentialDrop;
-				         }  //if this tile can't fall as far as others, adjust the max drop for all
-			         }
-		         }
-
-				  else if (below->falling == false) {
-					  if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
-						  float potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
-						  if (potentialDrop <= 0) {
-							  potentialDrop = 0;
-							  garbage->falling = false;
-						  }
-						  else if (potentialDrop < drop) {
-							  drop = potentialDrop;
-						  }  //if this tile can't fall as far as others, adjust the max drop for all
-					  }
-				  }
-
-				  else {
-					  garbage->falling = false;
-				  }
-			  }
-		  }
-
-		  //If the bottom layer can fall, adjust the ypos with the max drop
-		  if (garbage->falling == true && drop > 0) {
-			  for (int r = row; r > row - garbage->layers; r--) {
-				  for (int c = col; c < garbage->width + col; c++) {
-					  Tile* tile = boardGetTile(board, r, c);
-					  tile->ypos += drop;
-					  if (drop == velocity) {
-						  tile->falling = true;
-					  }
-					  else {
-						  tile->falling = false;
-						  garbage->falling = false;
-					  }
-				  }
-			  }
-		  }
-	  }
+         //If the bottom layer can fall, adjust the ypos with the max drop
+         if (garbage->falling == true && drop > 0) {
+            for (int r = row; r > row - garbage->layers; r--) {
+               for (int c = col; c < garbage->width + col; c++) {
+                  Tile* tile = boardGetTile(board, r, c);
+                  tile->ypos += drop;
+                  //if (drop == velocity) {
+                  //   tile->falling = true;
+                  //}
+                  //else {
+                  //   tile->falling = false;
+                  //   garbage->falling = false;
+                  //}
+               }
+            }
+         }
+      }
    }
 }
 
