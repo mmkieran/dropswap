@@ -60,7 +60,7 @@ void boardRender(Game* game, Board* board);
 void boardMoveUp(Board* board, float height);
 void boardSwap(Board* board);
 
-void tileFall(Board* board, float velocity);
+void boardFall(Board* board, float velocity);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void boardRemoveClears(Board* board);
 void boardAssignSlot(Board* board, bool buffer);

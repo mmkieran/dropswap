@@ -132,7 +132,7 @@ void boardUpdate(Board* board) {
       board->game->playing = false;
    }
 
-   tileFall(board, board->fallSpeed * 4.0f);
+   boardFall(board, board->fallSpeed * 4.0f);
    garbageFall(board, board->fallSpeed * 4.0f);
    boardAssignSlot(board, false);
 
@@ -206,6 +206,8 @@ void boardSwap(Board* board) {
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
+
+   tile1->chain = tile2->chain = false;
 
    Tile* below1 = boardGetTile(board, row + 1, col);
    Tile* below2 = boardGetTile(board, row + 1, col + 1);
@@ -329,7 +331,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 }
 
-void tileFall(Board* board, float velocity) {
+void boardFall(Board* board, float velocity) {
    //Detects and adjusts all the positions of the tiles that are falling
    std::vector <Tile*> tilesToCheck;
    float drop = board->level * velocity;
@@ -337,52 +339,57 @@ void tileFall(Board* board, float velocity) {
    for (int col = 0; col < board->w; col++) {
       for (int row = board->wBuffer - 1; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
-         tile->falling = false;
 
-         if (tile->type == tile_empty || tile->type == tile_cleared) {  //Don't update empty or cleared tiles
-            continue;
-         }
+         if (tile->type == tile_empty || tile->type == tile_cleared || tile->type == tile_garbage) {continue; } 
          if (tile->status == status_disable) { continue; }  //Don't fall if disabled
-
          if (row >= board->wBuffer - 1) { //skip the bottom row
             tile->falling = false;
             continue;
          }
-
-         if (tile->type == tile_garbage) {
-            //todo add garbage logic here
-            continue;
-         }
-
+         
+         int lookDown = 2;
          Tile* below = boardGetTile(board, row + 1, col);
-
-         if (below->type == tile_empty || below->falling == true) {
-            tile->falling = true;
-            if (tile->ypos + board->tileHeight + drop >= below->ypos && below->falling == true) {  //snap to tile's edge if drop is too much
-               tile->ypos = below->ypos - board->tileHeight;
-            }
-            else { tile->ypos += drop; }  //keep falling
+         while (below && below->type == tile_empty) {
+            below = boardGetTile(board, row + lookDown, col);
+            lookDown++;
          }
+         
+         float potentialDrop = drop;
+         potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
-         else if (below->falling == false) {
-            if (tile->ypos + board->tileHeight == below->ypos) {  //We are already snapped to the tile below
+         if (potentialDrop < 0) {  //We swapped a tile into it as it fell
+            tile->ypos = below->ypos - board->tileHeight;
+            tile->falling = false;
+            tile->chain = false;
+         }
+         else if (potentialDrop == 0) { //It has nowhere to fall
+            if (tile->falling = true) {  //but it was falling, maybe from garbage
+               tile->falling = false;
+               tilesToCheck.push_back(tile);  //check for clear
+            }
+            else {  //It's stationary
                tile->falling = false;
                tile->chain = false;
             }
-            else if (tile->ypos + board->tileHeight + drop >= below->ypos) {  //if the below tile is not falling, stop at it's edge
+         }
+         else if (potentialDrop <= drop) {  //It can fall a little bit further, check for clear on land
+            if (below->falling == false) {
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
             }
-            else {  //fall towards stopped tile
-               tile->ypos += drop;
+            else {  //It's still falling because the tile below is still falling
+               tile->ypos = below->ypos - board->tileHeight;
                tile->falling = true;
             }
          }
-
+         else if (potentialDrop > drop) {  //We can fall as much as we want
+            tile->ypos += drop;
+            tile->falling = true;
+         }
          else {
+            printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
             tile->falling = false;
-            tile->chain = false;  //Not falling so stop chaining
          }
       }
    }
