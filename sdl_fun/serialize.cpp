@@ -1,5 +1,28 @@
 #include "serialize.h"
 
+
+typedef unsigned char Byte;
+
+std::vector<Byte> stream;
+
+
+template <typename T>
+void writeStream(std::vector <Byte> &stream, const T &input) {
+   //This resizes a vector and shoves bytes on the end
+   int oldSize = stream.size();
+   int newSize = oldSize + sizeof(T);
+   stream.resize(newSize);
+   auto writeLocation = stream.data() + oldSize;
+   memcpy(writeLocation, &input, sizeof(T));
+}
+
+template <typename T>
+void readStream(Byte* &stream, T& output) {
+
+}
+
+
+
 void _gameSerialize(Game* game, FILE* file) {
    //   GameWindow* sdl = nullptr;
    fwrite(&game->windowWidth, sizeof(float), 1, file);
