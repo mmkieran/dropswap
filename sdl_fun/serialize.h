@@ -4,6 +4,10 @@
 #include "cursor.h"
 #include "garbage.h"
 
+
+void testReadStream();
+
+
 void _gameSerialize(Game* game, FILE* file);
 void _gameDeserialize(Game* game, FILE* file);
 void _boardSerialize(Board* board, FILE* file);

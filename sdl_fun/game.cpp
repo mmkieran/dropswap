@@ -425,6 +425,10 @@ void showGameMenu(Game* game) {
       }
    }
 
+   if (ImGui::Button("Test Stream")) {
+      testReadStream();
+   }
+
    if (ImGui::Button("Make it rain") ) {
       if (game->playing == true) {
          for (int i = 1; i <= vectorSize(game->boards); i++) {

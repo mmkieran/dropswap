@@ -25,15 +25,15 @@ void writeStream(std::vector <Byte> &stream, std::vector <T> const &input) {
 
 template <typename T>
 void readStream(Byte* &stream, T& output) {
-   //This takes a u char* and reads out a chunks, it then increments the stream pointer
-   memcpy(output, stream, sizeof(T));
+   //This takes a u char* and reads out a chunk, it then increments the stream pointer
+   memcpy(&output, stream, sizeof(T));
    stream += sizeof(T);
 }
 
 template <typename T>
 void readStream(Byte* &stream, std::vector <T> &output) {
    size_t count;  //size_t can store the size of any object
-   readStream(stream, &count);
+   readStream(stream, count);
    for (size_t i = 0; i < count; i++){
       T instance{};
       readStream(stream, instance);
@@ -41,6 +41,23 @@ void readStream(Byte* &stream, std::vector <T> &output) {
    }
 }
 
+
+void testWriteStream(std::vector <Byte> &stream) {
+   Tile tile;
+   tile.ypos = 304.51;
+   writeStream(stream, tile.ypos);
+}
+
+void testReadStream() {
+   std::vector <Byte> stream;
+   testWriteStream(stream);
+   Tile tile;
+   Byte* start = stream.data();
+   printf("STart pointer: %p\n", start);
+   readStream(start, tile.ypos);
+   printf("Tile type: %f\n", tile.ypos);
+   printf("End Pointer: %p\n", start);
+}
 
 
 void _gameSerialize(Game* game, FILE* file) {
