@@ -17,8 +17,28 @@ void writeStream(std::vector <Byte> &stream, const T &input) {
 }
 
 template <typename T>
-void readStream(Byte* &stream, T& output) {
+void writeStream(std::vector <Byte> &stream, std::vector <T> const &input) {
+   //Take a vector of things and write the number and then each item
+   writeStream(stream, input.size());
+   for (auto&& item : input) { writeStream(item); }
+}
 
+template <typename T>
+void readStream(Byte* &stream, T& output) {
+   //This takes a u char* and reads out a chunks, it then increments the stream pointer
+   memcpy(output, stream, sizeof(T));
+   stream += sizeof(T);
+}
+
+template <typename T>
+void readStream(Byte* &stream, std::vector <T> &output) {
+   size_t count;  //size_t can store the size of any object
+   readStream(stream, &count);
+   for (size_t i = 0; i < count; i++){
+      T instance{};
+      readStream(stream, instance);
+      output.push_back(std::move(instance) );  //std::move avoids copying
+   }
 }
 
 
