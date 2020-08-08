@@ -18,6 +18,9 @@
 #include "garbage.h"
 #include "serialize.h"
 
+#include <ggponet.h>
+
+
 struct GameWindow {
    SDL_Window *window;
    SDL_GLContext gl_context;
