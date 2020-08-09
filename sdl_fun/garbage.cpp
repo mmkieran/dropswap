@@ -8,12 +8,6 @@
 #include "resources.h"
 
 #include <vector>
-#include <map>
-
-struct GarbagePile {
-   std::map <int, Garbage*> garbage;
-   int nextID = 0;
-};
 
 GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
@@ -38,7 +32,7 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
-static Garbage* _garbageCreate(Board* board) {
+Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
 
    garbage->mesh = meshCreate(board->game);
@@ -117,7 +111,6 @@ void garbageDeploy(Board* board) {
                garbage->deployTime = 0;
             }
             else { startRow = rowFull + 1; }
-            std::vector <Tile> debug = boardDebug(board);
             if (startRow > 0) {
                noSpace = true;
             }
@@ -373,48 +366,5 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
 			//todo look at rendering two textures on one mesh
 			//meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
 		}
-	}
-}
-
-void _garbageSerialize(Board* board, FILE* file) {
-
-	fwrite(&board->pile->nextID, sizeof(int), 1, file);
-	int count = board->pile->garbage.size();
-	fwrite(&count, sizeof(int), 1, file);
-
-	for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
-		Garbage* garbage = pair.second;
-
-		fwrite(&garbage->ID, sizeof(int), 1, file);
-		fwrite(&garbage->width, sizeof(int), 1, file);
-		fwrite(&garbage->layers, sizeof(int), 1, file);
-		//   Tile* start;  
-		//   Mesh* mesh;
-		fwrite(&garbage->deployed, sizeof(bool), 1, file);
-      fwrite(&garbage->deployTime, sizeof(uint64_t), 1, file);
-		fwrite(&garbage->falling, sizeof(bool), 1, file);
-	}
-}
-
-void _garbageDeserialize(Board* board, FILE* file) {
-
-	fread(&board->pile->nextID, sizeof(int), 1, file);
-
-	int count = 0;
-	fread(&count, sizeof(int), 1, file);
-
-	for (int i = 0; i < count; i++) {  //iterating a map gives std::pair (use first and second)
-		Garbage* garbage = _garbageCreate(board);
-
-		fread(&garbage->ID, sizeof(int), 1, file);
-		fread(&garbage->width, sizeof(int), 1, file);
-		fread(&garbage->layers, sizeof(int), 1, file);
-		//   Tile* start;  
-		//   Mesh* mesh;
-		fread(&garbage->deployed, sizeof(bool), 1, file);
-      fread(&garbage->deployTime, sizeof(uint64_t), 1, file);
-		fread(&garbage->falling, sizeof(bool), 1, file);
-
-		board->pile->garbage[garbage->ID] = garbage;
 	}
 }

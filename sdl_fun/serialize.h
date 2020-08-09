@@ -17,5 +17,5 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile);
 void _tileDeserialize(Byte* start, Board* board, Tile* tile);
 void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor);
 void _cursorDeserialize(Byte* start, Cursor* cursor);
-void _serializeGarbage(std::vector <Byte> &stream, Tile* tile);
-void _deserializeGarbage(Byte* start, Board* board, Tile* tile);
+void _garbageSerialize(std::vector <Byte> &stream, Board* board);
+void _garbageDeserialize(Byte* start, Board* board);

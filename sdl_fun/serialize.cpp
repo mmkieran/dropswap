@@ -256,3 +256,46 @@ void _cursorDeserialize(Byte* start, Cursor* cursor) {
    readStream(start, cursor->w);
 }
 
+
+void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
+
+   writeStream(stream, board->pile->nextID);
+   int count = board->pile->garbage.size();
+   writeStream(stream, count);
+
+   for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
+      Garbage* garbage = pair.second;
+
+      writeStream(stream, garbage->ID);
+      writeStream(stream, garbage->width);
+      writeStream(stream, garbage->layers);
+      //   Tile* start;  
+      //   Mesh* mesh;
+      writeStream(stream, garbage->deployed);
+      writeStream(stream, garbage->deployTime);
+      writeStream(stream, garbage->falling);
+   }
+}
+
+void _garbageDeserialize(Byte* start, Board* board) {
+
+   readStream(start, board->pile->nextID);
+
+   int count = 0;
+   readStream(start, count);
+
+   for (int i = 0; i < count; i++) {  //iterating a map gives std::pair (use first and second)
+      Garbage* garbage = garbageCreateEmpty(board);
+
+      readStream(start, garbage->ID);
+      readStream(start, garbage->width);
+      readStream(start, garbage->layers);
+      //   Tile* start;  
+      //   Mesh* mesh;
+      readStream(start, garbage->deployed);
+      readStream(start, garbage->deployTime);
+      readStream(start, garbage->falling);
+
+      board->pile->garbage[garbage->ID] = garbage;
+   }
+}
