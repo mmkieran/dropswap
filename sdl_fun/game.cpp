@@ -23,6 +23,7 @@ struct GameWindow {
    SDL_GLContext gl_context;
 
    unsigned int VAO;  //This doesn't really belong here
+   std::vector <unsigned char> save;  //todo debug find a better place for this later
 
    TTF_Font* font;
 };
@@ -425,10 +426,6 @@ void showGameMenu(Game* game) {
       }
    }
 
-   if (ImGui::Button("Test Stream")) {
-      testReadStream();
-   }
-
    if (ImGui::Button("Make it rain") ) {
       if (game->playing == true) {
          for (int i = 1; i <= vectorSize(game->boards); i++) {
@@ -470,25 +467,26 @@ FILE* gameSaveState(Game* game) {
             _boardSerialize(stream, board);
 
 			//serialize garbage
-			_garbageSerialize(board, out);
+			_garbageSerialize(stream, board);
             
             //serialize tiles
             for (int row = 0; row < board->wBuffer; row++) {
                for (int col = 0; col < board->w; col++) {
                   Tile* tile = boardGetTile(board, row, col);
                   if (tile) {
-                     _tileSerialize(tile, out);
+                     _tileSerialize(stream, tile);
                   }
                }
             }
 
             //serialize cursor
-            _cursorSerialize(board->cursor, out);
+            _cursorSerialize(stream, board->cursor);
 
          }
       }
    }
    else { printf("Failed to save file... Err: %d\n", err); }
+   game->sdl->save = stream;  //todo debug replace with a nicer system to store saves
    fclose(out);
    return out;
 }
@@ -503,11 +501,11 @@ int gameLoadState(Game* game, const char* path) {
          Board* board = vectorGet(game->boards, i);
          boardDestroy(board);
          vectorClear(game->boards);
-         //game->playing = false;
       }
 
+      unsigned char* start = game->sdl->save.data();  //todo debug needs better system
       //deserialize game
-      _gameDeserialize(game, in);
+      _gameDeserialize(start, game);
 
       for (int i = 1; i <= game->players; i++) {
          Board* board = nullptr;
@@ -515,11 +513,11 @@ int gameLoadState(Game* game, const char* path) {
             board = boardCreate(game);
             //deserialize board
             if (board) {
-               _boardDeserialize(board, in);
+               _boardDeserialize(start, board);
 			   boardLoadRandom(board);  //Return random generator to saved state using discard
 
 			   //deserialize garbage
-			   _garbageDeserialize(board, in);
+			   _garbageDeserialize(start, board);
 
                for (int row = 0; row < board->wBuffer; row++) {
                   for (int col = 0; col < board->w; col++) {
@@ -527,15 +525,14 @@ int gameLoadState(Game* game, const char* path) {
                      //deserialize tiles
                      tile->mesh = meshCreate(board->game);
 					      tile->garbage = nullptr;
-                     _tileDeserialize(board, tile, in);
+                     _tileDeserialize(start, board, tile);
                      tileSetTexture(board, tile);
                   }
                }
-               //std::vector <Tile> debug = boardDebug(board);
 
                //deserialize cursor
                board->cursor = cursorCreate(board, 0, 0);
-               _cursorDeserialize(board->cursor, in);
+               _cursorDeserialize(start, board->cursor);
 
                vectorPushBack(game->boards, board);
             }

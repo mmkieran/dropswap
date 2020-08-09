@@ -44,7 +44,7 @@ Garbage* garbageCreateEmpty(Board* board) {
 
 Garbage* garbageCreate(Board* board, int width, int layers) {
    
-   Garbage* garbage = _garbageCreate(board);
+   Garbage* garbage = garbageCreateEmpty(board);
    garbage->ID = board->pile->nextID;
    garbage->width = width;
    garbage->layers = layers;

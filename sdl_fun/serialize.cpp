@@ -75,7 +75,7 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->seed);
 }
 
-void _gameDeserialize(Byte* start, Game* game) {
+void _gameDeserialize(Byte* &start, Game* game) {
    //   GameWindow* sdl = nullptr;
    readStream(start, game->windowWidth);
    readStream(start, game->windowHeight);
@@ -123,7 +123,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->randomCalls);
 }
 
-void _boardDeserialize(Board* board, Byte* start) {
+void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->startH);
    readStream(start, board->endH);
    readStream(start, board->wBuffer);
@@ -148,6 +148,7 @@ void _boardDeserialize(Board* board, Byte* start) {
    //   GarbagePile* pile = nullptr;
    readStream(start, board->seed);
    readStream(start, board->randomCalls);
+   int a = 0;
 }
 
 //Below are special deserializers for Tile enums
@@ -159,7 +160,7 @@ void _serializeTileType(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, type);
 }
 
-void _deserializeTileType(Byte* start, Tile* tile) {
+void _deserializeTileType(Byte* &start, Tile* tile) {
    int type;
    readStream(start, type);
    if (type >= 0 && type < tile_COUNT) {
@@ -176,7 +177,7 @@ void _serializeTileStatus(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, status);
 }
 
-void _deserializeTileStatus(Byte* start, Tile* tile) {
+void _deserializeTileStatus(Byte* &start, Tile* tile) {
    int status;
    readStream(start, status);
    if (status >= 0 && status < status_COUNT) {
@@ -194,7 +195,7 @@ void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, garbageStart);
 }
 
-void _deserializeTileGarbage(Byte* start, Board* board, Tile* tile) {
+void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
    bool garbageStart = false;
    readStream(start, garbageStart);
    if (garbageStart == true) {
@@ -221,7 +222,7 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileGarbage(stream, tile);
 }
 
-void _tileDeserialize(Byte* start, Board* board, Tile* tile) {
+void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
    readStream(start, tile->type);
@@ -247,7 +248,7 @@ void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor) {
    writeStream(stream, cursor->w);
 }
 
-void _cursorDeserialize(Byte* start, Cursor* cursor) {
+void _cursorDeserialize(Byte* &start, Cursor* cursor) {
    readStream(start, cursor->x);
    readStream(start, cursor->y);
    //   Mesh* mesh;
@@ -277,7 +278,7 @@ void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
    }
 }
 
-void _garbageDeserialize(Byte* start, Board* board) {
+void _garbageDeserialize(Byte* &start, Board* board) {
 
    readStream(start, board->pile->nextID);
 

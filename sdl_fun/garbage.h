@@ -8,11 +8,6 @@ typedef struct Board Board;
 typedef struct Tile Tile;
 typedef struct Mesh Mesh;
 
-struct GarbagePile {
-   std::map <int, Garbage*> garbage;
-   int nextID = 0;
-};
-
 //@@Start Serialize
 struct Garbage {
    int ID;
@@ -29,6 +24,12 @@ struct Garbage {
    bool falling = true;
 };
 //@@End Serialize
+
+struct GarbagePile {
+   std::map <int, Garbage*> garbage;
+   int nextID = 0;
+};
+
 
 GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
