@@ -567,6 +567,9 @@ int gameLoadState(Game* game, const char* path) {
       fread(&streamSize, sizeof(int), 1, in);
       stream.resize(streamSize);
 
+      //Byte* start = stream.data();  //Find out how to make this work, lol
+      //fread(&start, sizeof(Byte) * streamSize, 1, in);
+
       //todo read the entire file into memory and memcpy it to the vector
       for (int i = 0; i < streamSize; i++) {
          char c;
