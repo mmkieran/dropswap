@@ -53,12 +53,3 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
 
 void tileUpdate(Board* board, Tile* tile);
 void tileDraw(Board* board, Tile* tile);
-
-void _deserializeTileType(Tile* tile, FILE* file);
-void _serializeTileType(Tile* tile, FILE* file);
-
-void _deserializeTileStatus(Tile* tile, FILE* file);
-void _serializeTileStatus(Tile* tile, FILE* file);
-
-void _serializeTileGarbage(Tile* tile, FILE* file);
-void _deserializeTileGarbage(Board* board, Tile* tile, FILE* file);
