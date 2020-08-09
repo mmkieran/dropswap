@@ -541,10 +541,15 @@ FILE* gameSaveState(Game* game) {
    std::vector <Byte> stream;
    stream = gameSave(game);
 
-   if (err == 0) {
-      for (auto&& byte : stream) {
-         fwrite(&byte, sizeof(Byte), 1, out);
+   if (err == 0 && stream.size() > 0) {
+      int streamSize = stream.size();
+      fwrite(&streamSize, sizeof(int), 1, out);
+
+      //todo make this betterer?
+      for (int i = 0; i < streamSize; i++) {
+         fwrite(&stream[i], sizeof(Byte), 1, out);
       }
+
    }
    else { printf("Failed to save file... Err: %d\n", err); }
    game->sdl->save = stream;  //todo debug replace with a nicer system to store saves
@@ -556,8 +561,21 @@ FILE* gameSaveState(Game* game) {
 int gameLoadState(Game* game, const char* path) {
    FILE* in;
    int err = fopen_s(&in, path, "r");
+   std::vector <Byte> stream;
    if (err == 0) {
-      unsigned char* start = game->sdl->save.data();  //todo debug needs better system
+      int streamSize = 0;
+      fread(&streamSize, sizeof(int), 1, in);
+      stream.resize(streamSize);
+
+      //todo read the entire file into memory and memcpy it to the vector
+      for (int i = 0; i < streamSize; i++) {
+         char c;
+         fread(&c, sizeof(Byte), 1, in);
+         stream[i] = c;
+      }
+
+      unsigned char* start = stream.data();
+      //unsigned char* start = game->sdl->save.data();  //todo debug needs better system
       gameLoad(game, start);
    }
    else { printf("Failed to load file... Err: %d\n", err); }
