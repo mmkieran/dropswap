@@ -615,18 +615,20 @@ void makeItRain(Board* board) {
       Tile* left2 = boardGetTile(board, row, col - 2);
 
       int total = 6;
-      while ((type == left->type && type == left2->type) ) {
-         current++;
-         if (current > total) {
-            current = current % total;
+      if (left and left) {
+         while ((type == left->type && type == left2->type)) {
+            current++;
+            if (current > total) {
+               current = current % total;
+            }
+            type = (TileType)current;
          }
-         type = (TileType)current;
-      }
-      if (col % 2 == 0) {
-         tileInit(board, tile, row, col, type, true);
-      }
-      else {
-         tileInit(board, tile, row + 1, col, type, true);
+         if (col % 2 == 0) {
+            tileInit(board, tile, row, col, type, true);
+         }
+         else {
+            tileInit(board, tile, row + 1, col, type, true);
+         }
       }
    }
 }
