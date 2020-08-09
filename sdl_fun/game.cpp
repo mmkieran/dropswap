@@ -458,15 +458,16 @@ void showGameMenu(Game* game) {
 FILE* gameSaveState(Game* game) {
    FILE* out;
    int err = fopen_s(&out, "saves/game_state.dat", "w");
+   std::vector <Byte> stream;
    if (err == 0) {
       //serialize game settings
-      _gameSerialize(game, out);
+      _gameSerialize(stream, game);
 
       for (int i = 1; i <= game->players; i++) {
          Board* board = vectorGet(game->boards, i);
          if (board) {
             //serialize board settings
-            _boardSerialize(board, out);
+            _boardSerialize(stream, board);
 
 			//serialize garbage
 			_garbageSerialize(board, out);

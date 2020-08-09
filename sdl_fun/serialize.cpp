@@ -1,11 +1,5 @@
 #include "serialize.h"
 
-
-typedef unsigned char Byte;
-
-std::vector<Byte> stream;
-
-
 template <typename T>
 void writeStream(std::vector <Byte> &stream, const T &input) {
    //This resizes a vector and shoves bytes on the end
@@ -42,175 +36,223 @@ void readStream(Byte* &stream, std::vector <T> &output) {
 }
 
 
-void testWriteStream(std::vector <Byte> &stream) {
-   Tile tile;
-   tile.ypos = 304.51;
-   writeStream(stream, tile.ypos);
-}
+//void testWriteStream(std::vector <Byte> &stream) {
+//   Tile tile;
+//   tile.ypos = 304.51;
+//   writeStream(stream, tile.ypos);
+//}
+//
+//void testReadStream() {
+//   std::vector <Byte> stream;
+//   testWriteStream(stream);
+//   Tile tile;
+//   Byte* start = stream.data();
+//   printf("STart pointer: %p\n", start);
+//   readStream(start, tile.ypos);
+//   printf("Tile type: %f\n", tile.ypos);
+//   printf("End Pointer: %p\n", start);
+//}
 
-void testReadStream() {
-   std::vector <Byte> stream;
-   testWriteStream(stream);
-   Tile tile;
-   Byte* start = stream.data();
-   printf("STart pointer: %p\n", start);
-   readStream(start, tile.ypos);
-   printf("Tile type: %f\n", tile.ypos);
-   printf("End Pointer: %p\n", start);
-}
 
-
-void _gameSerialize(Game* game, FILE* file) {
+void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //   GameWindow* sdl = nullptr;
-   fwrite(&game->windowWidth, sizeof(float), 1, file);
-   fwrite(&game->windowHeight, sizeof(float), 1, file);
+   writeStream(stream, game->windowWidth);
+   writeStream(stream, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   fwrite(&game->bHeight, sizeof(int), 1, file);
-   fwrite(&game->bWidth, sizeof(int), 1, file);
-   fwrite(&game->tWidth, sizeof(int), 1, file);
-   fwrite(&game->tHeight, sizeof(int), 1, file);
-   fwrite(&game->isRunning, sizeof(bool), 1, file);
-   fwrite(&game->players, sizeof(int), 1, file);
-   fwrite(&game->playing, sizeof(bool), 1, file);
-   fwrite(&game->paused, sizeof(bool), 1, file);
-   fwrite(&game->pauseTimer, sizeof(int), 1, file);
-   fwrite(&game->pauseLength, sizeof(int), 1, file);
-   fwrite(&game->timer, sizeof(int), 1, file);
-   fwrite(&game->timeDelta, sizeof(int), 1, file);
-   fwrite(&game->seed, sizeof(uint64_t), 1, file);
+   writeStream(stream, game->bHeight);
+   writeStream(stream, game->bWidth);
+   writeStream(stream, game->tWidth);
+   writeStream(stream, game->tHeight);
+   writeStream(stream, game->isRunning);
+   writeStream(stream, game->players);
+   writeStream(stream, game->playing);
+   writeStream(stream, game->paused);
+   writeStream(stream, game->pauseTimer);
+   writeStream(stream, game->pauseLength);
+   writeStream(stream, game->timer);
+   writeStream(stream, game->timeDelta);
+   writeStream(stream, game->seed);
 }
 
-void _gameDeserialize(Game* game, FILE* file) {
+void _gameDeserialize(Byte* start, Game* game) {
    //   GameWindow* sdl = nullptr;
-   fread(&game->windowWidth, sizeof(float), 1, file);
-   fread(&game->windowHeight, sizeof(float), 1, file);
+   readStream(start, game->windowWidth);
+   readStream(start, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   fread(&game->bHeight, sizeof(int), 1, file);
-   fread(&game->bWidth, sizeof(int), 1, file);
-   fread(&game->tWidth, sizeof(int), 1, file);
-   fread(&game->tHeight, sizeof(int), 1, file);
-   fread(&game->isRunning, sizeof(bool), 1, file);
-   fread(&game->players, sizeof(int), 1, file);
-   fread(&game->playing, sizeof(bool), 1, file);
-   fread(&game->paused, sizeof(bool), 1, file);
-   fread(&game->pauseTimer, sizeof(int), 1, file);
-   fread(&game->pauseLength, sizeof(int), 1, file);
-   fread(&game->timer, sizeof(int), 1, file);
-   fread(&game->timeDelta, sizeof(int), 1, file);
-   fread(&game->seed, sizeof(uint64_t), 1, file);
+   readStream(start, game->bHeight);
+   readStream(start, game->bWidth);
+   readStream(start, game->tWidth);
+   readStream(start, game->tHeight);
+   readStream(start, game->isRunning);
+   readStream(start, game->players);
+   readStream(start, game->playing);
+   readStream(start, game->paused);
+   readStream(start, game->pauseTimer);
+   readStream(start, game->pauseLength);
+   readStream(start, game->timer);
+   readStream(start, game->timeDelta);
+   readStream(start, game->seed);
 }
 
-void _boardSerialize(Board* board, FILE* file) {
-   fwrite(&board->startH, sizeof(int), 1, file);
-   fwrite(&board->endH, sizeof(int), 1, file);
-   fwrite(&board->wBuffer, sizeof(int), 1, file);
-   fwrite(&board->w, sizeof(int), 1, file);
-   fwrite(&board->tileWidth, sizeof(int), 1, file);
-   fwrite(&board->tileHeight, sizeof(int), 1, file);
-   fwrite(&board->offset, sizeof(float), 1, file);
-   fwrite(&board->origin, sizeof(Vec2), 1, file);
+void _boardSerialize(std::vector <Byte> &stream, Board* board) {
+   writeStream(stream, board->startH);
+   writeStream(stream, board->endH);
+   writeStream(stream, board->wBuffer);
+   writeStream(stream, board->w);
+   writeStream(stream, board->tileWidth);
+   writeStream(stream, board->tileHeight);
+   writeStream(stream, board->offset);
+   writeStream(stream, board->origin);
    //   Mesh* frame = nullptr;
    //   Tile* tiles = nullptr;
    //   Cursor* cursor = nullptr;
    //   Game* game = nullptr;
-   fwrite(&board->level, sizeof(float), 1, file);
-   fwrite(&board->fallSpeed, sizeof(float), 1, file);
-   fwrite(&board->moveSpeed, sizeof(float), 1, file);
-   fwrite(&board->paused, sizeof(bool), 1, file);
-   fwrite(&board->pauseLength, sizeof(int), 1, file);
-   fwrite(&board->score, sizeof(double), 1, file);
-   fwrite(&board->bust, sizeof(bool), 1, file);
-   fwrite(&board->combo, sizeof(int), 1, file);
-   fwrite(&board->player, sizeof(int), 1, file);
+   writeStream(stream, board->level);
+   writeStream(stream, board->fallSpeed);
+   writeStream(stream, board->moveSpeed);
+   writeStream(stream, board->paused);
+   writeStream(stream, board->pauseLength);
+   writeStream(stream, board->score);
+   writeStream(stream, board->bust);
+   writeStream(stream, board->combo);
+   writeStream(stream, board->player);
    //   GarbagePile* pile = nullptr;
-   fwrite(&board->seed, sizeof(uint64_t), 1, file);
-   fwrite(&board->randomCalls, sizeof(uint64_t), 1, file);
-
-   //fwrite(&board->generator, sizeof(std::default_random_engine), 1, file);
-   //fwrite(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
+   writeStream(stream, board->seed);
+   writeStream(stream, board->randomCalls);
 }
 
-void _boardDeserialize(Board* board, FILE* file) {
-   fread(&board->startH, sizeof(int), 1, file);
-   fread(&board->endH, sizeof(int), 1, file);
-   fread(&board->wBuffer, sizeof(int), 1, file);
-   fread(&board->w, sizeof(int), 1, file);
-   fread(&board->tileWidth, sizeof(int), 1, file);
-   fread(&board->tileHeight, sizeof(int), 1, file);
-   fread(&board->offset, sizeof(float), 1, file);
-   fread(&board->origin, sizeof(Vec2), 1, file);
+void _boardDeserialize(Board* board, Byte* start) {
+   readStream(start, board->startH);
+   readStream(start, board->endH);
+   readStream(start, board->wBuffer);
+   readStream(start, board->w);
+   readStream(start, board->tileWidth);
+   readStream(start, board->tileHeight);
+   readStream(start, board->offset);
+   readStream(start, board->origin);
    //   Mesh* frame = nullptr;
    //   Tile* tiles = nullptr;
    //   Cursor* cursor = nullptr;
    //   Game* game = nullptr;
-   fread(&board->level, sizeof(float), 1, file);
-   fread(&board->fallSpeed, sizeof(float), 1, file);
-   fread(&board->moveSpeed, sizeof(float), 1, file);
-   fread(&board->paused, sizeof(bool), 1, file);
-   fread(&board->pauseLength, sizeof(int), 1, file);
-   fread(&board->score, sizeof(double), 1, file);
-   fread(&board->bust, sizeof(bool), 1, file);
-   fread(&board->combo, sizeof(int), 1, file);
-   fread(&board->player, sizeof(int), 1, file);
+   readStream(start, board->level);
+   readStream(start, board->fallSpeed);
+   readStream(start, board->moveSpeed);
+   readStream(start, board->paused);
+   readStream(start, board->pauseLength);
+   readStream(start, board->score);
+   readStream(start, board->bust);
+   readStream(start, board->combo);
+   readStream(start, board->player);
    //   GarbagePile* pile = nullptr;
-   fread(&board->seed, sizeof(uint64_t), 1, file);
-   fread(&board->randomCalls, sizeof(uint64_t), 1, file);
-
-   //fread(&board->generator, sizeof(std::default_random_engine), 1, file);
-   //fread(&board->distribution, sizeof(std::uniform_int_distribution<int>), 1, file);
+   readStream(start, board->seed);
+   readStream(start, board->randomCalls);
 }
 
-void _tileSerialize(Tile* tile, FILE* file) {
-   _serializeTileType(tile, file);
-   _serializeTileStatus(tile, file);
-   //fwrite(&tile->type, sizeof(TileType), 1, file);
-   //fwrite(&tile->status, sizeof(TileStatus), 1, file);
-   fwrite(&tile->xpos, sizeof(float), 1, file);
-   fwrite(&tile->ypos, sizeof(float), 1, file);
+//Below are special deserializers for Tile enums
+void _serializeTileType(std::vector <Byte> &stream, Tile* tile) {
+   int type = 0;
+   if (tile->type) {
+      type = (int)tile->type;
+   }
+   writeStream(stream, type);
+}
+
+void _deserializeTileType(Byte* start, Tile* tile) {
+   int type;
+   readStream(start, type);
+   if (type >= 0 && type < tile_COUNT) {
+      tile->type = (TileType)type;
+   }
+   else { tile->type = tile_empty; }
+}
+
+void _serializeTileStatus(std::vector <Byte> &stream, Tile* tile) {
+   int status = 0;
+   if (tile->status) {
+      status = (int)tile->status;
+   }
+   writeStream(stream, status);
+}
+
+void _deserializeTileStatus(Byte* start, Tile* tile) {
+   int status;
+   readStream(start, status);
+   if (status >= 0 && status < status_COUNT) {
+      tile->status = (TileStatus)status;
+   }
+   else { tile->status = status_normal; }
+}
+
+//Special serializers for Garbage
+void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
+   bool garbageStart = false;
+   if (tile->garbage != nullptr) {
+      garbageStart = true;
+   }
+   writeStream(stream, garbageStart);
+}
+
+void _deserializeTileGarbage(Byte* start, Board* board, Tile* tile) {
+   bool garbageStart = false;
+   readStream(start, garbageStart);
+   if (garbageStart == true) {
+      garbageSetStart(board->pile, tile);
+      tile->garbage = garbageGet(board->pile, tile->idGarbage);
+   }
+}
+
+
+void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
+   _serializeTileType(stream, tile);
+   _serializeTileStatus(stream, tile);
+   writeStream(stream, tile->type);
+   writeStream(stream, tile->xpos);
+   writeStream(stream, tile->ypos);
+   writeStream(stream, tile->status);
    //   Mesh* mesh;
-   fwrite(&tile->falling, sizeof(bool), 1, file);
-   fwrite(&tile->clearTime, sizeof(uint64_t), 1, file);
-   fwrite(&tile->statusTime, sizeof(uint64_t), 1, file);
-   fwrite(&tile->chain, sizeof(bool), 1, file);
+   writeStream(stream, tile->falling);
+   writeStream(stream, tile->clearTime);
+   writeStream(stream, tile->statusTime);
+   writeStream(stream, tile->chain);
    //   Garbage* garbage;
-   fwrite(&tile->idGarbage, sizeof(int), 1, file);
-   _serializeTileGarbage(tile, file);
+   writeStream(stream, tile->idGarbage);
+   _serializeTileGarbage(stream, tile);
 }
 
-void _tileDeserialize(Board* board, Tile* tile, FILE* file) {
-   _deserializeTileType(tile, file);
-   _deserializeTileStatus(tile, file);
-   //fread(&tile->type, sizeof(TileType), 1, file);
-   //fread(&tile->status, sizeof(TileStatus), 1, file);
-   fread(&tile->xpos, sizeof(float), 1, file);
-   fread(&tile->ypos, sizeof(float), 1, file);
+void _tileDeserialize(Byte* start, Board* board, Tile* tile) {
+   _deserializeTileType(start, tile);
+   _deserializeTileStatus(start, tile);
+   readStream(start, tile->type);
+   readStream(start, tile->xpos);
+   readStream(start, tile->ypos);
+   readStream(start, tile->status);
    //   Mesh* mesh;
-   fread(&tile->falling, sizeof(bool), 1, file);
-   fread(&tile->clearTime, sizeof(uint64_t), 1, file);
-   fread(&tile->statusTime, sizeof(uint64_t), 1, file);
-   fread(&tile->chain, sizeof(bool), 1, file);
+   readStream(start, tile->falling);
+   readStream(start, tile->clearTime);
+   readStream(start, tile->statusTime);
+   readStream(start, tile->chain);
    //   Garbage* garbage;
-   fread(&tile->idGarbage, sizeof(int), 1, file);
-   _deserializeTileGarbage(board, tile, file);
+   readStream(start, tile->idGarbage);
+   _deserializeTileGarbage(start, board, tile);
 }
 
-void _cursorSerialize(Cursor* cursor, FILE* file) {
-   fwrite(&cursor->x, sizeof(float), 1, file);
-   fwrite(&cursor->y, sizeof(float), 1, file);
+void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor) {
+   writeStream(stream, cursor->x);
+   writeStream(stream, cursor->y);
    //   Mesh* mesh;
    //   Animation* animation;
-   fwrite(&cursor->h, sizeof(int), 1, file);
-   fwrite(&cursor->w, sizeof(int), 1, file);
+   writeStream(stream, cursor->h);
+   writeStream(stream, cursor->w);
 }
 
-void _cursorDeserialize(Cursor* cursor, FILE* file) {
-   fread(&cursor->x, sizeof(float), 1, file);
-   fread(&cursor->y, sizeof(float), 1, file);
+void _cursorDeserialize(Byte* start, Cursor* cursor) {
+   readStream(start, cursor->x);
+   readStream(start, cursor->y);
    //   Mesh* mesh;
    //   Animation* animation;
-   fread(&cursor->h, sizeof(int), 1, file);
-   fread(&cursor->w, sizeof(int), 1, file);
+   readStream(start, cursor->h);
+   readStream(start, cursor->w);
 }
 

@@ -4,15 +4,18 @@
 #include "cursor.h"
 #include "garbage.h"
 
+typedef unsigned char Byte;
 
-void testReadStream();
 
+//void testReadStream();
 
-void _gameSerialize(Game* game, FILE* file);
-void _gameDeserialize(Game* game, FILE* file);
-void _boardSerialize(Board* board, FILE* file);
-void _boardDeserialize(Board* board, FILE* file);
-void _tileSerialize(Tile* tile, FILE* file);
-void _tileDeserialize(Board* board, Tile* tile, FILE* file);
-void _cursorSerialize(Cursor* cursor, FILE* file);
-void _cursorDeserialize(Cursor* cursor, FILE* file);
+void _gameSerialize(std::vector <Byte> &stream, Game* game);
+void _gameDeserialize(Byte* start, Game* game);
+void _boardSerialize(std::vector <Byte> &stream, Board* board);
+void _boardDeserialize(Board* board, Byte* start);
+void _tileSerialize(std::vector <Byte> &stream, Tile* tile);
+void _tileDeserialize(Byte* start, Board* board, Tile* tile);
+void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor);
+void _cursorDeserialize(Byte* start, Cursor* cursor);
+void _serializeGarbage(std::vector <Byte> &stream, Tile* tile);
+void _deserializeGarbage(Byte* start, Board* board, Tile* tile);

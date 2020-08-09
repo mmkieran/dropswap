@@ -14,8 +14,8 @@ nl = "\n"
 name = None
 tab = "   "
 
-genCPP = open("serialize.cpp", "w")
-genH = open("serialize.h", "w")
+genCPP = open("_serialize.cpp", "w")
+genH = open("_serialize.h", "w")
 
 headerString = ""
 saveString = '#include "serialize.h"\n\n'
@@ -52,11 +52,11 @@ for fileName in files:
             if "struct" in ln:
                 structName = split[1]
                 
-                saveString += "void _%sSerialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
-                headerString += "void _%sSerialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName) 
+                saveString += "void _%sSerialize(%s* %s, std::vector <Byte> &stream) {\n" %(baseName, structName, baseName)
+                headerString += "void _%sSerialize(%s* %s, std::vector <Byte> &stream);\n" %(baseName, structName, baseName) 
             
-                loadString += "void _%sDeserialize(%s* %s, FILE* file) {\n" %(baseName, structName, baseName)
-                headerString += "void _%sDeserialize(%s* %s, FILE* file);\n" %(baseName, structName, baseName)
+                loadString += "void _%sDeserialize(%s* %s, Byte* start) {\n" %(baseName, structName, baseName)
+                headerString += "void _%sDeserialize(%s* %s, Byte* start);\n" %(baseName, structName, baseName)
                 
                 continue
             if "//" in split[0]:
@@ -70,8 +70,8 @@ for fileName in files:
                 vType = split[0]
                 if ";" in var:
                     var = var[:-1]
-                saveString += tab + 'fwrite(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, var, vType)
-                loadString += tab + 'fread(&%s->%s, sizeof(%s), 1, file);\n' %(baseName, var, vType)
+                saveString += tab + 'writeStream(stream, %s->%s);\n' %(baseName, var)
+                loadString += tab + 'readStream(start, %s->%s);\n' %(baseName, var)
                 
 
     saveString += "}\n\n"

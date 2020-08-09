@@ -42,6 +42,3 @@ void garbageDraw(Board* board);
 
 Garbage* garbageGet(GarbagePile* pile, int id);
 void garbageSetStart(GarbagePile* pile, Tile* tile);
-
-void _garbageSerialize(Board* board, FILE* file);
-void _garbageDeserialize(Board* board, FILE* file);
