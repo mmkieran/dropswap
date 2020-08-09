@@ -2,12 +2,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <map>
 
 typedef struct Board Board;
 typedef struct Tile Tile;
 typedef struct Mesh Mesh;
-
-struct GarbagePile;
 
 //@@Start Serialize
 struct Garbage {
@@ -26,9 +25,16 @@ struct Garbage {
 };
 //@@End Serialize
 
+struct GarbagePile {
+   std::map <int, Garbage*> garbage;
+   int nextID = 0;
+};
+
+
 GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
+Garbage* garbageCreateEmpty(Board* board);
 Garbage* garbageCreate(Board* board, int width, int layers);
 void garbageDeploy(Board* board);
 Garbage* garbageDestroy(Garbage* garbage);
@@ -42,6 +48,3 @@ void garbageDraw(Board* board);
 
 Garbage* garbageGet(GarbagePile* pile, int id);
 void garbageSetStart(GarbagePile* pile, Tile* tile);
-
-void _garbageSerialize(Board* board, FILE* file);
-void _garbageDeserialize(Board* board, FILE* file);
