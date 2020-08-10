@@ -1,6 +1,9 @@
 #include "game_inputs.h"
 
+#include "game.h"
+
 #include <SDL.h>
+#include <map>
 
 /*
 1. Find out what type of thing we're using...
@@ -87,45 +90,44 @@ void inputProcessKeyboard(Game* game) {
       kmap.hk_pause,
    };
 
-   bool* pressList[] = {
-      &game->p1Input.leftPressed,
-      &game->p1Input.rightPressed,
-      &game->p1Input.upPressed,
-      &game->p1Input.downPressed,
+   ButtonState* buttonList[] = {
+      &game->p1Input.left,
+      &game->p1Input.right,
+      &game->p1Input.up,
+      &game->p1Input.down,
 
-      &game->p1Input.swapPressed,
-      &game->p1Input.pausePressed
-   };
-
-   bool* holdList[] = {
-      &game->p1Input.leftHeld,
-      &game->p1Input.rightHeld,
-      &game->p1Input.upHeld,
-      &game->p1Input.downHeld,
+      &game->p1Input.swap,
+      &game->p1Input.pause
    };
 
    //Logic for held keys
    for (int i = 0; i < 4; i++) {  //todo maybe make the count smarter... 
-      if (state[ keyList[i] ] == true && *holdList[i] == false) {
-         *pressList[i] = true;
-         *holdList[i] = true;
+      if (state[ keyList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
+         buttonList[i]->p = true;
+         buttonList[i]->fc++; //increment frame count
       }
-      else if (state[keyList[i]] == true && *holdList[i] == true) {
-         *pressList[i] = false;
+      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
+         buttonList[i]->p = false;
+         buttonList[i]->fc++;
+         if (buttonList[i]->fc > 10) {
+            buttonList[i]->p = false;
+            buttonList[i]->h = true;
+         }
       }
       else {
-         *pressList[i] = false;
-         *holdList[i] = false;
+         buttonList[i]->p = false;
+         buttonList[i]->h = false;
+         buttonList[i]->fc = 0;
       }
    }
 
    //Logic for pressed keys
    for (int i = 4; i < 6; i++) {  //todo maybe make the count smarter... 
       if (state[keyList[i]] == true) {
-         *pressList[i] = true;
+         buttonList[i]->p = true;
       }
       else {
-         *pressList[i] = false;
+         buttonList[i]->p = false;
       }
    }
 

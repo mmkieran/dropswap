@@ -1,5 +1,5 @@
 #pragma once
 
-#include "game.h"
+typedef struct Game Game;
 
 void inputProcessKeyboard(Game* game);

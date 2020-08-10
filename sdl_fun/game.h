@@ -10,24 +10,22 @@ typedef struct Resources Resources;
 
 struct GameWindow;
 
+struct ButtonState {
+   bool p = false;  //pressed
+   bool h = false;  //held
+   int fc = 0;      //frame count
+};
+
 struct UserInput {
-   //Holding a button down
-   bool leftHeld = false;
-   bool rightHeld = false;
-   bool upHeld = false;
-   bool downHeld = false;
+   ButtonState left;
+   ButtonState right;
+   ButtonState up;
+   ButtonState down;
 
-   //Presses
-   bool pausePressed = false;
-   bool swapPressed = false;
+   ButtonState pause;
+   ButtonState swap;
 
-   bool powerPressed = false;
-
-   bool leftPressed = false;
-   bool rightPressed = false;
-   bool upPressed = false;
-   bool downPressed = false;
-
+   ButtonState power;
 };
 
 //todo this isn't used right now

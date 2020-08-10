@@ -76,31 +76,59 @@ void cursorMove(Board* board) {
    float y = cursorGetY(board->cursor);
    float x = cursorGetX(board->cursor);
 
-   if (board->game->p1Input.upPressed) {
+   if (board->game->p1Input.up.p) {
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.downPressed) {
+   else if (board->game->p1Input.down.p) {
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.rightPressed) {
+   else if (board->game->p1Input.right.p) {
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
       }
    }
 
-   else if (board->game->p1Input.leftPressed) {
+   else if (board->game->p1Input.left.p) {
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));
+      }
+   }
+
+   else if (board->game->p1Input.right.h) {
+      if (x >= (board->w - 2) * board->tileWidth) { return; }
+      else {
+         cursorSetX(board->cursor, (x + board->tileWidth));
+      }
+   }
+
+   else if (board->game->p1Input.left.h) {
+      if (x <= 0) { return; }
+      else {
+         cursorSetX(board->cursor, (x - board->tileWidth));
+      }
+   }
+
+   else if (board->game->p1Input.up.h) {
+      if (y - board->tileHeight <= 0) { return; }
+      else {
+         cursorSetY(board->cursor, (y - board->tileHeight));
+      }
+   }
+
+   else if (board->game->p1Input.down.h) {
+      if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+      else {
+         cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
 }

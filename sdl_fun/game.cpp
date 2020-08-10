@@ -170,8 +170,8 @@ void gameRender(Game* game) {
             boardRender(game, board);
          }
       }
-      debugCursor(game);  //imgui debug tools
-      debugGarbage(game);
+      //debugCursor(game);  //imgui debug tools
+      //debugGarbage(game);
    }
 
    ImGui::Render();
