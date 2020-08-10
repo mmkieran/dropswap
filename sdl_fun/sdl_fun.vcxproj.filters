@@ -32,7 +32,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="inputs.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
