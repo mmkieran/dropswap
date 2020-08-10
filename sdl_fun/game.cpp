@@ -140,11 +140,17 @@ void gameHandleEvents(Game* game) {
       break;
    }
 
-   inputProcessKeyboard(game);  //Fill out the UserInput struct
+   inputProcessKeyboard(game);  //Fill out the UserInput struct from keyboard
+
+   if (game->p1Input.pause.p == true) {  //pause game
+      if (game->paused == true) { game->paused = false; }
+      else if (game->paused == false) { game->paused = true; }
+   }
 
 }
 
 void gameUpdate(Game* game) {
+
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       boardUpdate(vectorGet(game->boards, i));
    }

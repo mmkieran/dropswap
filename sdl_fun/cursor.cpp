@@ -131,5 +131,9 @@ void cursorMove(Board* board) {
          cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
+
+   else if (board->game->p1Input.swap.p) {
+      boardSwap(board);
+   }
 }
 

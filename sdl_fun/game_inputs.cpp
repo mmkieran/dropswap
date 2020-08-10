@@ -1,30 +1,8 @@
 #include "game_inputs.h"
-
 #include "game.h"
 
 #include <SDL.h>
-#include <map>
 
-/*
-1. Find out what type of thing we're using...
-- Controller
-- Keyboard
-
-if we're using a keyboard:
-- Check for SDL inputs
-
-if we're using a gamepad:
-- Get gamepad inputs
-
-Map the raw inputs to actions in the game
-- Each board should have a list of inputs they can take
-
-1. Move board up
-2. Pause
-3. Swap
-4. Up, down, left, right
-5. Holding a direction
-*/
 
 struct KeyboardMap {
    Uint8 hk_left = SDL_SCANCODE_LEFT;
@@ -36,7 +14,7 @@ struct KeyboardMap {
    Uint8 hk_pause = SDL_SCANCODE_RETURN;
 };
 
-KeyboardMap kmap;
+KeyboardMap kmap;  //todo where should this live?
 
 void old_inputKeyboard(Game* game, SDL_Event e) {
 
@@ -109,7 +87,7 @@ void inputProcessKeyboard(Game* game) {
       else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
          buttonList[i]->p = false;
          buttonList[i]->fc++;
-         if (buttonList[i]->fc > 10) {
+         if (buttonList[i]->fc > 10) {  //You held it long enough!
             buttonList[i]->p = false;
             buttonList[i]->h = true;
          }
@@ -123,11 +101,17 @@ void inputProcessKeyboard(Game* game) {
 
    //Logic for pressed keys
    for (int i = 4; i < 6; i++) {  //todo maybe make the count smarter... 
-      if (state[keyList[i]] == true) {
+      if (state[keyList[i]] == true && buttonList[i]->fc == 0) {
          buttonList[i]->p = true;
+         buttonList[i]->fc++; //increment frame count
+      }
+      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
+         buttonList[i]->p = false;
+         continue;
       }
       else {
          buttonList[i]->p = false;
+         buttonList[i]->fc = 0;
       }
    }
 
