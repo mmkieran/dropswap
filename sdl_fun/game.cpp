@@ -17,6 +17,7 @@
 #include "mymath.h"
 #include "garbage.h"
 #include "serialize.h"
+#include "game_inputs.h"
 
 #include <ggponet.h>
 
@@ -27,6 +28,7 @@ struct GameWindow {
 
    unsigned int VAO;  //This doesn't really belong here
    std::vector <unsigned char> save;  //todo debug find a better place for this later
+   UserInput p1Input;
 
    TTF_Font* font;
 };
@@ -137,92 +139,8 @@ void gameHandleEvents(Game* game) {
    case SDL_QUIT:
       game->isRunning = false;
       break;
-
-   case SDL_KEYDOWN:
-      if (game->paused == false && game->playing == true) {
-
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            if (i == 1) {
-               switch (event.key.keysym.sym) {
-                  case SDLK_LEFT:
-                     cursorMove(board, move_left);
-                     break;
-
-                  case SDLK_RIGHT:
-                     cursorMove(board, move_right);
-                     break;
-
-                  case SDLK_UP:
-                     cursorMove(board, move_up);
-                     break;
-
-                  case SDLK_DOWN:
-                     cursorMove(board, move_down);
-                     break;
-
-                  case SDLK_SPACE:
-                     boardSwap(board);
-                     break;
-
-                  case SDLK_r:
-                     if (!board->paused) {
-                        boardMoveUp(board, 8.0f);
-                        break;
-                     }
-                     break;
-
-                  case SDLK_g:
-                     garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
-                     break;
-
-                  case SDLK_t:
-                     makeItRain(board);
-                     break;
-                  }
-               }
-
-               if (i > 1) {
-                  switch (event.key.keysym.sym) {
-                  case SDLK_a:
-                     cursorMove(board, move_left);
-                     break;
-
-                  case SDLK_d:
-                     cursorMove(board, move_right);
-                     break;
-
-                  case SDLK_w:
-                     cursorMove(board, move_up);
-                     break;
-
-                  case SDLK_s:
-                     cursorMove(board, move_down);
-                     break;
-
-                  case SDLK_RETURN:
-                     boardSwap(board);
-                     break;
-
-                  case SDLK_r:
-                     if (!board->paused) {
-                        boardMoveUp(board, 8.0f);
-                        break;
-                     }
-                     break;
-
-                  case SDLK_g:
-                     garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
-                     break;
-
-                  case SDLK_t:
-                     makeItRain(board);
-                     break;
-               }
-            }
-         }
-      }
    }
+   input
 }
 
 void gameUpdate(Game* game) {

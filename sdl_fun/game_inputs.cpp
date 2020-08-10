@@ -1,5 +1,6 @@
 #include "game_inputs.h"
 
+#include <SDL.h>
 
 /*
 1. Find out what type of thing we're using...
@@ -22,5 +23,111 @@ Map the raw inputs to actions in the game
 5. Holding a direction
 */
 
+KeyboardMap kmap;
 
+struct KeyboardMap {
+   Uint8 hk_left = SDL_SCANCODE_LEFT;
+   Uint8 hk_right = SDL_SCANCODE_RIGHT;
+   Uint8 hk_up = SDL_SCANCODE_UP;
+   Uint8 hk_down = SDL_SCANCODE_DOWN;
 
+   Uint8 hk_swap = SDL_SCANCODE_SPACE;
+   Uint8 hk_pause = SDL_SCANCODE_RETURN;
+};
+
+Uint8 keyList[] = { //maybe make this global?
+   kmap.hk_left,
+   kmap.hk_right,
+   kmap.hk_up,
+   kmap.hk_down,
+
+   kmap.hk_swap,
+   kmap.hk_pause,
+
+};
+
+bool pressList[] = {
+   p1Input.leftPressed,
+   p1Input.rightPressed,
+   p1Input.upPressed,
+   p1Input.downPressed,
+
+   p1Input.swapPressed,
+   p1Input.pausePressed
+};
+
+bool holdList[] = {
+   p1Input.leftHeld,
+   p1Input.rightHeld,
+   p1Input.upHeld,
+   p1Input.downHeld,
+};
+
+void old_inputKeyboard(Game* game, SDL_Event e) {
+
+   switch (e.type) {
+
+   case SDL_KEYDOWN:
+
+         switch (e.key.keysym.sym) {
+         case SDLK_LEFT:
+
+            break;
+
+         case SDLK_RIGHT:
+
+            break;
+
+         case SDLK_UP:
+
+            break;
+
+         case SDLK_DOWN:
+
+            break;
+
+         case SDLK_SPACE:
+
+            break;
+
+         case SDLK_r:
+
+            break;
+
+         case SDLK_t:
+
+            break;
+      }
+   }
+}
+
+void inputProcessKeyboard(Game* game) {
+
+   const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+   //Logic for held keys
+   for (int i = 0; i < 4; i++) {  //todo maybe make the count smarter... 
+      if (state[ keyList[i] ] == true && holdList[i] == false) {
+         pressList[i] = true;
+         holdList[i] = true;
+      }
+      else if (state[keyList[i]] == true && holdList[i] == true) {
+         pressList[i] = false;
+      }
+      else {
+         pressList[i] = false;
+         holdList[i] = false;
+      }
+   }
+
+   //Logic for pressed keys
+   for (int i = 4; i < 6; i++) {  //todo maybe make the count smarter... 
+      if (state[keyList[i]] == true) {
+         pressList[i] = true;
+      }
+      else {
+         pressList[i] = false;
+      }
+   }
+
+}

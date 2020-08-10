@@ -22,3 +22,4 @@ struct UserInput {
 
 };
 
+void inputProcessKeyboard(Game* game);
