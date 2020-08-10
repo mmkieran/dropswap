@@ -59,7 +59,7 @@ void cursorUpdate(Board* board) {
    if (board->cursor->y <= 0) {
       board->cursor->y = board->tileHeight + board->offset;
    }
-   //todo put something here...
+   cursorMove(board);
 }
 
 void cursorDraw(Board* board) {
@@ -72,32 +72,32 @@ void cursorDraw(Board* board) {
    //meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
-void cursorMove(Board* board, MoveEnum dir) {
+void cursorMove(Board* board) {
    float y = cursorGetY(board->cursor);
    float x = cursorGetX(board->cursor);
 
-   if (dir == move_up) {
+   if (board->game->p1Input.upPressed) {
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
       }
    }
 
-   else if (dir == move_down) {
+   else if (board->game->p1Input.downPressed) {
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
 
-   else if (dir == move_right) {
+   else if (board->game->p1Input.rightPressed) {
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
       }
    }
 
-   else if (dir == move_left) {
+   else if (board->game->p1Input.leftPressed) {
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));

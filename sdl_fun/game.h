@@ -2,6 +2,7 @@
 
 #include "mymath.h"
 #include "myvector.h"
+#include "game_inputs.h"
 
 #include <stdint.h>
 
@@ -20,6 +21,7 @@ enum GameMode {
 struct Game {
 
    GameWindow* sdl = nullptr;
+   UserInput p1Input;
 
    float windowWidth;
    float windowHeight;

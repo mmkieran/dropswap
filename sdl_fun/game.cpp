@@ -28,7 +28,6 @@ struct GameWindow {
 
    unsigned int VAO;  //This doesn't really belong here
    std::vector <unsigned char> save;  //todo debug find a better place for this later
-   UserInput p1Input;
 
    TTF_Font* font;
 };
@@ -140,7 +139,9 @@ void gameHandleEvents(Game* game) {
       game->isRunning = false;
       break;
    }
-   input
+
+   inputProcessKeyboard(game);  //Fill out the UserInput struct
+
 }
 
 void gameUpdate(Game* game) {

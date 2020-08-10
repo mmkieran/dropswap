@@ -35,34 +35,6 @@ struct KeyboardMap {
    Uint8 hk_pause = SDL_SCANCODE_RETURN;
 };
 
-Uint8 keyList[] = { //maybe make this global?
-   kmap.hk_left,
-   kmap.hk_right,
-   kmap.hk_up,
-   kmap.hk_down,
-
-   kmap.hk_swap,
-   kmap.hk_pause,
-
-};
-
-bool pressList[] = {
-   p1Input.leftPressed,
-   p1Input.rightPressed,
-   p1Input.upPressed,
-   p1Input.downPressed,
-
-   p1Input.swapPressed,
-   p1Input.pausePressed
-};
-
-bool holdList[] = {
-   p1Input.leftHeld,
-   p1Input.rightHeld,
-   p1Input.upHeld,
-   p1Input.downHeld,
-};
-
 void old_inputKeyboard(Game* game, SDL_Event e) {
 
    switch (e.type) {
@@ -104,6 +76,33 @@ void old_inputKeyboard(Game* game, SDL_Event e) {
 void inputProcessKeyboard(Game* game) {
 
    const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+   Uint8 keyList[] = { //maybe make this global?
+      kmap.hk_left,
+      kmap.hk_right,
+      kmap.hk_up,
+      kmap.hk_down,
+
+      kmap.hk_swap,
+      kmap.hk_pause,
+   };
+
+   bool pressList[] = {
+      game->p1Input.leftPressed,
+      game->p1Input.rightPressed,
+      game->p1Input.upPressed,
+      game->p1Input.downPressed,
+
+      game->p1Input.swapPressed,
+      game->p1Input.pausePressed
+   };
+
+   bool holdList[] = {
+      game->p1Input.leftHeld,
+      game->p1Input.rightHeld,
+      game->p1Input.upHeld,
+      game->p1Input.downHeld,
+   };
 
    //Logic for held keys
    for (int i = 0; i < 4; i++) {  //todo maybe make the count smarter... 
