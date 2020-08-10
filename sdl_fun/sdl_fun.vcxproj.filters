@@ -115,4 +115,9 @@
       <Filter>third</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="gamecontrollerdb.txt">
+      <Filter>third</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

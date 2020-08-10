@@ -213,6 +213,9 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
   <ItemGroup>
     <None Include="parse structs.py" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="gamecontrollerdb.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
