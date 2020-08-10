@@ -2,7 +2,6 @@
 
 #include "mymath.h"
 #include "myvector.h"
-#include "game_inputs.h"
 
 #include <stdint.h>
 
@@ -10,6 +9,26 @@ typedef struct Board Board;
 typedef struct Resources Resources;
 
 struct GameWindow;
+
+struct UserInput {
+   //Holding a button down
+   bool leftHeld = false;
+   bool rightHeld = false;
+   bool upHeld = false;
+   bool downHeld = false;
+
+   //Presses
+   bool pausePressed = false;
+   bool swapPressed = false;
+
+   bool powerPressed = false;
+
+   bool leftPressed = false;
+   bool rightPressed = false;
+   bool upPressed = false;
+   bool downPressed = false;
+
+};
 
 //todo this isn't used right now
 enum GameMode {

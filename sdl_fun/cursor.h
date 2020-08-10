@@ -41,4 +41,4 @@ int cursorGetCol(Board* board);
 
 void cursorUpdate(Board* board);
 void cursorDraw(Board* board);
-void cursorMove(Board* board, MoveEnum dir);
+void cursorMove(Board* board);
