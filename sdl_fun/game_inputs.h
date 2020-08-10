@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game.h"
+
 struct UserInput {
    //Holding a button down
    bool leftHeld = false;

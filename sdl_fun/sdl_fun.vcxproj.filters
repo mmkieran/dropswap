@@ -31,8 +31,8 @@
     <ClCompile Include="serialize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inputs.cpp">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="game_inputs.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,7 +83,7 @@
     <ClInclude Include="serialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inputs.h">
+    <ClInclude Include="game_inputs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
