@@ -188,6 +188,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <ClInclude Include="game.h" />
     <ClInclude Include="cursor.h" />
     <ClInclude Include="garbage.h" />
+    <ClInclude Include="inputs.h" />
     <ClInclude Include="mymath.h" />
     <ClInclude Include="myvector.h" />
     <ClInclude Include="render.h" />
