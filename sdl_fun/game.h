@@ -6,8 +6,11 @@
 
 #include <stdint.h>
 
+#define MAX_PLAYERS 2
+
 typedef struct Board Board;
 typedef struct Resources Resources;
+typedef struct ggpoHandle ggpoHandle;
 
 struct GameWindow;
 
@@ -21,6 +24,7 @@ enum GameMode {
 struct Game {
 
    GameWindow* sdl = nullptr;
+   ggpoHandle ggHandle;
    UserInput p1Input;
 
    float windowWidth;

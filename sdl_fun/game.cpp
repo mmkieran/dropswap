@@ -21,6 +21,12 @@
 
 #include <ggponet.h>
 
+//todo temporary place for GGPO
+//Dunno what I need yet
+struct ggpoHandle {
+   GGPOSession* ggpo;
+   GGPOErrorCode result;
+};
 
 struct GameWindow {
    SDL_Window *window;
@@ -74,6 +80,55 @@ void imguiStartFrame(Game* game) {
    ImGui_ImplSDL2_NewFrame(game->sdl->window);
    ImGui::NewFrame();
 }
+
+//Make way for GGPO
+//Here comes the callback!
+bool ds_begin_game_callback(const char*) {
+   //we don't need to do anything here apparently
+   return true;
+}
+
+bool ds_advance_frame_callback(Game* game, const char*) {
+
+   UserInput inputs[MAX_PLAYERS] = { 0 } ;  //Inputs will be stored in here
+   int disconnect_flags;
+
+   //Figure out the inputs and check for disconnects
+   ggpo_synchronize_input(game->ggHandle.ggpo, (void*)inputs, sizeof(UserInput), &disconnect_flags);
+
+   //Call function to advance frame
+   ggpoAdvanceFrame(game);
+
+   return true;
+}
+
+void ggpoInitPlayer(Game* game) {
+   //Called at startup to setup GGPO session
+   GGPOSessionCallbacks cb;
+   cb.begin_game = ds_begin_game_callback;
+
+}
+
+void ggpoAdvanceFrame(Game* game) {
+   gameUpdate(game);  //todo come back and make this work
+
+   //Tell GGPO we moved ahead a frame
+   ggpo_advance_frame(game->ggHandle.ggpo);
+
+   //todo <- come back and fill this in... not sure about player handles
+
+   //// Update the performance monitor display.
+   //GGPOPlayerHandle handles[MAX_PLAYERS];
+   //int count = 0;
+   //for (int i = 0; i < ngs.num_players; i++) {
+   //   if (ngs.players[i].type == GGPO_PLAYERTYPE_REMOTE) {
+   //      handles[count++] = ngs.players[i].handle;
+   //   }
+   //}
+   //ggpoutil_perfmon_update(ggpo, handles, count);
+}
+
+//End GGPO stuff
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
@@ -142,7 +197,7 @@ void gameHandleEvents(Game* game) {
 
    inputProcessKeyboard(game);  //Fill out the UserInput struct from keyboard
 
-   if (game->p1Input.pause.p == true) {  //pause game
+   if (game->p1Input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
       if (game->paused == true) { game->paused = false; }
       else if (game->paused == false) { game->paused = true; }
    }
