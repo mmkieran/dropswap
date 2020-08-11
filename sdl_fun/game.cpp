@@ -96,11 +96,10 @@ bool __cdecl ds_begin_game_callback(const char*) {
 
 bool __cdecl ds_advance_frame_callback(int) {
 
-   UserInput inputs[MAX_PLAYERS] = { 0 } ;  //Inputs will be stored in here
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(ggHandle.ggpo, (void*)inputs, sizeof(UserInput), &disconnect_flags);
+   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput), &disconnect_flags);
 
    //Call function to advance frame
    ggpoAdvanceFrame(ggHandle.game);
@@ -108,12 +107,42 @@ bool __cdecl ds_advance_frame_callback(int) {
    return true;
 }
 
+
+bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
+
+   //std::vector <Byte> stream;
+   //stream.resize(len);
+
+   if (len > 0) {
+      unsigned char* start = buffer;
+      gameLoad(ggHandle.game, start);
+
+      return true;
+   }
+   else { return false; }
+}
+
+bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checksum, int) {
+
+   std::vector <Byte> stream = gameSave(ggHandle.game);
+   if (stream.size() == 0) { return false; }
+
+   *buffer = (unsigned char*)malloc(*len);
+   if (*buffer) {
+      *len = stream.size();
+      memcpy(*buffer, stream.data(), *len);
+      return true;
+   }
+   else { return false; }
+
+}
+
 void ggpoInitPlayer(Game* game) {
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
    cb.begin_game = ds_begin_game_callback;
    cb.advance_frame = ds_advance_frame_callback;  //todo not done
-
+   cb.load_game_state = ds_load_game_callback;
 }
 
 void ggpoAdvanceFrame(Game* game) {

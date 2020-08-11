@@ -27,6 +27,7 @@ struct Game {
    GameWindow* sdl = nullptr;
    ggpoHandle* ggHandle;
    UserInput p1Input;
+   UserInput inputs[MAX_PLAYERS];
 
    float windowWidth;
    float windowHeight;
