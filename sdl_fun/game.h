@@ -10,7 +10,8 @@
 
 typedef struct Board Board;
 typedef struct Resources Resources;
-typedef struct ggpoHandle ggpoHandle;
+
+struct ggpoHandle;
 
 struct GameWindow;
 
@@ -24,7 +25,7 @@ enum GameMode {
 struct Game {
 
    GameWindow* sdl = nullptr;
-   ggpoHandle ggHandle;
+   ggpoHandle* ggHandle;
    UserInput p1Input;
 
    float windowWidth;
@@ -73,6 +74,9 @@ void showGameMenu(Game* game);
 
 void debugGarbage(Game* game);
 void debugCursor(Game* game);
+
+//int gameLoad(Game* game, unsigned char* &start);
+//std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game);

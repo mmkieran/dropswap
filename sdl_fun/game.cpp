@@ -24,9 +24,12 @@
 //todo temporary place for GGPO
 //Dunno what I need yet
 struct ggpoHandle {
-   GGPOSession* ggpo;
+   GGPOSession* ggpo = nullptr;
    GGPOErrorCode result;
+   Game* game = nullptr;
 };
+
+ggpoHandle ggHandle;
 
 struct GameWindow {
    SDL_Window *window;
@@ -81,23 +84,26 @@ void imguiStartFrame(Game* game) {
    ImGui::NewFrame();
 }
 
+
+void ggpoAdvanceFrame(Game* game);
+
 //Make way for GGPO
 //Here comes the callback!
-bool ds_begin_game_callback(const char*) {
+bool __cdecl ds_begin_game_callback(const char*) {
    //we don't need to do anything here apparently
    return true;
 }
 
-bool ds_advance_frame_callback(Game* game, const char*) {
+bool __cdecl ds_advance_frame_callback(int) {
 
    UserInput inputs[MAX_PLAYERS] = { 0 } ;  //Inputs will be stored in here
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(game->ggHandle.ggpo, (void*)inputs, sizeof(UserInput), &disconnect_flags);
+   ggpo_synchronize_input(ggHandle.ggpo, (void*)inputs, sizeof(UserInput), &disconnect_flags);
 
    //Call function to advance frame
-   ggpoAdvanceFrame(game);
+   ggpoAdvanceFrame(ggHandle.game);
 
    return true;
 }
@@ -106,6 +112,7 @@ void ggpoInitPlayer(Game* game) {
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
    cb.begin_game = ds_begin_game_callback;
+   cb.advance_frame = ds_advance_frame_callback;  //todo not done
 
 }
 
@@ -113,7 +120,7 @@ void ggpoAdvanceFrame(Game* game) {
    gameUpdate(game);  //todo come back and make this work
 
    //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->ggHandle.ggpo);
+   ggpo_advance_frame(game->ggHandle->ggpo);
 
    //todo <- come back and fill this in... not sure about player handles
 
@@ -183,6 +190,10 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->seed = time(0);  //generate the random seed for the board tiles
 
    game->isRunning = true;
+   ggHandle.game = game;
+
+   //game->ggHandle = new ggpoHandle;
+
    return game;
 }
 
@@ -268,6 +279,7 @@ void gameDestroy(Game* game) {
    TTF_Quit();  //close ttf
    SDL_Quit();
    delete game->sdl;
+   //delete game->ggHandle;
    delete game;
 
    printf("Cleanup successful.\n");
@@ -468,7 +480,6 @@ std::vector <Byte> gameSave (Game* game) {
 
    return stream;
 }
-
 
 int gameLoad(Game* game, unsigned char* &start) {
 
