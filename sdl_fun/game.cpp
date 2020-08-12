@@ -70,6 +70,7 @@ struct ggpoHandle {
    Game* game = nullptr;
    GGPOPlayer players[MAX_PLAYERS];
    PlayerConnectionInfo connections[MAX_PLAYERS];
+   GGPOPlayerHandle localPlayer;
 };
 
 ggpoHandle ggHandle;
@@ -139,7 +140,7 @@ bool __cdecl ds_advance_frame_callback(int) {
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput), &disconnect_flags);
+   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * MAX_PLAYERS, &disconnect_flags);
 
    //Call function to advance frame
    ggpoAdvanceFrame(ggHandle.game);
@@ -272,6 +273,7 @@ void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
    cb.log_game_state = ds_log_game_state_callback;
 
    //Can add sync test here
+   localport = 7001;
    result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
@@ -284,10 +286,14 @@ void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
    ggHandle.players[0].type = GGPO_PLAYERTYPE_LOCAL;
    ggHandle.players[0].size = sizeof(GGPOPlayer);
    ggHandle.players[0].player_num = 1;
+   ggHandle.players[0].u.local;
 
    ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
    ggHandle.players[1].size = sizeof(GGPOPlayer);
    ggHandle.players[1].player_num = 2;
+   const char* ip = "127.0.0.1";
+   strcpy(ggHandle.players[1].u.remote.ip_address, ip);
+   ggHandle.players[1].u.remote.port = 7002;
 
    //loop to add Players
    for (int i = 0; i < playerCount; i++) {
@@ -296,7 +302,8 @@ void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
        ggHandle.connections[i].handle = handle;
        ggHandle.connections[i].type = ggHandle.players->type;
        if (ggHandle.players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-           ggpo_set_frame_delay(ggHandle.ggpo, handle, FRAME_DELAY);
+          ggHandle.localPlayer = handle;
+          ggpo_set_frame_delay(ggHandle.ggpo, handle, FRAME_DELAY);
        }
 
    }
@@ -308,7 +315,7 @@ void ggpoInitSpectator() {
     //result = ggpo_start_spectating...
 }
 
-void ggpoAdvanceFrame(Game* game) {
+void gameAdvanceFrame(Game* game) {
    gameUpdate(game);  //todo come back and make this work
 
    //Tell GGPO we moved ahead a frame
@@ -327,15 +334,29 @@ void ggpoAdvanceFrame(Game* game) {
    //ggpoutil_perfmon_update(ggpo, handles, count);
 }
 
-void RunFrame() {
-    /*
-    1. Read local inputs
-        2. Add local inputs
-        3. synchromize inputs
-        4. Advance frame
-        5. Draw frame
-    */
+void gameRunFrame() {
 
+   GGPOErrorCode result = GGPO_OK;
+   int disconnect_flags;
+
+   //read local inputs
+
+   if (ggHandle.localPlayer != GGPO_INVALID_HANDLE) {
+      inputProcessKeyboard(ggHandle.game);
+   }
+
+   //Can do sync test here
+
+   result = ggpo_add_local_input(ggHandle.ggpo, ggHandle.localPlayer, &ggHandle.game->p1Input, sizeof(UserInput));
+   //If we got the local inputs successfully, merge in remote ones
+   if (GGPO_SUCCEEDED(result)) {
+      result = ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * MAX_PLAYERS, &disconnect_flags);
+      if (GGPO_SUCCEEDED(result)) {
+         gameAdvanceFrame(ggHandle.game);  //Update the game 
+      }
+   }
+
+   gameRender(ggHandle.game);  //Draw everything
 }
 
 //End GGPO stuff
@@ -409,17 +430,21 @@ void gameHandleEvents(Game* game) {
       break;
    }
 
-   inputProcessKeyboard(game);  //Fill out the UserInput struct from keyboard
+   //todo add in pausing again once all the dust clears
 
-   if (game->p1Input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
-      if (game->paused == true) { game->paused = false; }
-      else if (game->paused == false) { game->paused = true; }
-   }
+   //inputProcessKeyboard(game);  //Fill out the UserInput struct from keyboard
+
+   //if (game->p1Input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
+   //   if (game->paused == true) { game->paused = false; }
+   //   else if (game->paused == false) { game->paused = true; }
+   //}
 
 }
 
 void gameUpdate(Game* game) {
 
+   //todo rework to use new inputs
+   
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       boardUpdate(vectorGet(game->boards, i));
    }
