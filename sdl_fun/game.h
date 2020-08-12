@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #define MAX_PLAYERS 2
+#define FRAME_DELAY 2
 
 typedef struct Board Board;
 typedef struct Resources Resources;

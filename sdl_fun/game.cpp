@@ -24,16 +24,13 @@
 int gameLoad(Game* game, unsigned char*& start);
 std::vector <Byte> gameSave(Game* game);
 
+void ggpoAdvanceFrame(Game* game);
+
 //todo temporary place for GGPO
 //Dunno what I need yet
 
 /*
 Run frame
-1. Read local inputs
-2. Add local inputs
-3. synchromize inputs
-4. Advance frame
-5. Draw frame
 
 Advance Frame
 1. Update game
@@ -50,10 +47,29 @@ Idle
 Disconnect Player
 */
 
+enum PlayerConnectState {
+    Connecting = 0,
+    Synchronizing,
+    Running,
+    Disconnected,
+    Disconnecting,
+};
+
+struct PlayerConnectionInfo {
+    GGPOPlayerType       type;
+    GGPOPlayerHandle     handle;
+    PlayerConnectState   state;
+    int                  connect_progress;
+    int                  disconnect_timeout;
+    int                  disconnect_start;
+};
+
 struct ggpoHandle {
    GGPOSession* ggpo = nullptr;
    GGPOErrorCode result;
    Game* game = nullptr;
+   GGPOPlayer players[MAX_PLAYERS];
+   PlayerConnectionInfo connections[MAX_PLAYERS];
 };
 
 ggpoHandle ggHandle;
@@ -110,9 +126,6 @@ void imguiStartFrame(Game* game) {
    ImGui_ImplSDL2_NewFrame(game->sdl->window);
    ImGui::NewFrame();
 }
-
-
-void ggpoAdvanceFrame(Game* game);
 
 //Make way for GGPO
 //Don't call it a callback!
@@ -243,7 +256,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
     return true;
 }
 
-void ggpoInitPlayer(Game* game, int players, unsigned short localport) {
+void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
 
     GGPOErrorCode result;
     //init game state
@@ -259,12 +272,34 @@ void ggpoInitPlayer(Game* game, int players, unsigned short localport) {
    cb.log_game_state = ds_log_game_state_callback;
 
    //Can add sync test here
-   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", players, sizeof(UserInput), localport);
+   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
 
+   // automatically disconnect clients after 3000 ms and start our count-down timer
+   // for disconnects after 1000 ms.   To completely disable disconnects, simply use
+   // a value of 0 for ggpo_set_disconnect_timeout.
    ggpo_set_disconnect_timeout(ggHandle.ggpo, 3000);
    ggpo_set_disconnect_notify_start(ggHandle.ggpo, 1000);
 
+   //todo don't do this the dumb way
+   ggHandle.players[0].type = GGPO_PLAYERTYPE_LOCAL;
+   ggHandle.players[0].size = sizeof(GGPOPlayer);
+   ggHandle.players[0].player_num = 1;
+
+   ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
+   ggHandle.players[1].size = sizeof(GGPOPlayer);
+   ggHandle.players[1].player_num = 2;
+
    //loop to add Players
+   for (int i = 0; i < playerCount; i++) {
+       GGPOPlayerHandle handle;
+       result = ggpo_add_player(ggHandle.ggpo, &ggHandle.players[i], &handle);
+       ggHandle.connections[i].handle = handle;
+       ggHandle.connections[i].type = ggHandle.players->type;
+       if (ggHandle.players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+           ggpo_set_frame_delay(ggHandle.ggpo, handle, FRAME_DELAY);
+       }
+
+   }
 
 }
 
@@ -290,6 +325,17 @@ void ggpoAdvanceFrame(Game* game) {
    //   }
    //}
    //ggpoutil_perfmon_update(ggpo, handles, count);
+}
+
+void RunFrame() {
+    /*
+    1. Read local inputs
+        2. Add local inputs
+        3. synchromize inputs
+        4. Advance frame
+        5. Draw frame
+    */
+
 }
 
 //End GGPO stuff
