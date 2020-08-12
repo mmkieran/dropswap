@@ -13,18 +13,6 @@
 
 int main(int argc, char* args[])
 {
-   printf("%d\n", sizeof(uint64_t));
-   printf("%d\n", sizeof(int));
-   printf("%d\n", sizeof(long long unsigned int));
-
-   uint64_t seed = 0;
-   std::default_random_engine generator;
-   std::uniform_int_distribution<int> distribution;
-
-   FILE* file;
-   std::ofstream fout("seed.dat");
-
-   std::cout << generator;
 
    return 0;
 }

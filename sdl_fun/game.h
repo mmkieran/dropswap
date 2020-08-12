@@ -80,4 +80,4 @@ void debugCursor(Game* game);
 //std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
-FILE* gameSaveState(Game* game);
+FILE* gameSaveState(Game* game, const char* filename);

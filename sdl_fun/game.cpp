@@ -21,8 +21,35 @@
 
 #include <ggponet.h>
 
+int gameLoad(Game* game, unsigned char*& start);
+std::vector <Byte> gameSave(Game* game);
+
 //todo temporary place for GGPO
 //Dunno what I need yet
+
+/*
+Run frame
+1. Read local inputs
+2. Add local inputs
+3. synchromize inputs
+4. Advance frame
+5. Draw frame
+
+Advance Frame
+1. Update game
+2. Checksum and frame number
+3. notify advance frame
+4. Performance update?
+
+Init Spectator
+
+Init Player
+
+Idle
+
+Disconnect Player
+*/
+
 struct ggpoHandle {
    GGPOSession* ggpo = nullptr;
    GGPOErrorCode result;
@@ -88,7 +115,7 @@ void imguiStartFrame(Game* game) {
 void ggpoAdvanceFrame(Game* game);
 
 //Make way for GGPO
-//Here comes the callback!
+//Don't call it a callback!
 bool __cdecl ds_begin_game_callback(const char*) {
    //we don't need to do anything here apparently
    return true;
@@ -128,7 +155,7 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    if (stream.size() == 0) { return false; }
 
    *buffer = (unsigned char*)malloc(*len);
-   if (*buffer) {
+   if (buffer) {
       *len = stream.size();
       memcpy(*buffer, stream.data(), *len);
       return true;
@@ -137,12 +164,96 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
 
 }
 
+void __cdecl ds_free_buffer_callback(void* buffer) {
+    if (buffer) {free(buffer); }
+}
+
+bool __cdecl ds_on_event_callback(GGPOEvent* info) {
+    int progress;
+
+    //todo come back in fill in events
+
+    //switch (info->code) {
+    //case GGPO_EVENTCODE_CONNECTED_TO_PEER:
+    //    ngs.SetConnectState(info->u.connected.player, Synchronizing);
+    //    break;
+    //case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
+    //    progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
+    //    ngs.UpdateConnectProgress(info->u.synchronizing.player, progress);
+    //    break;
+    //case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
+    //    ngs.UpdateConnectProgress(info->u.synchronized.player, 100);
+    //    break;
+    //case GGPO_EVENTCODE_RUNNING:
+    //    ngs.SetConnectState(Running);
+    //    renderer->SetStatusText("");
+    //    break;
+    //case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
+    //    ngs.SetDisconnectTimeout(info->u.connection_interrupted.player,
+    //        timeGetTime(),
+    //        info->u.connection_interrupted.disconnect_timeout);
+    //    break;
+    //case GGPO_EVENTCODE_CONNECTION_RESUMED:
+    //    ngs.SetConnectState(info->u.connection_resumed.player, Running);
+    //    break;
+    //case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
+    //    ngs.SetConnectState(info->u.disconnected.player, Disconnected);
+    //    break;
+    //case GGPO_EVENTCODE_TIMESYNC:
+    //    Sleep(1000 * info->u.timesync.frames_ahead / 60);
+    //    break;
+    //}
+
+    return true;
+}
+
+bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
+
+    Game* game = new Game;
+    if (game) {
+        game->boards = vectorCreate<Board*>(4, 10);
+        if (game->boards) {
+            gameLoad(game, buffer);
+
+            FILE* log = nullptr;
+            fopen_s(&log, filename, "w");
+            if (log) {
+                fprintf(log, "Current Game State\n");
+                fprintf(log, "Players: %d\n", game->players);
+                fprintf(log, "Game timer: %d\n", game->timer);
+                fprintf(log, "Seed: %d\n", game->seed);
+                fprintf(log, "Boards: %d\n", vectorSize(game->boards));
+                for (int i = 1; i <= vectorSize(game->boards); i++) {
+                    Board* board = vectorGet(game->boards, i);
+                    fprintf(log, "Player: %d\n", board->player);
+                    fprintf(log, "RandomCalls: %d\n", board->randomCalls);
+                }
+            }
+
+            fclose(log);
+
+            for (int i = 1; i <= vectorSize(game->boards); i++) {
+                Board* board = vectorGet(game->boards, i);
+                boardDestroy(board);
+            }
+            vectorDestroy(game->boards);
+        }
+    }
+    delete game;
+    return true;
+}
+
 void ggpoInitPlayer(Game* game) {
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
    cb.begin_game = ds_begin_game_callback;
    cb.advance_frame = ds_advance_frame_callback;  //todo not done
    cb.load_game_state = ds_load_game_callback;
+   cb.save_game_state = ds_save_game_callback;
+   cb.free_buffer = ds_free_buffer_callback;
+   cb.on_event = ds_on_event_callback;
+   cb.log_game_state = ds_log_game_state_callback;
+
 }
 
 void ggpoAdvanceFrame(Game* game) {
@@ -292,6 +403,7 @@ void gameDestroy(Game* game) {
          boardDestroy(board);
       }
    }
+   vectorDestroy(game->boards);
 
    destroyResources(game->resources);
 
@@ -438,7 +550,7 @@ void showGameMenu(Game* game) {
    }
 
    if (ImGui::Button("Save Game")) {
-      gameSaveState(game);
+      gameSaveState(game, "saves/game_state.dat");
    }
 
    if (ImGui::Button("Clear Board")) {
@@ -558,9 +670,9 @@ int gameLoad(Game* game, unsigned char* &start) {
    return 0;
 }
 
-FILE* gameSaveState(Game* game) {
+FILE* gameSaveState(Game* game, const char* filename) {
    FILE* out;
-   int err = fopen_s(&out, "saves/game_state.dat", "w");
+   int err = fopen_s(&out, filename, "w");
    std::vector <Byte> stream;
    stream = gameSave(game);
 
@@ -579,7 +691,6 @@ FILE* gameSaveState(Game* game) {
    fclose(out);
    return out;
 }
-
 
 int gameLoadState(Game* game, const char* path) {
    FILE* in;
