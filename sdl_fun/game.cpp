@@ -66,7 +66,6 @@ struct PlayerConnectionInfo {
 
 struct ggpoHandle {
    GGPOSession* ggpo = nullptr;
-   GGPOErrorCode result;
    Game* game = nullptr;
    GGPOPlayer players[MAX_PLAYERS];
    PlayerConnectionInfo connections[MAX_PLAYERS];
@@ -108,7 +107,7 @@ void imguiSetup(Game* game) {
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
@@ -257,7 +256,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
     return true;
 }
 
-void ggpoInitPlayer(Game* game, int playerCount, unsigned short localport) {
+void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
 
     GGPOErrorCode result;
     //init game state
@@ -273,7 +272,8 @@ void ggpoInitPlayer(Game* game, int playerCount, unsigned short localport) {
    cb.log_game_state = ds_log_game_state_callback;
 
    //Can add sync test here
-   localport = 7001;  //todo hard code this for now
+   char name[] = "Drop and Swap";
+   //result = ggpo_start_synctest(&ggHandle.ggpo, &cb, name, 2, sizeof(int), 1);
    result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
@@ -293,7 +293,7 @@ void ggpoInitPlayer(Game* game, int playerCount, unsigned short localport) {
    ggHandle.players[1].player_num = 2;
    const char* ip = "127.0.0.1";
    strcpy(ggHandle.players[1].u.remote.ip_address, ip);
-   ggHandle.players[1].u.remote.port = 7002;
+   ggHandle.players[1].u.remote.port = remoteport;
 
    //loop to add Players
    for (int i = 0; i < playerCount; i++) {
@@ -578,7 +578,8 @@ void ggpoUI(bool* p_open) {
       return;
    }
 
-   int localPort, remotePort;
+   static int localPort = 7001;
+   static int remotePort = 7002;
    char remote_ip[32];
 
    ImGui::InputText("Remote IP", remote_ip, IM_ARRAYSIZE(remote_ip));
@@ -586,6 +587,9 @@ void ggpoUI(bool* p_open) {
    ImGui::InputInt("Local port", &localPort);
    ImGui::InputInt("Remote port", &remotePort);
 
+   if (ImGui::Button("Connect GGPO")) {
+      ggpoInitPlayer(2, localPort, remotePort);
+   }
 
    ImGui::End();
 }
@@ -596,12 +600,6 @@ void showGameMenu(Game* game) {
       ImGui::End();
       return;
    }
-
-   //ImGuiIO& io = ImGui::GetIO();
-   //if (true) {
-   //   io.WantCaptureKeyboard = true;
-
-   //}
 
    ImGui::InputInt("Players", &game->players);
 
