@@ -243,7 +243,11 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
     return true;
 }
 
-void ggpoInitPlayer(Game* game) {
+void ggpoInitPlayer(Game* game, int players, unsigned short localport) {
+
+    GGPOErrorCode result;
+    //init game state
+
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
    cb.begin_game = ds_begin_game_callback;
@@ -254,6 +258,19 @@ void ggpoInitPlayer(Game* game) {
    cb.on_event = ds_on_event_callback;
    cb.log_game_state = ds_log_game_state_callback;
 
+   //Can add sync test here
+   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", players, sizeof(UserInput), localport);
+
+   ggpo_set_disconnect_timeout(ggHandle.ggpo, 3000);
+   ggpo_set_disconnect_notify_start(ggHandle.ggpo, 1000);
+
+   //loop to add Players
+
+}
+
+void ggpoInitSpectator() {
+
+    //result = ggpo_start_spectating...
 }
 
 void ggpoAdvanceFrame(Game* game) {
