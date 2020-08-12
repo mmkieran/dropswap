@@ -36,12 +36,13 @@ int main(int argc, char* args[])
 
    while (gameRunning(game)) {
       frameStart = getTime();
+
+      gameHandleEvents(game);  //Inputs have to come before imgui start frame
+
       imguiStartFrame(game);
 
       imguiShowDemo();
       showGameMenu(game);
-
-      gameHandleEvents(game);
 
       if (game->paused == false && game->playing == true) {
          gameUpdate(game);  //update game and board state

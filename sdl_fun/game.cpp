@@ -24,7 +24,7 @@
 int gameLoad(Game* game, unsigned char*& start);
 std::vector <Byte> gameSave(Game* game);
 
-void ggpoAdvanceFrame(Game* game);
+void gameAdvanceFrame(Game* game);
 
 //todo temporary place for GGPO
 //Dunno what I need yet
@@ -106,8 +106,8 @@ void imguiSetup(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
-   //game->io = &ImGui::GetIO(); (void)game->io;
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+   ImGuiIO& io = ImGui::GetIO(); (void)io;
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
    // Setup Dear ImGui style
@@ -143,7 +143,7 @@ bool __cdecl ds_advance_frame_callback(int) {
    ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * MAX_PLAYERS, &disconnect_flags);
 
    //Call function to advance frame
-   ggpoAdvanceFrame(ggHandle.game);
+   gameAdvanceFrame(ggHandle.game);
 
    return true;
 }
@@ -257,7 +257,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
     return true;
 }
 
-void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
+void ggpoInitPlayer(Game* game, int playerCount, unsigned short localport) {
 
     GGPOErrorCode result;
     //init game state
@@ -273,7 +273,7 @@ void ggpoInitPlayers(Game* game, int playerCount, unsigned short localport) {
    cb.log_game_state = ds_log_game_state_callback;
 
    //Can add sync test here
-   localport = 7001;
+   localport = 7001;  //todo hard code this for now
    result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
@@ -423,11 +423,13 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
 void gameHandleEvents(Game* game) {
    SDL_Event event;
-   SDL_PollEvent(&event);
-   switch (event.type) {
-   case SDL_QUIT:
-      game->isRunning = false;
-      break;
+
+   while (SDL_PollEvent(&event)) {
+
+      ImGui_ImplSDL2_ProcessEvent(&event);
+      if (event.type == SDL_QUIT) {
+         game->isRunning = false;
+      }
    }
 
    //todo add in pausing again once all the dust clears
@@ -462,17 +464,17 @@ void gameRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   //Draw game objects
-   if (game->playing == true) {
-      for (int i = 1; i <= vectorSize(game->boards); i++) {
-         Board* board = vectorGet(game->boards, i);
-         if (board) {
-            boardRender(game, board);
-         }
-      }
-      //debugCursor(game);  //imgui debug tools
-      //debugGarbage(game);
-   }
+   ////Draw game objects
+   //if (game->playing == true) {
+   //   for (int i = 1; i <= vectorSize(game->boards); i++) {
+   //      Board* board = vectorGet(game->boards, i);
+   //      if (board) {
+   //         boardRender(game, board);
+   //      }
+   //   }
+   //   //debugCursor(game);  //imgui debug tools
+   //   //debugGarbage(game);
+   //}
 
    ImGui::Render();
 
@@ -570,6 +572,24 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
+void ggpoUI(bool* p_open) {
+   if (!ImGui::Begin("GGPO Setup", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   int localPort, remotePort;
+   char remote_ip[32];
+
+   ImGui::InputText("Remote IP", remote_ip, IM_ARRAYSIZE(remote_ip));
+
+   ImGui::InputInt("Local port", &localPort);
+   ImGui::InputInt("Remote port", &remotePort);
+
+
+   ImGui::End();
+}
+
 void showGameMenu(Game* game) {
 
    if (!ImGui::Begin("Game Menus")) {
@@ -577,7 +597,19 @@ void showGameMenu(Game* game) {
       return;
    }
 
+   //ImGuiIO& io = ImGui::GetIO();
+   //if (true) {
+   //   io.WantCaptureKeyboard = true;
+
+   //}
+
    ImGui::InputInt("Players", &game->players);
+
+   static bool showGGPO = false;
+   if (ImGui::Button("GGPO Setup")) {
+      showGGPO = true;
+   }
+   if (showGGPO) { ggpoUI(&showGGPO); }
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
    ImGui::InputInt("Tile Height", &game->tHeight, 16);
