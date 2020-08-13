@@ -19,7 +19,7 @@
 #include "serialize.h"
 #include "game_inputs.h"
 
-#include <ggponet.h>
+#include "ggpo/ggponet.h"
 
 int gameLoad(Game* game, unsigned char*& start);
 std::vector <Byte> gameSave(Game* game);
@@ -222,37 +222,37 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
 
 bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
 
-    Game* game = new Game;
-    if (game) {
-        game->boards = vectorCreate<Board*>(4, 10);
-        if (game->boards) {
-            gameLoad(game, buffer);
+    //Game* game = new Game;
+    //if (game) {
+    //    game->boards = vectorCreate<Board*>(4, 10);
+    //    if (game->boards) {
+    //        gameLoad(game, buffer);
 
-            FILE* log = nullptr;
-            fopen_s(&log, filename, "w");
-            if (log) {
-                fprintf(log, "Current Game State\n");
-                fprintf(log, "Players: %d\n", game->players);
-                fprintf(log, "Game timer: %d\n", game->timer);
-                fprintf(log, "Seed: %d\n", game->seed);
-                fprintf(log, "Boards: %d\n", vectorSize(game->boards));
-                for (int i = 1; i <= vectorSize(game->boards); i++) {
-                    Board* board = vectorGet(game->boards, i);
-                    fprintf(log, "Player: %d\n", board->player);
-                    fprintf(log, "RandomCalls: %d\n", board->randomCalls);
-                }
-            }
+    //        FILE* log = nullptr;
+    //        fopen_s(&log, filename, "w");
+    //        if (log) {
+    //            fprintf(log, "Current Game State\n");
+    //            fprintf(log, "Players: %d\n", game->players);
+    //            fprintf(log, "Game timer: %d\n", game->timer);
+    //            fprintf(log, "Seed: %d\n", game->seed);
+    //            fprintf(log, "Boards: %d\n", vectorSize(game->boards));
+    //            for (int i = 1; i <= vectorSize(game->boards); i++) {
+    //                Board* board = vectorGet(game->boards, i);
+    //                fprintf(log, "Player: %d\n", board->player);
+    //                fprintf(log, "RandomCalls: %d\n", board->randomCalls);
+    //            }
+    //        }
 
-            fclose(log);
+    //        fclose(log);
 
-            for (int i = 1; i <= vectorSize(game->boards); i++) {
-                Board* board = vectorGet(game->boards, i);
-                boardDestroy(board);
-            }
-            vectorDestroy(game->boards);
-        }
-    }
-    delete game;
+    //        for (int i = 1; i <= vectorSize(game->boards); i++) {
+    //            Board* board = vectorGet(game->boards, i);
+    //            boardDestroy(board);
+    //        }
+    //        vectorDestroy(game->boards);
+    //    }
+    //}
+    //delete game;
     return true;
 }
 
@@ -274,7 +274,7 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
    //Can add sync test here
    char name[] = "Drop and Swap";
    //result = ggpo_start_synctest(&ggHandle.ggpo, &cb, name, 2, sizeof(UserInput), 1);
-   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
+   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
    // for disconnects after 1000 ms.   To completely disable disconnects, simply use
@@ -285,14 +285,21 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
    //todo don't do this the dumb way
    ggHandle.players[0].type = GGPO_PLAYERTYPE_LOCAL;
    ggHandle.players[0].size = sizeof(GGPOPlayer);
+   ggHandle.players[0].player_num = 1;
 
    ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
    ggHandle.players[1].size = sizeof(GGPOPlayer);
-   //Don't mess with player_num...
+   ggHandle.players[1].player_num = 2;
 
    const char* ip = "127.0.0.1";
    strcpy(ggHandle.players[1].u.remote.ip_address, ip);
-   ggHandle.players[1].u.remote.port = remoteport;
+
+   //char ip[10] = "127.0.0.1";
+   //for (int i = 0; i < 10; i++) {
+   //   ggHandle.players[1].u.remote.ip_address[i] = ip[i];
+   //}
+
+   ggHandle.players[1].u.remote.port = 7002; //remoteport;
 
    //loop to add Players
    for (int i = 0; i < playerCount; i++) {

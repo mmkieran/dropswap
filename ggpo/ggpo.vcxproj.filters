@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="backends">
+      <UniqueIdentifier>{012fd5dd-a7c4-4ab9-a30f-905c60499fac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{24f00b8b-53d3-407f-900c-c7c6adbeb998}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="public">
+      <UniqueIdentifier>{124c97b1-b1c7-455d-b802-0da24ee84c83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitvector.cpp">
@@ -43,19 +52,19 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="backends\p2p.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>backends</Filter>
     </ClCompile>
     <ClCompile Include="backends\spectator.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>backends</Filter>
     </ClCompile>
     <ClCompile Include="backends\synctest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="network\udp.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>backends</Filter>
     </ClCompile>
     <ClCompile Include="network\udp_proto.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="network\udp.cpp">
+      <Filter>network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -65,16 +74,10 @@
     <ClInclude Include="game_input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ggponet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="input_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="platform_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="poll.h">
@@ -102,24 +105,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="backends\backend.h">
-      <Filter>Header Files</Filter>
+      <Filter>backends</Filter>
     </ClInclude>
     <ClInclude Include="backends\p2p.h">
-      <Filter>Header Files</Filter>
+      <Filter>backends</Filter>
     </ClInclude>
     <ClInclude Include="backends\spectator.h">
-      <Filter>Header Files</Filter>
+      <Filter>backends</Filter>
     </ClInclude>
     <ClInclude Include="backends\synctest.h">
-      <Filter>Header Files</Filter>
+      <Filter>backends</Filter>
     </ClInclude>
     <ClInclude Include="network\udp.h">
-      <Filter>Header Files</Filter>
+      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\udp_msg.h">
-      <Filter>Header Files</Filter>
+      <Filter>network</Filter>
     </ClInclude>
     <ClInclude Include="network\udp_proto.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="ggponet.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="platform_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

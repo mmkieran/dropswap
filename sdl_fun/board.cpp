@@ -615,7 +615,7 @@ void makeItRain(Board* board) {
       Tile* left2 = boardGetTile(board, row, col - 2);
 
       int total = 6;
-      if (left and left) {
+      if (left && left2) {
          while ((type == left->type && type == left2->type)) {
             current++;
             if (current > total) {
