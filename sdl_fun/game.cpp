@@ -288,6 +288,7 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
 
    ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
    ggHandle.players[1].size = sizeof(GGPOPlayer);
+   //Don't mess with player_num...
 
    const char* ip = "127.0.0.1";
    strcpy(ggHandle.players[1].u.remote.ip_address, ip);
@@ -338,7 +339,6 @@ void gameRunFrame() {
    int disconnect_flags;
 
    //read local inputs
-
    if (ggHandle.localPlayer != GGPO_INVALID_HANDLE) {
       inputProcessKeyboard(ggHandle.game);
    }
@@ -354,7 +354,6 @@ void gameRunFrame() {
       }
    }
 
-   gameRender(ggHandle.game);  //Draw everything
 }
 
 //End GGPO stuff
@@ -451,6 +450,22 @@ void gameUpdate(Game* game) {
 }
 
 void gameRender(Game* game) {
+   //Remember that this has to happen after imguiRender, or the clear will remove everything...
+
+   //Draw game objects
+   if (game->playing == true) {
+      for (int i = 1; i <= vectorSize(game->boards); i++) {
+         Board* board = vectorGet(game->boards, i);
+         if (board) {
+            boardRender(game, board);
+         }
+      }
+      //debugCursor(game);  //imgui debug tools
+      //debugGarbage(game);
+   }
+}
+
+void imguiRender(Game* game) {
 
    rendererClear(0.0, 0.0, 0.0, 0.0);
 
@@ -462,17 +477,7 @@ void gameRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   ////Draw game objects
-   //if (game->playing == true) {
-   //   for (int i = 1; i <= vectorSize(game->boards); i++) {
-   //      Board* board = vectorGet(game->boards, i);
-   //      if (board) {
-   //         boardRender(game, board);
-   //      }
-   //   }
-   //   //debugCursor(game);  //imgui debug tools
-   //   //debugGarbage(game);
-   //}
+   gameRender(ggHandle.game);  //Draw all game objects
 
    ImGui::Render();
 

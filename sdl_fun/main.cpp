@@ -44,14 +44,16 @@ int main(int argc, char* args[])
       imguiShowDemo();
       showGameMenu(game);
 
-      if (game->paused == false && game->playing == true) {
-         gameUpdate(game);  //update game and board state
-      }
+      gameRunFrame();
+
+      imguiRender(game);  //draw the board, cursor, and other things
+
+      //if (game->paused == false && game->playing == true) {
+      //   gameUpdate(game);  //update game and board state
+      //}
       //else {
       //   game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
       //}
-
-      gameRender(game);  //draw the board, cursor, and other things
 
       frameTime = getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate

@@ -64,6 +64,7 @@ bool gameRunning(Game* game);
 
 void gameHandleEvents(Game* game);
 
+void gameRunFrame();
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 
@@ -71,6 +72,7 @@ void gameDestroy(Game* game);
 
 void imguiStartFrame(Game* game);
 void imguiShowDemo();
+void imguiRender(Game* game);
 
 void showGameMenu(Game* game);
 
