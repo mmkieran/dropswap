@@ -67,8 +67,8 @@ struct PlayerConnectionInfo {
 struct ggpoHandle {
    GGPOSession* ggpo = nullptr;
    Game* game = nullptr;
-   GGPOPlayer players[MAX_PLAYERS];
-   PlayerConnectionInfo connections[MAX_PLAYERS];
+   GGPOPlayer players[GAME_PLAYERS];
+   PlayerConnectionInfo connections[GAME_PLAYERS];
    GGPOPlayerHandle localPlayer;
 };
 
@@ -139,7 +139,7 @@ bool __cdecl ds_advance_frame_callback(int) {
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * MAX_PLAYERS, &disconnect_flags);
+   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
 
    //Call function to advance frame
    gameAdvanceFrame(ggHandle.game);
@@ -273,7 +273,7 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
 
    //Can add sync test here
    char name[] = "Drop and Swap";
-   //result = ggpo_start_synctest(&ggHandle.ggpo, &cb, name, 2, sizeof(int), 1);
+   //result = ggpo_start_synctest(&ggHandle.ggpo, &cb, name, 2, sizeof(UserInput), 1);
    result = ggpo_start_session(&ggHandle.ggpo, &cb, "Drop and Swap", playerCount, sizeof(UserInput), localport);
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
@@ -285,12 +285,10 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
    //todo don't do this the dumb way
    ggHandle.players[0].type = GGPO_PLAYERTYPE_LOCAL;
    ggHandle.players[0].size = sizeof(GGPOPlayer);
-   ggHandle.players[0].player_num = 1;
-   ggHandle.players[0].u.local;
 
    ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
    ggHandle.players[1].size = sizeof(GGPOPlayer);
-   ggHandle.players[1].player_num = 2;
+
    const char* ip = "127.0.0.1";
    strcpy(ggHandle.players[1].u.remote.ip_address, ip);
    ggHandle.players[1].u.remote.port = remoteport;
@@ -303,7 +301,7 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
        ggHandle.connections[i].type = ggHandle.players->type;
        if (ggHandle.players[i].type == GGPO_PLAYERTYPE_LOCAL) {
           ggHandle.localPlayer = handle;
-          ggpo_set_frame_delay(ggHandle.ggpo, handle, FRAME_DELAY);
+          ggpo_set_frame_delay(ggHandle.ggpo, handle, GAME_FRAME_DELAY);
        }
 
    }
@@ -319,7 +317,7 @@ void gameAdvanceFrame(Game* game) {
    gameUpdate(game);  //todo come back and make this work
 
    //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->ggHandle->ggpo);
+   ggpo_advance_frame(ggHandle.ggpo);
 
    //todo <- come back and fill this in... not sure about player handles
 
@@ -350,7 +348,7 @@ void gameRunFrame() {
    result = ggpo_add_local_input(ggHandle.ggpo, ggHandle.localPlayer, &ggHandle.game->p1Input, sizeof(UserInput));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * MAX_PLAYERS, &disconnect_flags);
+      result = ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
          gameAdvanceFrame(ggHandle.game);  //Update the game 
       }
@@ -580,7 +578,7 @@ void ggpoUI(bool* p_open) {
 
    static int localPort = 7001;
    static int remotePort = 7002;
-   char remote_ip[32];
+   char remote_ip[64] = "127.0.0.1";
 
    ImGui::InputText("Remote IP", remote_ip, IM_ARRAYSIZE(remote_ip));
 
@@ -588,7 +586,7 @@ void ggpoUI(bool* p_open) {
    ImGui::InputInt("Remote port", &remotePort);
 
    if (ImGui::Button("Connect GGPO")) {
-      ggpoInitPlayer(2, localPort, remotePort);
+      ggpoInitPlayer(2, (unsigned short) localPort, remotePort);
    }
 
    ImGui::End();

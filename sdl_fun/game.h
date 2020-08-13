@@ -6,8 +6,8 @@
 
 #include <stdint.h>
 
-#define MAX_PLAYERS 2
-#define FRAME_DELAY 2
+#define GAME_PLAYERS 2
+#define GAME_FRAME_DELAY 2
 
 typedef struct Board Board;
 typedef struct Resources Resources;
@@ -26,9 +26,9 @@ enum GameMode {
 struct Game {
 
    GameWindow* sdl = nullptr;
-   ggpoHandle* ggHandle;
+   //ggpoHandle ggHandle;
    UserInput p1Input;
-   UserInput inputs[MAX_PLAYERS];
+   UserInput inputs[GAME_PLAYERS];
 
    float windowWidth;
    float windowHeight;
