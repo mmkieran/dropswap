@@ -18,61 +18,7 @@
 #include "garbage.h"
 #include "serialize.h"
 #include "game_inputs.h"
-
-#include "ggpo/ggponet.h"
-
-int gameLoad(Game* game, unsigned char*& start);
-std::vector <Byte> gameSave(Game* game);
-
-void gameAdvanceFrame(Game* game);
-
-//todo temporary place for GGPO
-//Dunno what I need yet
-
-/*
-Run frame
-
-Advance Frame
-1. Update game
-2. Checksum and frame number
-3. notify advance frame
-4. Performance update?
-
-Init Spectator
-
-Init Player
-
-Idle
-
-Disconnect Player
-*/
-
-enum PlayerConnectState {
-    Connecting = 0,
-    Synchronizing,
-    Running,
-    Disconnected,
-    Disconnecting,
-};
-
-struct PlayerConnectionInfo {
-    GGPOPlayerType       type;
-    GGPOPlayerHandle     handle;
-    PlayerConnectState   state;
-    int                  connect_progress;
-    int                  disconnect_timeout;
-    int                  disconnect_start;
-};
-
-struct ggpoHandle {
-   GGPOSession* ggpo = nullptr;
-   Game* game = nullptr;
-   GGPOPlayer players[GAME_PLAYERS];
-   PlayerConnectionInfo connections[GAME_PLAYERS];
-   GGPOPlayerHandle localPlayer;
-};
-
-ggpoHandle ggHandle;
+#include "netplay.h"
 
 struct GameWindow {
    SDL_Window *window;
@@ -127,247 +73,11 @@ void imguiStartFrame(Game* game) {
    ImGui::NewFrame();
 }
 
-//Make way for GGPO
-//Don't call it a callback!
-bool __cdecl ds_begin_game_callback(const char*) {
-   //we don't need to do anything here apparently
-   return true;
-}
-
-bool __cdecl ds_advance_frame_callback(int) {
-
-   int disconnect_flags;
-
-   //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-
-   //Call function to advance frame
-   gameAdvanceFrame(ggHandle.game);
-
-   return true;
-}
-
-
-bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
-
-   //std::vector <Byte> stream;
-   //stream.resize(len);
-
-   if (len > 0) {
-      unsigned char* start = buffer;
-      gameLoad(ggHandle.game, start);
-
-      return true;
-   }
-   else { return false; }
-}
-
-bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checksum, int) {
-
-   std::vector <Byte> stream = gameSave(ggHandle.game);
-   if (stream.size() == 0) { return false; }
-
-   *buffer = (unsigned char*)malloc(*len);
-   if (buffer) {
-      *len = stream.size();
-      memcpy(*buffer, stream.data(), *len);
-      return true;
-   }
-   else { return false; }
-
-}
-
-void __cdecl ds_free_buffer_callback(void* buffer) {
-    if (buffer) {free(buffer); }
-}
-
-bool __cdecl ds_on_event_callback(GGPOEvent* info) {
-    int progress;
-
-    //todo come back in fill in events
-
-    //switch (info->code) {
-    //case GGPO_EVENTCODE_CONNECTED_TO_PEER:
-    //    ngs.SetConnectState(info->u.connected.player, Synchronizing);
-    //    break;
-    //case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-    //    progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
-    //    ngs.UpdateConnectProgress(info->u.synchronizing.player, progress);
-    //    break;
-    //case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-    //    ngs.UpdateConnectProgress(info->u.synchronized.player, 100);
-    //    break;
-    //case GGPO_EVENTCODE_RUNNING:
-    //    ngs.SetConnectState(Running);
-    //    renderer->SetStatusText("");
-    //    break;
-    //case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
-    //    ngs.SetDisconnectTimeout(info->u.connection_interrupted.player,
-    //        timeGetTime(),
-    //        info->u.connection_interrupted.disconnect_timeout);
-    //    break;
-    //case GGPO_EVENTCODE_CONNECTION_RESUMED:
-    //    ngs.SetConnectState(info->u.connection_resumed.player, Running);
-    //    break;
-    //case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
-    //    ngs.SetConnectState(info->u.disconnected.player, Disconnected);
-    //    break;
-    //case GGPO_EVENTCODE_TIMESYNC:
-    //    Sleep(1000 * info->u.timesync.frames_ahead / 60);
-    //    break;
-    //}
-
-    return true;
-}
-
-bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
-
-    //Game* game = new Game;
-    //if (game) {
-    //    game->boards = vectorCreate<Board*>(4, 10);
-    //    if (game->boards) {
-    //        gameLoad(game, buffer);
-
-    //        FILE* log = nullptr;
-    //        fopen_s(&log, filename, "w");
-    //        if (log) {
-    //            fprintf(log, "Current Game State\n");
-    //            fprintf(log, "Players: %d\n", game->players);
-    //            fprintf(log, "Game timer: %d\n", game->timer);
-    //            fprintf(log, "Seed: %d\n", game->seed);
-    //            fprintf(log, "Boards: %d\n", vectorSize(game->boards));
-    //            for (int i = 1; i <= vectorSize(game->boards); i++) {
-    //                Board* board = vectorGet(game->boards, i);
-    //                fprintf(log, "Player: %d\n", board->player);
-    //                fprintf(log, "RandomCalls: %d\n", board->randomCalls);
-    //            }
-    //        }
-
-    //        fclose(log);
-
-    //        for (int i = 1; i <= vectorSize(game->boards); i++) {
-    //            Board* board = vectorGet(game->boards, i);
-    //            boardDestroy(board);
-    //        }
-    //        vectorDestroy(game->boards);
-    //    }
-    //}
-    //delete game;
-    return true;
-}
-
-void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
-
-    GGPOErrorCode result;
-    //init game state
-
-   //Called at startup to setup GGPO session
-   GGPOSessionCallbacks cb;
-   cb.begin_game = ds_begin_game_callback;
-   cb.advance_frame = ds_advance_frame_callback;  //todo not done
-   cb.load_game_state = ds_load_game_callback;
-   cb.save_game_state = ds_save_game_callback;
-   cb.free_buffer = ds_free_buffer_callback;
-   cb.on_event = ds_on_event_callback;
-   cb.log_game_state = ds_log_game_state_callback;
-
-   //Can add sync test here
-   char name[] = "Drop and Swap";
-   //result = ggpo_start_synctest(&ggHandle.ggpo, &cb, name, 2, sizeof(UserInput), 1);
-   result = ggpo_start_session(&ggHandle.ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
-
-   // automatically disconnect clients after 3000 ms and start our count-down timer
-   // for disconnects after 1000 ms.   To completely disable disconnects, simply use
-   // a value of 0 for ggpo_set_disconnect_timeout.
-   ggpo_set_disconnect_timeout(ggHandle.ggpo, 3000);
-   ggpo_set_disconnect_notify_start(ggHandle.ggpo, 1000);
-
-   //todo don't do this the dumb way
-   ggHandle.players[0].type = GGPO_PLAYERTYPE_LOCAL;
-   ggHandle.players[0].size = sizeof(GGPOPlayer);
-   ggHandle.players[0].player_num = 1;
-
-   ggHandle.players[1].type = GGPO_PLAYERTYPE_REMOTE;
-   ggHandle.players[1].size = sizeof(GGPOPlayer);
-   ggHandle.players[1].player_num = 2;
-
-   const char* ip = "127.0.0.1";
-   strcpy(ggHandle.players[1].u.remote.ip_address, ip);
-
-   //char ip[10] = "127.0.0.1";
-   //for (int i = 0; i < 10; i++) {
-   //   ggHandle.players[1].u.remote.ip_address[i] = ip[i];
-   //}
-
-   ggHandle.players[1].u.remote.port = 7002; //remoteport;
-
-   //loop to add Players
-   for (int i = 0; i < playerCount; i++) {
-       GGPOPlayerHandle handle;
-       result = ggpo_add_player(ggHandle.ggpo, &ggHandle.players[i], &handle);
-       ggHandle.connections[i].handle = handle;
-       ggHandle.connections[i].type = ggHandle.players->type;
-       if (ggHandle.players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-          ggHandle.localPlayer = handle;
-          ggpo_set_frame_delay(ggHandle.ggpo, handle, GAME_FRAME_DELAY);
-       }
-
-   }
-
-}
-
-void ggpoInitSpectator() {
-
-    //result = ggpo_start_spectating...
-}
-
-void gameAdvanceFrame(Game* game) {
-   gameUpdate(game);  //todo come back and make this work
-
-   //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(ggHandle.ggpo);
-
-   //todo <- come back and fill this in... not sure about player handles
-
-   //// Update the performance monitor display.
-   //GGPOPlayerHandle handles[MAX_PLAYERS];
-   //int count = 0;
-   //for (int i = 0; i < ngs.num_players; i++) {
-   //   if (ngs.players[i].type == GGPO_PLAYERTYPE_REMOTE) {
-   //      handles[count++] = ngs.players[i].handle;
-   //   }
-   //}
-   //ggpoutil_perfmon_update(ggpo, handles, count);
-}
-
-void gameRunFrame() {
-
-   GGPOErrorCode result = GGPO_OK;
-   int disconnect_flags;
-
-   //read local inputs
-   if (ggHandle.localPlayer != GGPO_INVALID_HANDLE) {
-      inputProcessKeyboard(ggHandle.game);
-   }
-
-   //Can do sync test here
-
-   result = ggpo_add_local_input(ggHandle.ggpo, ggHandle.localPlayer, &ggHandle.game->p1Input, sizeof(UserInput));
-   //If we got the local inputs successfully, merge in remote ones
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(ggHandle.ggpo, (void*)ggHandle.game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-      if (GGPO_SUCCEEDED(result)) {
-         gameAdvanceFrame(ggHandle.game);  //Update the game 
-      }
-   }
-
-}
-
-//End GGPO stuff
-
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
    game->sdl = new GameWindow;
+   game->net = new NetPlay;
+   game->net->game = game;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
       printf("Failed to initialize SDL...\n");
@@ -418,9 +128,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->seed = time(0);  //generate the random seed for the board tiles
 
    game->isRunning = true;
-   ggHandle.game = game;
-
-   //game->ggHandle = new ggpoHandle;
 
    return game;
 }
@@ -484,7 +191,7 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   gameRender(ggHandle.game);  //Draw all game objects
+   gameRender(game);  //Draw all game objects
 
    ImGui::Render();
 
@@ -520,7 +227,7 @@ void gameDestroy(Game* game) {
    TTF_Quit();  //close ttf
    SDL_Quit();
    delete game->sdl;
-   //delete game->ggHandle;
+   delete game->net;
    delete game;
 
    printf("Cleanup successful.\n");

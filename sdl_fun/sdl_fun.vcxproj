@@ -187,6 +187,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <ClCompile Include="garbage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mymath.cpp" />
+    <ClCompile Include="netplay.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="resources.cpp" />
     <ClCompile Include="serialize.cpp" />
@@ -201,6 +202,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <ClInclude Include="garbage.h" />
     <ClInclude Include="mymath.h" />
     <ClInclude Include="myvector.h" />
+    <ClInclude Include="netplay.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="resources.h" />
     <ClInclude Include="serialize.h" />

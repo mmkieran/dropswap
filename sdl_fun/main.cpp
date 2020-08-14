@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <SDL.h>
 
+#include <Windows.h>  //For win socks 
+
 #include "game.h"
-#include "render.h"
+
 
 Game *game = nullptr;
 
@@ -23,13 +25,15 @@ uint64_t getTime() {
 }
 
 
-int main(int argc, char* args[])
-{
+int main(int argc, char* args[]) {
    game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
    if (!game) {
       printf("Failed to create game...\n");
       return -1;
    }
+
+   WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
+   WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
 
    gameStart = SDL_GetPerformanceCounter(); 
    timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
@@ -67,5 +71,7 @@ int main(int argc, char* args[])
    }
 
    gameDestroy(game);
+   WSACleanup();  //Cleanup the socket stuff
+
    return 0;
 }

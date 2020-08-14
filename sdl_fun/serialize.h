@@ -4,8 +4,6 @@
 #include "cursor.h"
 #include "garbage.h"
 
-typedef unsigned char Byte;
-
 
 //void testReadStream();
 

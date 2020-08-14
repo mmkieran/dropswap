@@ -5,14 +5,15 @@
 #include "game_inputs.h"
 
 #include <stdint.h>
+#include <vector>
 
 #define GAME_PLAYERS 2
 #define GAME_FRAME_DELAY 2
 
 typedef struct Board Board;
 typedef struct Resources Resources;
-
-struct ggpoHandle;
+typedef struct NetPlay NetPlay;
+typedef unsigned char Byte;
 
 struct GameWindow;
 
@@ -26,7 +27,8 @@ enum GameMode {
 struct Game {
 
    GameWindow* sdl = nullptr;
-   //ggpoHandle ggHandle;
+   NetPlay* net;
+
    UserInput p1Input;
    UserInput inputs[GAME_PLAYERS];
 
@@ -79,8 +81,8 @@ void showGameMenu(Game* game);
 void debugGarbage(Game* game);
 void debugCursor(Game* game);
 
-//int gameLoad(Game* game, unsigned char* &start);
-//std::vector <Byte> gameSave(Game* game);
+int gameLoad(Game* game, unsigned char*& start);
+std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
