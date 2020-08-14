@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct Game Game;
+typedef unsigned long long uint64_t;
 
 struct ButtonState {
    bool p = false;  //pressed
@@ -18,6 +19,8 @@ struct UserInput {
    ButtonState swap;
 
    ButtonState power;
+
+   uint64_t msg;
 };
 
 

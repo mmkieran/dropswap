@@ -42,6 +42,7 @@ void UpdateConnectProgress(GGPOPlayerHandle handle, int progress) {
 
 //Don't call it a callback!
 bool __cdecl ds_begin_game_callback(const char*) {
+
    //we don't need to do anything here apparently
    return true;
 }
@@ -55,7 +56,7 @@ bool __cdecl ds_advance_frame_callback(int) {
 
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-   //ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
+   //ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags); //int input check
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -182,7 +183,7 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    //result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
 
    result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
-   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);
+   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);  //int input check
 
    // Disconnect clients after 5000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 3000);
@@ -255,7 +256,8 @@ void gameRunFrame() {
    //result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &input, sizeof(int));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
+      //result = ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);  //int input check
+      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
          gameAdvanceFrame(game->net->game);  //Update the game 
       }

@@ -303,7 +303,7 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
-void ggpoUI(bool* p_open) {
+void ggpoUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("GGPO Setup", p_open)) {
       ImGui::End();
       return;
@@ -325,6 +325,19 @@ void ggpoUI(bool* p_open) {
       ggpoInitPlayer(2, player_number, (unsigned short) localPort, remotePort);
    }
 
+   if (game->net) {
+      for (int i = 0; i < game->players; i++) {
+         ImGui::Text("Player %d ", i);
+         ImGui::Text("Type %d ", game->net->players[i].type);
+         if (game->net->players[i].type == GGPO_PLAYERTYPE_REMOTE) {
+            ImGui::Text("IP %s ", game->net->players[i].u.remote.ip_address);
+         }
+         ImGui::Text("State %d ", game->net->connections->state);
+         
+      }
+   }
+
+
    ImGui::End();
 }
 
@@ -341,7 +354,7 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("GGPO Setup")) {
       showGGPO = true;
    }
-   if (showGGPO) { ggpoUI(&showGGPO); }
+   if (showGGPO) { ggpoUI(game, &showGGPO); }
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
    ImGui::InputInt("Tile Height", &game->tHeight, 16);
