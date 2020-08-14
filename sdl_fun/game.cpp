@@ -30,6 +30,14 @@ struct GameWindow {
    TTF_Font* font;
 };
 
+uint64_t sdlGetCounter() {
+   uint64_t current = SDL_GetPerformanceCounter();
+   return current;
+}
+
+void sdlSleep(int delay) {
+   SDL_Delay(delay);
+}
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);

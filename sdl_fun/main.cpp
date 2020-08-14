@@ -26,11 +26,11 @@ int main(int argc, char* args[]) {
    WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
    WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
 
-   gameStart = SDL_GetPerformanceCounter(); 
-   timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
+   game->kt.gameStart = SDL_GetPerformanceCounter(); 
+   game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
 
    while (gameRunning(game)) {
-      frameStart = getTime();
+      frameStart = game->kt.getTime();
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
 
@@ -50,13 +50,13 @@ int main(int argc, char* args[]) {
       //   game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
       //}
 
-      frameTime = getTime() - frameStart;
+      frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          SDL_Delay((frameDelay - frameTime) / 1000);
       }
 
       if (game->playing == true && game->paused == false) {  //If we're paused, update game timer
-         game->timeDelta = (getTime() - frameStart) / 1000;
+         game->timeDelta = (game->kt.getTime() - frameStart) / 1000;
          game->timer += game->timeDelta;
       }
    }

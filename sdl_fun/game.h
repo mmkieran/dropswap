@@ -23,6 +23,19 @@ enum GameMode {
    team
 };
 
+uint64_t sdlGetCounter();
+void sdlSleep(int delay);
+
+struct KeepTime {
+   uint64_t gameStart;
+   uint64_t timeFreq;
+
+   uint64_t getTime() {
+      uint64_t current = sdlGetCounter();
+      return ((current - gameStart) * 1000000) / timeFreq;
+   }
+};
+
 //@@Start Serialize
 struct Game {
 
@@ -57,6 +70,8 @@ struct Game {
    int timer = 0;
    int timeDelta = 0;
 
+   KeepTime kt;
+
    uint64_t seed = 0;  //used for random number generation
 };
 //@@End Serialize
@@ -86,11 +101,3 @@ std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
-
-uint64_t gameStart;
-uint64_t timeFreq;
-
-uint64_t getTime() {
-   uint64_t current = SDL_GetPerformanceCounter();
-   return ((current - gameStart) * 1000000) / timeFreq;
-}

@@ -107,7 +107,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(Running);
        break;
    case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
-       SetDisconnectTimeout(info->u.connection_interrupted.player, getTime(), info->u.connection_interrupted.disconnect_timeout);
+       SetDisconnectTimeout(info->u.connection_interrupted.player, game->kt.getTime(), info->u.connection_interrupted.disconnect_timeout);
        break;
    case GGPO_EVENTCODE_CONNECTION_RESUMED:
        SetConnectState(info->u.connection_resumed.player, Running);
@@ -116,7 +116,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(info->u.disconnected.player, Disconnected);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       Sleep(1000 * info->u.timesync.frames_ahead / 60);
+       //Sleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
 
