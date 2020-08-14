@@ -322,7 +322,7 @@ void ggpoUI(Game* game, bool* p_open) {
    ImGui::InputInt("Remote port", &remotePort);
 
    if (ImGui::Button("Connect GGPO")) {
-      ggpoInitPlayer(2, player_number, (unsigned short) localPort, remotePort);
+      ggpoInitPlayer(2, player_number, (unsigned short)localPort, remotePort);
    }
 
    if (game->net) {
@@ -333,9 +333,9 @@ void ggpoUI(Game* game, bool* p_open) {
             ImGui::Text("IP %s ", game->net->players[i].u.remote.ip_address);
          }
          ImGui::Text("State %d ", game->net->connections->state);
-         
       }
    }
+   ImGui::Text("Game seed %d ", game->seed);
 
 
    ImGui::End();

@@ -56,7 +56,6 @@ bool __cdecl ds_advance_frame_callback(int) {
 
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-   //ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags); //int input check
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -96,6 +95,8 @@ void __cdecl ds_free_buffer_callback(void* buffer) {
 
 bool __cdecl ds_on_event_callback(GGPOEvent* info) {
    int progress;
+   GGPOErrorCode result = GGPO_OK;
+   int disconnect_flags = 0;
 
    switch (info->code) {
    case GGPO_EVENTCODE_CONNECTED_TO_PEER:
@@ -185,8 +186,8 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
    //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);  //int input check
 
-   // Disconnect clients after 5000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 3000);
+   // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
+   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    //todo don't do this the dumb way
@@ -199,11 +200,11 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
 
    game->net->players[p1index].type = GGPO_PLAYERTYPE_LOCAL;
    game->net->players[p1index].size = sizeof(GGPOPlayer);
-   game->net->players[p1index].player_num = 1;
+   game->net->players[p1index].player_num = p1index + 1;
 
    game->net->players[p2index].type = GGPO_PLAYERTYPE_REMOTE;
    game->net->players[p2index].size = sizeof(GGPOPlayer);
-   game->net->players[p2index].player_num = 2;
+   game->net->players[p2index].player_num = p2index + 1;
 
    const char* ip = "127.0.0.1";
    strcpy(game->net->players[p2index].u.remote.ip_address, ip);
@@ -222,7 +223,6 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
       }
 
    }
-
 }
 
 void ggpoInitSpectator() {
@@ -247,20 +247,48 @@ void gameRunFrame() {
       inputProcessKeyboard(game->net->game);
    }
 
-   //debug
-   int input = 0;
-   int inputs[GAME_PLAYERS];
+   if (game->net->localPlayer == 1) {
+      game->p1Input.msg = game->seed;
+   }
+
    //Can do sync test here
 
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-   //result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &input, sizeof(int));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
-      //result = ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);  //int input check
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
+         if (game->net->localPlayer != 1) {
+            game->seed = game->inputs[0].msg;  //Debug get inputs from player one!
+         }
          gameAdvanceFrame(game->net->game);  //Update the game 
       }
    }
 
 }
+
+void syncAllInputs() {
+
+   GGPOErrorCode result = GGPO_OK;
+   int disconnect_flags;
+
+   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+   //If we got the local inputs successfully, merge in remote ones
+   if (GGPO_SUCCEEDED(result)) {
+      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   }
+}
+
+/*
+       if (game->net->localPlayer == 1) {
+          game->p1Input.msg = game->seed;
+       }
+       result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+       //If we got the local inputs successfully, merge in remote ones
+       if (GGPO_SUCCEEDED(result)) {
+          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+          if (GGPO_SUCCEEDED(result)) {
+             game->seed = game->inputs[0].msg;
+          }
+       }
+*/
