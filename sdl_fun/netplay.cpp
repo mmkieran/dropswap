@@ -54,8 +54,8 @@ bool __cdecl ds_advance_frame_callback(int) {
    int inputs[GAME_PLAYERS];
 
    //Figure out the inputs and check for disconnects
-   //ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-   ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
+   ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   //ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -181,8 +181,8 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    //char name[] = "Drop and Swap";
    //result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
 
-   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
-   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);
+   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
+   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);
 
    // Disconnect clients after 5000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 3000);
@@ -246,12 +246,13 @@ void gameRunFrame() {
       inputProcessKeyboard(game->net->game);
    }
 
+   //debug
    int input = 0;
    int inputs[GAME_PLAYERS];
    //Can do sync test here
 
-   //result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &input, sizeof(int));
+   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+   //result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &input, sizeof(int));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
