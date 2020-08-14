@@ -52,7 +52,8 @@ int main(int argc, char* args[]) {
 
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
-         SDL_Delay((frameDelay - frameTime) / 1000);
+         gameGiveIdleToGGPO(game, ((frameDelay - frameTime) / 1000) - 10 );
+         sdlSleep(10);
       }
 
       if (game->playing == true && game->paused == false) {  //If we're paused, update game timer

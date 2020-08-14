@@ -80,6 +80,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 bool gameRunning(Game* game);
 
 void gameHandleEvents(Game* game);
+void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
 void gameUpdate(Game* game);

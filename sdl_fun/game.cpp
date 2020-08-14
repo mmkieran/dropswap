@@ -30,6 +30,7 @@ struct GameWindow {
    TTF_Font* font;
 };
 
+//SDL function wrappers
 uint64_t sdlGetCounter() {
    uint64_t current = SDL_GetPerformanceCounter();
    return current;
@@ -37,6 +38,11 @@ uint64_t sdlGetCounter() {
 
 void sdlSleep(int delay) {
    SDL_Delay(delay);
+}
+
+//Give extra frame time to GGPO so it can do it's thing
+void gameGiveIdleToGGPO(Game* game, int time) {
+   ggpo_idle(game->net->ggpo, time);
 }
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
@@ -182,7 +188,7 @@ void gameRender(Game* game) {
             boardRender(game, board);
          }
       }
-      //debugCursor(game);  //imgui debug tools
+      debugCursor(game);  //imgui debug tools
       //debugGarbage(game);
    }
 }
@@ -305,15 +311,18 @@ void ggpoUI(bool* p_open) {
 
    static int localPort = 7001;
    static int remotePort = 7002;
+   static int player_number = 1;
    char remote_ip[64] = "127.0.0.1";
 
+   //ImGui::Text("Player 1 is the local player");
+   ImGui::InputInt("Player Number", &player_number);
    ImGui::InputText("Remote IP", remote_ip, IM_ARRAYSIZE(remote_ip));
 
    ImGui::InputInt("Local port", &localPort);
    ImGui::InputInt("Remote port", &remotePort);
 
    if (ImGui::Button("Connect GGPO")) {
-      ggpoInitPlayer(2, (unsigned short) localPort, remotePort);
+      ggpoInitPlayer(2, player_number, (unsigned short) localPort, remotePort);
    }
 
    ImGui::End();

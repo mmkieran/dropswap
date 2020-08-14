@@ -30,7 +30,7 @@ struct NetPlay {
    GGPOPlayerHandle localPlayer = 0;
 };
 
-void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport);
+void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport);
 
 void ggpoInitSpectator();
 

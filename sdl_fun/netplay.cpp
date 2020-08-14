@@ -50,8 +50,12 @@ bool __cdecl ds_advance_frame_callback(int) {
 
    int disconnect_flags;
 
+   int input = 0;
+   int inputs[GAME_PLAYERS];
+
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   //ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -116,7 +120,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(info->u.disconnected.player, Disconnected);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       //Sleep(1000 * info->u.timesync.frames_ahead / 60);
+       sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
 
@@ -159,7 +163,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    return true;
 }
 
-void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
+void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport) {
 
    GGPOErrorCode result;
 
@@ -177,25 +181,33 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
    //char name[] = "Drop and Swap";
    //result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
 
-   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
+   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
+   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);
 
    // Disconnect clients after 5000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 3000);
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    //todo don't do this the dumb way
-   game->net->players[0].type = GGPO_PLAYERTYPE_LOCAL;
-   game->net->players[0].size = sizeof(GGPOPlayer);
-   game->net->players[0].player_num = 1;
+   int p1index = 0;
+   int p2index = 1;
+   if (pNumber == 2) {
+      p1index = 1;
+      p2index = 0;
+   }
 
-   game->net->players[1].type = GGPO_PLAYERTYPE_REMOTE;
-   game->net->players[1].size = sizeof(GGPOPlayer);
-   game->net->players[1].player_num = 2;
+   game->net->players[p1index].type = GGPO_PLAYERTYPE_LOCAL;
+   game->net->players[p1index].size = sizeof(GGPOPlayer);
+   game->net->players[p1index].player_num = 1;
+
+   game->net->players[p2index].type = GGPO_PLAYERTYPE_REMOTE;
+   game->net->players[p2index].size = sizeof(GGPOPlayer);
+   game->net->players[p2index].player_num = 2;
 
    const char* ip = "127.0.0.1";
-   strcpy(game->net->players[1].u.remote.ip_address, ip);
+   strcpy(game->net->players[p2index].u.remote.ip_address, ip);
 
-   game->net->players[1].u.remote.port = 7002;
+   game->net->players[p2index].u.remote.port = remoteport;
 
    //loop to add Players
    for (int i = 0; i < playerCount; i++) {
@@ -234,13 +246,15 @@ void gameRunFrame() {
       inputProcessKeyboard(game->net->game);
    }
 
+   int input = 0;
+   int inputs[GAME_PLAYERS];
    //Can do sync test here
 
-
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+   //result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &input, sizeof(int));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->net->game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+      result = ggpo_synchronize_input(game->net->ggpo, (void*)inputs, sizeof(int) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
          gameAdvanceFrame(game->net->game);  //Update the game 
       }
