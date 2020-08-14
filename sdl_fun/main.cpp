@@ -16,15 +16,6 @@ const int frameDelay = 1000000 / FPS;  //microseconds
 uint64_t frameStart;
 uint64_t frameTime;
 
-uint64_t gameStart;
-uint64_t timeFreq;
-
-uint64_t getTime() {
-   uint64_t current = SDL_GetPerformanceCounter();
-   return ((current - gameStart) * 1000000) / timeFreq;
-}
-
-
 int main(int argc, char* args[]) {
    game = gameCreate("Game test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
    if (!game) {

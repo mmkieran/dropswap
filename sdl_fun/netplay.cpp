@@ -4,6 +4,42 @@
 
 extern Game* game;  //I dunno how I feel about this
 
+void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
+   for (int i = 0; i < game->players; i++) {
+      if (game->net->connections[i].handle == handle) {
+         game->net->connections[i].connect_progress = 0;
+         game->net->connections[i].state = state;
+         break;
+      }
+   }
+}
+
+void SetDisconnectTimeout(GGPOPlayerHandle handle, int when, int timeout) {
+   for (int i = 0; i < game->players; i++) {
+      if (game->net->connections[i].handle == handle) {
+         game->net->connections[i].disconnect_start = when;
+         game->net->connections[i].disconnect_timeout = timeout;
+         game->net->connections[i].state = Disconnecting;
+         break;
+      }
+   }
+}
+
+void SetConnectState(PlayerConnectState state) {
+   for (int i = 0; i < game->players; i++) {
+      game->net->connections[i].state = state;
+   }
+}
+
+void UpdateConnectProgress(GGPOPlayerHandle handle, int progress) {
+   for (int i = 0; i < game->players; i++) {
+      if (game->net->connections[i].handle == handle) {
+         game->net->connections[i].connect_progress = progress;
+         break;
+      }
+   }
+}
+
 //Don't call it a callback!
 bool __cdecl ds_begin_game_callback(const char*) {
    //we don't need to do anything here apparently
@@ -56,38 +92,33 @@ void __cdecl ds_free_buffer_callback(void* buffer) {
 bool __cdecl ds_on_event_callback(GGPOEvent* info) {
    int progress;
 
-   //todo come back in fill in events
-
-   //switch (info->code) {
-   //case GGPO_EVENTCODE_CONNECTED_TO_PEER:
-   //    ngs.SetConnectState(info->u.connected.player, Synchronizing);
-   //    break;
-   //case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-   //    progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
-   //    ngs.UpdateConnectProgress(info->u.synchronizing.player, progress);
-   //    break;
-   //case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-   //    ngs.UpdateConnectProgress(info->u.synchronized.player, 100);
-   //    break;
-   //case GGPO_EVENTCODE_RUNNING:
-   //    ngs.SetConnectState(Running);
-   //    renderer->SetStatusText("");
-   //    break;
-   //case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
-   //    ngs.SetDisconnectTimeout(info->u.connection_interrupted.player,
-   //        timeGetTime(),
-   //        info->u.connection_interrupted.disconnect_timeout);
-   //    break;
-   //case GGPO_EVENTCODE_CONNECTION_RESUMED:
-   //    ngs.SetConnectState(info->u.connection_resumed.player, Running);
-   //    break;
-   //case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
-   //    ngs.SetConnectState(info->u.disconnected.player, Disconnected);
-   //    break;
-   //case GGPO_EVENTCODE_TIMESYNC:
-   //    Sleep(1000 * info->u.timesync.frames_ahead / 60);
-   //    break;
-   //}
+   switch (info->code) {
+   case GGPO_EVENTCODE_CONNECTED_TO_PEER:
+       SetConnectState(info->u.connected.player, Synchronizing);
+       break;
+   case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
+       progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
+       UpdateConnectProgress(info->u.synchronizing.player, progress);
+       break;
+   case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
+       UpdateConnectProgress(info->u.synchronized.player, 100);
+       break;
+   case GGPO_EVENTCODE_RUNNING:
+       SetConnectState(Running);
+       break;
+   case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
+       SetDisconnectTimeout(info->u.connection_interrupted.player, getTime(), info->u.connection_interrupted.disconnect_timeout);
+       break;
+   case GGPO_EVENTCODE_CONNECTION_RESUMED:
+       SetConnectState(info->u.connection_resumed.player, Running);
+       break;
+   case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
+       SetConnectState(info->u.disconnected.player, Disconnected);
+       break;
+   case GGPO_EVENTCODE_TIMESYNC:
+       Sleep(1000 * info->u.timesync.frames_ahead / 60);
+       break;
+   }
 
    return true;
 }
@@ -131,7 +162,6 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
 void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
 
    GGPOErrorCode result;
-   //init game state
 
   //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
@@ -149,9 +179,7 @@ void ggpoInitPlayer(int playerCount, unsigned short localport, int remoteport) {
 
    result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
 
-   // automatically disconnect clients after 3000 ms and start our count-down timer
-   // for disconnects after 1000 ms.   To completely disable disconnects, simply use
-   // a value of 0 for ggpo_set_disconnect_timeout.
+   // Disconnect clients after 5000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 3000);
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 

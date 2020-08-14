@@ -47,7 +47,7 @@ struct Game {
 
    bool isRunning = false;  //used in main loop
 
-   int players = 1;
+   int players = 2;
    bool playing = false;
 
    bool paused = false;
@@ -86,3 +86,11 @@ std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
+
+uint64_t gameStart;
+uint64_t timeFreq;
+
+uint64_t getTime() {
+   uint64_t current = SDL_GetPerformanceCounter();
+   return ((current - gameStart) * 1000000) / timeFreq;
+}
