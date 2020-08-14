@@ -78,10 +78,10 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
 
    std::vector <Byte> stream = gameSave(game);
    if (stream.size() == 0) { return false; }
+   *len = stream.size();
 
    *buffer = (unsigned char*)malloc(*len);
    if (buffer) {
-      *len = stream.size();
       memcpy(*buffer, stream.data(), *len);
       return true;
    }
