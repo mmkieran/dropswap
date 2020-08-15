@@ -36,9 +36,10 @@ struct NetPlay {
 };
 
 void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport);
-
 void ggpoInitSpectator();
+
 void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle);
+void ggpoReadMessage(Game* game, UserInput input, unsigned short handle);
 
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();

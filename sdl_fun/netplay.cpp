@@ -305,6 +305,9 @@ void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle) {
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
    if (GGPO_SUCCEEDED(result)) {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+      if (GGPO_SUCCEEDED(result)) {
+         ggpo_advance_frame(game->net->ggpo);
+      }
    }
 }
 

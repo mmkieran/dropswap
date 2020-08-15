@@ -191,6 +191,29 @@ void gameRender(Game* game) {
    }
 }
 
+void gameStartMatch(Game* game) {
+   //setting up board
+   for (int i = 1; i <= game->players; i++) {
+      Board* board = boardCreate(game);
+      board->player = i;
+      vectorPushBack(game->boards, board);
+      boardFillTiles(board);
+
+      //todo add a smarter algorithm to tile boards in screen space if more than 2
+      float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
+      float yOrigin = game->tHeight;
+
+      //todo if we want more than 2 we'll have to use a tiling algorithm
+      //if (i > 2) {
+      //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+      //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+      //}
+
+      board->origin = { xOrigin, yOrigin };
+   }
+   game->playing = true;
+}
+
 void imguiRender(Game* game) {
 
    rendererClear(0.0, 0.0, 0.0, 0.0);
@@ -367,11 +390,29 @@ void ggpoUI(Game* game, bool* p_open) {
    }
    ImGui::Text("Game seed %d ", game->seed);
 
-   //if (game->net && game->net->connections[0].state == 2 && game->net->connections[1].state == 2) {
-   //   if (ImGui::Button("Set Ready")) {
-   //      ggpoSendMessage(game->seed, 1, game->net->localPlayer);
-   //   }
-   //}
+   static bool localReady = false;
+   static bool remoteReady = false;
+   if (game->net && game->net->connections[0].state == 2 && game->net->connections[1].state == 2) {
+      if (ImGui::Button("Ready")) {
+         if (game->net->localPlayer == 1) {
+            ggpoSendMessage(game->seed, 1, game->net->localPlayer);
+         }
+         localReady = true;
+      }
+
+      for (int i = 0; i < game->players; i++) {
+         if (game->inputs[i].code == 1 && game->net->connections[i].handle != game->net->localPlayer) {
+            remoteReady = true;
+            if (game->net->localPlayer != 1) {
+               game->seed = game->inputs[0].msg;
+            }
+         }
+      }
+      if (remoteReady == true && localReady == true) {
+         gameStartMatch(game);
+         remoteReady = localReady = false;
+      }
+   }
 
    ImGui::End();
 }
@@ -400,29 +441,9 @@ void showGameMenu(Game* game) {
 
    if (game->playing == false) {
       if (ImGui::Button("Start Game")) {
-
-         //setting up board
-         for (int i = 1; i <= game->players; i++) {
-            Board* board = boardCreate(game);
-            board->player = i;
-            vectorPushBack(game->boards, board);
-            boardFillTiles(board);
-
-            //todo add a smarter algorithm to tile boards in screen space if more than 2
-            float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
-            float yOrigin = game->tHeight;
-
-            //todo if we want more than 2 we'll have to use a tiling algorithm
-            //if (i > 2) {
-            //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
-            //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
-            //}
-
-            board->origin = {xOrigin, yOrigin};
-         }
-
-         game->playing = true;
+         gameStartMatch(game);
       }
+
    }
    if (game->playing == true) {
       if (ImGui::Button("End Game")) {
