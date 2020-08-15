@@ -269,18 +269,17 @@ void gameRunFrame() {
    }
 
    if (game->net->localPlayer == 1) {
-      game->p1Input.msg = game->seed;
+      game->p1Input.timer = game->timer;
    }
 
    //Can do sync test here with random inputs
-
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
    //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
          if (game->net->localPlayer != 1) {
-            game->seed = game->inputs[0].msg;  //Debug get inputs from player one!
+            game->timer = game->inputs[0].timer;  //We want to use the timer from p1
          }
          gameAdvanceFrame(game->net->game);  //Update the game 
       }
@@ -294,28 +293,38 @@ void ggpoClose(GGPOSession* ggpo) {
    }
 }
 
-void syncAllInputs() {
+void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle) {
 
    GGPOErrorCode result = GGPO_OK;
    int disconnect_flags;
 
+   game->net->game->p1Input.code = code;
+   game->net->game->p1Input.msg = msg;
+   game->net->game->p1Input.handle = handle;
+
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-   //If we got the local inputs successfully, merge in remote ones
    if (GGPO_SUCCEEDED(result)) {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
    }
 }
 
-/*
-       if (game->net->localPlayer == 1) {
-          game->p1Input.msg = game->seed;
-       }
-       result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-       //If we got the local inputs successfully, merge in remote ones
-       if (GGPO_SUCCEEDED(result)) {
-          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-          if (GGPO_SUCCEEDED(result)) {
-             game->seed = game->inputs[0].msg;
-          }
-       }
-*/
+//This probably belongs with game input
+void ggpoReadMessage(Game* game, UserInput input, unsigned short handle) {
+   switch (input.code) {
+   case 1:
+      if (game->net->localPlayer != 1) {
+         game->seed = input.msg;
+      }
+      break;
+   case 2:
+      //Dump garbage
+      break;
+   case 3:
+      //Player dead
+      break;
+   }
+
+   game->net->game->p1Input.code = -1;
+   game->net->game->p1Input.msg = 0;
+   game->net->game->p1Input.handle = 0;
+}

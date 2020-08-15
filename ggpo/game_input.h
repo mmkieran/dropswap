@@ -14,7 +14,7 @@
 // GAMEINPUT_MAX_BYTES * GAMEINPUT_MAX_PLAYERS * 8 must be less than
 // 2^BITVECTOR_NIBBLE_SIZE (see bitvector.h)
 
-#define GAMEINPUT_MAX_BYTES      100
+#define GAMEINPUT_MAX_BYTES      73
 #define GAMEINPUT_MAX_PLAYERS    2
 
 struct GameInput {

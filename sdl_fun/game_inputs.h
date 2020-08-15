@@ -6,7 +6,7 @@ typedef unsigned long long uint64_t;
 struct ButtonState {
    bool p = false;  //pressed
    bool h = false;  //held
-   int fc = 0;      //frame count
+   int fc = 0;      // frame count //todo... belongs in gamestate?
 };
 
 struct UserInput {
@@ -21,6 +21,9 @@ struct UserInput {
    ButtonState power;
 
    uint64_t msg;
+   unsigned short code;
+   unsigned short handle;
+   int timer;
 };
 
 

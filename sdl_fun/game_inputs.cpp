@@ -16,44 +16,6 @@ struct KeyboardMap {
 
 KeyboardMap kmap;  //todo where should this live?
 
-void old_inputKeyboard(Game* game, SDL_Event e) {
-
-   switch (e.type) {
-
-   case SDL_KEYDOWN:
-
-         switch (e.key.keysym.sym) {
-         case SDLK_LEFT:
-
-            break;
-
-         case SDLK_RIGHT:
-
-            break;
-
-         case SDLK_UP:
-
-            break;
-
-         case SDLK_DOWN:
-
-            break;
-
-         case SDLK_SPACE:
-
-            break;
-
-         case SDLK_r:
-
-            break;
-
-         case SDLK_t:
-
-            break;
-      }
-   }
-}
-
 void inputProcessKeyboard(Game* game) {
 
    const Uint8 *state = SDL_GetKeyboardState(NULL);

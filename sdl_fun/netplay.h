@@ -4,6 +4,11 @@
 
 #include "game.h"
 
+enum GameMsg {
+   Ready = 0,
+   Garbage,
+   Dead
+};
 
 enum PlayerConnectState {
    Connecting = 0,
@@ -33,6 +38,7 @@ struct NetPlay {
 void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport);
 
 void ggpoInitSpectator();
+void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle);
 
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();

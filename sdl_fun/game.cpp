@@ -42,7 +42,9 @@ void sdlSleep(int delay) {
 
 //Give extra frame time to GGPO so it can do it's thing
 void gameGiveIdleToGGPO(Game* game, int time) {
-   ggpo_idle(game->net->ggpo, time);
+   if (game->net && time > 0) {
+      ggpo_idle(game->net->ggpo, time);
+   }
 }
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
@@ -343,11 +345,16 @@ void ggpoUI(Game* game, bool* p_open) {
                break;
             case 1:
                ImGui::Text("Synchronizing");
+               break;
             case 2:
                ImGui::Text("Running");
                break;
             case 3:
                ImGui::Text("Disconnected");
+               break;
+            default:
+               ImGui::Text("None");
+               break;
          }
          //ImGui::Text("State %d ", game->net->connections[i].state);
          if (game->net->players[i].type == GGPO_PLAYERTYPE_REMOTE) {
@@ -360,7 +367,11 @@ void ggpoUI(Game* game, bool* p_open) {
    }
    ImGui::Text("Game seed %d ", game->seed);
 
-
+   //if (game->net && game->net->connections[0].state == 2 && game->net->connections[1].state == 2) {
+   //   if (ImGui::Button("Set Ready")) {
+   //      ggpoSendMessage(game->seed, 1, game->net->localPlayer);
+   //   }
+   //}
 
    ImGui::End();
 }
@@ -401,10 +412,11 @@ void showGameMenu(Game* game) {
             float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
             float yOrigin = game->tHeight;
 
-            if (i > 2) {
-               xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
-               yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
-            }
+            //todo if we want more than 2 we'll have to use a tiling algorithm
+            //if (i > 2) {
+            //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+            //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+            //}
 
             board->origin = {xOrigin, yOrigin};
          }
