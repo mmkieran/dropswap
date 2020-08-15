@@ -4,6 +4,26 @@
 
 extern Game* game;  //I dunno how I feel about this
 
+int fletcher32_checksum(short* data, size_t len) {
+   int sum1 = 0xffff, sum2 = 0xffff;
+
+   while (len) {
+      size_t tlen = len > 360 ? 360 : len;
+      len -= tlen;
+      do {
+         sum1 += *data++;
+         sum2 += sum1;
+      } while (--tlen);
+      sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+      sum2 = (sum2 & 0xffff) + (sum2 >> 16);
+   }
+
+   /* Second reduction step to reduce sums to 16 bits */
+   sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+   sum2 = (sum2 & 0xffff) + (sum2 >> 16);
+   return sum2 << 16 | sum1;
+}
+
 void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
    for (int i = 0; i < game->players; i++) {
       if (game->net->connections[i].handle == handle) {
@@ -84,6 +104,8 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    if (buffer) {
       memcpy(*buffer, stream.data(), *len);
       return true;
+
+      *checksum = fletcher32_checksum((short*)*buffer, *len / 2);
    }
    else { return false; }
 
@@ -184,7 +206,6 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    //result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
 
    result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
-   //result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(int), localport);  //int input check
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
@@ -251,7 +272,7 @@ void gameRunFrame() {
       game->p1Input.msg = game->seed;
    }
 
-   //Can do sync test here
+   //Can do sync test here with random inputs
 
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
    //If we got the local inputs successfully, merge in remote ones
@@ -265,6 +286,12 @@ void gameRunFrame() {
       }
    }
 
+}
+
+void ggpoClose(GGPOSession* ggpo) {
+   if (ggpo) {
+      ggpo_close_session(ggpo);
+   }
 }
 
 void syncAllInputs() {

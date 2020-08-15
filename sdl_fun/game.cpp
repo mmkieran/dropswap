@@ -157,11 +157,7 @@ void gameHandleEvents(Game* game) {
       }
    }
 
-   //todo add in pausing again once all the dust clears
-
-   //inputProcessKeyboard(game);  //Fill out the UserInput struct from keyboard
-
-   //if (game->p1Input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
+   //if (game->input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
    //   if (game->paused == true) { game->paused = false; }
    //   else if (game->paused == false) { game->paused = true; }
    //}
@@ -173,7 +169,7 @@ void gameUpdate(Game* game) {
    //todo rework to use new inputs
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
-      boardUpdate(vectorGet(game->boards, i));
+      boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
    }
 }
 
@@ -224,6 +220,11 @@ void gameDestroy(Game* game) {
          boardDestroy(board);
       }
    }
+
+   if (game->net && game->net->ggpo) {
+      ggpoClose(game->net->ggpo);
+   }
+
    vectorDestroy(game->boards);
 
    destroyResources(game->resources);
@@ -327,15 +328,38 @@ void ggpoUI(Game* game, bool* p_open) {
 
    if (game->net) {
       for (int i = 0; i < game->players; i++) {
-         ImGui::Text("Player %d ", i);
-         ImGui::Text("Type %d ", game->net->players[i].type);
+         if (game->net->connections[i].handle == game->net->localPlayer) {
+            ImGui::Text("*"); 
+         }
+         else {
+            ImGui::Text(" ");
+         }
+         ImGui::SameLine();
+         ImGui::Text("P%d ", game->net->players[i].player_num); 
+         ImGui::SameLine();
+         switch (game->net->connections[i].state) {
+            case 0:
+               ImGui::Text("Connecting");
+               break;
+            case 1:
+               ImGui::Text("Synchronizing");
+            case 2:
+               ImGui::Text("Running");
+               break;
+            case 3:
+               ImGui::Text("Disconnected");
+         }
+         //ImGui::Text("State %d ", game->net->connections[i].state);
          if (game->net->players[i].type == GGPO_PLAYERTYPE_REMOTE) {
+            ImGui::SameLine();
+            ImGui::Text("Port %d ", game->net->players[i].u.remote.port);
+            ImGui::SameLine();
             ImGui::Text("IP %s ", game->net->players[i].u.remote.ip_address);
          }
-         ImGui::Text("State %d ", game->net->connections->state);
       }
    }
    ImGui::Text("Game seed %d ", game->seed);
+
 
 
    ImGui::End();

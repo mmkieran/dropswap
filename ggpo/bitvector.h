@@ -8,7 +8,7 @@
 #ifndef _BITVECTOR_H
 #define _BITVECTOR_H
 
-#define BITVECTOR_NIBBLE_SIZE 16
+#define BITVECTOR_NIBBLE_SIZE 12
 
 void BitVector_SetBit(uint8 *vector, int *offset);
 void BitVector_ClearBit(uint8 *vector, int *offset);

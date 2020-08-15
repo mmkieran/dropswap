@@ -4,6 +4,7 @@
 
 typedef struct Mesh Mesh;
 typedef struct Animation Animation;
+typedef struct UserInput UserInput;
 
 
 //@@Start Serialize
@@ -39,6 +40,5 @@ float cursorGetY(Cursor* cursor);
 int cursorGetRow(Board* board);
 int cursorGetCol(Board* board);
 
-void cursorUpdate(Board* board);
+void cursorUpdate(Board* board, UserInput input);
 void cursorDraw(Board* board);
-void cursorMove(Board* board);

@@ -55,13 +55,6 @@ int cursorGetCol(Board* board) {
    return (int)board->cursor->x / board->tileWidth;
 }
 
-void cursorUpdate(Board* board) {
-   if (board->cursor->y <= 0) {
-      board->cursor->y = board->tileHeight + board->offset;
-   }
-   cursorMove(board);
-}
-
 void cursorDraw(Board* board) {
    Cursor* cursor = board->cursor;
    Game* game = board->game;
@@ -72,67 +65,72 @@ void cursorDraw(Board* board) {
    //meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
-void cursorMove(Board* board) {
+void cursorUpdate(Board* board, UserInput input) {
+
+   if (board->cursor->y <= 0) {
+      board->cursor->y = board->tileHeight + board->offset;
+   }
+
    float y = cursorGetY(board->cursor);
    float x = cursorGetX(board->cursor);
 
-   if (board->game->p1Input.up.p) {
+   if (input.up.p) {
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.down.p) {
+   else if (input.down.p) {
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.right.p) {
+   else if (input.right.p) {
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
       }
    }
 
-   else if (board->game->p1Input.left.p) {
+   else if (input.left.p) {
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));
       }
    }
 
-   else if (board->game->p1Input.right.h) {
+   else if (input.right.h) {
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
       }
    }
 
-   else if (board->game->p1Input.left.h) {
+   else if (input.left.h) {
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));
       }
    }
 
-   else if (board->game->p1Input.up.h) {
+   else if (input.up.h) {
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.down.h) {
+   else if (input.down.h) {
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
       }
    }
 
-   else if (board->game->p1Input.swap.p) {
+   else if (input.swap.p) {
       boardSwap(board);
    }
 }

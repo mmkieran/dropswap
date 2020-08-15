@@ -105,7 +105,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
    board->tiles[(board->w * row + col)] = tile;
 }
 
-void boardUpdate(Board* board) {
+void boardUpdate(Board* board, UserInput input) {
 
    boardRemoveClears(board);
 
@@ -136,7 +136,7 @@ void boardUpdate(Board* board) {
    garbageFall(board, board->fallSpeed * 4.0f);
    boardAssignSlot(board, false);
 
-   cursorUpdate(board);  //todo make this do something more?
+   cursorUpdate(board, input);  //todo make this do something more?
 }
 
 void boardRender(Game* game, Board* board) {
@@ -658,28 +658,3 @@ std::vector <Tile> boardDebug(Board* board) {
    }
    return tileList;
 }
-//
-//void _serializeRandom(Board* board) {
-//   std::ofstream fout;
-//
-//   std::string fileName = "saves/p";
-//   fileName += std::to_string(board->player);
-//   fileName += "random.dat";
-//
-//   fout.open(fileName, std::fstream::binary | std::fstream::out);
-//   fout << board->generator;
-//   fout << board->distribution;
-//
-//}
-//
-//void _deserializeRandom(Board* board) {
-//   std::ifstream fin;
-//
-//   std::string fileName = "saves/p";
-//   fileName += std::to_string(board->player);
-//   fileName += "random.dat";
-//
-//   fin.open(fileName, std::fstream::binary | std::fstream::in);
-//   fin >> board->generator;
-//   fin >> board->distribution;
-//}

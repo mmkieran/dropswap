@@ -36,3 +36,5 @@ void ggpoInitSpectator();
 
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();
+
+void ggpoClose(GGPOSession* ggpo);
