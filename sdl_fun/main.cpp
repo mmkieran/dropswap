@@ -36,7 +36,7 @@ int main(int argc, char* args[]) {
 
       imguiStartFrame(game);
 
-      imguiShowDemo();
+      //imguiShowDemo();
       showGameMenu(game);
 
       gameRunFrame();
@@ -52,8 +52,9 @@ int main(int argc, char* args[]) {
 
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
-         gameGiveIdleToGGPO(game, ((frameDelay - frameTime) / 1000) - 10 );
-         sdlSleep(10);
+         int leftover = (frameDelay - frameTime) / 1000;
+         gameGiveIdleToGGPO(game, leftover - 1 );
+         sdlSleep(1);
       }
 
       if (game->playing == true && game->paused == false) {  //If we're paused, update game timer

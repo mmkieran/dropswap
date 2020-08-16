@@ -248,6 +248,7 @@ void gameDestroy(Game* game) {
 
    if (game->net && game->net->ggpo) {
       ggpoClose(game->net->ggpo);
+      game->net->ggpo = nullptr;
    }
 
    vectorDestroy(game->boards);

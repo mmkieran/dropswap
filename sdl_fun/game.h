@@ -32,7 +32,8 @@ struct KeepTime {
 
    uint64_t getTime() {
       uint64_t current = sdlGetCounter();
-      return ((current - gameStart) * 1000000) / timeFreq;
+      uint64_t out = ((current - gameStart) * 1000000) / timeFreq;
+      return out;
    }
 };
 
@@ -57,6 +58,9 @@ struct Game {
 
    int tWidth = 64;
    int tHeight = 64;
+
+   int check1 = 0;
+   int check2 = 0;
 
    bool isRunning = false;  //used in main loop
 

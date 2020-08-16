@@ -4,6 +4,9 @@
 
 extern Game* game;  //I dunno how I feel about this
 
+//Use this to turn on synchronization testing... predicts every frame
+//#define SYNC_TEST  
+
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
 
@@ -83,9 +86,14 @@ bool __cdecl ds_advance_frame_callback(int) {
    return true;
 }
 
+std::vector <int> checks;
+std::vector <Byte*> streams;
+
 bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
 
    if (len > 0) {
+      game->check2 = fletcher32_checksum((short*)buffer, len / 2);
+      int a = game->check1;
       unsigned char* start = buffer;
       gameLoad(game, start);
 
@@ -100,12 +108,15 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    if (stream.size() == 0) { return false; }
    *len = stream.size();
 
-   *buffer = (unsigned char*)malloc(*len);
+   *buffer = (unsigned char*) malloc(*len);
    if (buffer) {
       memcpy(*buffer, stream.data(), *len);
-      return true;
-
+      game->check1 = fletcher32_checksum((short*)*buffer, *len / 2);
+      game->check2 = fletcher32_checksum((short*)stream.data(), *len / 2);
+      checks.push_back(fletcher32_checksum((short*)*buffer, *len / 2));
       *checksum = fletcher32_checksum((short*)*buffer, *len / 2);
+
+      return true;
    }
    else { return false; }
 
@@ -201,11 +212,12 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    cb.on_event = ds_on_event_callback;
    cb.log_game_state = ds_log_game_state_callback;
 
-   //Can add sync test here
-   //char name[] = "Drop and Swap";
-   //result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
-
+#if defined(SYNC_TEST)
+   char name[] = "Drop and Swap";
+   result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
+#else
    result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
+#endif
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
@@ -268,9 +280,11 @@ void gameRunFrame() {
       inputProcessKeyboard(game->net->game);
    }
 
+#ifndef SYNC_TEST
    if (game->net->localPlayer == 1) {
       game->p1Input.timer = game->timer;
    }
+#endif
 
    //Can do sync test here with random inputs
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
@@ -279,7 +293,9 @@ void gameRunFrame() {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
          if (game->net->localPlayer != 1) {
+#ifndef SYNC_TEST
             game->timer = game->inputs[0].timer;  //We want to use the timer from p1
+#endif
          }
          gameAdvanceFrame(game->net->game);  //Update the game 
       }
