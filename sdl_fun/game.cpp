@@ -396,6 +396,7 @@ void ggpoUI(Game* game, bool* p_open) {
    if (game->net && game->net->connections[0].state == 2 && game->net->connections[1].state == 2) {
       if (ImGui::Button("Ready")) {
          if (game->net->localPlayer == 1) {
+            game->seed = time(0);
             ggpoSendMessage(game->seed, 1, game->net->localPlayer);
          }
          localReady = true;

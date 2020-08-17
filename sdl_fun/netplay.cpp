@@ -5,7 +5,7 @@
 extern Game* game;  //I dunno how I feel about this
 
 //Use this to turn on synchronization testing... predicts every frame
-//#define SYNC_TEST  
+#define SYNC_TEST  
 
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
@@ -86,14 +86,9 @@ bool __cdecl ds_advance_frame_callback(int) {
    return true;
 }
 
-std::vector <int> checks;
-std::vector <Byte*> streams;
-
 bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
 
    if (len > 0) {
-      game->check2 = fletcher32_checksum((short*)buffer, len / 2);
-      int a = game->check1;
       unsigned char* start = buffer;
       gameLoad(game, start);
 
@@ -111,9 +106,6 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    *buffer = (unsigned char*) malloc(*len);
    if (buffer) {
       memcpy(*buffer, stream.data(), *len);
-      game->check1 = fletcher32_checksum((short*)*buffer, *len / 2);
-      game->check2 = fletcher32_checksum((short*)stream.data(), *len / 2);
-      checks.push_back(fletcher32_checksum((short*)*buffer, *len / 2));
       *checksum = fletcher32_checksum((short*)*buffer, *len / 2);
 
       return true;
