@@ -330,6 +330,35 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
+void imguiHostWindow(bool* p_open) {
+   if (!ImGui::Begin("Host Setup", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   static int localPort = 7001;
+   char remote_ip[64] = "127.0.0.1";
+
+   ImGui::PushItemWidth(80);
+   static bool host;
+   if (ImGui::Checkbox("Host", &host) ) {
+
+   }
+   ImGui::SameLine();
+
+   static int playerType = -1;
+   ImGui::Combo("Player Type", &playerType, "Local\0Remote\0Spectator\0");
+   ImGui::SameLine();
+
+   static char ipAddress[64] = "127.0.0.1";
+   ImGui::InputText("IP", remote_ip, IM_ARRAYSIZE(remote_ip));
+   ImGui::SameLine();
+   ImGui::InputInt("Port Number", &localPort);
+   ImGui::PopItemWidth();
+
+   ImGui::End();
+}
+
 void ggpoUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("GGPO Setup", p_open)) {
       ImGui::End();
@@ -432,7 +461,14 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("GGPO Setup")) {
       showGGPO = true;
    }
-   if (showGGPO) { ggpoUI(game, &showGGPO); }
+   if (showGGPO) {ggpoUI(game, &showGGPO); }
+
+   static bool hostWindow = false;
+   if (ImGui::Button("Host Window")) {
+      hostWindow = true;
+   }
+   if (hostWindow) { imguiHostWindow(&hostWindow); }
+
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
    ImGui::InputInt("Tile Height", &game->tHeight, 16);

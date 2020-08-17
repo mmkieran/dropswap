@@ -5,7 +5,7 @@
 extern Game* game;  //I dunno how I feel about this
 
 //Use this to turn on synchronization testing... predicts every frame
-#define SYNC_TEST  
+//#define SYNC_TEST  
 
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
@@ -338,4 +338,30 @@ void ggpoReadMessage(Game* game, UserInput input, unsigned short handle) {
    game->net->game->p1Input.code = -1;
    game->net->game->p1Input.msg = 0;
    game->net->game->p1Input.handle = 0;
+}
+
+const char* ggpoShowStatus(Game* game) {
+   const char* out = "";
+   if (game->net) {
+      for (int i = 0; i < game->players; i++) {
+         switch (game->net->connections[i].state) {
+         case 0:
+            out = "Connecting";
+            break;
+         case 1:
+            out = "Synchronizing";
+            break;
+         case 2:
+            out = "Running";
+            break;
+         case 3:
+            out = "Disconnected";
+            break;
+         default:
+            out = "None";
+            break;
+         }
+      }
+   }
+   return out;
 }

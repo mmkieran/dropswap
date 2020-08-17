@@ -36,7 +36,7 @@ int main(int argc, char* args[]) {
 
       imguiStartFrame(game);
 
-      //imguiShowDemo();
+      imguiShowDemo();
       showGameMenu(game);
 
       gameRunFrame();

@@ -45,3 +45,5 @@ void gameAdvanceFrame(Game* game);
 void gameRunFrame();
 
 void ggpoClose(GGPOSession* ggpo);
+
+const char* ggpoShowStatus(Game* game);
