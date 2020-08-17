@@ -250,6 +250,57 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    }
 }
 
+void ggpoStartHostSession(Game* game, SessionInfo host[], unsigned short participants) {
+   GGPOErrorCode result;
+
+   int localPort = 7001;
+
+   for (int i = 0; i < participants; i++) {
+      //Fill in GGPOPlayer struct
+      game->net->players[i].player_num = i + 1;
+      game->net->players[i].size = sizeof(GGPOPlayer);
+      game->net->players[i].type = (GGPOPlayerType)host[i].playerType;
+
+      strcpy(game->net->players[i].u.remote.ip_address, host[i].ipAddress);
+      game->net->players[i].u.remote.port = host[i].remotePort;
+      if (host[i].host == true) { localPort = host[i].localPort; }
+   }
+
+   //Called at startup to setup GGPO session
+   GGPOSessionCallbacks cb;
+   cb.begin_game = ds_begin_game_callback;
+   cb.advance_frame = ds_advance_frame_callback;  //todo not done
+   cb.load_game_state = ds_load_game_callback;
+   cb.save_game_state = ds_save_game_callback;
+   cb.free_buffer = ds_free_buffer_callback;
+   cb.on_event = ds_on_event_callback;
+   cb.log_game_state = ds_log_game_state_callback;
+
+#if defined(SYNC_TEST)
+   char name[] = "Drop and Swap";
+   result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
+#else
+   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", participants, sizeof(UserInput), localPort);
+#endif
+
+   // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
+   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
+   ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
+
+   for (int i = 0; i < participants; i++) {
+      //Add Players
+      GGPOPlayerHandle handle;
+      result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);
+      game->net->connections[i].handle = handle;
+      game->net->connections[i].type = game->net->players->type;
+      if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+         game->net->localPlayer = handle;
+         ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
+      }
+   }
+
+}
+
 void ggpoInitSpectator() {
 
    //result = ggpo_start_spectating...

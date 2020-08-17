@@ -27,11 +27,20 @@ struct PlayerConnectionInfo {
    int                  disconnect_start;
 };
 
+//todo not sure where this belong right now
+struct SessionInfo {
+   bool host = false;
+   int localPort = 7001;
+   int playerType = -1;
+   char ipAddress[32] = "127.0.0.1";
+   int remotePort = 7002;
+};
+
 struct NetPlay {
    GGPOSession* ggpo = nullptr;
    Game* game = nullptr;
-   GGPOPlayer players[GAME_PLAYERS];
-   PlayerConnectionInfo connections[GAME_PLAYERS];
+   GGPOPlayer players[GAME_MAX_PLAYERS];
+   PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = 0;
 };
 

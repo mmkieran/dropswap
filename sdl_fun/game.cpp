@@ -330,16 +330,7 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
-//todo not sure where this belong right now
-struct HostInfo {
-   bool host = false;
-   int localPort = 7001;
-   int playerType = -1;
-   char ipAddress[32] = "127.0.0.1";
-   int remotePort = 7002;
-};
-
-void imguiHostWindow(Game* game, bool* p_open) {
+void showHostWindow(Game* game, bool* p_open) {
    if (!ImGui::Begin("Host Setup", p_open)) {
       ImGui::End();
       return;
@@ -350,9 +341,10 @@ void imguiHostWindow(Game* game, bool* p_open) {
    int pMax = GAME_MAX_PLAYERS;
 
    ImGui::PushItemWidth(120);
+   ImGui::Text("Host Info");
    ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
-
    ImGui::SameLine();
+
    if (ImGui::Button("Load From File")) {
 
    }
@@ -364,7 +356,7 @@ void imguiHostWindow(Game* game, bool* p_open) {
    ImGui::PopItemWidth();
    ImGui::NewLine();
 
-   static HostInfo hostSetup[GAME_MAX_PLAYERS];
+   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
 
    ImGui::PushID("Player Info Set");
    for (int i = 0; i < participants; i++) {
@@ -510,7 +502,7 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
    }
-   if (hostWindow) { imguiHostWindow(game, &hostWindow); }
+   if (hostWindow) { showHostWindow(game, &hostWindow); }
 
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
