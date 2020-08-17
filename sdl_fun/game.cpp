@@ -376,17 +376,42 @@ void imguiHostWindow(Game* game, bool* p_open) {
       ImGui::Checkbox("Host", &hostSetup[i].host);
       ImGui::SameLine();
 
-      ImGui::InputInt("Local Port", &hostSetup[i].localPort);
+      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
       ImGui::SameLine();
 
-      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
-
       if (hostSetup[i].playerType != 0) {
-         ImGui::SameLine();
          ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
          ImGui::SameLine();
 
          ImGui::InputInt("Remote Port", &hostSetup[i].remotePort);
+      }
+      else {
+         ImGui::InputInt("Local Port", &hostSetup[i].localPort);
+      }
+
+      ImGui::SameLine();
+      if (game->net) {
+         switch (game->net->connections[i].state) {
+         case 0:
+            ImGui::Text("Connecting");
+            //todo add color or spacer here
+            break;
+         case 1:
+            ImGui::Text("Synchronizing");
+            break;
+         case 2:
+            ImGui::Text("Running");
+            break;
+         case 3:
+            ImGui::Text("Disconnected");
+            break;
+         default:
+            ImGui::Text("None");
+            break;
+         }
+      }
+      else { 
+         ImGui::Text("Unknown"); 
       }
 
       ImGui::PopItemWidth();
