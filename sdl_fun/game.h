@@ -8,6 +8,7 @@
 #include <vector>
 
 #define GAME_PLAYERS 2
+#define GAME_MAX_PLAYERS 20
 #define GAME_FRAME_DELAY 2
 
 typedef struct Board Board;

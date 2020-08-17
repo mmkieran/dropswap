@@ -330,31 +330,74 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
-void imguiHostWindow(bool* p_open) {
+//todo not sure where this belong right now
+struct HostInfo {
+   bool host = false;
+   int localPort = 7001;
+   int playerType = -1;
+   char ipAddress[32] = "127.0.0.1";
+   int remotePort = 7002;
+};
+
+void imguiHostWindow(Game* game, bool* p_open) {
    if (!ImGui::Begin("Host Setup", p_open)) {
       ImGui::End();
       return;
    }
 
-   static int localPort = 7001;
-   char remote_ip[64] = "127.0.0.1";
+   static unsigned short participants = 2;
+   int pMin = 2;
+   int pMax = GAME_MAX_PLAYERS;
 
-   ImGui::PushItemWidth(80);
-   static bool host;
-   if (ImGui::Checkbox("Host", &host) ) {
+   ImGui::PushItemWidth(120);
+   ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
+
+   ImGui::SameLine();
+   if (ImGui::Button("Load From File")) {
 
    }
-   ImGui::SameLine();
 
-   static int playerType = -1;
-   ImGui::Combo("Player Type", &playerType, "Local\0Remote\0Spectator\0");
    ImGui::SameLine();
+   if (ImGui::Button("Save To File")) {
 
-   static char ipAddress[64] = "127.0.0.1";
-   ImGui::InputText("IP", remote_ip, IM_ARRAYSIZE(remote_ip));
-   ImGui::SameLine();
-   ImGui::InputInt("Port Number", &localPort);
+   }
    ImGui::PopItemWidth();
+   ImGui::NewLine();
+
+   static HostInfo hostSetup[GAME_MAX_PLAYERS];
+
+   ImGui::PushID("Player Info Set");
+   for (int i = 0; i < participants; i++) {
+
+      ImGui::PushID(i);
+      ImGui::PushItemWidth(80);
+      ImGui::Text("Player%d", i + 1);
+
+      ImGui::Checkbox("Host", &hostSetup[i].host);
+      ImGui::SameLine();
+
+      ImGui::InputInt("Local Port", &hostSetup[i].localPort);
+      ImGui::SameLine();
+
+      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
+
+      if (hostSetup[i].playerType != 0) {
+         ImGui::SameLine();
+         ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
+         ImGui::SameLine();
+
+         ImGui::InputInt("Remote Port", &hostSetup[i].remotePort);
+      }
+
+      ImGui::PopItemWidth();
+      ImGui::PopID();
+   }
+   ImGui::PopID();
+
+   ImGui::NewLine();
+   if (ImGui::Button("Start Session")) {
+      
+   }
 
    ImGui::End();
 }
@@ -467,7 +510,7 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
    }
-   if (hostWindow) { imguiHostWindow(&hostWindow); }
+   if (hostWindow) { imguiHostWindow(game, &hostWindow); }
 
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
