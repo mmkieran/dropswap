@@ -250,29 +250,8 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    }
 }
 
-void ggpoStartHostSession(Game* game, SessionInfo host[], unsigned short participants) {
+void ggpoStartSession(Game* game, SessionInfo connects[], unsigned short participants) {
    GGPOErrorCode result;
-
-   int localPort = 7001;
-
-   /*
-   If I'm the host, add all players + spectators and their IPs
-   If I'm a player, add myself and the other players
-   If I'm a spectator, add host only using special function
-
-   Will need a way to track player numbers since they may not be 1, 2
-   */
-
-   for (int i = 0; i < participants; i++) {
-      //Fill in GGPOPlayer struct
-      game->net->players[i].player_num = i + 1;
-      game->net->players[i].size = sizeof(GGPOPlayer);
-      game->net->players[i].type = (GGPOPlayerType)host[i].playerType;
-
-      strcpy(game->net->players[i].u.remote.ip_address, host[i].ipAddress);
-      //game->net->players[i].u.remote.port = host[i].remotePort;
-      if (host[i].host == true) { localPort = host[i].localPort; }
-   }
 
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
@@ -284,11 +263,48 @@ void ggpoStartHostSession(Game* game, SessionInfo host[], unsigned short partici
    cb.on_event = ds_on_event_callback;
    cb.log_game_state = ds_log_game_state_callback;
 
+   int sessionPort = 7001;
+   int hostNumber = -1;
+   int myNumber = -1;
+   for (int i = 0; i < participants; i++) {
+      if (connects[i].host == true) { hostNumber = i; }
+      if (connects[i].me == true) { myNumber = i; }
+   }
+
+   if (hostNumber == myNumber) {  //I'm a hosting and player
+      for (int i = 0; i < participants; i++) {
+         //Fill in GGPOPlayer struct
+         game->net->players[i].player_num = i + 1;
+         game->net->players[i].size = sizeof(GGPOPlayer);
+         game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
+
+         if (i != hostNumber) {
+            strcpy(game->net->players[i].u.remote.ip_address, connects[i].ipAddress);
+            game->net->players[i].u.remote.port = connects[i].localPort;
+         }
+         if (connects[i].host == true) { sessionPort = connects[i].localPort; }
+      }
+   }
+
+   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm a playing only
+      game->net->players[hostNumber].player_num = hostNumber + 1;
+      game->net->players[hostNumber].size = sizeof(GGPOPlayer);
+      game->net->players[hostNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
+
+      strcpy(game->net->players[hostNumber].u.remote.ip_address, connects[hostNumber].ipAddress);
+      game->net->players[hostNumber].u.remote.port = connects[hostNumber].localPort;
+
+      game->net->players[myNumber].player_num = myNumber + 1;
+      game->net->players[myNumber].size = sizeof(GGPOPlayer);
+      game->net->players[myNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
+      sessionPort = connects[hostNumber].localPort;
+   }
+
 #if defined(SYNC_TEST)
    char name[] = "Drop and Swap";
    result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
 #else
-   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", participants, sizeof(UserInput), localPort);
+   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", participants, sizeof(UserInput), sessionPort);
 #endif
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
