@@ -30,10 +30,11 @@ struct PlayerConnectionInfo {
 //todo not sure where this belong right now
 struct SessionInfo {
    bool host = false;
+   bool me = false;
    int localPort = 7001;
    int playerType = -1;
    char ipAddress[32] = "127.0.0.1";
-   int remotePort = 7002;
+   //int remotePort = 7002;
 };
 
 struct NetPlay {

@@ -255,6 +255,14 @@ void ggpoStartHostSession(Game* game, SessionInfo host[], unsigned short partici
 
    int localPort = 7001;
 
+   /*
+   If I'm the host, add all players + spectators and their IPs
+   If I'm a player, add myself and the other players
+   If I'm a spectator, add host only using special function
+
+   Will need a way to track player numbers since they may not be 1, 2
+   */
+
    for (int i = 0; i < participants; i++) {
       //Fill in GGPOPlayer struct
       game->net->players[i].player_num = i + 1;
@@ -262,7 +270,7 @@ void ggpoStartHostSession(Game* game, SessionInfo host[], unsigned short partici
       game->net->players[i].type = (GGPOPlayerType)host[i].playerType;
 
       strcpy(game->net->players[i].u.remote.ip_address, host[i].ipAddress);
-      game->net->players[i].u.remote.port = host[i].remotePort;
+      //game->net->players[i].u.remote.port = host[i].remotePort;
       if (host[i].host == true) { localPort = host[i].localPort; }
    }
 

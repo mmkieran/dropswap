@@ -341,7 +341,6 @@ void showHostWindow(Game* game, bool* p_open) {
    int pMax = GAME_MAX_PLAYERS;
 
    ImGui::PushItemWidth(120);
-   ImGui::Text("Host Info");
    ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
    ImGui::SameLine();
 
@@ -365,21 +364,27 @@ void showHostWindow(Game* game, bool* p_open) {
       ImGui::PushItemWidth(80);
       ImGui::Text("Player%d", i + 1);
 
-      ImGui::Checkbox("Host", &hostSetup[i].host);
+      if (ImGui::Checkbox("Me", &hostSetup[i].me)) {
+         for (int j = 0; j < participants; j++) {
+            if (hostSetup[j].me == true && i != j) { hostSetup[j].me = false; }
+         }
+      }
       ImGui::SameLine();
 
-      ImGui::InputInt("Local Port", &hostSetup[i].localPort);
+      if (ImGui::Checkbox("Host", &hostSetup[i].host)) {
+         for (int j = 0; j < participants; j++) {
+            if (hostSetup[j].host == true && i != j) { hostSetup[j].host = false; }
+         }
+      }
       ImGui::SameLine();
 
       ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
 
-      if (hostSetup[i].playerType != 0) {
-         ImGui::SameLine();
-         ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
-         ImGui::SameLine();
+      ImGui::SameLine();
+      ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
+      ImGui::SameLine();
 
-         ImGui::InputInt("Remote Port", &hostSetup[i].remotePort);
-      }
+      ImGui::InputInt("Port", &hostSetup[i].localPort);
 
       ImGui::PopItemWidth();
       ImGui::PopID();
