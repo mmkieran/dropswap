@@ -54,6 +54,7 @@ void ggpoReadMessage(Game* game, UserInput input, unsigned short handle);
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();
 
+void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants);
 void ggpoClose(GGPOSession* ggpo);
 
 const char* ggpoShowStatus(Game* game);

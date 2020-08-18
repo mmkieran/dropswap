@@ -393,7 +393,7 @@ void showHostWindow(Game* game, bool* p_open) {
 
    ImGui::NewLine();
    if (ImGui::Button("Start Session")) {
-      
+      ggpoCreateSession(game, hostSetup, participants);
    }
 
    ImGui::End();

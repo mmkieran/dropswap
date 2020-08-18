@@ -5,7 +5,7 @@
 extern Game* game;  //I dunno how I feel about this
 
 //Use this to turn on synchronization testing... predicts every frame
-//#define SYNC_TEST  
+#define SYNC_TEST false
 
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
@@ -250,18 +250,18 @@ void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int 
    }
 }
 
-void ggpoStartSession(Game* game, SessionInfo connects[], unsigned short participants) {
+void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants) {
    GGPOErrorCode result;
 
    //Called at startup to setup GGPO session
    GGPOSessionCallbacks cb;
    cb.begin_game = ds_begin_game_callback;
-   cb.advance_frame = ds_advance_frame_callback;  //todo not done
+   cb.advance_frame = ds_advance_frame_callback;  
    cb.load_game_state = ds_load_game_callback;
    cb.save_game_state = ds_save_game_callback;
    cb.free_buffer = ds_free_buffer_callback;
-   cb.on_event = ds_on_event_callback;
-   cb.log_game_state = ds_log_game_state_callback;
+   cb.on_event = ds_on_event_callback;  //todo come back and reorganize the connection status functions
+   cb.log_game_state = ds_log_game_state_callback;  //This is turned off right now
 
    int sessionPort = 7001;
    int hostNumber = -1;
@@ -271,22 +271,45 @@ void ggpoStartSession(Game* game, SessionInfo connects[], unsigned short partici
       if (connects[i].me == true) { myNumber = i; }
    }
 
-   if (hostNumber == myNumber) {  //I'm a hosting and player
-      for (int i = 0; i < participants; i++) {
-         //Fill in GGPOPlayer struct
+   if (SYNC_TEST == true) {  //Set DEFINE SYNC_TEST to true to use this
+      char name[] = "DropAndSwap";
+      result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
+   }
+   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_SPECTATOR){  //I'm a spectator
+      sessionPort = connects[myNumber].localPort;
+      result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
+      return;
+   }
+   else {  //Regular GGPO Session
+      result = ggpo_start_session(&game->net->ggpo, &cb, "DropAndSwap", participants, sizeof(UserInput), sessionPort);
+   }
+
+   if (hostNumber == myNumber) {  //I'm a hosting and playing
+      for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
          game->net->players[i].player_num = i + 1;
          game->net->players[i].size = sizeof(GGPOPlayer);
          game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
-         if (i != hostNumber) {
+         if (i != hostNumber) {  //Everybody else is remote
             strcpy(game->net->players[i].u.remote.ip_address, connects[i].ipAddress);
             game->net->players[i].u.remote.port = connects[i].localPort;
          }
-         if (connects[i].host == true) { sessionPort = connects[i].localPort; }
+         if (connects[i].host == true) { sessionPort = connects[i].localPort; }  //Use host port to start session
+
+         GGPOPlayerHandle handle;
+         result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);  //Add a player to GGPO session
+         game->net->connections[i].handle = handle;
+         game->net->connections[i].type = game->net->players->type;
+
+         if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+            game->net->localPlayer = handle;
+            ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
+         }
       }
    }
 
    else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm a playing only
+      //Add host to session
       game->net->players[hostNumber].player_num = hostNumber + 1;
       game->net->players[hostNumber].size = sizeof(GGPOPlayer);
       game->net->players[hostNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
@@ -294,34 +317,41 @@ void ggpoStartSession(Game* game, SessionInfo connects[], unsigned short partici
       strcpy(game->net->players[hostNumber].u.remote.ip_address, connects[hostNumber].ipAddress);
       game->net->players[hostNumber].u.remote.port = connects[hostNumber].localPort;
 
+      GGPOPlayerHandle handle1;
+      result = ggpo_add_player(game->net->ggpo, &game->net->players[hostNumber], &handle1);  //Add the host
+
+      game->net->connections[hostNumber].handle = handle1;
+      game->net->connections[hostNumber].type = game->net->players->type;
+
+      //Add me to the session
       game->net->players[myNumber].player_num = myNumber + 1;
       game->net->players[myNumber].size = sizeof(GGPOPlayer);
-      game->net->players[myNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
-      sessionPort = connects[hostNumber].localPort;
-   }
+      game->net->players[myNumber].type = (GGPOPlayerType)connects[myNumber].playerType;
+      sessionPort = connects[myNumber].localPort;  //Start the session using my port
 
-#if defined(SYNC_TEST)
-   char name[] = "Drop and Swap";
-   result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
-#else
-   result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", participants, sizeof(UserInput), sessionPort);
-#endif
+      GGPOPlayerHandle handle2;
+      result = ggpo_add_player(game->net->ggpo, &game->net->players[myNumber], &handle2);  //Add me to the session
+      game->net->connections[myNumber].handle = handle2;
+      game->net->connections[myNumber].type = game->net->players->type;
+      game->net->localPlayer = handle2;
+      ggpo_set_frame_delay(game->net->ggpo, handle2, GAME_FRAME_DELAY);  //Set frame delay for the session
+   }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
    ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
-   for (int i = 0; i < participants; i++) {
-      //Add Players
-      GGPOPlayerHandle handle;
-      result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);
-      game->net->connections[i].handle = handle;
-      game->net->connections[i].type = game->net->players->type;
-      if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-         game->net->localPlayer = handle;
-         ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
-      }
-   }
+   //for (int i = 0; i < participants; i++) {
+   //   //Add Players
+   //   GGPOPlayerHandle handle;
+   //   result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);
+   //   game->net->connections[i].handle = handle;
+   //   game->net->connections[i].type = game->net->players->type;
+   //   if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+   //      game->net->localPlayer = handle;
+   //      ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
+   //   }
+   //}
 
 }
 
