@@ -385,80 +385,20 @@ void showHostWindow(Game* game, bool* p_open) {
       ImGui::SameLine();
 
       ImGui::InputInt("Port", &hostSetup[i].localPort);
+      ImGui::SameLine();
+      ImGui::Text(ggpoShowStatus(game, i) );
 
       ImGui::PopItemWidth();
       ImGui::PopID();
    }
    ImGui::PopID();
 
+   ImGui::Text("Game seed %d ", game->seed);
+
    ImGui::NewLine();
    if (ImGui::Button("Start Session")) {
       ggpoCreateSession(game, hostSetup, participants);
    }
-
-   ImGui::End();
-}
-
-void ggpoUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("GGPO Setup", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   static int localPort = 7001;
-   static int remotePort = 7002;
-   static int player_number = 1;
-   char remote_ip[64] = "127.0.0.1";
-
-   //ImGui::Text("Player 1 is the local player");
-   ImGui::InputInt("Player Number", &player_number);
-   ImGui::InputText("Remote IP", remote_ip, IM_ARRAYSIZE(remote_ip));
-
-   ImGui::InputInt("Local port", &localPort);
-   ImGui::InputInt("Remote port", &remotePort);
-
-   if (ImGui::Button("Connect GGPO")) {
-      ggpoInitPlayer(2, player_number, (unsigned short)localPort, remotePort);
-   }
-
-   if (game->net) {
-      for (int i = 0; i < game->players; i++) {
-         if (game->net->connections[i].handle == game->net->localPlayer) {
-            ImGui::Text("*"); 
-         }
-         else {
-            ImGui::Text(" ");
-         }
-         ImGui::SameLine();
-         ImGui::Text("P%d ", game->net->players[i].player_num); 
-         ImGui::SameLine();
-         switch (game->net->connections[i].state) {
-            case 0:
-               ImGui::Text("Connecting");
-               break;
-            case 1:
-               ImGui::Text("Synchronizing");
-               break;
-            case 2:
-               ImGui::Text("Running");
-               break;
-            case 3:
-               ImGui::Text("Disconnected");
-               break;
-            default:
-               ImGui::Text("None");
-               break;
-         }
-         //ImGui::Text("State %d ", game->net->connections[i].state);
-         if (game->net->players[i].type == GGPO_PLAYERTYPE_REMOTE) {
-            ImGui::SameLine();
-            ImGui::Text("Port %d ", game->net->players[i].u.remote.port);
-            ImGui::SameLine();
-            ImGui::Text("IP %s ", game->net->players[i].u.remote.ip_address);
-         }
-      }
-   }
-   ImGui::Text("Game seed %d ", game->seed);
 
    static bool localReady = false;
    static bool remoteReady = false;
@@ -497,12 +437,6 @@ void showGameMenu(Game* game) {
 
    ImGui::InputInt("Players", &game->players);
 
-   static bool showGGPO = false;
-   if (ImGui::Button("GGPO Setup")) {
-      showGGPO = true;
-   }
-   if (showGGPO) {ggpoUI(game, &showGGPO); }
-
    static bool hostWindow = false;
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
@@ -521,7 +455,6 @@ void showGameMenu(Game* game) {
       if (ImGui::Button("Start Game")) {
          gameStartMatch(game);
       }
-
    }
    if (game->playing == true) {
       if (ImGui::Button("End Game")) {

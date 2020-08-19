@@ -187,67 +187,6 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    return true;
 }
 
-void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport) {
-
-   GGPOErrorCode result;
-
-  //Called at startup to setup GGPO session
-   GGPOSessionCallbacks cb;
-   cb.begin_game = ds_begin_game_callback;
-   cb.advance_frame = ds_advance_frame_callback;  //todo not done
-   cb.load_game_state = ds_load_game_callback;
-   cb.save_game_state = ds_save_game_callback;
-   cb.free_buffer = ds_free_buffer_callback;
-   cb.on_event = ds_on_event_callback;
-   cb.log_game_state = ds_log_game_state_callback;
-
-   if (SYNC_TEST == true) {
-      char name[] = "Drop and Swap";
-      result = ggpo_start_synctest(&game->net->ggpo, &cb, name, 2, sizeof(UserInput), 1);
-   }
-   else {
-      result = ggpo_start_session(&game->net->ggpo, &cb, "Dropswap", playerCount, sizeof(UserInput), localport);
-   }
-
-   // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
-   ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
-
-   //todo don't do this the dumb way
-   int p1index = 0;
-   int p2index = 1;
-   if (pNumber == 2) {
-      p1index = 1;
-      p2index = 0;
-   }
-
-   game->net->players[p1index].type = GGPO_PLAYERTYPE_LOCAL;
-   game->net->players[p1index].size = sizeof(GGPOPlayer);
-   game->net->players[p1index].player_num = p1index + 1;
-
-   game->net->players[p2index].type = GGPO_PLAYERTYPE_REMOTE;
-   game->net->players[p2index].size = sizeof(GGPOPlayer);
-   game->net->players[p2index].player_num = p2index + 1;
-
-   const char* ip = "127.0.0.1";
-   strcpy(game->net->players[p2index].u.remote.ip_address, ip);
-
-   game->net->players[p2index].u.remote.port = remoteport;
-
-   //loop to add Players
-   for (int i = 0; i < playerCount; i++) {
-      GGPOPlayerHandle handle;
-      result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);
-      game->net->connections[i].handle = handle;
-      game->net->connections[i].type = game->net->players->type;
-      if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-         game->net->localPlayer = handle;
-         ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
-      }
-
-   }
-}
-
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants) {
    GGPOErrorCode result;
 
@@ -437,27 +376,25 @@ void ggpoReadMessage(Game* game, UserInput input, unsigned short handle) {
    game->net->game->p1Input.handle = 0;
 }
 
-const char* ggpoShowStatus(Game* game) {
+const char* ggpoShowStatus(Game* game, int playerIndex) {
    const char* out = "";
    if (game->net) {
-      for (int i = 0; i < game->players; i++) {
-         switch (game->net->connections[i].state) {
-         case 0:
-            out = "Connecting";
-            break;
-         case 1:
-            out = "Synchronizing";
-            break;
-         case 2:
-            out = "Running";
-            break;
-         case 3:
-            out = "Disconnected";
-            break;
-         default:
-            out = "None";
-            break;
-         }
+      switch (game->net->connections[playerIndex].state) {
+      case 0:
+         out = "Connecting";
+         break;
+      case 1:
+         out = "Synchronizing";
+         break;
+      case 2:
+         out = "Running";
+         break;
+      case 3:
+         out = "Disconnected";
+         break;
+      default:
+         out = "None";
+         break;
       }
    }
    return out;

@@ -57,4 +57,4 @@ void gameRunFrame();
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants);
 void ggpoClose(GGPOSession* ggpo);
 
-const char* ggpoShowStatus(Game* game);
+const char* ggpoShowStatus(Game* game, int playerIndex);
