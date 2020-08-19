@@ -74,9 +74,6 @@ bool __cdecl ds_advance_frame_callback(int) {
 
    int disconnect_flags;
 
-   int input = 0;
-   int inputs[GAME_PLAYERS];
-
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
 
