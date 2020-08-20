@@ -11,7 +11,7 @@
 struct ButtonState {
    bool p = false;  //pressed
    bool h = false;  //held
-   int fc = 0;      //frame count
+   int fc = 0;      // frame count //todo... belongs in gamestate?
 };
 
 struct UserInput {
@@ -24,6 +24,11 @@ struct UserInput {
    ButtonState swap;
 
    ButtonState power;
+
+   uint64_t msg = 0;
+   unsigned short code = 0;
+   unsigned short handle = 0;
+   int timer = 0;
 };
 
 
@@ -31,6 +36,7 @@ int main(int argc, char* args[])
 {
 
    printf("%d", sizeof(UserInput));
+   printf("%d", sizeof(int));
 
    return 0;
 }

@@ -37,13 +37,14 @@ uint64_t sdlGetCounter() {
 }
 
 void sdlSleep(int delay) {
-   SDL_Delay(delay);
+   SDL_Delay(delay);  //milliseconds
 }
 
 //Give extra frame time to GGPO so it can do it's thing
 void gameGiveIdleToGGPO(Game* game, int time) {
-   if (game->net && time > 0) {
+   if (game->net && game->net->ggpo && time > 0) {
       ggpo_idle(game->net->ggpo, time);
+      //printf("Time: %d\n", time);
    }
 }
 
@@ -145,6 +146,11 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->isRunning = true;
 
+   game->p1Input.code = 0;
+   game->p1Input.timer = 0;
+   game->p1Input.handle = 0;
+   game->p1Input.msg = 0;
+
    return game;
 }
 
@@ -186,7 +192,7 @@ void gameRender(Game* game) {
             boardRender(game, board);
          }
       }
-      debugCursor(game);  //imgui debug tools
+      //debugCursor(game);  //imgui debug tools
       //debugGarbage(game);
    }
 }

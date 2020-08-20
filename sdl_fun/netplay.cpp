@@ -286,11 +286,6 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 }
 
-void ggpoInitSpectator() {
-
-   //result = ggpo_start_spectating...
-}
-
 void gameAdvanceFrame(Game* game) {
    gameUpdate(game);  //todo come back and make this work
 
@@ -308,11 +303,11 @@ void gameRunFrame() {
       inputProcessKeyboard(game->net->game);
    }
 
-#ifndef SYNC_TEST
-   if (game->net->localPlayer == 1) {
-      game->p1Input.timer = game->timer;
+   if (SYNC_TEST == false) {
+      if (game->net->localPlayer == 1) { //todo make this not hard coded
+         game->p1Input.timer = game->timer;
+      }
    }
-#endif
 
    //Can do sync test here with random inputs
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
@@ -320,10 +315,10 @@ void gameRunFrame() {
    if (GGPO_SUCCEEDED(result)) {
       result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
       if (GGPO_SUCCEEDED(result)) {
-         if (game->net->localPlayer != 1) {
-#ifndef SYNC_TEST
-            game->timer = game->inputs[0].timer;  //We want to use the timer from p1
-#endif
+         if (game->net->localPlayer != 1) {  //todo make this not hard coded
+            if (SYNC_TEST == false) {
+               game->timer = game->inputs[0].timer;  //We want to use the timer from p1
+            }
          }
          gameAdvanceFrame(game->net->game);  //Update the game 
       }

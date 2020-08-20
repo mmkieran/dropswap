@@ -77,9 +77,9 @@ void inputProcessKeyboard(Game* game) {
       }
    }
 
-   ////These can't be undefined
-   //game->p1Input.code = 0;
-   //game->p1Input.timer = 0;
-   //game->p1Input.handle = 0;
-   //game->p1Input.msg = 0;
+   //These can't be undefined
+   game->p1Input.code = 0;
+   game->p1Input.timer = 0;
+   game->p1Input.handle = 0;
+   game->p1Input.msg = 0;
 }

@@ -42,11 +42,8 @@ struct NetPlay {
    Game* game = nullptr;
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
-   GGPOPlayerHandle localPlayer = 0;
+   GGPOPlayerHandle localPlayer = -1;
 };
-
-void ggpoInitPlayer(int playerCount, int pNumber, unsigned short localport, int remoteport);
-void ggpoInitSpectator();
 
 void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle);
 void ggpoReadMessage(Game* game, UserInput input, unsigned short handle);
