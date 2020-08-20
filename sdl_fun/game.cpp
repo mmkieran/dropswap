@@ -426,7 +426,7 @@ void showHostWindow(Game* game, bool* p_open) {
          }
       }
       if (remoteReady == true && localReady == true) {
-         gameStartMatch(game);
+         //gameStartMatch(game);
          remoteReady = localReady = false;
       }
    }
