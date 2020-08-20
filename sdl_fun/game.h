@@ -60,9 +60,6 @@ struct Game {
    int tWidth = 64;
    int tHeight = 64;
 
-   int check1 = 0;
-   int check2 = 0;
-
    bool isRunning = false;  //used in main loop
 
    int players = 2;

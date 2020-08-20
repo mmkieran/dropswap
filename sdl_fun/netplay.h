@@ -28,13 +28,13 @@ struct PlayerConnectionInfo {
 };
 
 //todo not sure where this belong right now
+//This is to transfer information from imgui window to the Player struct
 struct SessionInfo {
    bool host = false;
    bool me = false;
    int localPort = 7001;
    int playerType = -1;
    char ipAddress[32] = "127.0.0.1";
-   //int remotePort = 7002;
 };
 
 struct NetPlay {
@@ -43,6 +43,9 @@ struct NetPlay {
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
+   bool host = false;
+   int hostConnNum = -1;
+   int myConnNum = -1;
 };
 
 void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle);

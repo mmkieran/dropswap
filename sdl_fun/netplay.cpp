@@ -210,6 +210,9 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       if (connects[i].playerType == GGPO_PLAYERTYPE_SPECTATOR) { spectators++; }
    }
 
+   game->net->myConnNum = myNumber;
+   game->net->hostConnNum = hostNumber;
+
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
 
    if (SYNC_TEST == true) {  //Set DEFINE SYNC_TEST to true to do a single player sync test
@@ -225,12 +228,15 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 5000);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing
+      game->net->host = true;
       for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
-         game->net->players[i].player_num = i + 1;
+         if (i == hostNumber) { game->net->players[i].player_num = 1; }
+         else if (connects[i].playerType == GGPO_PLAYERTYPE_REMOTE) { game->net->players[i].player_num = 2; }
+         else { game->net->players[i].player_num = i % participants + 3; }
          game->net->players[i].size = sizeof(GGPOPlayer);
          game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
@@ -254,9 +260,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm a playing only
-
       //Add host to session
-      game->net->players[hostNumber].player_num = hostNumber + 1;
+      game->net->players[hostNumber].player_num = 1;
       game->net->players[hostNumber].size = sizeof(GGPOPlayer);
       game->net->players[hostNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
 
@@ -271,7 +276,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       game->net->connections[hostNumber].type = game->net->players[hostNumber].type;
 
       //Add me to the session
-      game->net->players[myNumber].player_num = myNumber + 1;
+      game->net->host = false;
+      game->net->players[myNumber].player_num = 2;
       game->net->players[myNumber].size = sizeof(GGPOPlayer);
       game->net->players[myNumber].type = (GGPOPlayerType)connects[myNumber].playerType;
 
