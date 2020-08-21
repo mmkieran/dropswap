@@ -14,6 +14,7 @@ struct KeyboardMap {
 
    Uint8 hk_swap = SDL_SCANCODE_SPACE;
    Uint8 hk_pause = SDL_SCANCODE_RETURN;
+   Uint8 hk_power = SDL_SCANCODE_F;
 };
 
 KeyboardMap kmap;  //todo where should this live?
@@ -31,6 +32,7 @@ void inputProcessKeyboard(Game* game) {
       //presses only
       kmap.hk_swap,
       kmap.hk_pause,
+      vmap.hk_power
    };
 
    ButtonState* buttonList[] = {
@@ -41,7 +43,8 @@ void inputProcessKeyboard(Game* game) {
       &game->p1Input.nudge,
       //presses only
       &game->p1Input.swap,
-      &game->p1Input.pause
+      &game->p1Input.pause,
+      &game->p1Input.power
    };
 
    //Logic for held keys
@@ -66,7 +69,7 @@ void inputProcessKeyboard(Game* game) {
    }
 
    //Logic for pressed keys
-   for (int i = 4; i < 6; i++) {  //todo maybe make the count smarter... 
+   for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
       if (state[keyList[i]] == true && buttonList[i]->fc == 0) {
          buttonList[i]->p = true;
          buttonList[i]->fc++; //increment frame count

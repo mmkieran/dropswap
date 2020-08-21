@@ -135,11 +135,11 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.nudge.p) {
-      boardMoveUp(board, board->moveSpeed / 8.0f);
+      boardMoveUp(board, 4);
    }
 
    else if (input.nudge.h) {
-      boardMoveUp(board, board->moveSpeed / 8.0f);
+      boardMoveUp(board, 4);
    }
 }
 
