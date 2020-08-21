@@ -325,6 +325,11 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       }
    }
 
+   if (uniqueMatches.size() > 3) {
+      board->game->p1Input.code = 3;
+      board->game->p1Input.handle = board->player;
+   }
+
    if (uniqueMatches.size() > 0) {
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {

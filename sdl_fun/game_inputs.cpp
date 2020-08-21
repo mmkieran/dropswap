@@ -32,7 +32,7 @@ void inputProcessKeyboard(Game* game) {
       //presses only
       kmap.hk_swap,
       kmap.hk_pause,
-      vmap.hk_power
+      kmap.hk_power
    };
 
    ButtonState* buttonList[] = {

@@ -141,5 +141,13 @@ void cursorUpdate(Board* board, UserInput input) {
    else if (input.nudge.h) {
       boardMoveUp(board, 4);
    }
+
+   for (int i = 0; i < board->game->players; i++) {
+      if (i != board->player - 1) {
+         if (board->game->inputs[i].code == 3) {
+            garbageCreate(board, 3, 1);
+         }
+      }
+   }
 }
 
