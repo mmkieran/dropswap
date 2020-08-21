@@ -173,8 +173,6 @@ void gameHandleEvents(Game* game) {
 }
 
 void gameUpdate(Game* game) {
-
-   //todo rework to use new inputs
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
@@ -201,7 +199,7 @@ void gameStartMatch(Game* game) {
    //setting up board
    for (int i = 1; i <= game->players; i++) {
       Board* board = boardCreate(game);
-      board->player = i;
+      board->player = i;  //todo this might not work in terms of player number??
       vectorPushBack(game->boards, board);
       boardFillTiles(board);
 
@@ -405,12 +403,16 @@ void showHostWindow(Game* game, bool* p_open) {
    if (ImGui::Button("Start Session")) {
       ggpoCreateSession(game, hostSetup, participants);
    }
+   ImGui::SameLine();
+   if (ImGui::Button("End Session")) {
+      ggpoEndSession(game);
+   }
 
    static bool localReady = false;
    static bool remoteReady = false;
    if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
-      if (ImGui::Button("Ready")) {
-         if (game->net->localPlayer == 1) {
+      if (game->net->localPlayer == 1) {
+         if (ImGui::Button("Ready")) {
             game->seed = time(0);
             ggpoSendMessage(game->seed, 1, game->net->localPlayer);
             localReady = true;
@@ -438,7 +440,6 @@ void showHostWindow(Game* game, bool* p_open) {
          remoteReady = localReady = false;
       }
    }
-
    ImGui::End();
 }
 
@@ -455,7 +456,9 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
    }
-   if (hostWindow && game->playing == false) { showHostWindow(game, &hostWindow); }
+   if (hostWindow && (game->playing == false ) { 
+      showHostWindow(game, &hostWindow); 
+   }
 
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);

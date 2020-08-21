@@ -58,3 +58,6 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 void ggpoClose(GGPOSession* ggpo);
 
 const char* ggpoShowStatus(Game* game, int playerIndex);
+
+int ggpoDisconnectPlayer(int player);
+void ggpoEndSession(Game* game);

@@ -5,7 +5,7 @@
 extern Game* game;  //I dunno how I feel about this
 
 //Use this to turn on synchronization testing... predicts every frame
-#define SYNC_TEST false
+#define SYNC_TEST true
 
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
@@ -293,43 +293,56 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 }
 
 void gameAdvanceFrame(Game* game) {
-   gameUpdate(game);  //todo come back and make this work
-
+   if (game->paused == false) {
+      gameUpdate(game);
+   }
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);
 }
 
 void gameRunFrame() {
 
-   GGPOErrorCode result = GGPO_OK;
-   int disconnect_flags;
+   if (game->net && game->net->ggpo) {
 
-   //read local inputs
-   if (game->net->localPlayer != GGPO_INVALID_HANDLE) {
-      inputProcessKeyboard(game->net->game);
-   }
+      GGPOErrorCode result = GGPO_OK;
+      int disconnect_flags;
 
-   if (SYNC_TEST == false) {
-      if (game->net->localPlayer == 1) { //todo make this not hard coded
-         game->p1Input.timer = game->timer;
+      //read local inputs
+      if (game->net->localPlayer != GGPO_INVALID_HANDLE) {
+         inputProcessKeyboard(game->net->game);
       }
-   }
 
-   //Can do sync test here with random inputs
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-   //If we got the local inputs successfully, merge in remote ones
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-      if (GGPO_SUCCEEDED(result)) {
-         if (game->net->localPlayer != 1) {  //todo make this not hard coded
-            if (SYNC_TEST == false) {
-               game->timer = game->inputs[0].timer;  //We want to use the timer from p1
-            }
+      if (SYNC_TEST == false) {
+         if (game->net->localPlayer == 1) { //todo make this not hard coded
+            game->p1Input.timer = game->timer;
          }
-         gameAdvanceFrame(game->net->game);  //Update the game 
+      }
+
+      //Can do sync test here with random inputs
+      result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+      //If we got the local inputs successfully, merge in remote ones
+      if (GGPO_SUCCEEDED(result)) {
+         result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+         if (GGPO_SUCCEEDED(result)) {
+            if (game->net->localPlayer != 1) {  //todo make this not hard coded
+               if (SYNC_TEST == false) {
+                  game->timer = game->inputs[0].timer;  //We want to use the timer from p1
+               }
+            }
+            for (int i = 0; i < GAME_PLAYERS; i++) {  //If anybody pauses, pause the game
+               if (game->inputs[i].pause.p == true) {
+                  if (game->paused == true) { 
+                     game->paused = false; 
+                  }
+                  else if (game->paused == false) { 
+                     game->paused = true; 
+                  }
+               }
+            }
+            gameAdvanceFrame(game->net->game);  //Update the game 
+         }
       }
    }
-
 }
 
 void ggpoClose(GGPOSession* ggpo) {
@@ -393,10 +406,31 @@ const char* ggpoShowStatus(Game* game, int playerIndex) {
       case 3:
          out = "Disconnected";
          break;
+      case 4:
+         out = "Disconnecting";
+         break;
       default:
          out = "None";
          break;
       }
    }
    return out;
+}
+
+int ggpoDisconnectPlayer(int player){
+   GGPOErrorCode result = ggpo_disconnect_player(game->net->ggpo, player);
+   if (GGPO_SUCCEEDED(result)) {
+      return 1;
+   }
+   else return 0;
+}
+
+void ggpoEndSession(Game* game) {
+   if (game->net) {
+      for (int i = 0; i < GAME_PLAYERS; i++) {
+         ggpoDisconnectPlayer(i + 1);
+      }
+      ggpoClose(game->net->ggpo);
+      game->net->ggpo = nullptr;
+   }
 }
