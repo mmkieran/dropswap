@@ -4,6 +4,9 @@
 
 #include "game.h"
 
+//Use this to turn on synchronization testing... predicts every frame
+#define SYNC_TEST true
+
 enum GameMsg {
    Ready = 0,
    Garbage,

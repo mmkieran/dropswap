@@ -4,9 +4,6 @@
 
 extern Game* game;  //I dunno how I feel about this
 
-//Use this to turn on synchronization testing... predicts every frame
-#define SYNC_TEST true
-
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
 

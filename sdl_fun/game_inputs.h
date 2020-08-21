@@ -15,6 +15,7 @@ struct UserInput {
    ButtonState up;
    ButtonState down;
 
+   ButtonState nudge;
    ButtonState pause;
    ButtonState swap;
 

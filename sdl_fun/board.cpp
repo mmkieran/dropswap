@@ -273,7 +273,8 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       }
 
       if (t1->type != tile_empty && t1->type != tile_cleared && t1->type != tile_garbage) {
-            if (t1->type == t2->type && t1->type == t3->type) {
+         if (t1->type == t2->type && t1->type == t3->type) {
+            if ( (t1->ypos == t2->ypos && t1->ypos == t3->ypos) || (t1->xpos == t2->xpos && t1->xpos == t3->xpos) ) {
                //We have a match... add to match list and move counter ahead looking for more
                matches.push_back(t1);
                matches.push_back(t2);
@@ -282,7 +283,7 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
                current = current + 3;
                while (current < tiles.size()) {  //keep matching
                   t1 = tiles[current];
-                  if (t1->type == tiles[current -1]->type) {
+                  if (t1->type == tiles[current - 1]->type) {
                      matches.push_back(t1);
                      current++;
                   }
@@ -292,6 +293,7 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
                   }
                }
             }
+         }
       }
       current++;
    }
@@ -308,9 +310,24 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       _checkClear(rows, matches);
    }
 
-   if (matches.size() > 0) {
+   if (matches.size() <= 0) { return; }
+
+   std::vector <Tile*> uniqueMatches;
+   for (int i = 0; i < matches.size(); i++) {  //Check if the match list is unique
+      bool unique = true;
+      for (int j = i + 1; j < matches.size(); j++) {
+         if (matches[j] == matches[i]) {
+            unique = false;
+         }
+      }
+      if (unique == true) {
+         uniqueMatches.push_back(matches[i]);
+      }
+   }
+
+   if (uniqueMatches.size() > 0) {
       int clearTime = board->game->timer;  
-      for (auto&& m : matches) {
+      for (auto&& m : uniqueMatches) {
 
          garbageCheckClear(board, m);
          //clear block and set timer

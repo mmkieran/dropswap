@@ -10,6 +10,8 @@ struct KeyboardMap {
    Uint8 hk_up = SDL_SCANCODE_UP;
    Uint8 hk_down = SDL_SCANCODE_DOWN;
 
+   Uint8 hk_nudge = SDL_SCANCODE_R;
+
    Uint8 hk_swap = SDL_SCANCODE_SPACE;
    Uint8 hk_pause = SDL_SCANCODE_RETURN;
 };
@@ -25,7 +27,8 @@ void inputProcessKeyboard(Game* game) {
       kmap.hk_right,
       kmap.hk_up,
       kmap.hk_down,
-
+      kmap.hk_nudge,
+      //presses only
       kmap.hk_swap,
       kmap.hk_pause,
    };
@@ -35,13 +38,14 @@ void inputProcessKeyboard(Game* game) {
       &game->p1Input.right,
       &game->p1Input.up,
       &game->p1Input.down,
-
+      &game->p1Input.nudge,
+      //presses only
       &game->p1Input.swap,
       &game->p1Input.pause
    };
 
    //Logic for held keys
-   for (int i = 0; i < 4; i++) {  //todo maybe make the count smarter... 
+   for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
       if (state[ keyList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
          buttonList[i]->p = true;
          buttonList[i]->fc++; //increment frame count

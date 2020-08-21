@@ -435,7 +435,7 @@ void showHostWindow(Game* game, bool* p_open) {
          }
       }
       
-      if (remoteReady == true && localReady == true) {
+      if (remoteReady == true && localReady == true || SYNC_TEST == true) {
          gameStartMatch(game);
          remoteReady = localReady = false;
       }
@@ -456,7 +456,7 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
    }
-   if (hostWindow && (game->playing == false ) { 
+   if (hostWindow && game->playing == false ) { 
       showHostWindow(game, &hostWindow); 
    }
 

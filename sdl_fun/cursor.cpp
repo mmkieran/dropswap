@@ -133,5 +133,13 @@ void cursorUpdate(Board* board, UserInput input) {
    else if (input.swap.p) {
       boardSwap(board);
    }
+
+   else if (input.nudge.p) {
+      boardMoveUp(board, board->moveSpeed / 8.0f);
+   }
+
+   else if (input.nudge.h) {
+      boardMoveUp(board, board->moveSpeed / 8.0f);
+   }
 }
 
