@@ -337,7 +337,7 @@ void imguiShowDemo() {
 }
 
 void showHostWindow(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Host Setup", p_open)) {
+   if (!ImGui::Begin("Host Setup", p_open) ) {
       ImGui::End();
       return;
    }
@@ -408,7 +408,7 @@ void showHostWindow(Game* game, bool* p_open) {
 
    static bool localReady = false;
    static bool remoteReady = false;
-   if (game->net && game->net->connections[game->net->hostConnNum].state == 2 && game->net->connections[game->net->myConnNum].state == 2) {
+   if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
       if (ImGui::Button("Ready")) {
          if (game->net->localPlayer == 1) {
             game->seed = time(0);
@@ -455,7 +455,7 @@ void showGameMenu(Game* game) {
    if (ImGui::Button("Host Window")) {
       hostWindow = true;
    }
-   if (hostWindow) { showHostWindow(game, &hostWindow); }
+   if (hostWindow && game->playing == false) { showHostWindow(game, &hostWindow); }
 
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
