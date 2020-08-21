@@ -70,8 +70,8 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->paused);
    writeStream(stream, game->pauseTimer);
    writeStream(stream, game->pauseLength);
-   writeStream(stream, game->timer);
-   writeStream(stream, game->timeDelta);
+   //writeStream(stream, game->timer);   //Don't serialize this! We are sending as input...
+   //writeStream(stream, game->timeDelta);
    writeStream(stream, game->seed);
 }
 
@@ -91,8 +91,8 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->paused);
    readStream(start, game->pauseTimer);
    readStream(start, game->pauseLength);
-   readStream(start, game->timer);
-   readStream(start, game->timeDelta);
+   //readStream(start, game->timer);
+   //readStream(start, game->timeDelta);
    readStream(start, game->seed);
 }
 

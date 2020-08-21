@@ -54,7 +54,7 @@ int boardFillTiles(Board* board);
 
 Tile* boardGetTile(Board* board, int row, int col);
 
-void boardUpdate(Board* board);
+void boardUpdate(Board* board, UserInput input);
 void boardRender(Game* game, Board* board);
 
 void boardMoveUp(Board* board, float height);
@@ -71,9 +71,6 @@ void boardClear(Board* board);
 
 int tileGetRow(Board* board, Tile* tile);
 int tileGetCol(Board* board, Tile* tile);
-
-void _serializeRandom(Board* board);
-void _deserializeRandom(Board* board);
 
 int boardRandomTile(Board* board);
 void boardStartRandom(Board* board);

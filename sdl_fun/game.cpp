@@ -17,6 +17,8 @@
 #include "mymath.h"
 #include "garbage.h"
 #include "serialize.h"
+#include "game_inputs.h"
+#include "netplay.h"
 
 struct GameWindow {
    SDL_Window *window;
@@ -28,6 +30,23 @@ struct GameWindow {
    TTF_Font* font;
 };
 
+//SDL function wrappers
+uint64_t sdlGetCounter() {
+   uint64_t current = SDL_GetPerformanceCounter();
+   return current;
+}
+
+void sdlSleep(int delay) {
+   SDL_Delay(delay);  //milliseconds
+}
+
+//Give extra frame time to GGPO so it can do it's thing
+void gameGiveIdleToGGPO(Game* game, int time) {
+   if (game->net && game->net->ggpo && time > 0) {
+      ggpo_idle(game->net->ggpo, time);
+      //printf("Time: %d\n", time);
+   }
+}
 
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
@@ -49,9 +68,9 @@ void imguiSetup(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
-   //game->io = &ImGui::GetIO(); (void)game->io;
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+   ImGuiIO& io = ImGui::GetIO(); (void)io;
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
@@ -74,6 +93,8 @@ void imguiStartFrame(Game* game) {
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
    game->sdl = new GameWindow;
+   game->net = new NetPlay;
+   game->net->game = game;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
       printf("Failed to initialize SDL...\n");
@@ -124,111 +145,80 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->seed = time(0);  //generate the random seed for the board tiles
 
    game->isRunning = true;
+
+   game->p1Input.code = 0;
+   game->p1Input.timer = 0;
+   game->p1Input.handle = 0;
+   game->p1Input.msg = 0;
+
    return game;
 }
 
 void gameHandleEvents(Game* game) {
    SDL_Event event;
-   SDL_PollEvent(&event);
-   switch (event.type) {
-   case SDL_QUIT:
-      game->isRunning = false;
-      break;
 
-   case SDL_KEYDOWN:
-      if (game->paused == false && game->playing == true) {
+   while (SDL_PollEvent(&event)) {
 
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            if (i == 1) {
-               switch (event.key.keysym.sym) {
-                  case SDLK_LEFT:
-                     cursorMove(board, move_left);
-                     break;
-
-                  case SDLK_RIGHT:
-                     cursorMove(board, move_right);
-                     break;
-
-                  case SDLK_UP:
-                     cursorMove(board, move_up);
-                     break;
-
-                  case SDLK_DOWN:
-                     cursorMove(board, move_down);
-                     break;
-
-                  case SDLK_SPACE:
-                     boardSwap(board);
-                     break;
-
-                  case SDLK_r:
-                     if (!board->paused) {
-                        boardMoveUp(board, 8.0f);
-                        break;
-                     }
-                     break;
-
-                  case SDLK_g:
-                     garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
-                     break;
-
-                  case SDLK_t:
-                     makeItRain(board);
-                     break;
-                  }
-               }
-
-               if (i > 1) {
-                  switch (event.key.keysym.sym) {
-                  case SDLK_a:
-                     cursorMove(board, move_left);
-                     break;
-
-                  case SDLK_d:
-                     cursorMove(board, move_right);
-                     break;
-
-                  case SDLK_w:
-                     cursorMove(board, move_up);
-                     break;
-
-                  case SDLK_s:
-                     cursorMove(board, move_down);
-                     break;
-
-                  case SDLK_RETURN:
-                     boardSwap(board);
-                     break;
-
-                  case SDLK_r:
-                     if (!board->paused) {
-                        boardMoveUp(board, 8.0f);
-                        break;
-                     }
-                     break;
-
-                  case SDLK_g:
-                     garbageCreate(board, game->timer % 3 + 3, game->timer % 2 + 1);
-                     break;
-
-                  case SDLK_t:
-                     makeItRain(board);
-                     break;
-               }
-            }
-         }
+      ImGui_ImplSDL2_ProcessEvent(&event);
+      if (event.type == SDL_QUIT) {
+         game->isRunning = false;
       }
    }
+
+   //if (game->input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
+   //   if (game->paused == true) { game->paused = false; }
+   //   else if (game->paused == false) { game->paused = true; }
+   //}
+
 }
 
 void gameUpdate(Game* game) {
+   
    for (int i = 1; i <= vectorSize(game->boards); i++) {
-      boardUpdate(vectorGet(game->boards, i));
+      boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
    }
 }
 
 void gameRender(Game* game) {
+   //Remember that this has to happen after imguiRender, or the clear will remove everything...
+
+   //Draw game objects
+   if (game->playing == true) {
+      for (int i = 1; i <= vectorSize(game->boards); i++) {
+         Board* board = vectorGet(game->boards, i);
+         if (board) {
+            boardRender(game, board);
+         }
+      }
+      //debugCursor(game);  //imgui debug tools
+      //debugGarbage(game);
+   }
+}
+
+void gameStartMatch(Game* game) {
+   //setting up board
+   for (int i = 1; i <= game->players; i++) {
+      Board* board = boardCreate(game);
+      board->player = i;  //todo this might not work in terms of player number??
+      vectorPushBack(game->boards, board);
+      boardFillTiles(board);
+
+      //todo add a smarter algorithm to tile boards in screen space if more than 2
+      float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
+      float yOrigin = game->tHeight;
+
+      //todo if we want more than 2 we'll have to use a tiling algorithm
+      //if (i > 2) {
+      //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+      //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+      //}
+
+      board->origin = { xOrigin, yOrigin };
+   }
+   game->playing = true;
+}
+
+void imguiRender(Game* game) {
 
    rendererClear(0.0, 0.0, 0.0, 0.0);
 
@@ -240,17 +230,7 @@ void gameRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   //Draw game objects
-   if (game->playing == true) {
-      for (int i = 1; i <= vectorSize(game->boards); i++) {
-         Board* board = vectorGet(game->boards, i);
-         if (board) {
-            boardRender(game, board);
-         }
-      }
-      debugCursor(game);  //imgui debug tools
-      debugGarbage(game);
-   }
+   gameRender(game);  //Draw all game objects
 
    ImGui::Render();
 
@@ -270,6 +250,13 @@ void gameDestroy(Game* game) {
       }
    }
 
+   if (game->net && game->net->ggpo) {
+      ggpoClose(game->net->ggpo);
+      game->net->ggpo = nullptr;
+   }
+
+   vectorDestroy(game->boards);
+
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
@@ -285,6 +272,7 @@ void gameDestroy(Game* game) {
    TTF_Quit();  //close ttf
    SDL_Quit();
    delete game->sdl;
+   delete game->net;
    delete game;
 
    printf("Cleanup successful.\n");
@@ -346,6 +334,115 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
+void showHostWindow(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Host Setup", p_open) ) {
+      ImGui::End();
+      return;
+   }
+
+   static unsigned short participants = 2;
+   int pMin = 2;
+   int pMax = GAME_MAX_PLAYERS;
+
+   ImGui::PushItemWidth(120);
+   ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
+   ImGui::SameLine();
+
+   if (ImGui::Button("Load From File")) {
+
+   }
+
+   ImGui::SameLine();
+   if (ImGui::Button("Save To File")) {
+
+   }
+   ImGui::PopItemWidth();
+   ImGui::NewLine();
+
+   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
+
+   ImGui::PushID("Player Info Set");
+   for (int i = 0; i < participants; i++) {
+
+      ImGui::PushID(i);
+      ImGui::PushItemWidth(80);
+      ImGui::Text("Player%d", i + 1);
+
+      if (ImGui::Checkbox("Me", &hostSetup[i].me)) {
+         for (int j = 0; j < participants; j++) {
+            if (hostSetup[j].me == true && i != j) { hostSetup[j].me = false; }
+         }
+      }
+      ImGui::SameLine();
+
+      if (ImGui::Checkbox("Host", &hostSetup[i].host)) {
+         for (int j = 0; j < participants; j++) {
+            if (hostSetup[j].host == true && i != j) { hostSetup[j].host = false; }
+         }
+      }
+      ImGui::SameLine();
+
+      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
+
+      ImGui::SameLine();
+      ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
+      ImGui::SameLine();
+
+      ImGui::InputInt("Port", &hostSetup[i].localPort);
+      ImGui::SameLine();
+      ImGui::Text(ggpoShowStatus(game, i) );
+
+      ImGui::PopItemWidth();
+      ImGui::PopID();
+   }
+   ImGui::PopID();
+
+   ImGui::Text("Game seed %d ", game->seed);
+
+   ImGui::NewLine();
+   if (ImGui::Button("Start Session")) {
+      ggpoCreateSession(game, hostSetup, participants);
+   }
+   ImGui::SameLine();
+   if (ImGui::Button("End Session")) {
+      ggpoEndSession(game);
+   }
+
+   static bool localReady = false;
+   static bool remoteReady = false;
+   if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
+      if (game->net->localPlayer == 1) {
+         if (ImGui::Button("Ready")) {
+            game->seed = time(0);
+            ggpoSendMessage(game->seed, 1, game->net->localPlayer);
+            localReady = true;
+         }
+      }
+
+      for (int i = 0; i < participants; i++) {
+         if (game->inputs[0].code == 1 && game->net->localPlayer != 1) {  //Give seed to all players
+            game->seed = game->inputs[0].msg;
+            if (game->net->localPlayer == 2) {  //Send message that p2 received seed
+               ggpoSendMessage(0, 2, game->net->localPlayer);
+               localReady = true;
+            }
+         }
+         if (game->inputs[1].code == 2 && game->net->localPlayer == 1) {
+            remoteReady = true;
+         }
+         else {
+            remoteReady = true;
+         }
+      }
+      
+      if (remoteReady == true && localReady == true) {
+         gameStartMatch(game);
+         remoteReady = localReady = false;
+      }
+   }
+   ImGui::End();
+}
+
 void showGameMenu(Game* game) {
 
    if (!ImGui::Begin("Game Menus")) {
@@ -354,6 +451,15 @@ void showGameMenu(Game* game) {
    }
 
    ImGui::InputInt("Players", &game->players);
+
+   static bool hostWindow = false;
+   if (ImGui::Button("Host Window")) {
+      hostWindow = true;
+   }
+   if (hostWindow && (game->playing == false ) { 
+      showHostWindow(game, &hostWindow); 
+   }
+
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
    ImGui::InputInt("Tile Height", &game->tHeight, 16);
@@ -364,27 +470,7 @@ void showGameMenu(Game* game) {
 
    if (game->playing == false) {
       if (ImGui::Button("Start Game")) {
-
-         //setting up board
-         for (int i = 1; i <= game->players; i++) {
-            Board* board = boardCreate(game);
-            board->player = i;
-            vectorPushBack(game->boards, board);
-            boardFillTiles(board);
-
-            //todo add a smarter algorithm to tile boards in screen space if more than 2
-            float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
-            float yOrigin = game->tHeight;
-
-            if (i > 2) {
-               xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
-               yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
-            }
-
-            board->origin = {xOrigin, yOrigin};
-         }
-
-         game->playing = true;
+         gameStartMatch(game);
       }
    }
    if (game->playing == true) {
@@ -414,7 +500,7 @@ void showGameMenu(Game* game) {
    }
 
    if (ImGui::Button("Save Game")) {
-      gameSaveState(game);
+      gameSaveState(game, "saves/game_state.dat");
    }
 
    if (ImGui::Button("Clear Board")) {
@@ -486,7 +572,6 @@ std::vector <Byte> gameSave (Game* game) {
    return stream;
 }
 
-
 int gameLoad(Game* game, unsigned char* &start) {
 
    //destroy the boards
@@ -535,9 +620,9 @@ int gameLoad(Game* game, unsigned char* &start) {
    return 0;
 }
 
-FILE* gameSaveState(Game* game) {
+FILE* gameSaveState(Game* game, const char* filename) {
    FILE* out;
-   int err = fopen_s(&out, "saves/game_state.dat", "w");
+   int err = fopen_s(&out, filename, "w");
    std::vector <Byte> stream;
    stream = gameSave(game);
 
@@ -556,7 +641,6 @@ FILE* gameSaveState(Game* game) {
    fclose(out);
    return out;
 }
-
 
 int gameLoadState(Game* game, const char* path) {
    FILE* in;

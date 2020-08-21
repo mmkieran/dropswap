@@ -105,7 +105,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
    board->tiles[(board->w * row + col)] = tile;
 }
 
-void boardUpdate(Board* board) {
+void boardUpdate(Board* board, UserInput input) {
 
    boardRemoveClears(board);
 
@@ -136,7 +136,7 @@ void boardUpdate(Board* board) {
    garbageFall(board, board->fallSpeed * 4.0f);
    boardAssignSlot(board, false);
 
-   cursorUpdate(board);  //todo make this do something more?
+   cursorUpdate(board, input);  //todo make this do something more?
 }
 
 void boardRender(Game* game, Board* board) {
@@ -615,18 +615,20 @@ void makeItRain(Board* board) {
       Tile* left2 = boardGetTile(board, row, col - 2);
 
       int total = 6;
-      while ((type == left->type && type == left2->type) ) {
-         current++;
-         if (current > total) {
-            current = current % total;
+      if (left && left2) {
+         while ((type == left->type && type == left2->type)) {
+            current++;
+            if (current > total) {
+               current = current % total;
+            }
+            type = (TileType)current;
          }
-         type = (TileType)current;
-      }
-      if (col % 2 == 0) {
-         tileInit(board, tile, row, col, type, true);
-      }
-      else {
-         tileInit(board, tile, row + 1, col, type, true);
+         if (col % 2 == 0) {
+            tileInit(board, tile, row, col, type, true);
+         }
+         else {
+            tileInit(board, tile, row + 1, col, type, true);
+         }
       }
    }
 }
@@ -656,28 +658,3 @@ std::vector <Tile> boardDebug(Board* board) {
    }
    return tileList;
 }
-//
-//void _serializeRandom(Board* board) {
-//   std::ofstream fout;
-//
-//   std::string fileName = "saves/p";
-//   fileName += std::to_string(board->player);
-//   fileName += "random.dat";
-//
-//   fout.open(fileName, std::fstream::binary | std::fstream::out);
-//   fout << board->generator;
-//   fout << board->distribution;
-//
-//}
-//
-//void _deserializeRandom(Board* board) {
-//   std::ifstream fin;
-//
-//   std::string fileName = "saves/p";
-//   fileName += std::to_string(board->player);
-//   fileName += "random.dat";
-//
-//   fin.open(fileName, std::fstream::binary | std::fstream::in);
-//   fin >> board->generator;
-//   fin >> board->distribution;
-//}

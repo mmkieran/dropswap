@@ -1,12 +1,7 @@
-// fool_around.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#pragma once
 
-#include "pch.h"
-#include <random>
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include "sdl_fun/myvector.h"
+typedef struct Game Game;
+typedef unsigned long long uint64_t;
 
 struct ButtonState {
    bool p = false;  //pressed
@@ -32,11 +27,4 @@ struct UserInput {
 };
 
 
-int main(int argc, char* args[])
-{
-
-   printf("%d", sizeof(UserInput));
-   printf("%d", sizeof(int));
-
-   return 0;
-}
+void inputProcessKeyboard(Game* game);
