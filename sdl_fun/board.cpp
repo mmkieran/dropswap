@@ -253,7 +253,7 @@ void boardSwap(Board* board) {
    return;
 }
 
-static void _calcGarbage(Board* board, int matchSize) {
+static void _calcComboGarbage(Board* board, int matchSize) {
    if (matchSize == 4) {
       garbageCreate(board, 3, 1);
    }
@@ -291,10 +291,10 @@ static void _calcGarbage(Board* board, int matchSize) {
 
 void boardDropGarbage(Game* game, int player, int matchSize) {
    if (player == 1) {
-      _calcGarbage(vectorGet(game->boards, 2), matchSize);  //Drop on player 2
+      _calcComboGarbage(vectorGet(game->boards, 2), matchSize);  //Drop on player 2
    }
    else if (player == 2) {
-      _calcGarbage(vectorGet(game->boards, 1), matchSize);
+      _calcComboGarbage(vectorGet(game->boards, 1), matchSize);
    }
 }
 
@@ -369,7 +369,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       }
    }
 
-   if (uniqueMatches.size() > 3) {
+   if (uniqueMatches.size() > 3 && board->combo == 1) {
       boardDropGarbage(board->game, board->player, uniqueMatches.size() );
    }
 
