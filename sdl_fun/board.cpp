@@ -120,20 +120,18 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64.0f)) );
+         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64.0f)) );  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
 
-   if (board->bust) {
-      board->game->playing = false;
-   }
+   if (board->bust) {board->game->playing = false; }
 
-   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight/64.0f) );
-   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );
+   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
-   cursorUpdate(board, input);  //todo make this do something more?
+   cursorUpdate(board, input);  //This has kinda become player...
 }
 
 void boardRender(Game* game, Board* board) {
@@ -486,9 +484,14 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    return type;
 }
 
+void _chainGarbage(Board* board) {
+
+}
+
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
    int current = board->game->timer;
+   bool stillChaining = false;
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -529,8 +532,13 @@ void boardRemoveClears(Board* board) {
                }
             }
          }
+         if (tile->chain == true) { stillChaining = true; }  //Any tile still part of a chain
       }
    }
+   if (stillChaining = false) { //No tiles are part of a chain
+      _chainGarbage(board);
+      board->chain = 1; 
+   }  
    return;
 }
 
@@ -546,6 +554,8 @@ void boardMoveUp(Board* board, float height) {
       board->offset += board->tileHeight;
       newRow = true;
    }
+
+   _chainGarbage(board);  //Check for chains
 
    std::vector <Tile*> checkTiles;
    for (int row = 0; row < board->wBuffer; row++) {
