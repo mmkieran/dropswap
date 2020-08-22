@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -27,7 +26,6 @@ struct GameWindow {
    unsigned int VAO;  //This doesn't really belong here
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
-   TTF_Font* font;
 };
 
 //SDL function wrappers
@@ -101,9 +99,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
       return nullptr;
    }
    else {printf("Initialized SDL...\n"); }
-   
-   if (TTF_Init() != 0) {printf("Failed to initialize True Text Fonts...\n"); }
-   else {printf("Initialized True Text Fonts...\n"); }
 
    if (openglContext() != 0) {printf("Failed to create OpenGL Context?...\n"); }
    else {printf("Created OpenGL Context...\n"); }
@@ -135,9 +130,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //Set the projection matrices to change origin to world and then to device coordinates
    originToWorld(game, 0.0f, 0.0f, width, height);
    worldToDevice(game, 0.0f, 0.0f, width, height);
-
-   game->sdl->font = TTF_OpenFont("assets/arial.ttf", 14);
-   if (!game->sdl->font) {printf("Couldn't load font?.\n"); }
 
    game->windowHeight = height;
    game->windowWidth = width;
@@ -241,8 +233,6 @@ void imguiRender(Game* game) {
 
 void gameDestroy(Game* game) {
 
-   TTF_CloseFont(game->sdl->font);  //free the font
-
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       Board* board = vectorGet(game->boards, i);
       if (board) {
@@ -269,7 +259,6 @@ void gameDestroy(Game* game) {
 
    //SDL cleanup
    SDL_DestroyWindow(game->sdl->window);
-   TTF_Quit();  //close ttf
    SDL_Quit();
    delete game->sdl;
    delete game->net;
