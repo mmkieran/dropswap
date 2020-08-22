@@ -491,8 +491,8 @@ void boardChainGarbage(Game* game, int player, int chain) {
 
    int gWidth = 6;
    int gHeight = 0;
-   if (board->chain - 1 > 12) {gHeight = 12; }
-   else { gHeight = board->chain - 1; }
+   if (chain - 1 > 12) {gHeight = 12; }
+   else { gHeight = chain - 1; }
    if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
 }
 
