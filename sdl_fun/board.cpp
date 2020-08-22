@@ -116,13 +116,11 @@ void boardUpdate(Board* board, UserInput input) {
          board->pauseLength = 0;
       }
    }
-   else {
-      board->paused = false;
-   }
+   else {board->paused = false; }
 
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f);
+         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64)) );
          garbageDeploy(board);
       }
    }
@@ -131,8 +129,8 @@ void boardUpdate(Board* board, UserInput input) {
       board->game->playing = false;
    }
 
-   boardFall(board, board->fallSpeed * 4.0f);
-   garbageFall(board, board->fallSpeed * 4.0f);
+   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight/64) );
+   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64) );
    boardAssignSlot(board, false);
 
    cursorUpdate(board, input);  //todo make this do something more?
@@ -369,7 +367,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       }
    }
 
-   if (uniqueMatches.size() > 3 && board->combo == 1) {
+   if (board->game->players > 1 && uniqueMatches.size() > 3 && board->chain == 1) {  //Check for combos in clear
       boardDropGarbage(board->game, board->player, uniqueMatches.size() );
    }
 
@@ -386,7 +384,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          board->paused = true;
          board->pauseLength = 3000;
          if (fallCombo && m->chain == true) {
-            board->combo += 1;
+            board->chain += 1;
             fallCombo = false;
          }
          m->chain = false;
@@ -557,7 +555,7 @@ void boardMoveUp(Board* board, float height) {
          if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
          tile->chain = false;  //Whenever the board is moving, the combo is over?
-         board->combo = 1;
+         board->chain = 1;
 
          if (tile->ypos <= 0.0f && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 

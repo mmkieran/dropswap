@@ -134,22 +134,12 @@ void cursorUpdate(Board* board, UserInput input) {
       boardSwap(board);
    }
 
-   else if (input.nudge.p) {
+   else if (input.nudge.p && board->paused == false) {
       boardMoveUp(board, 4);
    }
 
-   else if (input.nudge.h) {
+   else if (input.nudge.h && board->paused == false) {
       boardMoveUp(board, 4);
-   }
-
-   
-   if (board->player == 1 && board->game->inputs[1].code == 3) {
-      garbageCreate(board, 3, 1);
-      board->game->inputs[1].code == 0;
-   }
-   else if (board->player == 2 && board->game->inputs[0].code == 3) {
-      garbageCreate(board, 3, 1);
-      board->game->inputs[0].code == 0;
    }
 }
 

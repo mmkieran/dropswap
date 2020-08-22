@@ -37,18 +37,17 @@ int main(int argc, char* args[]) {
       imguiStartFrame(game);
 
       //imguiShowDemo();
+      //if (game->playing == false || game->paused == true) {showGameMenu(game); }
       showGameMenu(game);
 
       gameRunFrame();
 
-      imguiRender(game);  //draw the board, cursor, and other things
+      if (game->players == 1) {
+         inputProcessKeyboard(game);
+         gameUpdate(game); 
+      }
 
-      //if (game->paused == false && game->playing == true) {
-      //   gameUpdate(game);  //update game and board state
-      //}
-      //else {
-      //   game->pauseLength += getTime() - frameStart;  //Use this to correct timeDelta after pause
-      //}
+      imguiRender(game);  //draw the board, cursor, and other things
 
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate

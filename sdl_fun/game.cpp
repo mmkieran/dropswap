@@ -167,7 +167,12 @@ void gameHandleEvents(Game* game) {
 void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
-      boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
+      if (game->players > 1) {
+         boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
+      }
+      else if (game->players == 1) {
+         boardUpdate(vectorGet(game->boards, i), game->p1Input);
+      }
    }
 }
 
@@ -182,7 +187,7 @@ void gameRender(Game* game) {
             boardRender(game, board);
          }
       }
-      //debugCursor(game);  //imgui debug tools
+      debugCursor(game);  //imgui debug tools
       //debugGarbage(game);
    }
 }
@@ -308,9 +313,9 @@ void debugCursor(Game* game) {
          ImGui::Text("%d row, %d col", row, col);
          ImGui::NewLine();
 
-         ImGui::Text("%d combo", board->combo);
-         ImGui::Text("%.1f offset", board->offset);
-         ImGui::Text("%.1f level", board->level);
+         ImGui::Text("%d combo", board->chain);
+         //ImGui::Text("%.1f offset", board->offset);
+         //ImGui::Text("%.1f level", board->level);
          ImGui::Text("%d time", game->timer);
       }
 

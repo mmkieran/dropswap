@@ -306,7 +306,7 @@ void gameRunFrame() {
 
       //read local inputs
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {
-         inputProcessKeyboard(game->net->game);
+         inputProcessKeyboard(game);
       }
 
       if (SYNC_TEST == false) {

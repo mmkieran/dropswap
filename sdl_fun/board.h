@@ -33,7 +33,7 @@ struct Board {
    int pauseLength = 0;
    double score = 0;
    bool bust = false;
-   int combo = 1;
+   int chain = 1;
 
    int player = 1;
 
