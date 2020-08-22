@@ -30,7 +30,6 @@ void boardStartRandom(Board* board) {
 	board->distribution = dist;
 }
 
-
 void boardLoadRandom(Board* board) {
 	boardStartRandom(board);
 
@@ -254,6 +253,15 @@ void boardSwap(Board* board) {
    return;
 }
 
+void boardDropGarbage(Game* game, int player) {
+   if (player == 1) {
+      garbageCreate(vectorGet(game->boards, 2), 3, 1);  //Drop on player 2
+   }
+   else if (player == 2) {
+      garbageCreate(vectorGet(game->boards, 1), 3, 1);
+   }
+}
+
 static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
@@ -326,8 +334,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (uniqueMatches.size() > 3) {
-      board->game->p1Input.code = 3;
-      board->game->p1Input.handle = board->player;
+      boardDropGarbage(board->game, board->player);
    }
 
    if (uniqueMatches.size() > 0) {

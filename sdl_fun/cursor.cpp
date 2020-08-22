@@ -142,12 +142,14 @@ void cursorUpdate(Board* board, UserInput input) {
       boardMoveUp(board, 4);
    }
 
-   for (int i = 0; i < board->game->players; i++) {
-      if (i != board->player - 1) {
-         if (board->game->inputs[i].code == 3) {
-            garbageCreate(board, 3, 1);
-         }
-      }
+   
+   if (board->player == 1 && board->game->inputs[1].code == 3) {
+      garbageCreate(board, 3, 1);
+      board->game->inputs[1].code == 0;
+   }
+   else if (board->player == 2 && board->game->inputs[0].code == 3) {
+      garbageCreate(board, 3, 1);
+      board->game->inputs[0].code == 0;
    }
 }
 
