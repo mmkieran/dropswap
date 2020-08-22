@@ -120,7 +120,7 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64)) );
+         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64.0f)) );
          garbageDeploy(board);
       }
    }
@@ -129,8 +129,8 @@ void boardUpdate(Board* board, UserInput input) {
       board->game->playing = false;
    }
 
-   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight/64) );
-   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64) );
+   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight/64.0f) );
+   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );
    boardAssignSlot(board, false);
 
    cursorUpdate(board, input);  //todo make this do something more?

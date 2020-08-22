@@ -290,9 +290,12 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 }
 
 void gameAdvanceFrame(Game* game) {
-   if (game->paused == false) {
-      gameUpdate(game);
+   for (int i = 1; i <= vectorSize(game->boards); i++) {  //Check for pauses
+      gameCheckPause(game, game->inputs[i - 1]);
    }
+
+   if (game->paused == false) {gameUpdate(game); }
+
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);
 }
@@ -324,16 +327,6 @@ void gameRunFrame() {
             if (game->net->localPlayer != 1) {  //todo make this not hard coded
                if (SYNC_TEST == false) {
                   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
-               }
-            }
-            for (int i = 0; i < GAME_PLAYERS; i++) {  //If anybody pauses, pause the game
-               if (game->inputs[i].pause.p == true) {
-                  if (game->paused == true) { 
-                     game->paused = false; 
-                  }
-                  else if (game->paused == false) { 
-                     game->paused = true; 
-                  }
                }
             }
             gameAdvanceFrame(game->net->game);  //Update the game 

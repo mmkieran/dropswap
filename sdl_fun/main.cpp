@@ -37,14 +37,16 @@ int main(int argc, char* args[]) {
       imguiStartFrame(game);
 
       //imguiShowDemo();
+
       //if (game->playing == false || game->paused == true) {showGameMenu(game); }
       showGameMenu(game);
 
-      gameRunFrame();
+      gameRunFrame();  //Only for multiplayer so far
 
-      if (game->players == 1) {
+      if (game->players == 1) {  //Single player
          inputProcessKeyboard(game);
-         gameUpdate(game); 
+         gameCheckPause(game, game->p1Input);
+         if (game->playing == true && game->paused == false) { gameUpdate(game); }
       }
 
       imguiRender(game);  //draw the board, cursor, and other things

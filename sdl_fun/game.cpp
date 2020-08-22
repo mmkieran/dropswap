@@ -164,10 +164,22 @@ void gameHandleEvents(Game* game) {
 
 }
 
+void gameCheckPause(Game* game, UserInput input) {
+   if (input.pause.p == true) {
+      if (game->paused == true) {
+         game->paused = false;
+      }
+      else if (game->paused == false) {
+         game->paused = true;
+      }
+   }
+}
+
 void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       if (game->players > 1) {
+         gameCheckPause(game, game->inputs[i - 1]);
          boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
       }
       else if (game->players == 1) {
@@ -313,8 +325,10 @@ void debugCursor(Game* game) {
          ImGui::Text("%d row, %d col", row, col);
          ImGui::NewLine();
 
-         ImGui::Text("%d combo", board->chain);
-         //ImGui::Text("%.1f offset", board->offset);
+         static int lastChain = 0;
+         if (board->chain > 1) { lastChain = board->chain; }
+         ImGui::Text("%d chain", board->chain);
+         ImGui::Text("Last chain: %", lastChain);
          //ImGui::Text("%.1f level", board->level);
          ImGui::Text("%d time", game->timer);
       }
