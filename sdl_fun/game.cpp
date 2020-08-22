@@ -134,7 +134,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->windowHeight = height;
    game->windowWidth = width;
    game->boards = vectorCreate<Board*>(4, 10);
-   game->seed = time(0);  //generate the random seed for the board tiles
+   game->seed = 0;  //generate the random seed for the board tiles
 
    game->isRunning = true;
 
@@ -385,10 +385,8 @@ void showHostWindow(Game* game, bool* p_open) {
       ImGui::PopID();
    }
    ImGui::PopID();
-
-   ImGui::Text("Game seed %d ", game->seed);
-
    ImGui::NewLine();
+
    if (ImGui::Button("Start Session")) {
       ggpoCreateSession(game, hostSetup, participants);
    }
@@ -399,31 +397,47 @@ void showHostWindow(Game* game, bool* p_open) {
 
    static bool localReady = false;
    static bool remoteReady = false;
+   static bool seedSent = false;
+   static bool seedReceived = false;
+
+   ImGui::SameLine();
+   if (ImGui::Button("New Seed")) {
+      seedSent = seedReceived = false;
+   }
+
    if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
-      if (game->net->localPlayer == 1) {
-         if (ImGui::Button("Ready")) {
+      ImGui::Text("Press [ENTER] when ready");
+      if (seedReceived == true) { ImGui::Text("Received seed: %d", game->seed); }
+      if (seedSent == true) { ImGui::Text("Sent seed: %d", game->seed); }
+
+      if (game->net->localPlayer == 1) {  //Player 1 sends the game seed
+         if (seedSent == false){ 
             game->seed = time(0);
-            ggpoSendMessage(game->seed, 1, game->net->localPlayer);
-            localReady = true;
+            game->p1Input.msg = game->seed;
+            seedSent = true;
+         }
+      }
+      else {
+         if (seedReceived == false) {
+            if (game->inputs[0].msg > 0) {
+               game->seed = game->inputs[0].msg;
+               seedReceived = true;
+            }
          }
       }
 
-      for (int i = 0; i < participants; i++) {
-         if (game->inputs[0].code == 1 && game->net->localPlayer != 1) {  //Give seed to all players
-            game->seed = game->inputs[0].msg;
-            if (game->net->localPlayer == 2) {  //Send message that p2 received seed
-               ggpoSendMessage(0, 2, game->net->localPlayer);
+      for (int i = 0; i < game->players; i++) {
+         if (game->inputs[i].pause.p == true) {  //Check if either player pressed enter to start
+            if (game->net->localPlayer == i + 1) {
                localReady = true;
             }
-         }
-         if (game->inputs[1].code == 2 && game->net->localPlayer == 1) {
-            remoteReady = true;
-         }
-         else {
-            remoteReady = true;
+            else {
+               remoteReady = true;
+            }
          }
       }
-      
+      if (remoteReady == true) { ImGui::Text("Remote player ready"); }
+
       if (remoteReady == true && localReady == true || SYNC_TEST == true) {
          gameStartMatch(game);
          remoteReady = localReady = false;
