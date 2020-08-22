@@ -285,7 +285,7 @@ static void _calcComboGarbage(Board* board, int matchSize) {
    }
 }
 
-void boardDropGarbage(Game* game, int player, int matchSize) {
+void boardComboGarbage(Game* game, int player, int matchSize) {
    if (player == 1) {
       _calcComboGarbage(vectorGet(game->boards, 2), matchSize);  //Drop on player 2
    }
@@ -366,7 +366,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (board->game->players > 1 && uniqueMatches.size() > 3 && board->chain == 1) {  //Check for combos in clear
-      boardDropGarbage(board->game, board->player, uniqueMatches.size() );
+      boardComboGarbage(board->game, board->player, uniqueMatches.size() );
    }
 
    if (uniqueMatches.size() > 0) {
@@ -484,8 +484,16 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    return type;
 }
 
-void _chainGarbage(Board* board) {
+void boardChainGarbage(Game* game, int player, int chain) {
+   Board* board;
+   if (player == 1) {board = vectorGet(game->boards, 2); }
+   else if (player == 2) {board = vectorGet(game->boards, 1); }
 
+   int gWidth = 6;
+   int gHeight = 0;
+   if (board->chain - 1 > 12) {gHeight = 12; }
+   else { gHeight = board->chain - 1; }
+   if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
 }
 
 void boardRemoveClears(Board* board) {
@@ -536,7 +544,9 @@ void boardRemoveClears(Board* board) {
       }
    }
    if (stillChaining = false) { //No tiles are part of a chain
-      _chainGarbage(board);
+      if (board->game->players > 1 && board->chain > 1) {
+         boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
+      }
       board->chain = 1; 
    }  
    return;
@@ -555,7 +565,10 @@ void boardMoveUp(Board* board, float height) {
       newRow = true;
    }
 
-   _chainGarbage(board);  //Check for chains
+   if (board->game->players > 1 && board->chain > 1) {
+      boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
+   }
+   board->chain = 1;  //If the board is moving the chain is over
 
    std::vector <Tile*> checkTiles;
    for (int row = 0; row < board->wBuffer; row++) {
@@ -565,7 +578,6 @@ void boardMoveUp(Board* board, float height) {
          if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
          tile->chain = false;  //Whenever the board is moving, the combo is over?
-         board->chain = 1;
 
          if (tile->ypos <= 0.0f && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
 

@@ -206,6 +206,9 @@ void gameRender(Game* game) {
 
 void gameStartMatch(Game* game) {
    //setting up board
+
+   if (game->players == 1) { game->seed = time(0); }
+
    for (int i = 1; i <= game->players; i++) {
       Board* board = boardCreate(game);
       board->player = i;  //todo this might not work in terms of player number??
@@ -326,11 +329,16 @@ void debugCursor(Game* game) {
          ImGui::NewLine();
 
          static int lastChain = 0;
-         if (board->chain > 1) { lastChain = board->chain; }
+         static int chainTime = 0;
+         if (board->chain > 1) { 
+            lastChain = board->chain; 
+            chainTime = game->timer;
+         }
          ImGui::Text("%d chain", board->chain);
-         ImGui::Text("Last chain: %", lastChain);
+         ImGui::Text("Last chain: %d", lastChain);
+         ImGui::Text("Last chain time: %d", chainTime);
          //ImGui::Text("%.1f level", board->level);
-         ImGui::Text("%d time", game->timer);
+         ImGui::Text("Game Time: %d", game->timer);
       }
 
       ImGui::End();
