@@ -7,8 +7,11 @@
 #include "render.h"
 #include "resources.h"
 
+#include <assert.h>
+
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
+//Garbage Pile is a hash map of the pieces of Garbage
 GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
    pile = new GarbagePile;
@@ -18,6 +21,7 @@ GarbagePile* garbagePileCreate() {
    return nullptr;
 }
 
+//Frees the memory for a Garbage Pile
 GarbagePile* garbagePileDestroy(GarbagePile* pile) {
    if (pile) {
       for (auto&& pair : pile->garbage) {
@@ -30,6 +34,7 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
    return nullptr;
 }
 
+//Allocate memory for a piece of garbage and create a mesh... for serializing
 Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
 
@@ -40,6 +45,7 @@ Garbage* garbageCreateEmpty(Board* board) {
    return garbage;
 }
 
+//This is typical way to create Garbage of a certain size
 Garbage* garbageCreate(Board* board, int width, int layers) {
    
    Garbage* garbage = garbageCreateEmpty(board);
@@ -147,6 +153,7 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
    }
 }
 
+//Checks all the tiles around a piece of Garbage to see if more garbage should be cleared
 static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
 
    int startRow = tileGetRow(board, garbage->start);
@@ -227,8 +234,9 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
    }
 }
 
+//Checks around cleared tiles for Garbage to be cleared
 void garbageCheckClear(Board* board, Tile* tile) {
-   //Check if cleared tiles are touching garbage blocks
+   if (tile == nullptr) { return; }
    int row = tileGetRow(board, tile);
    int col = tileGetCol(board, tile);
 
@@ -240,7 +248,6 @@ void garbageCheckClear(Board* board, Tile* tile) {
    for (int i = 0; i < 8; i += 2) {
       Tile* neighbor = boardGetTile(board, row + indices[i], col + indices[i + 1]);
       if (neighbor && neighbor->type == tile_garbage) {
-         //check if it touches any other garbage that is <2 layers
          Garbage* garbage = garbageGet(board->pile, neighbor->idGarbage);
          if (cleared[garbage->ID]) { continue; }
          else { 
@@ -257,6 +264,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
    garbageClear(board, cleared);
 }
 
+//Takes a map of cleared garbage and removes the bottom layer from each
 static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
 
    for (auto&& pair : cleared) {
@@ -271,7 +279,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
          if (tile->garbage && garbage->layers > 1) {
             Tile* newStart = boardGetTile(board, row - 1, c);
             garbage->start = newStart;
-            newStart->garbage = tile->garbage;
+            newStart->garbage = garbage;
             tile->garbage = nullptr;
          }
          tile->clearTime = clearTime + (200 * c + 1000);
@@ -287,6 +295,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
       }
    }
 }
+
 
 void garbageFall(Board* board, float velocity) {
 
@@ -304,7 +313,7 @@ void garbageFall(Board* board, float velocity) {
          for (int i = col; i < garbage->width + col; i++) {
             Tile* tile = boardGetTile(board, row, i);
 
-            int lookDown = 2;
+            int lookDown = 2;  //search underneath for non-empty tiles
             Tile* below = boardGetTile(board, row + 1, i);
             while (below && below->type == tile_empty) {
                below = boardGetTile(board, row + lookDown, i);
@@ -314,6 +323,7 @@ void garbageFall(Board* board, float velocity) {
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
             if (potentialDrop < 0) {  //Not sure if this can happen
+               assert(potentialDrop >= 0);
                garbage->falling = false;
                break;
             }
