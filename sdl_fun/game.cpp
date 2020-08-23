@@ -28,12 +28,13 @@ struct GameWindow {
 
 };
 
-//SDL function wrappers
+//SDL function wrapper for getting ticks
 uint64_t sdlGetCounter() {
    uint64_t current = SDL_GetPerformanceCounter();
    return current;
 }
 
+//SDL function wrapper for delay
 void sdlSleep(int delay) {
    SDL_Delay(delay);  //milliseconds
 }
@@ -42,10 +43,10 @@ void sdlSleep(int delay) {
 void gameGiveIdleToGGPO(Game* game, int time) {
    if (game->net && game->net->ggpo && time > 0) {
       ggpo_idle(game->net->ggpo, time);
-      //printf("Time: %d\n", time);
    }
 }
 
+//Create the SDL Window for the game
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
@@ -62,13 +63,16 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
    return true;
 }
 
+//Creates ImGui context
 void imguiSetup(Game* game) {
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
-   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+   //Use these for Keyboard and controller navigation
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
@@ -81,6 +85,7 @@ void imguiSetup(Game* game) {
 
 }
 
+//Tell ImGui we started another Frame
 void imguiStartFrame(Game* game) {
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
@@ -88,6 +93,7 @@ void imguiStartFrame(Game* game) {
    ImGui::NewFrame();
 }
 
+//Create the game object and all that entails
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
    Game* game = new Game;
    game->sdl = new GameWindow;
@@ -146,6 +152,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    return game;
 }
 
+//Pass SDL Events to ImGui and detect if main window closes
 void gameHandleEvents(Game* game) {
    SDL_Event event;
 
@@ -164,6 +171,7 @@ void gameHandleEvents(Game* game) {
 
 }
 
+//Detect if any player paused the game
 void gameCheckPause(Game* game, UserInput input) {
    if (input.pause.p == true) {
       if (game->paused == true) {
@@ -175,6 +183,7 @@ void gameCheckPause(Game* game, UserInput input) {
    }
 }
 
+//Update the board state for all players
 void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
@@ -188,8 +197,9 @@ void gameUpdate(Game* game) {
    }
 }
 
+//Call the draw function for all the boards
 void gameRender(Game* game) {
-   //Remember that this has to happen after imguiRender, or the clear will remove everything...
+   //Remember that this has to happen after gameRender, or the clear will remove everything...
 
    //Draw game objects
    if (game->playing == true) {
@@ -204,6 +214,7 @@ void gameRender(Game* game) {
    }
 }
 
+//Create the boards and set playing to true
 void gameStartMatch(Game* game) {
    //setting up board
 
@@ -230,6 +241,7 @@ void gameStartMatch(Game* game) {
    game->playing = true;
 }
 
+//Draw the ImGui windows and the game objects
 void imguiRender(Game* game) {
 
    rendererClear(0.0, 0.0, 0.0, 0.0);
@@ -289,26 +301,6 @@ void gameDestroy(Game* game) {
 
 bool gameRunning(Game* game) {
    return game->isRunning;
-}
-
-void debugGarbage(Game* game) {
-   //ImGui debug window
-
-   ImGui::Begin("Debug Garbage");
-
-   Board* board = vectorGet(game->boards, 1);
-   for (int row = 0; row < board->endH; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_garbage && tile->garbage) {
-            int start = 0;
-            if (tile->garbage) {start = 1; }
-            ImGui::Text("%d type, ptr %d, %d id", tile->type, start, tile->garbage->ID);
-         }
-      }
-   }
-
-   ImGui::End();
 }
 
 void debugCursor(Game* game) {

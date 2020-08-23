@@ -97,7 +97,6 @@ void imguiRender(Game* game);
 
 void showGameMenu(Game* game);
 
-void debugGarbage(Game* game);
 void debugCursor(Game* game);
 
 int gameLoad(Game* game, unsigned char*& start);
