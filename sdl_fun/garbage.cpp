@@ -280,8 +280,8 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
             Tile* newStart = boardGetTile(board, row - 1, c);
             garbage->start = newStart;
             newStart->garbage = garbage;
-            tile->garbage = nullptr;
          }
+         tile->garbage = nullptr;
          tile->clearTime = clearTime + (200 * c + 1000);
          tile->statusTime -= 200 * c;
          tile->type = tile_cleared;
