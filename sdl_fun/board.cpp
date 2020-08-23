@@ -228,26 +228,24 @@ void boardSwap(Board* board) {
    /*
    Don't swap into falling tile
    Don't swap tile that is hovering over nothing
-   
+   Don't swap garbage, empty, or disabled
    */
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
    if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
 
-   if (tile1->type == tile_empty && tile2->type != tile_empty) {  
-      if (tile2->falling = true && tile2->ypos > yCursor + 1) {  //Don't swap non-empty if it's already falling below
-         return;
-      }
+   if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
+      if (tile2->falling = true && tile2->ypos > yCursor + 1) {return; }  //Don't swap non-empty if it's already falling below
+      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
       }
    }
-   else if (tile2->type == tile_empty && tile1->type != tile_empty) {
-      if (tile1->falling = true && tile1->ypos > yCursor + 1) {  //Don't swap non-empty if it's already falling below
-         return;
-      }
+   else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
+      if (tile1->falling = true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
+      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
@@ -261,10 +259,12 @@ void boardSwap(Board* board) {
    //Check if after we swapped them, either tile is falling... these don't get cleared
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
       tile1->falling = true;
+      //todo make tile stall for half a second using disable
    }
    else { tiles.push_back(tile2); }
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
       tile2->falling = true;
+      //todo make tile stall for half a second using disable
    }
    else { tiles.push_back(tile1); }
 
