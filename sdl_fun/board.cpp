@@ -11,17 +11,20 @@
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 
+//Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
    Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
    return tiles;
 }
 
+//Generate a random tile type
 int boardRandomTile(Board* board) {
 	int out = board->distribution(board->generator);
 	board->randomCalls++;
 	return out;
 }
 
+//Initialize the random number generator
 void boardStartRandom(Board* board) {
 	std::default_random_engine gen(board->game->seed);
 	board->generator = gen;
@@ -30,6 +33,7 @@ void boardStartRandom(Board* board) {
 	board->distribution = dist;
 }
 
+//Restores the state of the random number generator based on number of calls
 void boardLoadRandom(Board* board) {
 	boardStartRandom(board);
 
@@ -38,6 +42,7 @@ void boardLoadRandom(Board* board) {
 	}
 }
 
+//Create a fresh board and return a pointer
 Board* boardCreate(Game* game) {
    Board* board = new Board;
    if (board) {
@@ -73,6 +78,7 @@ Board* boardCreate(Game* game) {
    return nullptr;
 }
 
+//Free memory for the board and destroy related objects
 Board* boardDestroy(Board* board) {
    if (board) {
       for (int row = 0; row < board->wBuffer; row++) {
@@ -89,6 +95,7 @@ Board* boardDestroy(Board* board) {
    return nullptr;
 }
 
+//Get a tile using the row and col
 Tile* boardGetTile(Board* board, int row, int col) {
    if (row < 0 || row > board->wBuffer - 1) {
       return nullptr;
@@ -97,6 +104,7 @@ Tile* boardGetTile(Board* board, int row, int col) {
    return tile;
 }
 
+//Assign the tile into the tile array
 void boardSetTile(Board* board, Tile tile, int row, int col) {
    if (row < 0 || row > board->wBuffer - 1) {
       return;
@@ -104,6 +112,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
    board->tiles[(board->w * row + col)] = tile;
 }
 
+//Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board, UserInput input) {
 
    boardRemoveClears(board);
@@ -134,6 +143,7 @@ void boardUpdate(Board* board, UserInput input) {
    cursorUpdate(board, input);  //This has kinda become player...
 }
 
+//Draw all objects on the board
 void boardRender(Game* game, Board* board) {
    for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -163,6 +173,7 @@ int tileGetCol(Board* board, Tile* tile) {
    return (tile - board->tiles) % board->w;
 }
 
+//Get a full column of tiles on the board
 std::vector <Tile*> boardGetAllTilesInCol(Board* board, int col) {
    std::vector <Tile*> tiles;
    for (int i = board->startH -1; i < board->endH; i++) {
@@ -171,6 +182,7 @@ std::vector <Tile*> boardGetAllTilesInCol(Board* board, int col) {
    return tiles;
 }
 
+//Get a full row of tiles on the board
 std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
    std::vector <Tile*> tiles;
    //Left to right because it doesn't matter
@@ -180,6 +192,7 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
    return tiles;
 }
 
+//Helper with logic for swap
 static void _swapTiles(Tile* tile1, Tile* tile2) {
 
    Tile tmp = *tile2;
@@ -191,6 +204,7 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
    tile1->mesh = tmp.mesh;
 }
 
+//Swap two tiles on the board horizontally
 void boardSwap(Board* board) {
 
    float xCursor = cursorGetX(board->cursor);
@@ -249,6 +263,7 @@ void boardSwap(Board* board) {
    return;
 }
 
+//Dumps garbage on the other player depending on chain size
 void boardChainGarbage(Game* game, int player, int chain) {
    Board* board;
    if (player == 1) { board = vectorGet(game->boards, 2); }
@@ -261,6 +276,7 @@ void boardChainGarbage(Game* game, int player, int chain) {
    if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
 }
 
+//Calculates the size of the combo garbage to drop
 static void _calcComboGarbage(Board* board, int matchSize) {
    if (matchSize == 4) {
       garbageCreate(board, 3, 1);
@@ -297,6 +313,7 @@ static void _calcComboGarbage(Board* board, int matchSize) {
    }
 }
 
+//Dumps garbage on the other player depending on match size
 void boardComboGarbage(Game* game, int player, int matchSize) {
    if (player == 1) {
       _calcComboGarbage(vectorGet(game->boards, 2), matchSize);  //Drop on player 2
@@ -306,6 +323,7 @@ void boardComboGarbage(Game* game, int player, int matchSize) {
    }
 }
 
+//Matchmaker matchmaker make me a match!
 static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
 
@@ -351,6 +369,7 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
    }
 }
 
+//Checks a list of tiles to see if any matches were made
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
    std::vector <Tile*> matches;
 
@@ -475,6 +494,7 @@ void boardFall(Board* board, float velocity) {
    }
 }
 
+//Generates a random tile type that doesn't create a match
 static TileType _tileGenType(Board* board, Tile* tile) {
    //Used to randomly generate the type of a tile while not matching it to surrounding tiles
    int current = boardRandomTile(board);
@@ -500,6 +520,7 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    return type;
 }
 
+//Removes any tiles that have the cleared type
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
    int current = board->game->timer;
@@ -556,6 +577,7 @@ void boardRemoveClears(Board* board) {
    return;
 }
 
+//Moves all the tile on the board up a given amount
 void boardMoveUp(Board* board, float height) {
    //Moves all tiles up a fixed amount
    float nudge = height * board->level;
@@ -596,10 +618,8 @@ void boardMoveUp(Board* board, float height) {
    //boardAssignSlot(board, newRow);
 }
 
+//Fills half the board with tiles so that there are no matches
 int boardFillTiles(Board* board) {
-   //Fills the half board with tiles so that there are no matches
-   //Tiles are positioned so they fall from the top of the board
-
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -620,8 +640,8 @@ int boardFillTiles(Board* board) {
    return 0;
 }
 
+//Takes all the non-empty tiles in the board and assigns them a slot based on their position
 void boardAssignSlot(Board* board, bool buffer = false) {
-   //Takes all the non-empty tiles in the board and assigns them a slot based on their position
    std::vector <Tile> tileList;
 
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
@@ -659,10 +679,9 @@ void boardAssignSlot(Board* board, bool buffer = false) {
    }
 }
 
-//This is copied from Fill Tiles
+//Drop a row of tiles from the top of the board
 void makeItRain(Board* board) {
    //Debug tool
-   //Drops a row of tiles from the top of the board
    int row = 0;
    for (int col = 0; col < board->w; col++) {
       Tile* tile = boardGetTile(board, row, col);
@@ -694,7 +713,9 @@ void makeItRain(Board* board) {
    }
 }
 
+//Clears the board except the bottom layer
 void boardClear(Board* board) {
+   //Debug tool
    garbagePileDestroy(board->pile);
    board->pile = garbagePileCreate();
 
@@ -708,6 +729,7 @@ void boardClear(Board* board) {
    }
 }
 
+//Returns a vector of all the tiles in the board
 std::vector <Tile> boardDebug(Board* board) {
    std::vector <Tile> tileList;
 

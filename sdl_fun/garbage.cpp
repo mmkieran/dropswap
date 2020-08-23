@@ -363,6 +363,7 @@ void garbageFall(Board* board, float velocity) {
    }
 }
 
+//Render a special texture for the garbage
 void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first and second)
    
 	for (auto&& pair : board->pile->garbage) {

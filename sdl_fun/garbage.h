@@ -30,7 +30,6 @@ struct GarbagePile {
    int nextID = 0;
 };
 
-
 GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
