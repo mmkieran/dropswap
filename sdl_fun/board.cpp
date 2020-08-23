@@ -404,8 +404,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 }
 
+//Detects and adjusts all the positions of the tiles that are falling
 void boardFall(Board* board, float velocity) {
-   //Detects and adjusts all the positions of the tiles that are falling
    std::vector <Tile*> tilesToCheck;
    float drop = board->level * velocity;
 
@@ -440,6 +440,7 @@ void boardFall(Board* board, float velocity) {
             if (tile->falling = true) {  //but it was falling, maybe from garbage
                tile->falling = false;
                tilesToCheck.push_back(tile);  //check for clear
+               //todo ANIMATION - landing animation
             }
             else {  //It's stationary
                tile->falling = false;
@@ -451,6 +452,7 @@ void boardFall(Board* board, float velocity) {
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
+               //todo ANIMATION - landing animation
             }
             else {  //It's still falling because the tile below is still falling
                tile->ypos = below->ypos - board->tileHeight;
@@ -463,6 +465,7 @@ void boardFall(Board* board, float velocity) {
          }
          else {
             printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
+            __debugbreak;
             tile->falling = false;
          }
       }

@@ -296,7 +296,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
    }
 }
 
-
+//Checks the bottom layer of the garbage to see if it can fall
 void garbageFall(Board* board, float velocity) {
 
    for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
@@ -305,12 +305,12 @@ void garbageFall(Board* board, float velocity) {
 
          float drop = board->level * velocity;
 
+         assert(garbage->start != nullptr);
          int row = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
          float potentialDrop = drop;
-         //Loop through and find out if the bottom layer can fall
-         for (int i = col; i < garbage->width + col; i++) {
+         for (int i = col; i < garbage->width + col; i++) {  //Find out if the bottom layer can fall
             Tile* tile = boardGetTile(board, row, i);
 
             int lookDown = 2;  //search underneath for non-empty tiles
@@ -331,15 +331,17 @@ void garbageFall(Board* board, float velocity) {
                garbage->falling = false;
                break;
             }
-            else if (potentialDrop < drop) {  //It can fall a little bit further
+            else if (potentialDrop <= drop) {  //It can fall a little bit further
                drop = potentialDrop;
                garbage->falling = true;
             }
-            else if (potentialDrop >= drop) {  //We can fall as much as we want
+            else if (potentialDrop > drop) {  //We can fall as much as we want
+               __debugbreak;
                garbage->falling = true;
             }
             else {
                printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
+               __debugbreak;
                garbage->falling = false;
                break;
             }
@@ -351,15 +353,11 @@ void garbageFall(Board* board, float velocity) {
                for (int c = col; c < garbage->width + col; c++) {
                   Tile* tile = boardGetTile(board, r, c);
                   tile->ypos += drop;
-                  //if (drop == velocity) {
-                  //   tile->falling = true;
-                  //}
-                  //else {
-                  //   tile->falling = false;
-                  //   garbage->falling = false;
-                  //}
                }
             }
+         }
+         if (drop > 0 && drop < board->level * velocity) {
+            //todo ANIMATION - This is where we would animate it hitting the ground
          }
       }
    }
