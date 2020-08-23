@@ -316,6 +316,7 @@ void debugCursor(Game* game) {
       ImGui::Begin("Cursor Debug");
 
       Board* board = vectorGet(game->boards, 1);
+      boardDebug(board);
       if (board) {
          int row = cursorGetRow(board);
          int col = cursorGetCol(board);
@@ -547,6 +548,20 @@ void showGameMenu(Game* game) {
          for (int i = 1; i <= vectorSize(game->boards); i++) {
             Board* board = vectorGet(game->boards, i);
             makeItRain(board);
+         }
+      }
+   }
+
+   static int gWidth = 6;
+   static int gHeight = 1;
+   ImGui::InputInt("Garbage Width", &gWidth);
+   ImGui::InputInt("Garbage Height", &gHeight);
+
+   if (ImGui::Button("Dumpstered")) {
+      if (game->playing == true) {
+         for (int i = 1; i <= vectorSize(game->boards); i++) {
+            Board* board = vectorGet(game->boards, i);
+            garbageCreate(board, gWidth, gHeight);
          }
       }
    }

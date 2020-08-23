@@ -1,6 +1,6 @@
 #include <vector>
 #include <fstream>
-#include <string>
+#include <assert.h>
 
 #include "board.h"
 #include "resources.h"
@@ -249,6 +249,18 @@ void boardSwap(Board* board) {
    return;
 }
 
+void boardChainGarbage(Game* game, int player, int chain) {
+   Board* board;
+   if (player == 1) { board = vectorGet(game->boards, 2); }
+   else if (player == 2) { board = vectorGet(game->boards, 1); }
+
+   int gWidth = 6;
+   int gHeight = 0;
+   if (chain - 1 > 12) { gHeight = 12; }
+   else { gHeight = chain - 1; }
+   if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
+}
+
 static void _calcComboGarbage(Board* board, int matchSize) {
    if (matchSize == 4) {
       garbageCreate(board, 3, 1);
@@ -484,18 +496,6 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    return type;
 }
 
-void boardChainGarbage(Game* game, int player, int chain) {
-   Board* board;
-   if (player == 1) {board = vectorGet(game->boards, 2); }
-   else if (player == 2) {board = vectorGet(game->boards, 1); }
-
-   int gWidth = 6;
-   int gHeight = 0;
-   if (chain - 1 > 12) {gHeight = 12; }
-   else { gHeight = chain - 1; }
-   if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
-}
-
 void boardRemoveClears(Board* board) {
    int pauseTime = 0;
    int current = board->game->timer;
@@ -533,7 +533,7 @@ void boardRemoveClears(Board* board) {
                //flag blocks above the clear as potentially part of a chain, stop if empty
                int r = row - 1;
                Tile* above = boardGetTile(board, r, col);
-               while (above->type != tile_empty && r >= 0) {
+               while (above && above->type != tile_empty && r >= 0) {
                   above->chain = true;
                   r--;
                   above = boardGetTile(board, r, col);
@@ -630,46 +630,18 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       }
    }
 
-   std::vector <Tile> conflicts;
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
       int row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       int col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
-      if (current->type != tile_empty) {
-         printf("Two tiles are being written to the same place in the array\n");  //todo if you got here, it's two tiles writing to the same place... what to do?
-         conflicts.push_back(t);
-         continue;
-      }
+      assert(current->type == tile_empty);  //This is a position conflict... bad
       t.mesh = current->mesh;
       *current = t;
       tileSetTexture(board, current);
 
       if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
          garbageSetStart(board->pile, current);
-      }
-   }
-
-   //todo should be smarter about giving information about the tile it conflicted with (y position especially)
-   for (auto&& conflict : conflicts) {
-      //try our best
-      int row = (conflict.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
-      int col = conflict.xpos / board->tileWidth;
-
-      Tile* left = boardGetTile(board, row, col - 1);
-      Tile* right = boardGetTile(board, row, col + 1);
-      Tile* up = boardGetTile(board, row - 1, col);
-      Tile* down = boardGetTile(board, row + 1, col);
-
-      Tile* tiles[4] = { up, down, left, right };
-
-      for (int i = 0; i < 4; i++) {
-         if (tiles[i] && tiles[i]->type == tile_empty) {
-            conflict.mesh = tiles[i]->mesh;
-            *tiles[i] = conflict;
-            tileSetTexture(board, tiles[i]);
-            break;
-         }
       }
    }
 

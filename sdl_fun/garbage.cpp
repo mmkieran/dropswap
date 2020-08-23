@@ -7,7 +7,7 @@
 #include "render.h"
 #include "resources.h"
 
-#include <vector>
+void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
 GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
@@ -29,8 +29,6 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
    }
    return nullptr;
 }
-
-void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
 Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
@@ -56,14 +54,17 @@ Garbage* garbageCreate(Board* board, int width, int layers) {
    return garbage;
 }
 
+//Returns -1 if there's space to deploy garbage, otherwise returns the last row that was blocked
 static int _findEmptySpace(Board* board, Garbage* garbage, int startRow, int startCol) {
-   //Returns zero if there's space to deploy garbage, otherwise returns the last row that was blocked
-
-   int failLayer = 0;
+   int failLayer = -1;
    for (int row = startRow; row > startRow - garbage->layers; row--) {
       for (int col = startCol ; col < garbage->width + startCol; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type != tile_empty) {
+         if (tile == nullptr) {
+            failLayer = 0;
+            return failLayer;
+         }
+         else if (tile->type != tile_empty) {
             failLayer = row;
          }
       }
@@ -72,6 +73,7 @@ static int _findEmptySpace(Board* board, Garbage* garbage, int startRow, int sta
    return failLayer;
 }
 
+//Deploys garbage above the visible board if there is space
 void garbageDeploy(Board* board) {
 
    if (board->paused) { return; } //don't deploy while the board is paused
@@ -93,7 +95,7 @@ void garbageDeploy(Board* board) {
 
             int rowFull = _findEmptySpace(board, garbage, startRow, col);
 
-            if (rowFull == 0) {
+            if (rowFull == -1) {
                for (int row = startRow; row > startRow - garbage->layers; row--) {
                   for (int c = col ; c < garbage->width + col; c++) {
                      Tile* tile = boardGetTile(board, row, c);
@@ -110,7 +112,7 @@ void garbageDeploy(Board* board) {
                garbage->deployed = true;
                garbage->deployTime = 0;
             }
-            else { startRow = rowFull + 1; }
+            else { startRow = rowFull -1; }  //todo I think this is minus 1, it used to be plus??
             if (startRow > 0) {
                noSpace = true;
             }
@@ -120,6 +122,7 @@ void garbageDeploy(Board* board) {
    }
 }
 
+//Frees the memory of a pointer to a piece of Garbage
 Garbage* garbageDestroy(Garbage* garbage) {
    if (garbage) {
       delete garbage;
@@ -127,7 +130,7 @@ Garbage* garbageDestroy(Garbage* garbage) {
    return nullptr;
 }
 
-
+//Get a pointer to a piece of garbage in the pile using it's ID
 Garbage* garbageGet(GarbagePile* pile, int id) {
    if (pile) {
       Garbage* garbage = pile->garbage[id];
@@ -137,6 +140,7 @@ Garbage* garbageGet(GarbagePile* pile, int id) {
    return nullptr;
 }
 
+//Assigns a tile as the start of a piece of Garbage (bottom left corner)
 void garbageSetStart(GarbagePile* pile, Tile* tile) {
    if (tile && pile) {
       pile->garbage[tile->idGarbage]->start = tile;
