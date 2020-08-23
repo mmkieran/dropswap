@@ -215,11 +215,21 @@ void boardSwap(Board* board) {
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
+   assert(tile1 && tile2);
 
    tile1->chain = tile2->chain = false;
 
    Tile* below1 = boardGetTile(board, row + 1, col);
    Tile* below2 = boardGetTile(board, row + 1, col + 1);
+
+   Tile* above1 = boardGetTile(board, row - 1, col);
+   Tile* above2 = boardGetTile(board, row - 1, col + 1);
+
+   /*
+   Don't swap into falling tile
+   Don't swap tile that is hovering over nothing
+   
+   */
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
@@ -655,8 +665,15 @@ void boardAssignSlot(Board* board, bool buffer = false) {
    }
 
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
-      int row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
-      int col = t.xpos / board->tileWidth;
+      int row, col;
+
+      //These are ideas for how to calculate row, lol... remove later
+      //if (t.falling == false) { row = ceil(t.ypos / board->tileHeight + board->startH); }
+      //else { row = floor(t.ypos / board->tileHeight + board->startH); }
+      //row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+
+      row = (t.ypos - board->offset) / board->tileHeight + board->startH;
+      col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
       assert(current->type == tile_empty);  //This is a position conflict... bad
