@@ -1,3 +1,7 @@
+/*Kieran McDonald 08/23/2020
+* This game is for educational purposes only
+* It's completely for fun!
+*/
 
 #include <stdio.h>
 #include <time.h>
@@ -426,9 +430,14 @@ void showHostWindow(Game* game, bool* p_open) {
    }
 
    if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
-      ImGui::Text("Press [ENTER] when ready");
-      if (seedReceived == true) { ImGui::Text("Received seed: %d", game->seed); }
-      if (seedSent == true) { ImGui::Text("Sent seed: %d", game->seed); }
+      if (seedReceived == true) { 
+         ImGui::Text("Received seed: %d", game->seed); 
+         ImGui::Text("Press [SPACE] when ready");
+      }
+      if (seedSent == true) { 
+         ImGui::Text("Sent seed: %d", game->seed); 
+         ImGui::Text("Press [SPACE] when ready");
+      }
 
       if (game->net->localPlayer == 1) {  //Player 1 sends the game seed
          if (seedSent == false){ 
@@ -447,7 +456,7 @@ void showHostWindow(Game* game, bool* p_open) {
       }
 
       for (int i = 0; i < game->players; i++) {
-         if (game->inputs[i].pause.p == true) {  //Check if either player pressed enter to start
+         if (game->inputs[i].swap.p == true) {  //Check if either player pressed enter to start
             if (game->net->localPlayer == i + 1) {
                localReady = true;
             }
