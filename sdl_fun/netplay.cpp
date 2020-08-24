@@ -307,19 +307,16 @@ void gameRunFrame() {
       GGPOErrorCode result = GGPO_OK;
       int disconnect_flags;
 
-      //read local inputs
-      if (game->net->localPlayer != GGPO_INVALID_HANDLE) {
+      if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          inputProcessKeyboard(game);
-      }
 
-      if (SYNC_TEST == false) {
-         if (game->net->localPlayer == 1) { //todo make this not hard coded
-            game->p1Input.timer = game->timer;
+         if (SYNC_TEST == false) {
+            if (game->net->localPlayer == 1) { //todo make this not hard coded
+               game->p1Input.timer = game->timer;
+            }
          }
+         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
       }
-
-      //Can do sync test here with random inputs
-      result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
