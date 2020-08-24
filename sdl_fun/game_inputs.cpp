@@ -3,6 +3,9 @@
 
 #include <SDL.h>
 
+struct ControllerMap {
+
+};
 
 struct KeyboardMap {
    Uint8 hk_left = SDL_SCANCODE_LEFT;
@@ -89,4 +92,52 @@ void inputProcessKeyboard(Game* game) {
    //game->p1Input.timer = 0;
    //game->p1Input.handle = 0;
    //game->p1Input.msg = 0;
+}
+
+void controllerGetFileMapping() {
+   if (SDL_GameControllerAddMappingsFromFile("assets/gamecontrollerdb.txt") < 0) {
+      printf("Could not load SDL Controller mappings: %s", SDL_GetError());
+   }
+}
+
+SDL_GameController* controllerGet() {
+   SDL_GameController* controller = nullptr;
+   for (int i = 0; i < SDL_NumJoysticks(); i++) {
+      controller = SDL_GameControllerOpen(i);
+      if (controller) { break; }
+      else {
+         printf("%d is not a valid game controller: %s\n", i, SDL_GetError());
+         continue; 
+      }  //Not a valid game controller
+   }
+   return controller;
+}
+
+void controllerClose(SDL_GameController* controller) {
+   SDL_GameControllerClose(controller);
+}
+
+void controllerVerify() {
+
+}
+
+void controllerInput(SDL_GameController* controller) {
+
+   bool Up = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP);
+   bool Down = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+   bool Left = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+   bool Right = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+
+   bool Start = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START);
+   bool Back = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_BACK);
+   bool LeftShoulder = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+   bool RightShoulder = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+
+   bool AButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A);
+   bool BButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B);
+   bool XButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_X);
+   bool YButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_Y);
+
+   int StickX = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
+   int StickY = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTY);
 }
