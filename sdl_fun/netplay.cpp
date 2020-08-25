@@ -225,7 +225,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, 5000);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing
@@ -295,7 +295,7 @@ void gameAdvanceFrame(Game* game) {
       gameCheckPause(game, game->inputs[i - 1]);
    }
 
-   if (game->paused == false) {gameUpdate(game); }
+   if (game->paused == false && game->playing == true) {gameUpdate(game); }
 
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?

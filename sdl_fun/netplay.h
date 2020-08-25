@@ -7,12 +7,6 @@
 //Use this to turn on synchronization testing... predicts every frame
 #define SYNC_TEST false
 
-enum GameMsg {
-   Ready = 0,
-   Garbage,
-   Dead
-};
-
 enum PlayerConnectState {
    Connecting = 0,
    Synchronizing,
@@ -50,9 +44,6 @@ struct NetPlay {
    int hostConnNum = -1;
    int myConnNum = -1;
 };
-
-void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle);
-void ggpoReadMessage(Game* game, UserInput input, unsigned short handle);
 
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();

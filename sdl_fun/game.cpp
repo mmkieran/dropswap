@@ -190,7 +190,7 @@ void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       if (game->players > 1) {
-         gameCheckPause(game, game->inputs[i - 1]);
+         //gameCheckPause(game, game->inputs[i - 1]);
          boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
       }
       else if (game->players == 1) {
@@ -427,6 +427,7 @@ void showHostWindow(Game* game, bool* p_open) {
       seedSent = seedReceived = false;
    }
 
+   //I think the connection state is the key
    if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
       if (seedReceived == true) { 
          ImGui::Text("Received seed: %d", game->seed); 
