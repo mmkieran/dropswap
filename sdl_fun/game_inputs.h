@@ -21,9 +21,7 @@ struct UserInput {
 
    ButtonState power;
 
-   uint64_t msg = 0;
-   unsigned short code = 0;
-   unsigned short handle = 0;
+   int msg = 0;
    int timer = 0;
 };
 

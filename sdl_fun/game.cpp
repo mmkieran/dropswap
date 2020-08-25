@@ -148,9 +148,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->isRunning = true;
 
-   game->p1Input.code = 0;
    game->p1Input.timer = 0;
-   game->p1Input.handle = 0;
    game->p1Input.msg = 0;
 
    return game;

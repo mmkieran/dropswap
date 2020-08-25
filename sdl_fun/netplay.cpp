@@ -248,7 +248,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          if (result != GGPO_OK) { printf("Couldn't add player %d", i); }
 
          game->net->connections[i].handle = handle;
-         game->net->connections[i].type = game->net->players->type;
+         game->net->connections[i].type = game->net->players[i].type;
 
          if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
             game->net->localPlayer = handle;
