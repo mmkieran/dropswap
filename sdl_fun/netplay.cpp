@@ -218,7 +218,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
    else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_SPECTATOR){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
-      return;
+      return;  //And we're done
    }
    else {  //Start a regular GGPO Session
       result = ggpo_start_session(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort);
@@ -233,8 +233,9 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
          if (i == hostNumber) { game->net->players[i].player_num = 1; }
          else if (connects[i].playerType == GGPO_PLAYERTYPE_REMOTE) { game->net->players[i].player_num = 2; }
-         else { game->net->players[i].player_num = i % participants + 3; }
-         game->net->players[i].size = sizeof(GGPOPlayer);
+         if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
+            game->net->players[i].size = sizeof(GGPOPlayer);
+         }
          game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
          if (i != hostNumber) {  //Everybody else is remote
@@ -256,7 +257,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       }
    }
 
-   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm a playing only
+   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm only playing
       //Add host to session
       game->net->players[hostNumber].player_num = 1;
       game->net->players[hostNumber].size = sizeof(GGPOPlayer);
@@ -297,7 +298,7 @@ void gameAdvanceFrame(Game* game) {
    if (game->paused == false) {gameUpdate(game); }
 
    //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->net->ggpo);
+   ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?
 }
 
 void gameRunFrame() {
@@ -321,7 +322,7 @@ void gameRunFrame() {
       if (GGPO_SUCCEEDED(result)) {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
-            if (game->net->localPlayer != 1) {  //todo make this not hard coded
+            if (game->net->localPlayer != 1) {  
                if (SYNC_TEST == false) {
                   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
                }
@@ -336,45 +337,6 @@ void ggpoClose(GGPOSession* ggpo) {
    if (ggpo) {
       ggpo_close_session(ggpo);
    }
-}
-
-void ggpoSendMessage(uint64_t msg, unsigned short code, unsigned short handle) {
-
-   GGPOErrorCode result = GGPO_OK;
-   int disconnect_flags;
-
-   game->net->game->p1Input.code = code;
-   game->net->game->p1Input.msg = msg;
-   game->net->game->p1Input.handle = handle;
-
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-      if (GGPO_SUCCEEDED(result)) {
-         ggpo_advance_frame(game->net->ggpo);
-      }
-   }
-}
-
-//This probably belongs with game input
-void ggpoReadMessage(Game* game, UserInput input, unsigned short handle) {
-   switch (input.code) {
-   case 1:
-      if (game->net->localPlayer != 1) {
-         game->seed = input.msg;
-      }
-      break;
-   case 2:
-      //Dump garbage
-      break;
-   case 3:
-      //Player dead
-      break;
-   }
-
-   game->net->game->p1Input.code = -1;
-   game->net->game->p1Input.msg = 0;
-   game->net->game->p1Input.handle = 0;
 }
 
 const char* ggpoShowStatus(Game* game, int playerIndex) {
