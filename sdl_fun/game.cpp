@@ -349,6 +349,13 @@ void showHostWindow(Game* game, bool* p_open) {
       return;
    }
 
+   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
+
+   static int seed = 0;
+   ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
+   game->seed = seed;
+   ImGui::NewLine();
+
    static unsigned short participants = 2;
    int pMin = 2;
    int pMax = GAME_MAX_PLAYERS;
@@ -358,21 +365,67 @@ void showHostWindow(Game* game, bool* p_open) {
    ImGui::SameLine();
 
    if (ImGui::Button("Load From File")) {
+      FILE* in;
+      int err = fopen_s(&in, "saves/ggpo_session_setup.csv", "r");
 
+      if (err == 0) {
+         int i = 0;  //participants
+         char* tok;
+         char buffer[2048];
+
+         fgets(buffer, 2048, in); // header
+         fgets(buffer, 2048, in); //First data line
+         while (!feof(in))
+         {
+            hostSetup[i].me = atoi( strtok(buffer, ",\n") );          // me
+            hostSetup[i].host = atoi( strtok(nullptr, ",\n") );       // host
+            hostSetup[i].playerType = atoi( strtok(nullptr, ",\n") ); // player type
+            strcpy(hostSetup[i].ipAddress, strtok(nullptr, ",\n") );  // ip address
+            hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
+
+            i++;
+            fgets(buffer, 2048, in);
+         }
+         participants = i;
+      }
+      else { printf("Failed to load file... Err: %d\n", err); }
+      fclose(in);
    }
 
    ImGui::SameLine();
    if (ImGui::Button("Save To File")) {
+      FILE* out;
+      int err = fopen_s(&out, "saves/ggpo_session_setup.csv", "w");
 
+      if (err == 0) {
+         fprintf(out, "Me,Host,Player Number,Type,IP Address,Port\n");
+         for (int i = 0; i < participants; i++) {
+            fprintf(out, "%d,", hostSetup[i].me);
+            fprintf(out, "%d,", hostSetup[i].host);
+            fprintf(out, "%d,", hostSetup[i].playerType);
+            fprintf(out, "%s,", hostSetup[i].ipAddress);
+            fprintf(out, "%d,", hostSetup[i].localPort);
+            fprintf(out, "\n");
+         }
+      }
+      else { printf("Failed to create file... Err: %d\n", err); }
+      fclose(out);
    }
-   static int seed = 0;
-   ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
-   game->seed = seed;
+
+   ImGui::SameLine();
+   if (ImGui::Button("Clear Setup")) {
+      for (int i = 0; i < participants; i++) {
+         hostSetup[i].me = false;
+         hostSetup[i].host = false;
+         hostSetup[i].playerType = 0;
+         hostSetup[i].localPort = 7001;
+      }
+      participants = 2;
+   }
+
 
    ImGui::PopItemWidth();
    ImGui::NewLine();
-
-   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
 
    ImGui::PushID("Player Info Set");
    for (int i = 0; i < participants; i++) {
@@ -422,10 +475,6 @@ void showHostWindow(Game* game, bool* p_open) {
    static bool readySent = false;
    static bool replyRead = false;
 
-   //if (ImGui::Button("Start Game")) {
-   //   gameStartMatch(game);
-   //}
-
    int ready = true;
    for (int i = 0; i < participants; i++) {
       if (game->net->connections[i].state == 2) {
@@ -434,7 +483,11 @@ void showHostWindow(Game* game, bool* p_open) {
       else { ready = false; }
    }
 
-   if (ready == true) { gameStartMatch(game); }
+   if (ready == true) { 
+      if (ImGui::Button("Start Game")) {
+         gameStartMatch(game);
+      }
+   }
 
    //if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
    //   if (ImGui::Button("Send/Receive Seed")) {

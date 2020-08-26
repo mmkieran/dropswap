@@ -456,7 +456,7 @@ void boardFall(Board* board, float velocity) {
          potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
          if (potentialDrop < 0) {  //We swapped a tile into it as it fell
-            assert(potentialDrop >= 0);
+            //assert(potentialDrop >= 0);
             tile->ypos = below->ypos - board->tileHeight;
             tile->falling = false;
             tile->chain = false;

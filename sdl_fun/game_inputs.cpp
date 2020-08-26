@@ -51,15 +51,15 @@ void inputProcessKeyboard(Game* game) {
    };
 
    int* buttonHolds[] = {
-   &game->buttonHolds.left,
-   &game->buttonHolds.right,
-   &game->buttonHolds.up,
-   &game->buttonHolds.down,
-   &game->buttonHolds.nudge,
-   //presses only
-   &game->buttonHolds.swap,
-   &game->buttonHolds.pause,
-   &game->buttonHolds.power
+      &game->buttonHolds.left,
+      &game->buttonHolds.right,
+      &game->buttonHolds.up,
+      &game->buttonHolds.down,
+      &game->buttonHolds.nudge,
+      //presses only
+      &game->buttonHolds.swap,
+      &game->buttonHolds.pause,
+      &game->buttonHolds.power
    };
 
    //Logic for held keys
@@ -87,7 +87,7 @@ void inputProcessKeyboard(Game* game) {
    for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
       if (state[keyList[i]] == true && *buttonHolds[i] == 0) {
          buttonList[i]->p = true;
-         *buttonHolds[i]++; //increment frame count
+         *buttonHolds[i] += 1; //increment frame count
       }
       else if (state[keyList[i]] == true && *buttonHolds[i] > 0) {  //holding button does nothing
          buttonList[i]->p = false;
