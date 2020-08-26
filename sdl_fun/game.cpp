@@ -102,7 +102,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    Game* game = new Game;
    game->sdl = new GameWindow;
    game->net = new NetPlay;
-   game->net->game = game;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
       printf("Failed to initialize SDL...\n");
@@ -417,58 +416,28 @@ void showHostWindow(Game* game, bool* p_open) {
       ggpoEndSession(game);
    }
 
-   static bool localReady = false;
-   static bool remoteReady = false;
-   static bool seedSent = false;
-   static bool seedReceived = false;
+   static bool readySent = false;
 
-   ImGui::SameLine();
-   if (ImGui::Button("New Seed")) {
-      seedSent = seedReceived = false;
-   }
-
-   //I think the connection state is the key
-   if (game->net && game->net->connections[game->net->hostConnNum].state == 2) {
-      if (seedReceived == true) { 
-         ImGui::Text("Received seed: %d", game->seed); 
-         ImGui::Text("Press [SPACE] when ready");
-      }
-      if (seedSent == true) { 
-         ImGui::Text("Sent seed: %d", game->seed); 
-         ImGui::Text("Press [SPACE] when ready");
-      }
-
-      if (game->net->localPlayer == 1) {  //Player 1 sends the game seed
-         if (seedSent == false){ 
+   if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
+      if (ImGui::Button("Ready")) {
+         if (readySent == false && game->net->localPlayer == 1) {
             game->seed = time(0);
-            game->p1Input.msg = game->seed;
-            seedSent = true;
+            ggpoSendMessage(game->seed);
+            readySent = true;
          }
-      }
-      else {
-         if (seedReceived == false) {
-            if (game->inputs[0].msg > 0) {
-               game->seed = game->inputs[0].msg;
-               seedReceived = true;
-            }
+         else if (readySent == false && game->net->localPlayer != 1) {
+            ggpoSendMessage(-99);
+            readySent = true;
          }
       }
 
-      for (int i = 0; i < game->players; i++) {
-         if (game->inputs[i].swap.p == true) {  //Check if either player pressed enter to start
-            if (game->net->localPlayer == i + 1) {
-               localReady = true;
-            }
-            else {
-               remoteReady = true;
-            }
+      if (readySent == true) {
+         ggpoSendMessage(1);
+         if (game->inputs[0].msg > 0) {
+            game->seed = game->inputs[0].msg;
+            gameStartMatch(game);
          }
-      }
-      if (remoteReady == true) { ImGui::Text("Remote player ready"); }
-
-      if (remoteReady == true && localReady == true || SYNC_TEST == true) {
-         gameStartMatch(game);
-         remoteReady = localReady = false;
+         readySent = false;
       }
    }
    ImGui::End();

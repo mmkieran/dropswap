@@ -25,7 +25,7 @@ int fletcher32_checksum(short* data, size_t len) {
 }
 
 void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
-   for (int i = 0; i < game->players; i++) {
+   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
       if (game->net->connections[i].handle == handle) {
          game->net->connections[i].connect_progress = 0;
          game->net->connections[i].state = state;
@@ -35,7 +35,7 @@ void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
 }
 
 void SetDisconnectTimeout(GGPOPlayerHandle handle, int when, int timeout) {
-   for (int i = 0; i < game->players; i++) {
+   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
       if (game->net->connections[i].handle == handle) {
          game->net->connections[i].disconnect_start = when;
          game->net->connections[i].disconnect_timeout = timeout;
@@ -46,13 +46,13 @@ void SetDisconnectTimeout(GGPOPlayerHandle handle, int when, int timeout) {
 }
 
 void SetConnectState(PlayerConnectState state) {
-   for (int i = 0; i < game->players; i++) {
+   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
       game->net->connections[i].state = state;
    }
 }
 
 void UpdateConnectProgress(GGPOPlayerHandle handle, int progress) {
-   for (int i = 0; i < game->players; i++) {
+   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
       if (game->net->connections[i].handle == handle) {
          game->net->connections[i].connect_progress = progress;
          break;
@@ -225,7 +225,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 5000);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing
@@ -316,7 +316,7 @@ void gameRunFrame() {
                game->p1Input.timer = game->timer;
             }
          }
-         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->net->game->p1Input, sizeof(UserInput));
+         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
@@ -327,7 +327,7 @@ void gameRunFrame() {
                   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
                }
             }
-            gameAdvanceFrame(game->net->game);  //Update the game 
+            gameAdvanceFrame(game);  //Update the game 
          }
       }
    }
@@ -378,8 +378,26 @@ void ggpoEndSession(Game* game) {
    if (game->net) {
       for (int i = 0; i < GAME_PLAYERS; i++) {
          ggpoDisconnectPlayer(i + 1);
+
       }
       ggpoClose(game->net->ggpo);
-      game->net->ggpo = nullptr;
+      delete game->net;
+      game->net = new NetPlay;
+   }
+}
+
+void ggpoSendMessage(int msg) {
+
+   GGPOErrorCode result = GGPO_OK;
+   int disconnect_flags;
+
+   game->p1Input.msg = msg;
+
+   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
+   if (GGPO_SUCCEEDED(result)) {
+      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+      if (GGPO_SUCCEEDED(result)) {
+         ggpo_advance_frame(game->net->ggpo);
+      }
    }
 }
