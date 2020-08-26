@@ -189,7 +189,7 @@ void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       if (game->players > 1) {
-         //gameCheckPause(game, game->inputs[i - 1]);
+         gameCheckPause(game, game->inputs[i - 1]);
          boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
       }
       else if (game->players == 1) {
@@ -366,6 +366,10 @@ void showHostWindow(Game* game, bool* p_open) {
    if (ImGui::Button("Save To File")) {
 
    }
+   static int seed = 0;
+   ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
+   game->seed = seed;
+
    ImGui::PopItemWidth();
    ImGui::NewLine();
 
@@ -417,29 +421,55 @@ void showHostWindow(Game* game, bool* p_open) {
    }
 
    static bool readySent = false;
+   static bool replyRead = false;
 
-   if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
-      if (ImGui::Button("Ready")) {
-         if (readySent == false && game->net->localPlayer == 1) {
-            game->seed = time(0);
-            ggpoSendMessage(game->seed);
-            readySent = true;
-         }
-         else if (readySent == false && game->net->localPlayer != 1) {
-            ggpoSendMessage(-99);
-            readySent = true;
-         }
-      }
+   //if (ImGui::Button("Start Game")) {
+   //   gameStartMatch(game);
+   //}
 
-      if (readySent == true) {
-         ggpoSendMessage(1);
-         if (game->inputs[0].msg > 0) {
-            game->seed = game->inputs[0].msg;
-            gameStartMatch(game);
-         }
-         readySent = false;
+   int ready = true;
+   for (int i = 0; i < participants; i++) {
+      if (game->net->connections[i].state == 2) {
+         continue;
       }
+      else { ready = false; }
    }
+
+   if (ready == true) { gameStartMatch(game); }
+
+   //if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
+   //   if (ImGui::Button("Send/Receive Seed")) {
+   //      if (readySent == false && game->net->localPlayer == 1) {
+   //         game->seed = time(0);
+   //         ggpoSendMessage(game->seed);
+   //         readySent = true;
+   //      }
+   //      else if (readySent == false && game->net->localPlayer != 1) {
+   //         ggpoSendMessage(1);
+   //         readySent = true;
+   //      }
+   //   }
+
+   //   static int waitTime = 0;
+   //   while (readySent == true) {
+   //      ggpoSendMessage(1);
+   //      sdlSleep(5000);
+   //      if (game->net->localPlayer != 1) {
+   //         if (game->inputs[0].timer > 0) {
+   //            game->seed = game->inputs[0].msg;
+   //            readySent = false;
+   //            gameStartMatch(game);
+   //         }
+   //      }
+   //      else if (game->net->localPlayer == 1) {
+   //         if (game->inputs[1].timer > 0) {
+   //            readySent = false;
+   //            gameStartMatch(game);
+   //         }
+   //      }
+   //      waitTime++;
+   //   }
+   //}
    ImGui::End();
 }
 

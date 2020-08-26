@@ -323,7 +323,7 @@ void garbageFall(Board* board, float velocity) {
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
             if (potentialDrop < 0) {  //Probably swapped a tile into it as it fell
-               assert(potentialDrop >= 0);
+               //assert(potentialDrop >= 0);
                garbage->falling = false;
                break;
             }

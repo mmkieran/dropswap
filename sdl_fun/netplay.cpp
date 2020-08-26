@@ -391,7 +391,7 @@ void ggpoSendMessage(int msg) {
    GGPOErrorCode result = GGPO_OK;
    int disconnect_flags;
 
-   game->p1Input.msg = msg;
+   game->p1Input.timer = msg;
 
    result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
    if (GGPO_SUCCEEDED(result)) {
