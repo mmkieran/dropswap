@@ -50,16 +50,28 @@ void inputProcessKeyboard(Game* game) {
       &game->p1Input.power
    };
 
+   int* buttonHolds[] = {
+   &game->buttonHolds.left,
+   &game->buttonHolds.right,
+   &game->buttonHolds.up,
+   &game->buttonHolds.down,
+   &game->buttonHolds.nudge,
+   //presses only
+   &game->buttonHolds.swap,
+   &game->buttonHolds.pause,
+   &game->buttonHolds.power
+   };
+
    //Logic for held keys
    for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
-      if (state[ keyList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
+      if (state[ keyList[i] ] == true && *buttonHolds[i] == 0) {  //Button pressed and not held
          buttonList[i]->p = true;
-         buttonList[i]->fc++; //increment frame count
+         *buttonHolds[i] += 1; //increment frame count
       }
-      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
+      else if (state[keyList[i]] == true && *buttonHolds[i] > 0) {  //Button pressed and held
          buttonList[i]->p = false;
-         buttonList[i]->fc++;
-         if (buttonList[i]->fc > 10) {  //You held it long enough!
+         *buttonHolds[i] += 1;
+         if (*buttonHolds[i] > 10) {  //You held it long enough!
             buttonList[i]->p = false;
             buttonList[i]->h = true;
          }
@@ -67,31 +79,25 @@ void inputProcessKeyboard(Game* game) {
       else {
          buttonList[i]->p = false;
          buttonList[i]->h = false;
-         buttonList[i]->fc = 0;
+         *buttonHolds[i] = 0;
       }
    }
 
    //Logic for pressed keys
    for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
-      if (state[keyList[i]] == true && buttonList[i]->fc == 0) {
+      if (state[keyList[i]] == true && *buttonHolds[i] == 0) {
          buttonList[i]->p = true;
-         buttonList[i]->fc++; //increment frame count
+         *buttonHolds[i]++; //increment frame count
       }
-      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
+      else if (state[keyList[i]] == true && *buttonHolds[i] > 0) {  //holding button does nothing
          buttonList[i]->p = false;
          continue;
       }
       else {
          buttonList[i]->p = false;
-         buttonList[i]->fc = 0;
+         *buttonHolds[i] = 0;
       }
    }
-
-   ////These can't be undefined
-   //game->p1Input.code = 0;
-   //game->p1Input.timer = 0;
-   //game->p1Input.handle = 0;
-   //game->p1Input.msg = 0;
 }
 
 void controllerGetFileMapping() {

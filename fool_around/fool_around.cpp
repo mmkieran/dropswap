@@ -11,10 +11,9 @@
 struct ButtonState {
    bool p = false;  //pressed
    bool h = false;  //held
-   int fc = 0;      // frame count //todo... belongs in gamestate?
 };
 
-struct ButtonStuff {
+struct UserInput {
    ButtonState left;
    ButtonState right;
    ButtonState up;
@@ -26,7 +25,7 @@ struct ButtonStuff {
 
    ButtonState power;
 
-   int msg = 0;
+   //int msg = 0;
    int timer = 0;
 };
 
@@ -34,7 +33,8 @@ struct ButtonStuff {
 int main(int argc, char* args[])
 {
 
-   printf("%d\n", sizeof(ButtonStuff));
+   printf("User Input: %d\n", sizeof(UserInput));
+   printf("Bool: %d\n", sizeof(bool));
    //printf("%d", sizeof(int));
 
    return 0;

@@ -6,7 +6,6 @@ typedef unsigned long long uint64_t;
 struct ButtonState {
    bool p = false;  //pressed
    bool h = false;  //held
-   int fc = 0;      // frame count //todo... belongs in gamestate?
 };
 
 struct UserInput {
@@ -21,9 +20,21 @@ struct UserInput {
 
    ButtonState power;
 
-   int msg = 0;
+   //int msg = 0;
    int timer = 0;
 };
 
+struct ButtonHoldCount {
+   int left = 0;
+   int right = 0;
+   int up = 0;
+   int down = 0;
+
+   int nudge = 0;
+   int pause = 0;
+   int swap = 0;
+
+   int power = 0;
+};
 
 void inputProcessKeyboard(Game* game);

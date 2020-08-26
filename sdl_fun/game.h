@@ -46,6 +46,7 @@ struct Game {
 
    UserInput p1Input;
    UserInput inputs[GAME_PLAYERS];
+   ButtonHoldCount buttonHolds;
 
    float windowWidth;
    float windowHeight;
