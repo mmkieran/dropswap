@@ -634,10 +634,10 @@ int boardFillTiles(Board* board) {
          
          TileType type = _tileGenType(board, tile);
          if (col % 2 == 0) {
-            tileInit(board, tile, row - board->startH, col, type, true);
+            tileInit(board, tile, row - board->startH - 3, col, type, true);
          }
          else {
-            tileInit(board, tile, row - board->startH + 1, col, type, true);
+            tileInit(board, tile, row - board->startH - 2, col, type, true);
          }
       }
    }
