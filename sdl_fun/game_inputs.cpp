@@ -3,8 +3,19 @@
 
 #include <SDL.h>
 
-struct ControllerMap {
+std::vector <Controller> controllers;
 
+struct ControllerState {
+
+};
+
+struct Controller {
+   SDL_GameController* controller = nullptr;
+   SDL_Joystick* joystick = nullptr;
+   ControllerState state;
+   SDL_JoystickID joyid = -1;
+   int deviceid = -1;
+   bool isController = false;
 };
 
 struct KeyboardMap {
@@ -106,24 +117,60 @@ void controllerGetFileMapping() {
    }
 }
 
-SDL_GameController* controllerGet() {
-   SDL_GameController* controller = nullptr;
-   for (int i = 0; i < SDL_NumJoysticks(); i++) {
+void controllerVerify(int deviceid) {
+   SDL_IsGameController(deviceid);
+}
+
+void controllerGetAll() {
+   int sticks = SDL_NumJoysticks();
+   controllers.resize(sticks);
+   for (int i = 0; i < sticks; i++) {
+      SDL_GameController* controller = nullptr;
       controller = SDL_GameControllerOpen(i);
-      if (controller) { break; }
+      if (controller) { 
+         if (SDL_IsGameController(i)) {  //Supported controller
+            controllers[i].controller = controller;
+            SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+
+            controllers[i].joyid = SDL_JoystickInstanceID(joystick);  //Joystick id for the controller
+            controllers[i].joystick = joystick;
+            controllers[i].deviceid = i;
+            controllers[i].isController = true;
+         }
+      }
       else {
          printf("%d is not a valid game controller: %s\n", i, SDL_GetError());
          continue; 
       }  //Not a valid game controller
    }
-   return controller;
 }
 
 void controllerClose(SDL_GameController* controller) {
    SDL_GameControllerClose(controller);
 }
 
-void controllerVerify() {
+int controllerCloseAll() {
+   for (int i = 0; i < controllers.size(); i++) {
+      SDL_GameControllerClose(controllers[i].controller);
+   }
+   controllers.clear();
+   return 1;
+}
+
+struct ControllerMap {
+   Uint8 hk_left = SDL_SCANCODE_LEFT;
+   Uint8 hk_right = SDL_SCANCODE_RIGHT;
+   Uint8 hk_up = SDL_SCANCODE_UP;
+   Uint8 hk_down = SDL_SCANCODE_DOWN;
+
+   Uint8 hk_nudge = SDL_SCANCODE_R;
+
+   Uint8 hk_swap = SDL_SCANCODE_SPACE;
+   Uint8 hk_pause = SDL_SCANCODE_RETURN;
+   Uint8 hk_power = SDL_SCANCODE_F;
+};
+
+void inputProcessController(Game* game) {
 
 }
 

@@ -162,12 +162,14 @@ void gameHandleEvents(Game* game) {
       if (event.type == SDL_QUIT) {
          game->isRunning = false;
       }
-   }
 
-   //if (game->input.pause.p == true) {  //pause game... update doesn't happen if we're paused, so don't put it there
-   //   if (game->paused == true) { game->paused = false; }
-   //   else if (game->paused == false) { game->paused = true; }
-   //}
+      if (SDL_CONTROLLERDEVICEADDED) {
+
+      }
+      if (SDL_CONTROLLERDEVICEREMOVED) {
+
+      }
+   }
 
 }
 
