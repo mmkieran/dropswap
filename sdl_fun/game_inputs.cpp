@@ -2,6 +2,7 @@
 #include "game.h"
 
 #include <SDL.h>
+#include <map>
 
 struct ControllerState {
 
@@ -11,12 +12,10 @@ struct Controller {
    SDL_GameController* controller = nullptr;
    SDL_Joystick* joystick = nullptr;
    ControllerState state;
-   SDL_JoystickID joyid = -1;
-   int deviceid = -1;
    bool isController = false;
 };
 
-std::vector <Controller> controllers;  //Container for controllers
+std::map <int, Controller> controllers;  //Hash map for controllers
 
 struct KeyboardMap {
    Uint8 hk_left = SDL_SCANCODE_LEFT;
@@ -117,25 +116,39 @@ void controllerGetFileMapping() {
    }
 }
 
+void controllerAdd(int id) {
+   if (SDL_IsGameController(id)) {
+      SDL_GameController* controller = SDL_GameControllerOpen(id);
+      if (controller && controllers[id].isController == false) {
+         controllers[id].controller = controller;
+         controllers[id].joystick = SDL_GameControllerGetJoystick(controller);
+         controllers[id].isController = true;
+      }
+   }
+}
+
+void controllerRemove(int id) {
+   if (controllers[id].isController == true) {
+      SDL_GameControllerClose(controllers[id].controller);
+   }
+}
+
 void controllerVerify(int deviceid) {
    SDL_IsGameController(deviceid);
 }
 
 void controllerGetAll() {
    int sticks = SDL_NumJoysticks();
-   controllers.resize(sticks);
    for (int i = 0; i < sticks; i++) {
       SDL_GameController* controller = nullptr;
       controller = SDL_GameControllerOpen(i);
       if (controller) { 
          if (SDL_IsGameController(i)) {  //Supported controller
-            controllers[i].controller = controller;
             SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
-
-            controllers[i].joyid = SDL_JoystickInstanceID(joystick);  //Joystick id for the controller
-            controllers[i].joystick = joystick;
-            controllers[i].deviceid = i;
-            controllers[i].isController = true;
+            int id = SDL_JoystickInstanceID(joystick);
+            controllers[id].controller = controller;
+            controllers[id].joystick = joystick;
+            controllers[id].isController = true;
          }
       }
       else {
@@ -150,8 +163,9 @@ void controllerClose(SDL_GameController* controller) {
 }
 
 int controllerCloseAll() {
-   for (int i = 0; i < controllers.size(); i++) {
-      SDL_GameControllerClose(controllers[i].controller);
+   for (auto&& controller : controllers) {
+      int id = controller.first;
+      SDL_GameControllerClose(controllers[id].controller);
    }
    controllers.clear();
    return 1;

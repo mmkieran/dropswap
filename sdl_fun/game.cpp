@@ -148,6 +148,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->isRunning = true;
 
    game->p1Input.timer = 0;
+   controllerGetAll();  //Find any attached controllers
 
    return game;
 }
@@ -163,11 +164,13 @@ void gameHandleEvents(Game* game) {
          game->isRunning = false;
       }
 
-      if (SDL_CONTROLLERDEVICEADDED) {
-
+      if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {
+         int a = event.cdevice.which;
+         controllerAdd(event.cdevice.which);
       }
-      if (SDL_CONTROLLERDEVICEREMOVED) {
-
+      if (event.cdevice.type == SDL_CONTROLLERDEVICEREMOVED) {
+         int a = event.cdevice.which;
+         controllerRemove(event.cdevice.which);
       }
    }
 
