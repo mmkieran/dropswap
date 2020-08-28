@@ -65,7 +65,7 @@ Board* boardCreate(Game* game) {
 
          board->pile = garbagePileCreate();
 
-		 boardStartRandom(board);
+		   boardStartRandom(board);
 
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
@@ -129,12 +129,23 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > 2000) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f * ((board->tileHeight / 64.0f)) );  //Normalized for tile size of 64
+         boardMoveUp(board, board->moveSpeed / 8.0f );  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
 
-   if (board->bust) {board->game->playing = false; }
+   if (board->bust == true && board->paused == false) {
+      if (board->game->players > 1) {
+         board->game->playing = false;  //todo message game over
+         gameEndMatch(board->game);
+         return;
+      }
+      else if (board->game->players == 1) {
+         board->game->playing = false;
+         gameEndMatch(board->game);
+         return;
+      }
+   }
 
    boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
    garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
@@ -231,7 +242,7 @@ void boardSwap(Board* board) {
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling = true && tile2->ypos > yCursor + 1) {return; }  //Don't swap non-empty if it's already falling below
-      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight) { return; }
+      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 1) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
@@ -239,7 +250,7 @@ void boardSwap(Board* board) {
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
       if (tile1->falling = true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight) { return; }
+      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 1) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
@@ -584,15 +595,15 @@ void boardRemoveClears(Board* board) {
 //Moves all the tile on the board up a given amount
 void boardMoveUp(Board* board, float height) {
    //Moves all tiles up a fixed amount
-   float nudge = height * board->level;
+   float nudge = height * board->level * (board->tileHeight / 64.0f);
    board->offset -= nudge;
-   bool newRow = false;
 
-   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);
+   bool dangerZone = false;  //About to bust
+
+   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);  //adjust cursor position
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
-      newRow = true;
    }
 
    if (board->game->players > 1 && board->chain > 1) {
@@ -607,19 +618,32 @@ void boardMoveUp(Board* board, float height) {
 
          if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
+         //Bust logic
+         if (tile->ypos <= 0.0f && tile->falling == false) { //Tile is above the top of the board and not falling
+            if (tile->type == tile_garbage) {  
+               Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
+               if (garbage->falling == false) { dangerZone = true; } 
+            }
+            else { dangerZone = true; }  
+         } 
+
          tile->chain = false;  //Whenever the board is moving, the combo is over?
-
-         if (tile->ypos <= 0.0f && tile->type != tile_empty) { board->bust = false; }  //todo put some logic here
-
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
          tile->ypos -= nudge;  
       }
    }
+   
+   if (dangerZone == true) {
+      if (board->bust == false) {  //grace period
+         board->paused = true;
+         board->pauseLength += 1000;
+      }
+      board->bust = true;
+   }
+   else { board->bust = false; }
 
    boardCheckClear(board, checkTiles, false);
-
-   //boardAssignSlot(board, newRow);
 }
 
 //Fills half the board with tiles so that there are no matches
@@ -664,9 +688,9 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       //These are ideas for how to calculate row, lol... remove later
       //if (t.falling == false) { row = ceil(t.ypos / board->tileHeight + board->startH); }
       //else { row = floor(t.ypos / board->tileHeight + board->startH); }
-      //row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
 
-      row = (t.ypos - board->offset) / board->tileHeight + board->startH;
+      //row = (t.ypos - board->offset) / board->tileHeight + board->startH;
       col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);

@@ -96,7 +96,7 @@ void imguiStartFrame(Game* game);
 void imguiShowDemo();
 void imguiRender(Game* game);
 
-void showGameMenu(Game* game);
+void gameMenuUI(Game* game);
 
 void debugCursor(Game* game);
 
@@ -105,3 +105,6 @@ std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
+
+void gameStartMatch(Game* game);
+void gameEndMatch(Game* game);

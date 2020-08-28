@@ -3,8 +3,6 @@
 
 #include <SDL.h>
 
-std::vector <Controller> controllers;
-
 struct ControllerState {
 
 };
@@ -17,6 +15,8 @@ struct Controller {
    int deviceid = -1;
    bool isController = false;
 };
+
+std::vector <Controller> controllers;  //Container for controllers
 
 struct KeyboardMap {
    Uint8 hk_left = SDL_SCANCODE_LEFT;

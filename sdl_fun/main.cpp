@@ -38,8 +38,8 @@ int main(int argc, char* args[]) {
 
       //imguiShowDemo();
 
-      //if (game->playing == false || game->paused == true) {showGameMenu(game); }
-      showGameMenu(game);
+      //if (game->playing == false || game->paused == true) {gameMenuUI(game); }
+      gameMenuUI(game);
 
       if (game->playing == true) {
          gameRunFrame();  //Only for multiplayer so far

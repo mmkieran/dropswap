@@ -304,12 +304,13 @@ void garbageFall(Board* board, float velocity) {
       if (garbage->deployed == true) {
 
          float drop = board->level * velocity;
+         bool landing = false;
 
          assert(garbage->start != nullptr);
          int row = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
-         float potentialDrop = drop;
+         float potentialDrop = 0;
          for (int i = col; i < garbage->width + col; i++) {  //Find out if the bottom layer can fall
             Tile* tile = boardGetTile(board, row, i);
 
@@ -322,7 +323,7 @@ void garbageFall(Board* board, float velocity) {
 
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
-            if (potentialDrop < 0) {  //Probably swapped a tile into it as it fell
+            if (potentialDrop < 0) {  //Probably swapped a tile into it as it fell?
                //assert(potentialDrop >= 0);
                garbage->falling = false;
                break;
@@ -334,6 +335,7 @@ void garbageFall(Board* board, float velocity) {
             else if (potentialDrop <= drop) {  //It can fall a little bit further
                drop = potentialDrop;
                garbage->falling = true;
+               landing = true;
             }
             else if (potentialDrop > drop) {  //We can fall as much as we want
                __debugbreak;
@@ -356,7 +358,9 @@ void garbageFall(Board* board, float velocity) {
                }
             }
          }
-         if (drop > 0 && drop < board->level * velocity) {
+         if (drop > 0 && landing == true) {
+            board->paused = true;
+            board->pauseLength = 500;
             //todo ANIMATION - This is where we would animate it hitting the ground
          }
       }

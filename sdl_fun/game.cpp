@@ -226,6 +226,8 @@ void gameStartMatch(Game* game) {
       Board* board = boardCreate(game);
       board->player = i;  //todo this might not work in terms of player number??
       vectorPushBack(game->boards, board);
+      board->pauseLength = 2000;
+      board->paused = true;
       boardFillTiles(board);
 
       //todo add a smarter algorithm to tile boards in screen space if more than 2
@@ -241,6 +243,19 @@ void gameStartMatch(Game* game) {
       board->origin = { xOrigin, yOrigin };
    }
    game->playing = true;
+}
+
+//Destroy the boards and set playing to false
+void gameEndMatch(Game* game) {
+   for (int i = 1; i <= vectorSize(game->boards); i++) {
+      Board* board = vectorGet(game->boards, i);
+      if (board) {
+         boardDestroy(board);
+         vectorClear(game->boards);
+      }
+   }
+   game->playing = false;
+   game->timer = 0;
 }
 
 //Draw the ImGui windows and the game objects
@@ -265,6 +280,7 @@ void imguiRender(Game* game) {
 
 }
 
+//Jokulhaups
 void gameDestroy(Game* game) {
 
    for (int i = 1; i <= vectorSize(game->boards); i++) {
@@ -301,6 +317,7 @@ void gameDestroy(Game* game) {
    printf("Cleanup successful.\n");
 }
 
+//Returns true if the game is running... used for game loop
 bool gameRunning(Game* game) {
    return game->isRunning;
 }
@@ -345,7 +362,8 @@ void imguiShowDemo() {
    ImGui::ShowDemoWindow(&show);
 }
 
-void showHostWindow(Game* game, bool* p_open) {
+//Show the connection window for GGPO... only for 2 players
+void ggpoSessionUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("Host Setup", p_open) ) {
       ImGui::End();
       return;
@@ -449,13 +467,10 @@ void showHostWindow(Game* game, bool* p_open) {
          }
       }
       ImGui::SameLine();
-
       ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
-
       ImGui::SameLine();
       ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
       ImGui::SameLine();
-
       ImGui::InputInt("Port", &hostSetup[i].localPort);
       ImGui::SameLine();
       ImGui::Text(ggpoShowStatus(game, i) );
@@ -527,7 +542,8 @@ void showHostWindow(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void showGameMenu(Game* game) {
+//Show the game menu window
+void gameMenuUI(Game* game) {
 
    if (!ImGui::Begin("Game Menus")) {
       ImGui::End();
@@ -536,14 +552,13 @@ void showGameMenu(Game* game) {
 
    ImGui::InputInt("Players", &game->players);
 
-   static bool hostWindow = false;
+   static bool showGGPOSession = false;
    if (ImGui::Button("Host Window")) {
-      hostWindow = true;
+      showGGPOSession = true;
    }
-   if (hostWindow && game->playing == false ) { 
-      showHostWindow(game, &hostWindow); 
+   if (showGGPOSession && game->playing == false ) { 
+      ggpoSessionUI(game, &showGGPOSession); 
    }
-
 
    ImGui::InputInt("Tile Width", &game->tWidth, 16);
    ImGui::InputInt("Tile Height", &game->tHeight, 16);
@@ -559,12 +574,7 @@ void showGameMenu(Game* game) {
    }
    if (game->playing == true) {
       if (ImGui::Button("End Game")) {
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            boardDestroy(board);
-            vectorClear(game->boards);
-            game->playing = false;
-         }
+         gameEndMatch(game);
       }
    }
 
@@ -605,13 +615,14 @@ void showGameMenu(Game* game) {
       }
    }
 
-   static int gWidth = 6;
-   static int gHeight = 1;
-   ImGui::InputInt("Garbage Width", &gWidth);
-   ImGui::InputInt("Garbage Height", &gHeight);
+   if (game->playing == true) {
+      static int gWidth = 6;
+      static int gHeight = 1;
+      ImGui::InputInt("Garbage Width", &gWidth);
+      ImGui::InputInt("Garbage Height", &gHeight);
 
-   if (ImGui::Button("Dumpstered")) {
-      if (game->playing == true) {
+      if (ImGui::Button("Dumpstered")) {
+
          for (int i = 1; i <= vectorSize(game->boards); i++) {
             Board* board = vectorGet(game->boards, i);
             garbageCreate(board, gWidth, gHeight);
