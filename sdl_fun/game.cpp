@@ -554,6 +554,7 @@ void gameMenuUI(Game* game) {
    }
 
    ImGui::InputInt("Players", &game->players);
+   ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
 
    static bool showGGPOSession = false;
    if (ImGui::Button("Host Window")) {

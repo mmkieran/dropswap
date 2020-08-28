@@ -264,25 +264,3 @@ void inputProcessController(Game* game) {
       }
    }
 }
-
-//This is just an example of how to use the button functions
-//void controllerInput(SDL_GameController* controller) {
-//
-//   bool Up = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP);
-//   bool Down = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-//   bool Left = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-//   bool Right = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-//
-//   bool Start = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START);
-//   bool Back = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_BACK);
-//   bool LeftShoulder = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-//   bool RightShoulder = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-//
-//   bool AButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A);
-//   bool BButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B);
-//   bool XButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_X);
-//   bool YButton = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_Y);
-//
-//   int StickX = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
-//   int StickY = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTY);
-//}
