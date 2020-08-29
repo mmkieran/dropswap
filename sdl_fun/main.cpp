@@ -6,7 +6,10 @@
 #include <Windows.h>  //For win socks 
 
 #include "game.h"
+#include "soloud/soloud.h"
+#include "soloud/soloud_wav.h"
 
+//#define WITH_SDL2  //Kieran... This is the backend implementation
 
 Game *game = nullptr;
 
@@ -28,6 +31,17 @@ int main(int argc, char* args[]) {
 
    game->kt.gameStart = SDL_GetPerformanceCounter(); 
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
+
+   //SoLoud::Soloud gSoloud;
+   //SoLoud::Wav gWave;
+
+   //gSoloud.init();
+
+   //gWave.load("Alarm05.wav");
+
+   //int soundHandle = gSoloud.play(gWave);
+
+   //gSoloud.deinit();
 
    while (gameRunning(game)) {
       frameStart = game->kt.getTime();

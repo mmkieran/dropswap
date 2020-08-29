@@ -8,34 +8,22 @@
 #include <iostream>
 #include "sdl_fun/myvector.h"
 
-struct ButtonState {
-   bool p = false;  //pressed
-   bool h = false;  //held
-};
-
-struct UserInput {
-   ButtonState left;
-   ButtonState right;
-   ButtonState up;
-   ButtonState down;
-
-   ButtonState nudge;
-   ButtonState pause;
-   ButtonState swap;
-
-   ButtonState power;
-
-   //int msg = 0;
-   int timer = 0;
-};
-
+#include "soloud/soloud.h"
+#include "soloud/soloud_wav.h"
 
 int main(int argc, char* args[])
 {
 
-   printf("User Input: %d\n", sizeof(UserInput));
-   printf("Bool: %d\n", sizeof(bool));
-   //printf("%d", sizeof(int));
+   //SoLoud::Soloud gSoloud;
+   //SoLoud::Wav gWave;
+
+   //gSoloud.init();
+
+   //gWave.load("Alarm05.wav");
+
+   //int soundHandle = gSoloud.play(gWave);
+
+   //gSoloud.deinit();
 
    return 0;
 }

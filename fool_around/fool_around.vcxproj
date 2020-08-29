@@ -181,6 +181,9 @@ copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
     <ProjectReference Include="..\sdl_fun\sdl_fun.vcxproj">
       <Project>{494e8301-4105-46a6-95ae-01995be9ba11}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\soloud\soloud.vcxproj">
+      <Project>{092a96f6-f56c-4946-9038-6c58899ba9ab}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

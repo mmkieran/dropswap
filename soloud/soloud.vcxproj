@@ -39,6 +39,7 @@
     <ClCompile Include="soloud_misc.cpp" />
     <ClCompile Include="soloud_queue.cpp" />
     <ClCompile Include="soloud_sdl2.cpp" />
+    <ClCompile Include="soloud_sdl2_dll.c" />
     <ClCompile Include="soloud_thread.cpp" />
     <ClCompile Include="soloud_wav.cpp" />
     <ClCompile Include="soloud_wavstream.cpp" />

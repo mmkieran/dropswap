@@ -90,6 +90,9 @@
     <ClCompile Include="stb_vorbis.c">
       <Filter>wav</Filter>
     </ClCompile>
+    <ClCompile Include="soloud_sdl2_dll.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="soloud_bassboostfilter.h">
