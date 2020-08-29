@@ -359,8 +359,10 @@ void garbageFall(Board* board, float velocity) {
             }
          }
          if (drop > 0 && landing == true) {
-            board->paused = true;
-            board->pauseLength = 500;
+            if (board->pauseLength == 0) {
+               board->paused = true;
+               board->pauseLength += 500;
+            }
             //todo ANIMATION - This is where we would animate it hitting the ground
          }
       }

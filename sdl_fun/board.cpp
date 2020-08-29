@@ -637,7 +637,7 @@ void boardMoveUp(Board* board, float height) {
    if (dangerZone == true) {
       if (board->bust == false) {  //grace period
          board->paused = true;
-         board->pauseLength += 1000;
+         board->pauseLength += 2000;
       }
       board->bust = true;
    }
