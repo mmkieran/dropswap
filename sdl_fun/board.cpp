@@ -8,6 +8,10 @@
 #include "cursor.h"
 #include "garbage.h"
 
+#define GRACEPERIOD 2000
+#define FALLDELAY 100
+#define CLEARTIME 2000
+
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 
@@ -265,13 +269,13 @@ void boardSwap(Board* board) {
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
       tile1->falling = true;
       tile1->status = status_disable;
-      tile1->statusTime = board->game->timer + 100;
+      tile1->statusTime = board->game->timer + FALLDELAY;
    }
    else { tiles.push_back(tile2); }
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
       tile2->falling = true;
       tile2->status = status_disable;
-      tile2->statusTime = board->game->timer + 100;
+      tile2->statusTime = board->game->timer + FALLDELAY;
    }
    else { tiles.push_back(tile1); }
 
@@ -338,6 +342,14 @@ void boardComboGarbage(Game* game, int player, int matchSize) {
    else if (player == 2) {
       _calcComboGarbage(vectorGet(game->boards, 1), matchSize);
    }
+}
+
+//Calculate the time the board will pause after a combo
+static int _calcComboPause(Board* board, int size) {
+   int time = (size - 1) * 1000;
+   board->pauseLength += time;
+   board->paused = true;
+   return time;
 }
 
 //Matchmaker matchmaker make me a match!
@@ -417,9 +429,11 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       boardComboGarbage(board->game, board->player, uniqueMatches.size() );
    }
 
+   int silvers = 0;
    if (uniqueMatches.size() > 0) {
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
+         if (m->type == tile_silver) { silvers++; }  //todo Special silver logic
 
          garbageCheckClear(board, m);
          //clear block and set timer
@@ -427,8 +441,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;
-         board->paused = true;
-         board->pauseLength = 3000;
+         board->pauseLength = _calcComboPause(board, uniqueMatches.size() );
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
@@ -438,6 +451,17 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //todo add score logic here
       }
    }
+}
+
+static void _silverClear() {
+   //todo do this
+   /*
+   [3] 1x6
+   [4] 2 1x6 And 1x3
+   [5] 3 1x6 And 1x4
+   [6] 4 1x6 And 1x5
+   [7] 6 1x6
+   */
 }
 
 //Detects and adjusts all the positions of the tiles that are falling
@@ -476,6 +500,7 @@ void boardFall(Board* board, float velocity) {
             if (tile->falling = true) {  //but it was falling, maybe from garbage
                tile->falling = false;
                tilesToCheck.push_back(tile);  //check for clear
+
                //todo ANIMATION - landing animation
             }
             else {  //It's stationary
@@ -558,12 +583,12 @@ void boardRemoveClears(Board* board) {
                tileSetTexture(board, tile);
                tile->idGarbage = -1;
                tile->status = status_disable;
-               tile->statusTime += current + 2000;
+               tile->statusTime += current + CLEARTIME;
                tile->clearTime = 0;
                tile->chain = true;
             }
 
-            else if (tile->clearTime + 2000 <= current) {
+            else if (tile->clearTime + CLEARTIME <= current) {
                tile->type = tile_empty;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
@@ -637,7 +662,7 @@ void boardMoveUp(Board* board, float height) {
    if (dangerZone == true) {
       if (board->bust == false) {  //grace period
          board->paused = true;
-         board->pauseLength += 2000;
+         board->pauseLength += GRACEPERIOD;
       }
       board->bust = true;
    }
