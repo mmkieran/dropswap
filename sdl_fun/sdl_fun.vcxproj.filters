@@ -115,6 +115,27 @@
     <Image Include="assets\utriangle.png">
       <Filter>assets</Filter>
     </Image>
+    <Image Include="assets\cleared.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\empty.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\frame.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\g.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\garbage.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\metal.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\silver.png">
+      <Filter>assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="parse structs.py">
@@ -124,6 +145,9 @@
   <ItemGroup>
     <Text Include="gamecontrollerdb.txt">
       <Filter>third</Filter>
+    </Text>
+    <Text Include="assets\gamecontrollerdb.txt">
+      <Filter>assets</Filter>
     </Text>
   </ItemGroup>
 </Project>

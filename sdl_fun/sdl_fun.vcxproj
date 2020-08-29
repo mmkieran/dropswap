@@ -210,10 +210,17 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\circle.png" />
+    <Image Include="assets\cleared.png" />
     <Image Include="assets\cursor.png" />
     <Image Include="assets\diamond.png" />
     <Image Include="assets\dtriangle.png" />
+    <Image Include="assets\empty.png" />
+    <Image Include="assets\frame.png" />
+    <Image Include="assets\g.png" />
+    <Image Include="assets\garbage.png" />
     <Image Include="assets\heart.png" />
+    <Image Include="assets\metal.png" />
+    <Image Include="assets\silver.png" />
     <Image Include="assets\star.png" />
     <Image Include="assets\utriangle.png" />
   </ItemGroup>
@@ -232,6 +239,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <None Include="parse structs.py" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="assets\gamecontrollerdb.txt" />
     <Text Include="gamecontrollerdb.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
