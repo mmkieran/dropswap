@@ -11,6 +11,9 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include "soloud/soloud.h"
+#include "soloud/soloud_wav.h"
+
 #include "game.h"
 #include "board.h"
 #include "resources.h"
@@ -22,6 +25,9 @@
 #include "serialize.h"
 #include "game_inputs.h"
 #include "netplay.h"
+
+SoLoud::Soloud gSoloud;
+SoLoud::Wav gWave;
 
 struct GameWindow {
    SDL_Window *window;
@@ -149,6 +155,12 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->p1Input.timer = 0;
    controllerGetAll();  //Find any attached controllers
+
+   gSoloud.init();
+
+   gWave.load("Alarm05.wav");
+
+   int soundHandle = gSoloud.play(gWave);
 
    return game;
 }
@@ -303,6 +315,8 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
+
+   gSoloud.deinit();  //SoLoud shutdown
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();

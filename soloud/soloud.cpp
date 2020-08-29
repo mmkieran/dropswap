@@ -40,8 +40,6 @@ freely, subject to the following restrictions:
 
 //#define FLOATING_POINT_DEBUG
 
-#define WITH_SDL2  //Kieran... This is the backend implementation
-
 #if !defined(WITH_SDL2) && !defined(WITH_SDL1) && !defined(WITH_PORTAUDIO) && \
    !defined(WITH_OPENAL) && !defined(WITH_XAUDIO2) && !defined(WITH_WINMM) && \
    !defined(WITH_WASAPI) && !defined(WITH_OSS) && !defined(WITH_SDL1_STATIC) && \

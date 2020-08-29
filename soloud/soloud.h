@@ -28,6 +28,9 @@ freely, subject to the following restrictions:
 #include <stdlib.h> // rand
 #include <math.h> // sin
 
+//Kieran... This is the backend implementation
+#define WITH_SDL2  
+
 #ifdef SOLOUD_NO_ASSERTS
 #define SOLOUD_ASSERT(x)
 #else
