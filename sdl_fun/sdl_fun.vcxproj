@@ -93,7 +93,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir);$(SolutionDir)Depends\stb\include;$(SolutionDir)Depends\ggpo\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir);$(SolutionDir)Depends\stb\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <SupportJustMyCode>false</SupportJustMyCode>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -223,6 +223,9 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     </ProjectReference>
     <ProjectReference Include="..\imgui\example_sdl_opengl3.vcxproj">
       <Project>{bbaeb705-1669-40f3-8567-04cf6a991f4c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\soloud\soloud.vcxproj">
+      <Project>{092a96f6-f56c-4946-9038-6c58899ba9ab}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
