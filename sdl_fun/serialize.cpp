@@ -1,8 +1,8 @@
 #include "serialize.h"
 
+//This resizes a vector and shoves bytes on the end
 template <typename T>
 void writeStream(std::vector <Byte> &stream, const T &input) {
-   //This resizes a vector and shoves bytes on the end
    int oldSize = stream.size();
    int newSize = oldSize + sizeof(T);
    stream.resize(newSize);
@@ -10,20 +10,21 @@ void writeStream(std::vector <Byte> &stream, const T &input) {
    memcpy(writeLocation, &input, sizeof(T));
 }
 
+//Take a vector of things and write the number and then each item
 template <typename T>
 void writeStream(std::vector <Byte> &stream, std::vector <T> const &input) {
-   //Take a vector of things and write the number and then each item
    writeStream(stream, input.size());
    for (auto&& item : input) { writeStream(item); }
 }
 
+//This takes a unsigned char* and reads out a chunk, it then increments the stream pointer
 template <typename T>
 void readStream(Byte* &stream, T& output) {
-   //This takes a u char* and reads out a chunk, it then increments the stream pointer
    memcpy(&output, stream, sizeof(T));
    stream += sizeof(T);
 }
 
+//Same as readStream, but for a vector
 template <typename T>
 void readStream(Byte* &stream, std::vector <T> &output) {
    size_t count;  //size_t can store the size of any object
@@ -34,25 +35,6 @@ void readStream(Byte* &stream, std::vector <T> &output) {
       output.push_back(std::move(instance) );  //std::move avoids copying
    }
 }
-
-
-//void testWriteStream(std::vector <Byte> &stream) {
-//   Tile tile;
-//   tile.ypos = 304.51;
-//   writeStream(stream, tile.ypos);
-//}
-//
-//void testReadStream() {
-//   std::vector <Byte> stream;
-//   testWriteStream(stream);
-//   Tile tile;
-//   Byte* start = stream.data();
-//   printf("STart pointer: %p\n", start);
-//   readStream(start, tile.ypos);
-//   printf("Tile type: %f\n", tile.ypos);
-//   printf("End Pointer: %p\n", start);
-//}
-
 
 void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //   GameWindow* sdl = nullptr;
@@ -277,6 +259,7 @@ void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
       writeStream(stream, garbage->deployed);
       writeStream(stream, garbage->deployTime);
       writeStream(stream, garbage->falling);
+      writeStream(stream, garbage->metal);
    }
 }
 
@@ -298,6 +281,7 @@ void _garbageDeserialize(Byte* &start, Board* board) {
       readStream(start, garbage->deployed);
       readStream(start, garbage->deployTime);
       readStream(start, garbage->falling);
+      readStream(start, garbage->metal);
 
       board->pile->garbage[garbage->ID] = garbage;
    }

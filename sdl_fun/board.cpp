@@ -344,6 +344,22 @@ void boardComboGarbage(Game* game, int player, int matchSize) {
    }
 }
 
+static void _silverClear(Game* game, int size, int player) {
+   int victim = 0;
+   if (player == 1) { victim = 2; }
+   else { victim = 1; }
+
+   int metals = min(size, 7);  
+   for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
+      garbageCreate(vectorGet(game->boards, victim), 6, 1, true);
+   }
+
+   if (size > 3) {  //Extra non-metal garbage
+      int width = min(size - 1, 6);
+      garbageCreate(vectorGet(game->boards, victim), width, 1);
+   }
+}
+
 //Calculate the time the board will pause after a combo
 static int _calcComboPause(Board* board, int size) {
    int time = (size - 1) * 1000;
@@ -451,17 +467,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //todo add score logic here
       }
    }
-}
-
-static void _silverClear() {
-   //todo do this
-   /*
-   [3] 1x6
-   [4] 2 1x6 And 1x3
-   [5] 3 1x6 And 1x4
-   [6] 4 1x6 And 1x5
-   [7] 6 1x6
-   */
+   if (silvers > 0) { _silverClear(board->game, silvers, board->player); }
 }
 
 //Detects and adjusts all the positions of the tiles that are falling

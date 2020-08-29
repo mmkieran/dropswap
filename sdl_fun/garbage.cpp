@@ -9,6 +9,9 @@
 
 #include <assert.h>
 
+#define DEPLOYTIME 3000
+#define LANDTIME 500
+
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
 //Garbage Pile is a hash map of the pieces of Garbage
@@ -46,13 +49,14 @@ Garbage* garbageCreateEmpty(Board* board) {
 }
 
 //This is typical way to create Garbage of a certain size
-Garbage* garbageCreate(Board* board, int width, int layers) {
+Garbage* garbageCreate(Board* board, int width, int layers, bool metal) {
    
    Garbage* garbage = garbageCreateEmpty(board);
    garbage->ID = board->pile->nextID;
    garbage->width = width;
    garbage->layers = layers;
-   garbage->deployTime = board->game->timer + 3000;
+   garbage->deployTime = board->game->timer + DEPLOYTIME;
+   if (metal == true) { garbage->metal = true; }
 
    board->pile->garbage[garbage->ID] = garbage;
    board->pile->nextID++;
@@ -153,6 +157,22 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
    }
 }
 
+//static bool _addTouching(Board* board, Tile* tile,std::map <int, Garbage*>& cleared, std::vector <Garbage*>& checkList) {
+//   if (tile && tile->type == tile_garbage) {  //found more garbage
+//      Garbage* belowGarbage = garbageGet(board->pile, tile->idGarbage);
+//      if (belowGarbage) {
+//         if (cleared[belowGarbage->ID]) { return false; }
+//         else {
+//            cleared[belowGarbage->ID] = belowGarbage;
+//            if (belowGarbage->layers < 2 && belowGarbage->metal == false) {
+//               checkList.push_back(belowGarbage);
+//               return true;
+//            }
+//         }
+//      }
+//   }
+//}
+
 //Checks all the tiles around a piece of Garbage to see if more garbage should be cleared
 static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
 
@@ -175,7 +195,7 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
                   if (cleared[belowGarbage->ID]) { continue; }
                   else {
                      cleared[belowGarbage->ID] = belowGarbage;
-                     if (belowGarbage->layers < 2) {
+                     if (belowGarbage->layers < 2 && belowGarbage->metal == false) {
                         checkList.push_back(belowGarbage);
                      }
                   }
@@ -191,7 +211,7 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
                   if (cleared[leftGarbage->ID]) { continue; }
                   else {
                      cleared[leftGarbage->ID] = leftGarbage;
-                     if (leftGarbage->layers < 2) {
+                     if (leftGarbage->layers < 2 && leftGarbage->metal == false) {
                         checkList.push_back(leftGarbage);
                      }
                   }
@@ -207,7 +227,7 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
                   if (cleared[aboveGarbage->ID]) { continue; }
                   else {
                      cleared[aboveGarbage->ID] = aboveGarbage;
-                     if (aboveGarbage->layers < 2) {
+                     if (aboveGarbage->layers < 2 && aboveGarbage->metal == false) {
                         checkList.push_back(aboveGarbage);
                      }
                   }
@@ -223,7 +243,7 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
                   if (cleared[rightGarbage->ID]) { continue; }
                   else {
                      cleared[rightGarbage->ID] = rightGarbage;
-                     if (rightGarbage->layers < 2) {
+                     if (rightGarbage->layers < 2 && rightGarbage->metal == false) {
                         checkList.push_back(rightGarbage);
                      }
                   }
@@ -361,7 +381,7 @@ void garbageFall(Board* board, float velocity) {
          if (drop > 0 && landing == true) {
             if (board->pauseLength == 0) {
                board->paused = true;
-               board->pauseLength += 500;
+               board->pauseLength += LANDTIME;
             }
             //todo ANIMATION - This is where we would animate it hitting the ground
          }

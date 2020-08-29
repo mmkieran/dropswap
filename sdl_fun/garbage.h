@@ -22,6 +22,7 @@ struct Garbage {
    uint64_t deployTime = 0;
 
    bool falling = true;
+   bool metal = false;
 };
 //@@End Serialize
 
@@ -34,7 +35,7 @@ GarbagePile* garbagePileCreate();
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
 Garbage* garbageCreateEmpty(Board* board);
-Garbage* garbageCreate(Board* board, int width, int layers);
+Garbage* garbageCreate(Board* board, int width, int layers, bool metal = false);
 void garbageDeploy(Board* board);
 Garbage* garbageDestroy(Garbage* garbage);
 
