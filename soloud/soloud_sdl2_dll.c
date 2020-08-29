@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+//Kieran... This is the backend implementation
 #define WITH_SDL2
 
 #if defined(WITH_SDL2)

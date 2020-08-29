@@ -7,6 +7,7 @@
 
 void tileSetTexture(Board* board, Tile* tile) {
    //hard code this for now
+   Garbage* garbage = nullptr;
    switch (tile->type) {
    case tile_empty:
       meshSetTexture(board->game, tile->mesh, Texture_empty);
@@ -36,7 +37,16 @@ void tileSetTexture(Board* board, Tile* tile) {
       meshSetTexture(board->game, tile->mesh, Texture_cleared);
       break;
    case tile_garbage:
-      meshSetTexture(board->game, tile->mesh, Texture_g);
+      if (tile->idGarbage >= 0) {
+         garbage = garbageGet(board->pile, tile->idGarbage);
+         if (garbage && garbage->metal == true) {
+            meshSetTexture(board->game, tile->mesh, Texture_metal);
+         }
+         else { meshSetTexture(board->game, tile->mesh, Texture_g); }
+      }
+      else {
+         meshSetTexture(board->game, tile->mesh, Texture_g);
+      }
       break;
    default:
       meshSetTexture(board->game, tile->mesh, Texture_empty);

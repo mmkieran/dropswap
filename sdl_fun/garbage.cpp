@@ -93,6 +93,8 @@ void garbageDeploy(Board* board) {
 
    for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
       Garbage* garbage = pair.second;
+      if (garbage == nullptr) { continue; }
+
       if (garbage->deployed == false && garbage->deployTime < board->game->timer) {  //get all garbage ready to deploy
 
          int col = 0;
@@ -142,7 +144,7 @@ Garbage* garbageDestroy(Garbage* garbage) {
 
 //Get a pointer to a piece of garbage in the pile using it's ID
 Garbage* garbageGet(GarbagePile* pile, int id) {
-   if (pile) {
+   if (pile && id >= 0) {
       Garbage* garbage = pile->garbage[id];
       if (!garbage) { return nullptr; }
       return garbage;
@@ -289,6 +291,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
 
    for (auto&& pair : cleared) {
       Garbage* garbage = pair.second;
+      if (garbage == nullptr) { continue; }
 
       int row = tileGetRow(board, garbage->start);
       int col = tileGetCol(board, garbage->start);
@@ -321,6 +324,7 @@ void garbageFall(Board* board, float velocity) {
 
    for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
       Garbage* garbage = pair.second;
+      if (garbage == nullptr) { continue; }
       if (garbage->deployed == true) {
 
          float drop = board->level * velocity;
@@ -394,6 +398,7 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
    
 	for (auto&& pair : board->pile->garbage) {
 		Garbage* garbage = pair.second;
+      if (garbage == nullptr) { continue; }
 
 		if (garbage->deployed == true) {
 			Garbage* garbage = pair.second;

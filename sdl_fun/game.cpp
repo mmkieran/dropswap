@@ -636,14 +636,16 @@ void gameMenuUI(Game* game) {
    if (game->playing == true) {
       static int gWidth = 6;
       static int gHeight = 1;
+      static bool isMetal = false;
       ImGui::InputInt("Garbage Width", &gWidth);
       ImGui::InputInt("Garbage Height", &gHeight);
+      ImGui::Checkbox("Metal", &isMetal);
 
       if (ImGui::Button("Dumpstered")) {
 
          for (int i = 1; i <= vectorSize(game->boards); i++) {
             Board* board = vectorGet(game->boards, i);
-            garbageCreate(board, gWidth, gHeight);
+            garbageCreate(board, gWidth, gHeight, isMetal);
          }
       }
    }

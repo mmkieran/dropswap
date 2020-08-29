@@ -28,7 +28,8 @@ static const char* _texturePaths[] =
    "assets/cleared.png",
    "assets/cursor.png",
    "assets/frame.png",
-   "assets/g.png"
+   "assets/g.png",
+   "assets/metal.png"
 };
 
 Resources* initResources() {
