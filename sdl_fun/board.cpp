@@ -33,7 +33,7 @@ void boardStartRandom(Board* board) {
 	std::default_random_engine gen(board->game->seed);
 	board->generator = gen;
 
-	std::uniform_int_distribution<int> dist(1, 6);
+	std::uniform_int_distribution<int> dist(1, 7);
 	board->distribution = dist;
 }
 
@@ -467,7 +467,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //todo add score logic here
       }
    }
-   if (silvers > 0) { _silverClear(board->game, silvers, board->player); }
+   if (silvers > 0 && board->game->players > 1) { _silverClear(board->game, silvers, board->player); }
 }
 
 //Detects and adjusts all the positions of the tiles that are falling
