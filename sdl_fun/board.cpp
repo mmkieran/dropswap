@@ -455,6 +455,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
+      _calcComboPause(board, uniqueMatches.size());
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
@@ -465,12 +466,21 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          m->type = tile_cleared;
          m->clearTime = clearTime;
          m->falling = false;
-         board->pauseLength = _calcComboPause(board, uniqueMatches.size() );
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
          }
-         m->chain = false;
+         //m->chain = false;
+
+         ////flag blocks above the clear as potentially part of a chain, stop if empty
+         //int r = tileGetRow(board, m);
+         //int col = tileGetRow(board, m);
+         //Tile* above = boardGetTile(board, r - 1, col);
+         //while (above && above->type != tile_empty && r >= 0) {
+         //   above->chain = true;
+         //   r--;
+         //   above = boardGetTile(board, r, col);
+         //}
 
          //todo add score logic here
       }
@@ -506,12 +516,12 @@ void boardFall(Board* board, float velocity) {
 
          if (potentialDrop < 0) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
-            //tile->falling = false;
-            //tile->chain = false;
+            tile->falling = false;
+            //if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
          }
          else if (potentialDrop == 0) { //It has nowhere to fall
             if (tile->falling == true) {  //but it was falling, maybe from garbage
-               if (below->type != tile_cleared) { tile->chain = false; }
+               if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
 
                //todo ANIMATION - landing animation
@@ -663,7 +673,7 @@ void boardMoveUp(Board* board, float height) {
             else { dangerZone = true; }  
          } 
 
-         tile->chain = false;  //Whenever the board is moving, the combo is over?
+         //tile->chain = false;  //Whenever the board is moving, the combo is over?
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
          tile->ypos -= nudge;  

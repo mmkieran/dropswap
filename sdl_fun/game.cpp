@@ -367,9 +367,19 @@ void debugCursor(Game* game) {
          }
          ImGui::Text("%d chain", board->chain);
          ImGui::Text("Last chain: %d", lastChain);
-         ImGui::Text("Last chain time: %d", chainTime);
-         //ImGui::Text("%.1f level", board->level);
+         ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
+      }
+
+      if (ImGui::CollapsingHeader("Tile Status")) {
+         for (int row = board->startH; row < board->endH; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               ImGui::Text("%d", tile->chain);
+               ImGui::SameLine();
+            }
+            ImGui::NewLine();
+         }
       }
 
       ImGui::End();
