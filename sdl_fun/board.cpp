@@ -457,7 +457,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    if (uniqueMatches.size() > 0) {
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
-         if (m->type == tile_silver) { silvers++; }  //todo Special silver logic
+         if (m->type == tile_silver) { silvers++; } 
 
          garbageCheckClear(board, m);
          //clear block and set timer
@@ -511,14 +511,14 @@ void boardFall(Board* board, float velocity) {
          }
          else if (potentialDrop == 0) { //It has nowhere to fall
             if (tile->falling == true) {  //but it was falling, maybe from garbage
-               tile->falling = false;
+               if (below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
 
                //todo ANIMATION - landing animation
             }
             else {  //It's stationary
                tile->falling = false;
-               tile->chain = false;
+               if (below->type != tile_cleared) { tile->chain = false; }
             }
          }
          else if (potentialDrop <= drop) {  //It can fall a little bit further, check for clear on land
