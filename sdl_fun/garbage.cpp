@@ -178,6 +178,8 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
 //Checks all the tiles around a piece of Garbage to see if more garbage should be cleared
 static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
 
+   if (garbage->metal == true) { return; }
+
    int startRow = tileGetRow(board, garbage->start);
    int endRow = startRow - (garbage->layers - 1);
 

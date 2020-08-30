@@ -271,6 +271,7 @@ void gameEndMatch(Game* game) {
    }
    game->playing = false;
    game->timer = 0;
+   ImGui::OpenPopup("Game Over");
 }
 
 //Draw the ImGui windows and the game objects
@@ -594,6 +595,14 @@ void gameMenuUI(Game* game) {
       if (ImGui::Button("End Game")) {
          gameEndMatch(game);
       }
+   }
+
+   if (ImGui::BeginPopupModal("Game Over", NULL) ) {
+      ImGui::Text("You won or lost or something..");
+      if (ImGui::Button("Accept Defeat")) {
+         ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
    }
 
    if (game->paused == true) {
