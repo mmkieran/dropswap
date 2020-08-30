@@ -26,6 +26,7 @@
 #include "game_inputs.h"
 #include "netplay.h"
 
+//todo put this somewhere like resources
 SoLoud::Soloud gSoloud;
 SoLoud::Wav gWave;
 
@@ -568,108 +569,126 @@ void gameMenuUI(Game* game) {
       return;
    }
 
-   ImGui::InputInt("Players", &game->players);
-   ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
-
-   static bool showGGPOSession = false;
-   if (ImGui::Button("Host Window")) {
-      showGGPOSession = true;
-   }
-   if (showGGPOSession && game->playing == false ) { 
-      ggpoSessionUI(game, &showGGPOSession); 
-   }
-
-   ImGui::InputInt("Tile Width", &game->tWidth, 16);
-   ImGui::InputInt("Tile Height", &game->tHeight, 16);
-
-   ImGui::InputInt("Board Width", &game->bWidth);
-   ImGui::InputInt("Board Height", &game->bHeight);
-
-
-   if (game->playing == false) {
-      if (ImGui::Button("Start Game")) {
-         gameStartMatch(game);
-      }
-   }
-   if (game->playing == true) {
-      if (ImGui::Button("End Game")) {
-         gameEndMatch(game);
-      }
-   }
-
-   if (ImGui::BeginPopupModal("Game Over", NULL) ) {
-      ImGui::Text("You won or lost or something..");
+   //Game Over message
+   if (ImGui::BeginPopupModal("Game Over", NULL)) {
+      ImGui::Text("You won or lost or something...");
       if (ImGui::Button("Accept Defeat")) {
          ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
    }
 
-   if (game->paused == true) {
-      if (ImGui::Button("Unpause Game")) {
-         game->paused = false;
+   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+   if (ImGui::CollapsingHeader("Player Settings")) {
+      static int peoplePlaying = 1;
+      ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
+      game->players = peoplePlaying + 1;
+      ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
+
+      static bool showGGPOSession = false;
+      if (game->players > 1 || SYNC_TEST == true) {
+         if (ImGui::Button("Connection Window")) {
+            showGGPOSession = true;
+         }
+         if (showGGPOSession && game->playing == false) {
+            ggpoSessionUI(game, &showGGPOSession);
+         }
       }
    }
-   else if (game->paused == false) {
-      if (ImGui::Button("Pause Game")) {
-         game->paused = true;
+
+   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+   if (ImGui::CollapsingHeader("Board Settings")) {
+      ImGui::InputInt("Tile Width", &game->tWidth, 16);
+      ImGui::InputInt("Tile Height", &game->tHeight, 16);
+
+      ImGui::InputInt("Board Width", &game->bWidth);
+      ImGui::InputInt("Board Height", &game->bHeight);
+   }
+
+   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+   if (ImGui::CollapsingHeader("Game Actions")) {
+      if (game->playing == false) {
+         if (ImGui::Button("Start Game")) {
+            gameStartMatch(game);
+         }
+      }
+      if (game->playing == true) {
+         if (ImGui::Button("End Game")) {
+            gameEndMatch(game);
+         }
+      }
+
+      if (game->playing == true) {
+         if (game->paused == true) {
+            if (ImGui::Button("Unpause Game")) {
+               game->paused = false;
+            }
+         }
+         else if (game->paused == false) {
+            if (ImGui::Button("Pause Game")) {
+               game->paused = true;
+            }
+         }
+      }
+
+      if (ImGui::Button("Load Board")) {
+         gameLoadState(game, "saves/game_state.dat");
+      }
+
+      if (ImGui::Button("Save Game")) {
+         gameSaveState(game, "saves/game_state.dat");
       }
    }
 
-   if (ImGui::Button("Load Board")) {
-      gameLoadState(game, "saves/game_state.dat");
-   }
+   if (ImGui::CollapsingHeader("Debug")) {
 
-   if (ImGui::Button("Save Game")) {
-      gameSaveState(game, "saves/game_state.dat");
-   }
+      if (ImGui::Button("Clear Board")) {
+         if (game->playing == true) {
+            for (int i = 1; i <= vectorSize(game->boards); i++) {
+               Board* board = vectorGet(game->boards, i);
+               boardClear(board);
+            }
+         }
+      }
 
-   if (ImGui::Button("Clear Board")) {
+      if (ImGui::Button("Make it rain")) {
+         if (game->playing == true) {
+            for (int i = 1; i <= vectorSize(game->boards); i++) {
+               Board* board = vectorGet(game->boards, i);
+               makeItRain(board);
+            }
+         }
+      }
+
+      if (game->playing == true) {
+         static int gWidth = 6;
+         static int gHeight = 1;
+         static bool isMetal = false;
+         ImGui::InputInt("Garbage Width", &gWidth);
+         ImGui::InputInt("Garbage Height", &gHeight);
+         ImGui::Checkbox("Metal", &isMetal);
+
+         if (ImGui::Button("Dumpstered")) {
+
+            for (int i = 1; i <= vectorSize(game->boards); i++) {
+               Board* board = vectorGet(game->boards, i);
+               garbageCreate(board, gWidth, gHeight, isMetal);
+            }
+         }
+      }
+
       if (game->playing == true) {
          for (int i = 1; i <= vectorSize(game->boards); i++) {
             Board* board = vectorGet(game->boards, i);
-            boardClear(board);
+            float minFallSpeed = 0;
+            float maxFallSpeed = 8.0;
+
+            ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
+
+            float minBoardSpeed = 0;
+            float maxBoardSpeed = 10.0;
+            ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
          }
-      }
-   }
-
-   if (ImGui::Button("Make it rain") ) {
-      if (game->playing == true) {
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            makeItRain(board);
-         }
-      }
-   }
-
-   if (game->playing == true) {
-      static int gWidth = 6;
-      static int gHeight = 1;
-      static bool isMetal = false;
-      ImGui::InputInt("Garbage Width", &gWidth);
-      ImGui::InputInt("Garbage Height", &gHeight);
-      ImGui::Checkbox("Metal", &isMetal);
-
-      if (ImGui::Button("Dumpstered")) {
-
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            garbageCreate(board, gWidth, gHeight, isMetal);
-         }
-      }
-   }
-
-   if (game->playing == true) {
-      for (int i = 1; i <= vectorSize(game->boards); i++) {
-         Board* board = vectorGet(game->boards, i);
-         float minFallSpeed = 0;
-         float maxFallSpeed = 8.0;
-
-         ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-         float minBoardSpeed = 0;
-         float maxBoardSpeed = 10.0;
-         ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
       }
    }
 

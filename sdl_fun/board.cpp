@@ -8,7 +8,7 @@
 #include "cursor.h"
 #include "garbage.h"
 
-#define GRACEPERIOD 2000
+#define GRACEPERIOD 1000
 #define FALLDELAY 100
 #define CLEARTIME 2000
 
