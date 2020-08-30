@@ -10,7 +10,7 @@
 #include <assert.h>
 
 #define DEPLOYTIME 3000
-#define LANDTIME 500
+#define LANDTIME 1000
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 

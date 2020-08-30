@@ -32,7 +32,6 @@ struct Board {
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
-   bool dangerZone = false;
    bool bust = false;
    int chain = 1;
 

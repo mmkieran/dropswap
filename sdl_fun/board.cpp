@@ -8,9 +8,10 @@
 #include "cursor.h"
 #include "garbage.h"
 
-#define GRACEPERIOD 1000
+#define GRACEPERIOD 500
 #define FALLDELAY 100
 #define CLEARTIME 2000
+#define ENTERSILVERS 30000
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -24,6 +25,13 @@ Tile* _boardCreateArray(int width, int height) {
 //Generate a random tile type
 int boardRandomTile(Board* board) {
 	int out = board->distribution(board->generator);
+   if (out == 7) { 
+      if (board->game->timer > ENTERSILVERS) {
+         out = board->distribution(board->generator);
+         board->randomCalls++;
+      }
+      else { out = out % 6; }
+   }
 	board->randomCalls++;
 	return out;
 }
@@ -246,7 +254,7 @@ void boardSwap(Board* board) {
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling = true && tile2->ypos > yCursor + 1) {return; }  //Don't swap non-empty if it's already falling below
-      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 1) { return; }
+      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 8) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
@@ -254,7 +262,7 @@ void boardSwap(Board* board) {
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
       if (tile1->falling = true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 1) { return; }
+      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 8) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
@@ -441,7 +449,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       }
    }
 
-   if (board->game->players > 1 && uniqueMatches.size() > 3 && board->chain == 1) {  //Check for combos in clear
+   if (board->game->players > 1 && uniqueMatches.size() > 3) {  //Check for combos in clear
       boardComboGarbage(board->game, board->player, uniqueMatches.size() );
    }
 
@@ -497,13 +505,12 @@ void boardFall(Board* board, float velocity) {
          potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
          if (potentialDrop < 0) {  //We swapped a tile into it as it fell
-            //assert(potentialDrop >= 0);
             tile->ypos = below->ypos - board->tileHeight;
-            tile->falling = false;
-            tile->chain = false;
+            //tile->falling = false;
+            //tile->chain = false;
          }
          else if (potentialDrop == 0) { //It has nowhere to fall
-            if (tile->falling = true) {  //but it was falling, maybe from garbage
+            if (tile->falling == true) {  //but it was falling, maybe from garbage
                tile->falling = false;
                tilesToCheck.push_back(tile);  //check for clear
 
@@ -577,7 +584,7 @@ void boardRemoveClears(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
 
-         if (tile->status != status_normal && tile->statusTime <= current) {
+         if (tile->status != status_normal && tile->statusTime <= current) {  //todo fix garbage chains
             tile->status = status_normal;
             tile->statusTime = 0;
          }
@@ -598,8 +605,6 @@ void boardRemoveClears(Board* board) {
                tile->type = tile_empty;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
-               //flag all blocks above as potenially part of a chain
-               std::vector <Tile*> column = boardGetAllTilesInCol(board, col);
 
                //flag blocks above the clear as potentially part of a chain, stop if empty
                int r = row - 1;
@@ -611,10 +616,10 @@ void boardRemoveClears(Board* board) {
                }
             }
          }
-         if (tile->chain == true) { stillChaining = true; }  //Any tile still part of a chain
+         if (tile->chain == true) { stillChaining = true; }  //Is any tile still part of a chain?
       }
    }
-   if (stillChaining = false) { //No tiles are part of a chain
+   if (stillChaining == false) { //No tiles are part of a chain
       if (board->game->players > 1 && board->chain > 1) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
@@ -637,10 +642,10 @@ void boardMoveUp(Board* board, float height) {
       board->offset += board->tileHeight;
    }
 
-   if (board->game->players > 1 && board->chain > 1) {
-      boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
-   }
-   board->chain = 1;  //If the board is moving the chain is over
+   //if (board->game->players > 1 && board->chain > 1) {
+   //   boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
+   //}
+   //board->chain = 1;  //If the board is moving the chain is over
 
    std::vector <Tile*> checkTiles;
    for (int row = 0; row < board->wBuffer; row++) {
