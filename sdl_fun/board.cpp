@@ -253,7 +253,7 @@ void boardSwap(Board* board) {
    if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
-      if (tile2->falling = true && tile2->ypos > yCursor + 1) {return; }  //Don't swap non-empty if it's already falling below
+      if (tile2->falling == true && tile2->ypos > yCursor + 1) {return; }  //Don't swap non-empty if it's already falling below
       else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 8) { return; }
       else {
          _swapTiles(tile1, tile2);
@@ -261,7 +261,7 @@ void boardSwap(Board* board) {
       }
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
-      if (tile1->falling = true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
+      if (tile1->falling == true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
       else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 8) { return; }
       else { 
          _swapTiles(tile1, tile2);
@@ -523,6 +523,7 @@ void boardFall(Board* board, float velocity) {
             if (tile->falling == true) {  //but it was falling, maybe from garbage
                if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
+               tile->falling = false;
 
                //todo ANIMATION - landing animation
             }

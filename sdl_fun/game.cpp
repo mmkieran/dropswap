@@ -375,7 +375,7 @@ void debugCursor(Game* game) {
          for (int row = board->startH; row < board->endH; row++) {
             for (int col = 0; col < board->w; col++) {
                Tile* tile = boardGetTile(board, row, col);
-               ImGui::Text("%d", tile->chain);
+               ImGui::Text("%d", tile->falling);
                ImGui::SameLine();
             }
             ImGui::NewLine();
