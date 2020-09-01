@@ -37,6 +37,15 @@ struct Texture;
 //struct Animation;
 //struct Graphic;
 
+enum AnimationState {
+   Anim_None = 0,
+   Anim_Loop, //This has a continuous animation like the cursor
+   Anim_Landing, //Need a separate one for garbage?
+   Anim_Cleared,
+   Anim_Swapping,
+   Anim_Disabled
+};
+
 struct Animation {
    Texture* texture = nullptr;
    int frames;  //How many key frames are in the animation

@@ -24,6 +24,15 @@ enum GameMode {
    team
 };
 
+enum SoundEffect {
+   sound_swap = 0,
+   sound_clear,
+   sound_land,
+   sound_crashland,
+   sound_chain,
+   sound_COUNT
+};
+
 uint64_t sdlGetCounter();
 void sdlSleep(int delay);
 
@@ -110,3 +119,5 @@ FILE* gameSaveState(Game* game, const char* filename);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
+
+void gamePlaySound(Game* game, SoundEffect sound);

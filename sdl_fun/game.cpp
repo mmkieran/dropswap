@@ -26,10 +26,6 @@
 #include "game_inputs.h"
 #include "netplay.h"
 
-//todo put this somewhere like resources
-SoLoud::Soloud gSoloud;
-SoLoud::Wav gWave;
-
 struct GameWindow {
    SDL_Window *window;
    SDL_GLContext gl_context;
@@ -38,6 +34,10 @@ struct GameWindow {
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
 };
+
+void gamePlaySound(Game* game, SoundEffect sound) {
+   resourcesPlaySound(game->resources, sound);
+}
 
 //SDL function wrapper for getting ticks
 uint64_t sdlGetCounter() {
@@ -156,12 +156,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->p1Input.timer = 0;
    controllerGetAll();  //Find any attached controllers
-
-   gSoloud.init();
-
-   gWave.load("Alarm05.wav");
-
-   int soundHandle = gSoloud.play(gWave);
 
    return game;
 }
@@ -317,8 +311,6 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
-
-   gSoloud.deinit();  //SoLoud shutdown
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();

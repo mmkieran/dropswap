@@ -287,6 +287,8 @@ void boardSwap(Board* board) {
    }
    else { tiles.push_back(tile1); }
 
+   gamePlaySound(board->game, sound_swap);
+
    boardCheckClear(board, tiles, false);
 
    return;
