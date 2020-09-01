@@ -82,6 +82,10 @@ void tileDraw(Board* board, Tile* tile) {
    Vec2 adj = board->origin;
    textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
    if (meshGetTexture(tile->mesh) != Texture_empty) {
-      meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight);
+      VisualEffect effect = visual_none;
+      if (tile->status == status_disable || tileGetRow(board, tile) == 24) {
+         effect = visual_dark;
+      }
+      meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight, effect);
    }
 }

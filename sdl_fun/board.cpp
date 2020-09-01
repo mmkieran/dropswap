@@ -276,13 +276,13 @@ void boardSwap(Board* board) {
    //Check if after we swapped them, either tile is falling... these don't get cleared
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
       tile1->falling = true;
-      tile1->status = status_disable;
+      tile1->status = status_stop;
       tile1->statusTime = board->game->timer + FALLDELAY;
    }
    else { tiles.push_back(tile2); }
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
       tile2->falling = true;
-      tile2->status = status_disable;
+      tile2->status = status_stop;
       tile2->statusTime = board->game->timer + FALLDELAY;
    }
    else { tiles.push_back(tile1); }
@@ -396,6 +396,10 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
          current++;
          continue;
       }
+      if (t1->status == status_stop || t2->status == status_stop || t3->status == status_stop) {  // if it's stopped, don't match it
+         current++;
+         continue;
+      }
 
       if (t1->type != tile_empty && t1->type != tile_cleared && t1->type != tile_garbage) {
          if (t1->type == t2->type && t1->type == t3->type) {
@@ -503,6 +507,7 @@ void boardFall(Board* board, float velocity) {
 
          if (tile->type == tile_empty || tile->type == tile_cleared || tile->type == tile_garbage) {continue; } 
          if (tile->status == status_disable) { continue; }  //Don't fall if disabled
+         if (tile->status == status_stop) { continue; }  //Don't fall if it's stopped
          if (row >= board->wBuffer - 1) { //skip the bottom row
             tile->falling = false;
             continue;

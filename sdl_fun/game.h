@@ -33,6 +33,16 @@ enum SoundEffect {
    sound_COUNT
 };
 
+//Need visuals over time... probably a struct?
+enum VisualEffect {
+   visual_none = 0,
+   visual_dark,
+   visual_shake,
+   visual_swap,
+   visual_clear,
+   visual_landing,
+};
+
 uint64_t sdlGetCounter();
 void sdlSleep(int delay);
 

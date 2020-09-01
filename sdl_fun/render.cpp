@@ -354,11 +354,19 @@ Mesh* meshCreate(Game* game) {
    return mesh;
 };
 
-void meshEffects() {
+void meshEffects(Game* game, VisualEffect effect) {
    //todo add effect handling here
+   float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
+   if (effect == visual_dark) {
+      for (int i = 0; i < 4; i++) {
+         vec4[i] = 0.5;
+      }
+   }
+
+   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
 }
 
-void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
+void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
@@ -367,8 +375,8 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
 
    //todo add effects here
-   float vec4[] = { 0.5, 0.5, 0.5, 0.5 };
-   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
+   
+   meshEffects(game, effect);
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);

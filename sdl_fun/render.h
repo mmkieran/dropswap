@@ -98,7 +98,7 @@ Texture* textureLoadFromFile(const char* filename);
 
 Mesh* meshCreate(Game* game);
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH);
+void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
