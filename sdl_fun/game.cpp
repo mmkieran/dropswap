@@ -26,10 +26,6 @@
 #include "game_inputs.h"
 #include "netplay.h"
 
-//todo put this somewhere like resources
-SoLoud::Soloud gSoloud;
-SoLoud::Wav gWave;
-
 struct GameWindow {
    SDL_Window *window;
    SDL_GLContext gl_context;
@@ -38,6 +34,10 @@ struct GameWindow {
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
 };
+
+void gamePlaySound(Game* game, SoundEffect sound) {
+   resourcesPlaySound(game->resources, sound);
+}
 
 //SDL function wrapper for getting ticks
 uint64_t sdlGetCounter() {
@@ -156,12 +156,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->p1Input.timer = 0;
    controllerGetAll();  //Find any attached controllers
-
-   gSoloud.init();
-
-   gWave.load("Alarm05.wav");
-
-   int soundHandle = gSoloud.play(gWave);
 
    return game;
 }
@@ -318,8 +312,6 @@ void gameDestroy(Game* game) {
 
    vaoDestroy(game->sdl->VAO);
 
-   gSoloud.deinit();  //SoLoud shutdown
-
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();
    ImGui_ImplSDL2_Shutdown();
@@ -367,9 +359,19 @@ void debugCursor(Game* game) {
          }
          ImGui::Text("%d chain", board->chain);
          ImGui::Text("Last chain: %d", lastChain);
-         ImGui::Text("Last chain time: %d", chainTime);
-         //ImGui::Text("%.1f level", board->level);
+         ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
+      }
+
+      if (ImGui::CollapsingHeader("Tile Status")) {
+         for (int row = board->startH; row < board->endH; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               ImGui::Text("%d", tile->falling);
+               ImGui::SameLine();
+            }
+            ImGui::NewLine();
+         }
       }
 
       ImGui::End();
