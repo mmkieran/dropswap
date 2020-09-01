@@ -362,6 +362,7 @@ void garbageFall(Board* board, float velocity) {
                drop = potentialDrop;
                garbage->falling = true;
                landing = true;
+               board->game->soundEvents.push_back(sound_crashland);
             }
             else if (potentialDrop > drop) {  //We can fall as much as we want
                __debugbreak;

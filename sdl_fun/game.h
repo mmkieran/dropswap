@@ -64,6 +64,8 @@ struct Game {
    Vector<Board*>* boards = nullptr;
    Resources* resources = nullptr;
 
+   std::vector <SoundEffect> soundEvents;
+
    int bHeight = 12;
    int bWidth = 6;
 

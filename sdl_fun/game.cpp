@@ -213,6 +213,10 @@ void gameUpdate(Game* game) {
 void gameRender(Game* game) {
    //Remember that this has to happen after gameRender, or the clear will remove everything...
 
+   //Play sounds here because of GGPO
+   for (auto&& event : game->soundEvents){ gamePlaySound(game, event); }
+   game->soundEvents.clear();
+
    //Draw game objects
    if (game->playing == true) {
       for (int i = 1; i <= vectorSize(game->boards); i++) {

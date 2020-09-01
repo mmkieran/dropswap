@@ -287,7 +287,7 @@ void boardSwap(Board* board) {
    }
    else { tiles.push_back(tile1); }
 
-   gamePlaySound(board->game, sound_swap);
+   board->game->soundEvents.push_back(sound_swap);
 
    boardCheckClear(board, tiles, false);
 
@@ -458,6 +458,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
       _calcComboPause(board, uniqueMatches.size());
+      if (board->chain == 1) { board->game->soundEvents.push_back(sound_clear); }
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
@@ -471,6 +472,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
+            board->game->soundEvents.push_back(sound_chain);
          }
          //m->chain = false;
 
@@ -526,6 +528,7 @@ void boardFall(Board* board, float velocity) {
                if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
                tile->falling = false;
+               board->game->soundEvents.push_back(sound_land);
 
                //todo ANIMATION - landing animation
             }
@@ -539,6 +542,7 @@ void boardFall(Board* board, float velocity) {
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
+               board->game->soundEvents.push_back(sound_land);
                //todo ANIMATION - landing animation
             }
             else {  //It's still falling because the tile below is still falling
