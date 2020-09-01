@@ -72,14 +72,14 @@ const char* fragSource = R"glsl(
 #version 150 core
 
 in vec2 v_texCoord;
-
+uniform vec4 colorTrans;
 out vec4 outColor;
 
 uniform sampler2D myTexture;
 
 void main() {
    //outColor = vec4(1.0, 0.5, 0.5, 1.0);
-   outColor = texture(myTexture, v_texCoord);
+   outColor = texture(myTexture, v_texCoord) * colorTrans;
 }
 )glsl";
 
@@ -187,9 +187,19 @@ void shaderSetMat4(GLuint location, float* mat) {
    glUniformMatrix4fv(location, 1, GL_TRUE, mat);
 }
 
+void shaderSetVec4(GLuint location, float* vec4) {
+   //I used row major order apparently, false uses column major order... see wiki :(
+   glUniform4fv(location, 1, vec4);
+}
+
 void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat) {
    GLuint location = shaderGetUniform(program, name);
    shaderSetMat4(location, mat);
+}
+
+void shaderSetVec4UniformByName(GLuint program, const char* name, float* vec4) {
+   GLuint location = shaderGetUniform(program, name);
+   shaderSetVec4(location, vec4);
 }
 
 void shaderDestroy(GLuint shader) {
@@ -344,6 +354,10 @@ Mesh* meshCreate(Game* game) {
    return mesh;
 };
 
+void meshEffects() {
+   //todo add effect handling here
+}
+
 void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH) {
 
    //Vec2 scale = { destW / width, destH / height};
@@ -352,6 +366,9 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
 
+   //todo add effects here
+   float vec4[] = { 0.5, 0.5, 0.5, 0.5 };
+   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
    shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);

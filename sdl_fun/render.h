@@ -80,6 +80,9 @@ GLuint shaderGetUniform(GLuint shaderHandle, const char* name);
 void shaderSetMat4(GLuint location, float* mat);
 void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat);
 
+void shaderSetVec4(GLuint location, float* vec4);
+void shaderSetVec4UniformByName(GLuint program, const char* name, float* vec4);
+
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height);
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height);
 
