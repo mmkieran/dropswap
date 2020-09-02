@@ -375,7 +375,7 @@ static void _silverClear(Game* game, int size, int player) {
 
 //Calculate the time the board will pause after a combo
 static int _calcComboPause(Board* board, int size) {
-   int time = (size - 1) * 1000;
+   int time = max( (size - 1) * 1000, 5);
    board->pauseLength += time;
    board->paused = true;
    return time;
@@ -464,8 +464,10 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
-      _calcComboPause(board, uniqueMatches.size());
-      if (board->chain == 1) { board->game->soundToggles[sound_clear] = true; }
+      if (board->chain == 1) { 
+         _calcComboPause(board, uniqueMatches.size());   //Find out how long to stop the board
+         board->game->soundToggles[sound_clear] = true; 
+      }
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
@@ -481,17 +483,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
             fallCombo = false;
             board->game->soundToggles[sound_chain] = true;
          }
-         //m->chain = false;
-
-         ////flag blocks above the clear as potentially part of a chain, stop if empty
-         //int r = tileGetRow(board, m);
-         //int col = tileGetRow(board, m);
-         //Tile* above = boardGetTile(board, r - 1, col);
-         //while (above && above->type != tile_empty && r >= 0) {
-         //   above->chain = true;
-         //   r--;
-         //   above = boardGetTile(board, r, col);
-         //}
 
          //todo add score logic here
       }
@@ -538,7 +529,7 @@ void boardFall(Board* board, float velocity) {
                if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
                tile->falling = false;
-               board->game->soundToggles[sound_land] = true;
+               //board->game->soundToggles[sound_land] = true;
 
                //todo ANIMATION - landing animation
             }
@@ -650,6 +641,7 @@ void boardRemoveClears(Board* board) {
       if (board->game->players > 1 && board->chain > 1) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
+      if (board->chain > 1) { board->pauseLength += max((board->chain - 1) * 1000, 10); }  //Pause board after chain
       board->chain = 1; 
    }  
    return;
