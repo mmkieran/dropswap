@@ -526,16 +526,19 @@ void boardFall(Board* board, float velocity) {
          }
          else if (potentialDrop == 0) { //It has nowhere to fall
             if (tile->falling == true) {  //but it was falling, maybe from garbage
-               if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
                tile->falling = false;
                //board->game->soundToggles[sound_land] = true;
-
                //todo ANIMATION - landing animation
+            }
+            else if (below->falling == true) {
+               tile->falling == true;
             }
             else {  //It's stationary
                tile->falling = false;
-               if (below->type != tile_cleared) { tile->chain = false; }
+               if (below->type != tile_cleared || below->falling != true) {
+                  tile->chain = false; 
+               }
             }
          }
          else if (potentialDrop <= drop) {  //It can fall a little bit further, check for clear on land
@@ -624,11 +627,11 @@ void boardRemoveClears(Board* board) {
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
 
-               //flag blocks above the clear as potentially part of a chain, stop if empty
+               //flag blocks above the clear as potentially part of a chain
                int r = row - 1;
                Tile* above = boardGetTile(board, r, col);
-               while (above && above->type != tile_empty && r >= 0) {
-                  above->chain = true;
+               while (above && r >= 0) {
+                  if (above->type != tile_empty && above->type != tile_cleared) { above->chain = true; }
                   r--;
                   above = boardGetTile(board, r, col);
                }
