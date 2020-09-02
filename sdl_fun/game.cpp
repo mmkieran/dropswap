@@ -27,6 +27,14 @@
 #include "game_inputs.h"
 #include "netplay.h"
 
+const char* credits = R"(
+A special thanks goes out to:
+Stephanie Anderson
+Brandon Townsend
+Sean Hunter
+...
+)";
+
 struct GameWindow {
    SDL_Window *window;
    SDL_GLContext gl_context;
@@ -218,6 +226,10 @@ void gameRender(Game* game) {
    if (game->sounds == 0) {
       for (auto&& pair : game->soundToggles) { 
          SoundEffect sound = pair.first;
+         if (pair.first == sound_anxiety && pair.second == true) {
+            resourcesStopSounds();
+            gamePlaySound(game, sound);
+         }
          if (pair.second == true) { gamePlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }
@@ -379,7 +391,7 @@ void debugCursor(Game* game) {
          for (int row = board->startH; row < board->endH; row++) {
             for (int col = 0; col < board->w; col++) {
                Tile* tile = boardGetTile(board, row, col);
-               ImGui::Text("%d", tile->falling);
+               ImGui::Text("%d%d", tile->chain, tile->falling);
                ImGui::SameLine();
             }
             ImGui::NewLine();
@@ -594,7 +606,7 @@ void gameMenuUI(Game* game) {
 
    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
    if (ImGui::CollapsingHeader("Player Settings")) {
-      static int peoplePlaying = 1;
+      static int peoplePlaying = game->players - 1;
       ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
       game->players = peoplePlaying + 1;
       ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
@@ -707,6 +719,12 @@ void gameMenuUI(Game* game) {
             ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
          }
       }
+   }
+
+
+   if (ImGui::CollapsingHeader("Credits")) {
+      //todo maybe just read in a file here
+      ImGui::TextUnformatted(credits);
    }
 
    ImGui::End();
@@ -843,5 +861,3 @@ int gameLoadState(Game* game, const char* path) {
    fclose(in);
    return 1;
 }
-
-

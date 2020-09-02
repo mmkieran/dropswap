@@ -36,6 +36,7 @@ enum SoundEffect {
    sound_land,
    sound_crashland,
    sound_chain,
+   sound_anxiety,
    sound_waltz,
    sound_COUNT
 };
@@ -100,7 +101,7 @@ struct Game {
 
    bool isRunning = false;  //used in main loop
 
-   int players = 2;
+   int players = 1;
    bool playing = false;
 
    bool paused = false;
