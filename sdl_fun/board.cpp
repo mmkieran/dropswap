@@ -696,6 +696,7 @@ void boardMoveUp(Board* board, float height) {
       if (board->bust == false) {  //grace period
          board->paused = true;
          board->pauseLength += GRACEPERIOD;
+         board->game->soundToggles[sound_anxiety] = true;
       }
       board->bust = true;
    }

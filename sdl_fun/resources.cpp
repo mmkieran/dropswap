@@ -47,8 +47,8 @@ static const char* _soundPaths[] =
    "assets/land.wav",
    "assets/crashland.wav",
    "assets/chain.wav",
+   "assets/anxiety.wav",
    "assets/waltz.mp3"
-   //"assets/anxiety.wav"
 };
 
 void _resourceThread(Resources* resources) {

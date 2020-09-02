@@ -226,6 +226,10 @@ void gameRender(Game* game) {
    if (game->sounds == 0) {
       for (auto&& pair : game->soundToggles) { 
          SoundEffect sound = pair.first;
+         if (pair.first == sound_anxiety && pair.second == true) {
+            resourcesStopSounds();
+            gamePlaySound(game, sound);
+         }
          if (pair.second == true) { gamePlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }
