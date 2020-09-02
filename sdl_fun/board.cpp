@@ -470,7 +470,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
 
-         garbageCheckClear(board, m);
+         garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
          meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
