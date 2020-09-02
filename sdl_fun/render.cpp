@@ -60,9 +60,10 @@ uniform mat4 transform;
 uniform mat4 projection;
 uniform mat4 deviceCoords;
 uniform mat4 texMatrix;
+uniform mat4 uCamera;
 
 void main() {
-   gl_Position = deviceCoords*transform*projection*vec4(position, 0.0, 1.0);
+   gl_Position = deviceCoords*uCamera*transform*projection*vec4(position, 0.0, 1.0);
    v_texCoord = (texMatrix*vec4(texCoord, 0.0, 1.0)).xy;
 }
 )glsl";
@@ -354,16 +355,37 @@ Mesh* meshCreate(Game* game) {
    return mesh;
 };
 
-void meshEffects(Game* game, VisualEffect effect) {
+void meshEffectDarken(Game* game, VisualEffect effect) {
    //todo add effect handling here
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
+
    if (effect == visual_dark) {
       for (int i = 0; i < 4; i++) {
          vec4[i] = 0.5;
       }
    }
-
    shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
+}
+
+void meshEffectShake(Game* game) {
+   VisualEffect effect = visual_none;
+   for (int i = 0; i < game->visualEvents.size(); i++) {
+      VisualEvent e = game->visualEvents[i];
+      if (e.end <= game->timer) { game->visualEvents.erase(game->visualEvents.begin() + i); }
+      else if (e.effect == visual_shake && e.end > game->timer) {
+         effect = visual_shake;
+      }
+   }
+
+   Mat4x4 mat = identityMatrix();
+
+   if (effect == visual_shake) {
+      Vec2 move = {0.0f , 0.0f};
+      move.y += sin(game->timer);
+      mat = transformMatrix(move, 0.0f, { 1, 1 });
+   }
+
+   shaderSetMat4UniformByName(resourcesGetShader(game), "uCamera", mat.values);
 }
 
 void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect) {
@@ -373,11 +395,12 @@ void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int d
    Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
    
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
 
    //todo add effects here
    
-   meshEffects(game, effect);
-   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+   meshEffectDarken(game, effect);
+   meshEffectShake(game);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);

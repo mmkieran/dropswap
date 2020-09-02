@@ -43,6 +43,11 @@ enum VisualEffect {
    visual_landing,
 };
 
+struct VisualEvent {
+   VisualEffect effect;
+   uint64_t end;
+};
+
 uint64_t sdlGetCounter();
 void sdlSleep(int delay);
 
@@ -75,6 +80,7 @@ struct Game {
    Resources* resources = nullptr;
 
    std::vector <SoundEffect> soundEvents;
+   std::vector <VisualEvent> visualEvents;
 
    int bHeight = 12;
    int bWidth = 6;
@@ -83,6 +89,7 @@ struct Game {
    int tHeight = 64;
 
    int controls = 0;
+   int sounds = 0;
 
    bool isRunning = false;  //used in main loop
 

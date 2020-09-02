@@ -214,7 +214,9 @@ void gameRender(Game* game) {
    //Remember that this has to happen after gameRender, or the clear will remove everything...
 
    //Play sounds here because of GGPO
-   for (auto&& event : game->soundEvents){ gamePlaySound(game, event); }
+   if (game->sounds == 0) {
+      for (auto&& event : game->soundEvents) { gamePlaySound(game, event); }
+   }
    game->soundEvents.clear();
 
    //Draw game objects
@@ -590,6 +592,7 @@ void gameMenuUI(Game* game) {
       ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
       game->players = peoplePlaying + 1;
       ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
+      ImGui::Combo("Sound", &game->sounds, "On\0Off\0");
 
       static bool showGGPOSession = false;
       if (game->players > 1 || SYNC_TEST == true) {

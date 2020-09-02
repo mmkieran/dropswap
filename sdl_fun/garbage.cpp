@@ -11,6 +11,7 @@
 
 #define DEPLOYTIME 3000
 #define LANDTIME 1000
+#define SHAKETIME 100
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
@@ -347,10 +348,10 @@ void garbageFall(Board* board, float velocity) {
                lookDown++;
             }
 
-            potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+            //Figure out how far each tile in the garbage could fall
+            potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight); 
 
             if (potentialDrop < 0) {  //Probably swapped a tile into it as it fell?
-               //assert(potentialDrop >= 0);
                garbage->falling = false;
                break;
             }
@@ -361,11 +362,8 @@ void garbageFall(Board* board, float velocity) {
             else if (potentialDrop <= drop) {  //It can fall a little bit further
                drop = potentialDrop;
                garbage->falling = true;
-               landing = true;
-               board->game->soundEvents.push_back(sound_crashland);
             }
             else if (potentialDrop > drop) {  //We can fall as much as we want
-               __debugbreak;
                garbage->falling = true;
             }
             else {
@@ -375,6 +373,8 @@ void garbageFall(Board* board, float velocity) {
                break;
             }
          }
+
+         if (drop < board->level * velocity){ landing = true; }
 
          //If the bottom layer can fall, adjust the ypos with the max drop
          if (garbage->falling == true && drop > 0) {
@@ -390,7 +390,13 @@ void garbageFall(Board* board, float velocity) {
                board->paused = true;
                board->pauseLength += LANDTIME;
             }
+            board->game->soundEvents.push_back(sound_crashland);
+
             //todo ANIMATION - This is where we would animate it hitting the ground
+            VisualEvent event;
+            event.effect = visual_shake;
+            event.end = board->game->timer + SHAKETIME;
+            board->game->visualEvents.push_back(event);
          }
       }
    }
