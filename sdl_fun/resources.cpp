@@ -44,7 +44,7 @@ static const char* _soundPaths[] =
 {
    "assets/swap.wav",
    "assets/clear.wav",
-   "assets/land.wav",
+   "assets/thud.wav",
    "assets/crashland.wav",
    "assets/chain.wav",
    "assets/waltz.mp3"
