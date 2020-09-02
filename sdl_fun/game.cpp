@@ -259,6 +259,7 @@ void gameStartMatch(Game* game) {
       board->origin = { xOrigin, yOrigin };
    }
    game->playing = true;
+   gamePlaySound(game, sound_waltz);  //todo add a control mute this
 }
 
 //Destroy the boards and set playing to false

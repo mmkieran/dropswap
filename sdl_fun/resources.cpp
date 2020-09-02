@@ -44,7 +44,8 @@ static const char* _soundPaths[] =
    "assets/clear.wav",
    "assets/land.wav",
    "assets/crashland.wav",
-   "assets/chain.wav"
+   "assets/chain.wav",
+   "assets/waltz.mp3"
    //"assets/anxiety.wav"
 };
 
@@ -99,7 +100,15 @@ Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
 }
 
 int resourcesPlaySound(Resources* resources, SoundEffect sound) {
-   int handle = gSoloud.play(*resources->sounds[sound]);
+   int handle;
+   if (sound == sound_waltz) {
+      handle = gSoloud.playBackground(*resources->sounds[sound]);
+      resources->sounds[sound]->setLooping(true);
+      gSoloud.setProtectVoice(handle, true);
+   }
+   else {
+      handle = gSoloud.play(*resources->sounds[sound]);
+   }
    return handle;
 }
 

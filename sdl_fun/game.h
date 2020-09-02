@@ -30,6 +30,7 @@ enum SoundEffect {
    sound_land,
    sound_crashland,
    sound_chain,
+   sound_waltz,
    sound_COUNT
 };
 

@@ -526,7 +526,7 @@ void boardFall(Board* board, float velocity) {
          if (potentialDrop < 0) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
             tile->falling = false;
-            //if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
+            if (below->falling == false) { tilesToCheck.push_back(tile); }
          }
          else if (potentialDrop == 0) { //It has nowhere to fall
             if (tile->falling == true) {  //but it was falling, maybe from garbage
