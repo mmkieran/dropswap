@@ -100,7 +100,7 @@ struct Game {
 
    bool isRunning = false;  //used in main loop
 
-   int players = 2;
+   int players = 1;
    bool playing = false;
 
    bool paused = false;
