@@ -225,7 +225,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, 30000);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing

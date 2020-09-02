@@ -115,8 +115,8 @@ Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
 int resourcesPlaySound(Resources* resources, SoundEffect sound) {
    int handle;
    if (sound == sound_waltz) {
-      handle = gSoloud.playBackground(*resources->sounds[sound]);
       resources->sounds[sound]->setLooping(true);
+      handle = gSoloud.playBackground(*resources->sounds[sound]);
       gSoloud.setProtectVoice(handle, true);
    }
    else {

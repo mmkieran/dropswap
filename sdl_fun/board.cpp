@@ -290,7 +290,7 @@ void boardSwap(Board* board) {
    }
    else { tiles.push_back(tile1); }
 
-   board->game->soundEvents.push_back(sound_swap);
+   board->game->soundToggles[sound_swap] = true;
 
    boardCheckClear(board, tiles, false);
 
@@ -465,7 +465,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
       _calcComboPause(board, uniqueMatches.size());
-      if (board->chain == 1) { board->game->soundEvents.push_back(sound_clear); }
+      if (board->chain == 1) { board->game->soundToggles[sound_clear] = true; }
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
@@ -479,7 +479,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
-            board->game->soundEvents.push_back(sound_chain);
+            board->game->soundToggles[sound_chain] = true;
          }
          //m->chain = false;
 
@@ -538,7 +538,7 @@ void boardFall(Board* board, float velocity) {
                if (below->chain != true || below->type != tile_cleared) { tile->chain = false; }
                tilesToCheck.push_back(tile);  //check for clear
                tile->falling = false;
-               board->game->soundEvents.push_back(sound_land);
+               board->game->soundToggles[sound_land] = true;
 
                //todo ANIMATION - landing animation
             }
@@ -552,7 +552,7 @@ void boardFall(Board* board, float velocity) {
                tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
-               board->game->soundEvents.push_back(sound_land);
+               board->game->soundToggles[sound_land] = true;
                //todo ANIMATION - landing animation
             }
             else {  //It's still falling because the tile below is still falling

@@ -390,7 +390,7 @@ void garbageFall(Board* board, float velocity) {
                board->paused = true;
                board->pauseLength += LANDTIME;
             }
-            board->game->soundEvents.push_back(sound_crashland);
+            board->game->soundToggles[sound_crashland] = true;
 
             //todo ANIMATION - This is where we would animate it hitting the ground
             VisualEvent event;

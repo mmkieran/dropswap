@@ -1,11 +1,17 @@
 #pragma once
 
+/*Kieran McDonald 08/23/2020
+* This game is for educational purposes only
+* It's completely for fun!
+*/
+
 #include "mymath.h"
 #include "myvector.h"
 #include "game_inputs.h"
 
 #include <stdint.h>
 #include <vector>
+#include <map>
 
 #define GAME_PLAYERS 2
 #define GAME_MAX_PLAYERS 20
@@ -80,7 +86,7 @@ struct Game {
    Vector<Board*>* boards = nullptr;
    Resources* resources = nullptr;
 
-   std::vector <SoundEffect> soundEvents;
+   std::map <SoundEffect, bool> soundToggles;
    std::vector <VisualEvent> visualEvents;
 
    int bHeight = 12;

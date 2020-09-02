@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
+#include <map>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -215,9 +216,12 @@ void gameRender(Game* game) {
 
    //Play sounds here because of GGPO
    if (game->sounds == 0) {
-      for (auto&& event : game->soundEvents) { gamePlaySound(game, event); }
+      for (auto&& pair : game->soundToggles) { 
+         SoundEffect sound = pair.first;
+         if (pair.second == true) { gamePlaySound(game, sound); }
+         game->soundToggles[sound] = false;
+      }
    }
-   game->soundEvents.clear();
 
    //Draw game objects
    if (game->playing == true) {
@@ -259,7 +263,7 @@ void gameStartMatch(Game* game) {
       board->origin = { xOrigin, yOrigin };
    }
    game->playing = true;
-   gamePlaySound(game, sound_waltz);  //todo add a control mute this
+   game->soundToggles[sound_waltz] = true;
 }
 
 //Destroy the boards and set playing to false
@@ -594,7 +598,9 @@ void gameMenuUI(Game* game) {
       ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
       game->players = peoplePlaying + 1;
       ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
-      ImGui::Combo("Sound", &game->sounds, "On\0Off\0");
+      ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
+      static int backgroundMusic = 0;
+      ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
       static bool showGGPOSession = false;
       if (game->players > 1 || SYNC_TEST == true) {
