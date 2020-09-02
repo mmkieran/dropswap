@@ -12,6 +12,7 @@
 #define FALLDELAY 100
 #define CLEARTIME 2000
 #define ENTERSILVERS 30000
+#define STARTTIMER 2000
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -139,7 +140,7 @@ void boardUpdate(Board* board, UserInput input) {
    }
    else {board->paused = false; }
 
-   if (board->game->timer > 2000) {  //2 second count in to start
+   if (board->game->timer > STARTTIMER) {  //2 second count in to start
       if (board->paused == false) {
          boardMoveUp(board, board->moveSpeed / 8.0f );  //Normalized for tile size of 64
          garbageDeploy(board);
@@ -229,6 +230,8 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board) {
+
+   if (board->game->timer < STARTTIMER) { return; } //No swapping during count in
 
    float xCursor = cursorGetX(board->cursor);
    float yCursor = cursorGetY(board->cursor);
@@ -506,8 +509,10 @@ void boardFall(Board* board, float velocity) {
          Tile* tile = boardGetTile(board, row, col);
 
          if (tile->type == tile_empty || tile->type == tile_cleared || tile->type == tile_garbage) {continue; } 
-         if (tile->status == status_disable) { continue; }  //Don't fall if disabled
-         if (tile->status == status_stop) { continue; }  //Don't fall if it's stopped
+         if (tile->status == status_disable || tile->status == status_stop) {  //Don't fall if it's stopped/disabled
+            tile->falling = true;
+            continue; 
+         }  
          if (row >= board->wBuffer - 1) { //skip the bottom row
             tile->falling = false;
             continue;

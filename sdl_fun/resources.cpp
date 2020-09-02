@@ -9,6 +9,8 @@
 #include "soloud/soloud.h"
 #include "soloud/soloud_wav.h"
 
+#include <thread>
+
 //Soloud class
 SoLoud::Soloud gSoloud;
 
@@ -49,6 +51,14 @@ static const char* _soundPaths[] =
    //"assets/anxiety.wav"
 };
 
+void _resourceThread(Resources* resources) {
+   for (int i = 0; i < sound_COUNT; i++) {
+      SoLoud::Wav* gWave = new SoLoud::Wav;
+      gWave->load(_soundPaths[i]);
+      resources->sounds.push_back(gWave);
+   }
+}
+
 Resources* initResources() {
    Resources* resources = new Resources;
    gSoloud.init();
@@ -61,11 +71,14 @@ Resources* initResources() {
       resources->textures.push_back(textureLoadFromFile(_texturePaths[i]) );
    }
 
-   for (int i = 0; i < sound_COUNT; i++) {
-      SoLoud::Wav* gWave = new SoLoud::Wav;
-      gWave->load(_soundPaths[i]);
-      resources->sounds.push_back(gWave);
-   }
+   std::thread loadSound(_resourceThread, resources);
+   loadSound.detach();
+
+   //for (int i = 0; i < sound_COUNT; i++) {
+   //   SoLoud::Wav* gWave = new SoLoud::Wav;
+   //   gWave->load(_soundPaths[i]);
+   //   resources->sounds.push_back(gWave);
+   //}
 
    //Might have more than 1 shader eventually?
    resources->shaderProgram = shaderProgramCreate();
@@ -110,6 +123,10 @@ int resourcesPlaySound(Resources* resources, SoundEffect sound) {
       handle = gSoloud.play(*resources->sounds[sound]);
    }
    return handle;
+}
+
+void resourcesStopSounds() {
+   gSoloud.stopAll();
 }
 
 unsigned int resourcesGetShader(Game* game) {

@@ -273,6 +273,7 @@ void gameEndMatch(Game* game) {
    }
    game->playing = false;
    game->timer = 0;
+   resourcesStopSounds();
    ImGui::OpenPopup("Game Over");
 }
 
