@@ -253,8 +253,7 @@ void gameRender(Game* game) {
             boardRender(game, board);
          }
       }
-      debugCursor(game);  //imgui debug tools
-      //debugGarbage(game);
+      gameStatsUI(game);  //imgui debug tools
    }
 }
 
@@ -368,23 +367,23 @@ bool gameRunning(Game* game) {
    return game->isRunning;
 }
 
-void debugCursor(Game* game) {
+void gameStatsUI(Game* game) {
    if (game->playing == true) {
-      ImGui::Begin("Cursor Debug");
+      ImGui::Begin("Game Stats");
 
       Board* board = vectorGet(game->boards, 1);
       boardDebug(board);
       if (board) {
-         int row = cursorGetRow(board);
-         int col = cursorGetCol(board);
+         //int row = cursorGetRow(board);
+         //int col = cursorGetCol(board);
 
-         Tile* tile = boardGetTile(board, row, col);
-         if (meshGetTexture(tile->mesh) != Texture_empty) {
-            //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-         }
+         //Tile* tile = boardGetTile(board, row, col);
+         //if (meshGetTexture(tile->mesh) != Texture_empty) {
+         //   ImGui::Image((void*)(intptr_t)meshGetTextureHandle(tile->mesh), { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         //}
 
-         ImGui::Text("%d row, %d col", row, col);
-         ImGui::NewLine();
+         //ImGui::Text("%d row, %d col", row, col);
+         //ImGui::NewLine();
 
          static int lastChain = 0;
          static int chainTime = 0;
@@ -411,11 +410,6 @@ void debugCursor(Game* game) {
 
       ImGui::End();
    }
-}
-
-void imguiShowDemo() {
-   bool show = true;
-   ImGui::ShowDemoWindow(&show);
 }
 
 //Show the connection window for GGPO... only for 2 players
@@ -681,6 +675,19 @@ void gameMenuUI(Game* game) {
    }
 
    if (ImGui::CollapsingHeader("Debug")) {
+
+      static bool showDemo = false;
+      if (showDemo == false) {
+         if (ImGui::Button("Show ImGui Demo")) {
+            showDemo = true;
+         }
+      }
+      else {
+         if (ImGui::Button("Hide ImGui Demo")) {
+            showDemo = false;
+         }
+      }
+      if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
 
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {

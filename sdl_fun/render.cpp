@@ -500,6 +500,11 @@ TextureEnum meshGetTexture(Mesh* mesh) {
    else { return Texture_empty; }
 }
 
+int meshGetTextureHandle(Mesh* mesh) {
+   if (mesh && mesh->texture) { return mesh->texture->handle; }
+   else { return -1; }
+}
+
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture) {
    mesh->texture = resourcesGetTexture(game->resources, texture);
    mesh->type = texture;

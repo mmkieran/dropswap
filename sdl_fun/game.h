@@ -118,8 +118,7 @@ void imguiShowDemo();
 void imguiRender(Game* game);
 
 void gameMenuUI(Game* game);
-
-void debugCursor(Game* game);
+void gameStatsUI(Game* game);
 
 int gameLoad(Game* game, unsigned char*& start);
 std::vector <Byte> gameSave(Game* game);

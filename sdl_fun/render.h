@@ -109,13 +109,14 @@ void textureChangeInterp(Mesh* mesh, bool nearest);
 void textureParams(Texture* texture, TextureWrap wrap);
 void textureDestroy(Texture* texture);
 Texture* textureLoadFromFile(const char* filename);
+int meshGetTextureHandle(Mesh* mesh);
+void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
 
 Mesh* meshCreate(Game* game);
 Mesh* meshDestroy(Mesh* mesh);
 void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
-void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
 void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);

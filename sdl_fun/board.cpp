@@ -391,7 +391,7 @@ static void _silverClear(Game* game, int size, int player) {
 
 //Calculate the time the board will pause after a combo
 static int _calcComboPause(Board* board, int size) {
-   int time = max( (size - 1) * 1000, 5);
+   int time = min( (size - 1) * 1000, 5000);
    board->pauseLength += time;
    board->paused = true;
    return time;
@@ -537,48 +537,43 @@ void boardFall(Board* board, float velocity) {
 
          if (potentialDrop < 0) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
-            if (below->falling == true) { tile->falling = true; }
-            tilesToCheck.push_back(tile);
-
+            if (below->falling == true) { 
+               tile->falling = true; }
+            else { 
+               tilesToCheck.push_back(tile); 
+               tile->falling = false;
+               board->game->soundToggles[sound_land] = true;
+            }
          }
-         else if (potentialDrop == 0) { //It has nowhere to fall
-            if (tile->falling == true) {  //but it was falling, maybe from garbage
+         else if (potentialDrop == 0) {
+            if (tile->falling == true && below->falling == false) {  //Happens if garbage is cleared
+                tilesToCheck.push_back(tile);
                tile->falling = false;
-               //board->game->soundToggles[sound_land] = true;
-               //todo ANIMATION - landing animation
+               board->game->soundToggles[sound_land] = true;
             }
-            else if (below->falling == true) {
-               tile->falling == true;
+            else if (tile->falling == true && below->falling == true) {
+               tile->falling = true;
             }
-            else {  //It's stationary
+            else {
                tile->falling = false;
-               if (below->type != tile_cleared || below->falling != true) {
-                  tile->chain = false; 
-               }
+               tile->chain = false;
             }
-            tilesToCheck.push_back(tile);  //check for clear
          }
          else if (potentialDrop <= drop) {  //It can fall a little bit further, check for clear on land
+            tile->ypos = below->ypos - board->tileHeight;
             if (below->falling == false) {
-               tile->ypos = below->ypos - board->tileHeight;
                tile->falling = false;
                tilesToCheck.push_back(tile);
                board->game->soundToggles[sound_land] = true;
                //todo ANIMATION - landing animation
             }
             else {  //It's still falling because the tile below is still falling
-               tile->ypos = below->ypos - board->tileHeight;
                tile->falling = true;
             }
          }
          else if (potentialDrop > drop) {  //We can fall as much as we want
             tile->ypos += drop;
             tile->falling = true;
-         }
-         else {
-            printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
-            __debugbreak;
-            tile->falling = false;
          }
       }
    }
@@ -677,7 +672,10 @@ void boardRemoveClears(Board* board) {
       if (board->game->players > 1 && board->chain > 1) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
-      if (board->chain > 1) { board->pauseLength += max((board->chain - 1) * 1000, 10); }  //Pause board after chain
+      if (board->chain > 1) { 
+         board->pauseLength += min((board->chain - 1) * 1000, 10000); 
+         board->paused = true;
+      }  //Pause board after chain
       board->chain = 1; 
    }  
    return;
