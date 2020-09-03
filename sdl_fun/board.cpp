@@ -177,8 +177,14 @@ void boardRender(Game* game, Board* board) {
          if (meshGetTexture(tile->mesh) == Texture_empty) {  //debug for garbage
             continue; 
          }
-         if (tile->effect) { ; } //todo I think this is the way to go... need way to clear afterwards too
-         tileDraw(board, tile);
+         if (tile->effect == visual_swapl || tile->effect == visual_swapr) {
+            if (tile->effectTime <= board->game->timer) {
+               tile->effect = visual_none;
+               tile->effectTime = 0;
+            }
+            tileDraw(board, tile, tile->effect, tile->effectTime);
+         }
+         else { tileDraw(board, tile); }
       }
    }
    cursorDraw(board);
@@ -299,16 +305,11 @@ void boardSwap(Board* board) {
    if (swapped == true) {
       board->game->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
 
-      VisualEvent event;
-      event.effect = visual_swapr;
-      event.end = board->game->timer + SWAPTIME;
-      event.tile = tile1;
-      board->visualEvents.push_back(event);
+      tile1->effect = visual_swapl;
+      tile1->effectTime = board->game->timer + SWAPTIME;
 
-      event.effect = visual_swapl;
-      event.end = board->game->timer + SWAPTIME;
-      event.tile = tile2;
-      board->visualEvents.push_back(event);
+      tile2->effect = visual_swapr;
+      tile2->effectTime = board->game->timer + SWAPTIME;
    }
 
    boardCheckClear(board, tiles, false);

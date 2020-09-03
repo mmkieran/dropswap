@@ -34,7 +34,6 @@ enum TextureEnum {
 
 struct Mesh;
 struct Texture;
-typedef struct Tile Tile;
 //struct Animation;
 //struct Graphic;
 
@@ -77,7 +76,6 @@ enum VisualEffect {
 struct VisualEvent {
    VisualEffect effect = visual_none;
    uint64_t end = 0;
-   Tile* tile = nullptr;
 };
 
 int openglContext();
@@ -114,7 +112,7 @@ Texture* textureLoadFromFile(const char* filename);
 
 Mesh* meshCreate(Game* game);
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none);
+void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);

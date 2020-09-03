@@ -22,6 +22,7 @@ enum TileStatus {
    status_clear,  //cleared
    status_fall,
    status_stop,  //no falling
+   status_swap,
    status_disable, //no clearing, no falling, no swapping
    status_COUNT
 };
@@ -47,6 +48,7 @@ struct Tile {
    int idGarbage;
 
    VisualEffect effect;
+   uint64_t effectTime;
 };
 //@@End Serialize
 
@@ -54,4 +56,4 @@ void tileSetTexture(Board* board, Tile* tile);
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime = false);
 
 void tileUpdate(Board* board, Tile* tile);
-void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none);
+void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none, int effectTime = 0);

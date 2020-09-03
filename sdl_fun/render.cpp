@@ -6,7 +6,6 @@
 #include "mymath.h"
 #include "resources.h"
 #include "board.h"
-#include "tile.h"
 
 #include <gl/GL.h>
 #include <SDL.h>
@@ -369,33 +368,35 @@ static void meshEffectDarken(Board* board, VisualEffect effect) {
    shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
 }
 
-static void meshEffectDisplace(Board* board) {
-   VisualEffect effect = visual_none;
-   int end = 0;
-   for (int i = 0; i < board->visualEvents.size(); i++) {
-      VisualEvent e = board->visualEvents[i];
-      if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
-      else if (e.effect == visual_swapl && e.end > board->game->timer) {
-         effect = visual_swapl;
-         end = e.end;
-      }
-      else if (e.effect == visual_swapr && e.end > board->game->timer) {
-         effect = visual_swapr;
-         end = e.end;
-      }
-   }
+static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
+   //VisualEffect effect = visual_none;
+   //int end = 0;
+   //for (int i = 0; i < board->visualEvents.size(); i++) {
+   //   VisualEvent e = board->visualEvents[i];
+   //   if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
+   //   else if (e.effect == visual_swapl && e.end > board->game->timer) {
+   //      effect = visual_swapl;
+   //      end = e.end;
+   //   }
+   //   else if (e.effect == visual_swapr && e.end > board->game->timer) {
+   //      effect = visual_swapr;
+   //      end = e.end;
+   //   }
+   //}
 
    Mat4x4 mat = identityMatrix();
    if (effect == visual_swapr) {
       Vec2 move = { 0.0f , 0.0f };
-      move.x += board->tileWidth * (1 - (end - board->game->timer)/ board->game->timer );
+      move.x -= board->tileWidth * (1 - (effectTime - board->game->timer)/ board->game->timer );
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
    else if (effect == visual_swapl) {
       Vec2 move = { 0.0f , 0.0f };
-      move.x -= board->tileWidth * (1 - (end - board->game->timer) / board->game->timer);
+      move.x += board->tileWidth * (1 - (effectTime - board->game->timer) / board->game->timer);
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
+
+   shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
 static void meshEffectShake(Board* board) {
@@ -419,7 +420,7 @@ static void meshEffectShake(Board* board) {
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
-void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect) {
+void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
@@ -427,12 +428,10 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
-
-   //todo add effects here
    
    meshEffectDarken(board, effect);
    meshEffectShake(board);
-   meshEffectDisplace(board);
+   meshEffectDisplace(board, effect, effectTime);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
