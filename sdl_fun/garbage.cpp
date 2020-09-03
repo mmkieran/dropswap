@@ -396,7 +396,7 @@ void garbageFall(Board* board, float velocity) {
             VisualEvent event;
             event.effect = visual_shake;
             event.end = board->game->timer + SHAKETIME;
-            board->game->visualEvents.push_back(event);
+            board->visualEvents.push_back(event);
          }
       }
    }
@@ -417,7 +417,7 @@ void garbageDraw(Board* board) {  //iterating a map gives std::pair (use first a
 			ypos = garbage->start->ypos - (board->tileHeight * (garbage->layers - 1));
 
 			//todo look at rendering two textures on one mesh
-			//meshDraw(board->game, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
+			//meshDraw(board, garbage->mesh, xpos, ypos, garbage->width * board->tileWidth, garbage->layers * board->tileHeight);
 		}
 	}
 }

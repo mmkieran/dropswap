@@ -63,8 +63,8 @@ void cursorDraw(Board* board) {
 
    Vec2 adj = board->origin;
 
-   animationDraw(game, cursor->animation, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
-   //meshDraw(game, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
+   animationDraw(board, cursor->animation, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
+   //meshDraw(board, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
 }
 
 void cursorUpdate(Board* board, UserInput input) {

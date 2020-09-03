@@ -5,6 +5,8 @@
 #include "stb_image.h"
 #include "mymath.h"
 #include "resources.h"
+#include "board.h"
+#include "tile.h"
 
 #include <gl/GL.h>
 #include <SDL.h>
@@ -355,7 +357,7 @@ Mesh* meshCreate(Game* game) {
    return mesh;
 };
 
-void meshEffectDarken(Game* game, VisualEffect effect) {
+static void meshEffectDarken(Board* board, VisualEffect effect) {
    //todo add effect handling here
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
 
@@ -364,15 +366,44 @@ void meshEffectDarken(Game* game, VisualEffect effect) {
          vec4[i] = 0.5;
       }
    }
-   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
+   shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
 }
 
-void meshEffectShake(Game* game) {
+static void meshEffectDisplace(Board* board) {
    VisualEffect effect = visual_none;
-   for (int i = 0; i < game->visualEvents.size(); i++) {
-      VisualEvent e = game->visualEvents[i];
-      if (e.end <= game->timer) { game->visualEvents.erase(game->visualEvents.begin() + i); }
-      else if (e.effect == visual_shake && e.end > game->timer) {
+   int end = 0;
+   for (int i = 0; i < board->visualEvents.size(); i++) {
+      VisualEvent e = board->visualEvents[i];
+      if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
+      else if (e.effect == visual_swapl && e.end > board->game->timer) {
+         effect = visual_swapl;
+         end = e.end;
+      }
+      else if (e.effect == visual_swapr && e.end > board->game->timer) {
+         effect = visual_swapr;
+         end = e.end;
+      }
+   }
+
+   Mat4x4 mat = identityMatrix();
+   if (effect == visual_swapr) {
+      Vec2 move = { 0.0f , 0.0f };
+      move.x += board->tileWidth * (1 - (end - board->game->timer)/ board->game->timer );
+      mat = transformMatrix(move, 0.0f, { 1, 1 });
+   }
+   else if (effect == visual_swapl) {
+      Vec2 move = { 0.0f , 0.0f };
+      move.x -= board->tileWidth * (1 - (end - board->game->timer) / board->game->timer);
+      mat = transformMatrix(move, 0.0f, { 1, 1 });
+   }
+}
+
+static void meshEffectShake(Board* board) {
+   VisualEffect effect = visual_none;
+   for (int i = 0; i < board->visualEvents.size(); i++) {
+      VisualEvent e = board->visualEvents[i];
+      if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
+      else if (e.effect == visual_shake && e.end > board->game->timer) {
          effect = visual_shake;
       }
    }
@@ -381,26 +412,27 @@ void meshEffectShake(Game* game) {
 
    if (effect == visual_shake) {
       Vec2 move = {0.0f , 0.0f};
-      move.y += sin(game->timer);
+      move.y += sin(board->game->timer);
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
 
-   shaderSetMat4UniformByName(resourcesGetShader(game), "uCamera", mat.values);
+   shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
-void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect) {
+void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect) {
 
    //Vec2 scale = { destW / width, destH / height};
-   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
+   Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
    
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
-   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
+   shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
 
    //todo add effects here
    
-   meshEffectDarken(game, effect);
-   meshEffectShake(game);
+   meshEffectDarken(board, effect);
+   meshEffectShake(board);
+   meshEffectDisplace(board);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
@@ -424,19 +456,19 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
    return animation;
 }
 
-void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
+void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
 
-   int currentFrame = (game->timer / animation->delay) % animation->frames;
+   int currentFrame = (board->game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 
    if (animation->animated == true) {
-      textureTransform(game, mesh, src.x, src.y, size.x, size.y);
+      textureTransform(board->game, mesh, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(game, mesh, destX, destY, destW, destH);
+   meshDraw(board, mesh, destX, destY, destW, destH);
 
-   textureTransform(game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
+   textureTransform(board->game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
 }
 
 Animation* animationDestroy(Animation* animation) {

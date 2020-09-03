@@ -45,6 +45,8 @@ struct Tile {
 
    Garbage* garbage;
    int idGarbage;
+
+   VisualEffect effect;
 };
 //@@End Serialize
 
@@ -52,4 +54,4 @@ void tileSetTexture(Board* board, Tile* tile);
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime = false);
 
 void tileUpdate(Board* board, Tile* tile);
-void tileDraw(Board* board, Tile* tile);
+void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none);

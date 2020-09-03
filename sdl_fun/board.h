@@ -2,6 +2,7 @@
 
 #include "game.h"
 #include "garbage.h"
+#include "render.h"
 
 #include <random>
 
@@ -25,6 +26,8 @@ struct Board {
    Tile* tiles = nullptr;
    Cursor* cursor = nullptr;
    Game* game = nullptr;
+
+   std::vector <VisualEvent> visualEvents;
 
    float level = 1;
    float fallSpeed = 2;

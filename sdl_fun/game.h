@@ -41,21 +41,6 @@ enum SoundEffect {
    sound_COUNT
 };
 
-//Need visuals over time... probably a struct?
-enum VisualEffect {
-   visual_none = 0,
-   visual_dark,
-   visual_shake,
-   visual_swap,
-   visual_clear,
-   visual_landing,
-};
-
-struct VisualEvent {
-   VisualEffect effect;
-   uint64_t end;
-};
-
 uint64_t sdlGetCounter();
 void sdlSleep(int delay);
 
@@ -83,12 +68,10 @@ struct Game {
    float windowWidth;
    float windowHeight;
 
-   //Board* board = nullptr;
    Vector<Board*>* boards = nullptr;
    Resources* resources = nullptr;
 
    std::map <SoundEffect, bool> soundToggles;
-   std::vector <VisualEvent> visualEvents;
 
    int bHeight = 12;
    int bWidth = 6;
@@ -146,5 +129,3 @@ FILE* gameSaveState(Game* game, const char* filename);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
-
-void gamePlaySound(Game* game, SoundEffect sound);

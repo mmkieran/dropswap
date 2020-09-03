@@ -34,6 +34,7 @@ enum TextureEnum {
 
 struct Mesh;
 struct Texture;
+typedef struct Tile Tile;
 //struct Animation;
 //struct Graphic;
 
@@ -63,6 +64,21 @@ struct Graphic {
    Animation* animation = nullptr;
 };
 
+enum VisualEffect {
+   visual_none = 0,
+   visual_dark,
+   visual_shake,
+   visual_swapl,  //left swap
+   visual_swapr,  //right swap
+   visual_clear,
+   visual_landing,
+};
+
+struct VisualEvent {
+   VisualEffect effect = visual_none;
+   uint64_t end = 0;
+   Tile* tile = nullptr;
+};
 
 int openglContext();
 
@@ -98,13 +114,13 @@ Texture* textureLoadFromFile(const char* filename);
 
 Mesh* meshCreate(Game* game);
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Game* game, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none);
+void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
-void animationDraw(Game* game, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);
+void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);

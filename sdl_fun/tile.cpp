@@ -78,14 +78,14 @@ void tileUpdate(Board* board, Tile* tile) {
    //todo put something here
 }
 
-void tileDraw(Board* board, Tile* tile) {
+void tileDraw(Board* board, Tile* tile, VisualEffect effect) {
    Vec2 adj = board->origin;
    textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
    if (meshGetTexture(tile->mesh) != Texture_empty) {
-      VisualEffect effect = visual_none;
+      effect = visual_none;
       if (tile->status == status_disable || tileGetRow(board, tile) == 24) {
          effect = visual_dark;
       }
-      meshDraw(board->game, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight, effect);
+      meshDraw(board, tile->mesh, tile->xpos + adj.x, tile->ypos + adj.y, board->tileWidth, board->tileHeight, effect);
    }
 }

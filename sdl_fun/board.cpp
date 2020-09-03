@@ -1,5 +1,4 @@
 #include <vector>
-#include <fstream>
 #include <assert.h>
 
 #include "board.h"
@@ -13,6 +12,7 @@
 #define CLEARTIME 2000
 #define ENTERSILVERS 30000
 #define STARTTIMER 2000
+#define SWAPTIME 100
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -169,6 +169,7 @@ void boardUpdate(Board* board, UserInput input) {
 
 //Draw all objects on the board
 void boardRender(Game* game, Board* board) {
+
    for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -176,6 +177,7 @@ void boardRender(Game* game, Board* board) {
          if (meshGetTexture(tile->mesh) == Texture_empty) {  //debug for garbage
             continue; 
          }
+         if (tile->effect) { ; } //todo I think this is the way to go... need way to clear afterwards too
          tileDraw(board, tile);
       }
    }
@@ -183,7 +185,7 @@ void boardRender(Game* game, Board* board) {
    garbageDraw(board);
 
    //debug basic frame
-   meshDraw(board->game, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
+   meshDraw(board, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //Calculates the row based on the pointer difference in the array
@@ -231,6 +233,7 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board) {
 
+   bool swapped = false;
    if (board->game->timer < STARTTIMER) { return; } //No swapping during count in
 
    float xCursor = cursorGetX(board->cursor);
@@ -261,6 +264,7 @@ void boardSwap(Board* board) {
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
+         swapped = true;
       }
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
@@ -269,10 +273,12 @@ void boardSwap(Board* board) {
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
+         swapped = true;
       }
    }
    else {
       _swapTiles(tile1, tile2);
+      swapped = true;
    }
 
    std::vector <Tile*> tiles;
@@ -290,7 +296,20 @@ void boardSwap(Board* board) {
    }
    else { tiles.push_back(tile1); }
 
-   board->game->soundToggles[sound_swap] = true;
+   if (swapped == true) {
+      board->game->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
+
+      VisualEvent event;
+      event.effect = visual_swapr;
+      event.end = board->game->timer + SWAPTIME;
+      event.tile = tile1;
+      board->visualEvents.push_back(event);
+
+      event.effect = visual_swapl;
+      event.end = board->game->timer + SWAPTIME;
+      event.tile = tile2;
+      board->visualEvents.push_back(event);
+   }
 
    boardCheckClear(board, tiles, false);
 
