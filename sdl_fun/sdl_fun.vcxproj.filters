@@ -37,6 +37,9 @@
     <ClCompile Include="netplay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sounds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="netplay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sounds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,6 +26,7 @@
 #include "serialize.h"
 #include "game_inputs.h"
 #include "netplay.h"
+#include "sounds.h"
 
 const char* credits = R"(
 A special thanks goes out to:
@@ -43,10 +44,6 @@ struct GameWindow {
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
 };
-
-void gamePlaySound(Game* game, SoundEffect sound) {
-   resourcesPlaySound(game->resources, sound);
-}
 
 //SDL function wrapper for getting ticks
 uint64_t sdlGetCounter() {
@@ -165,6 +162,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->p1Input.timer = 0;
    controllerGetAll();  //Find any attached controllers
+   soundsInit();  //Initialize SoLoud components
 
    return game;
 }
@@ -227,10 +225,10 @@ void gameRender(Game* game) {
       for (auto&& pair : game->soundToggles) { 
          SoundEffect sound = pair.first;
          if (pair.first == sound_anxiety && pair.second == true) {
-            resourcesStopSounds();
-            gamePlaySound(game, sound);
+            soundsStopAll();
+            soundsPlaySound(game, sound);
          }
-         if (pair.second == true) { gamePlaySound(game, sound); }
+         if (pair.second == true) { soundsPlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }
    }
@@ -289,7 +287,7 @@ void gameEndMatch(Game* game) {
    }
    game->playing = false;
    game->timer = 0;
-   resourcesStopSounds();
+   soundsStopAll();
    ImGui::OpenPopup("Game Over");
 }
 
@@ -335,6 +333,7 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
+   soundsDestroy();
 
    //imgui stuff to shutdown
    ImGui_ImplOpenGL3_Shutdown();

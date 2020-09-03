@@ -6,13 +6,7 @@
 #include "resources.h"
 #include "game.h"
 
-#include "soloud/soloud.h"
-#include "soloud/soloud_wav.h"
-
 #include <thread>
-
-//Soloud class
-SoLoud::Soloud gSoloud;
 
 struct Resources {
    std::vector <Texture*> textures; 
@@ -51,7 +45,7 @@ static const char* _soundPaths[] =
    "assets/waltz.mp3"
 };
 
-void _resourceThread(Resources* resources) {
+static void _resourceThread(Resources* resources) {
    for (int i = 0; i < sound_COUNT; i++) {
       SoLoud::Wav* gWave = new SoLoud::Wav;
       gWave->load(_soundPaths[i]);
@@ -61,7 +55,6 @@ void _resourceThread(Resources* resources) {
 
 Resources* initResources() {
    Resources* resources = new Resources;
-   gSoloud.init();
 
    for (int i = 0; i < Texture_COUNT; i++) {
       if (i == 0){
@@ -74,12 +67,6 @@ Resources* initResources() {
    std::thread loadSound(_resourceThread, resources);
    loadSound.detach();
 
-   //for (int i = 0; i < sound_COUNT; i++) {
-   //   SoLoud::Wav* gWave = new SoLoud::Wav;
-   //   gWave->load(_soundPaths[i]);
-   //   resources->sounds.push_back(gWave);
-   //}
-
    //Might have more than 1 shader eventually?
    resources->shaderProgram = shaderProgramCreate();
 
@@ -88,8 +75,6 @@ Resources* initResources() {
 
 Resources* destroyResources(Resources* resources) {
    if (resources) {
-
-      gSoloud.deinit();  //SoLoud shutdown
 
       for (auto&& wave : resources->sounds) {
          if (wave) { delete wave; }
@@ -112,21 +97,10 @@ Texture* resourcesGetTexture(Resources* resources, TextureEnum texture) {
    return resources->textures[texture];
 }
 
-int resourcesPlaySound(Resources* resources, SoundEffect sound) {
-   int handle;
-   if (sound == sound_waltz) {
-      resources->sounds[sound]->setLooping(true);
-      handle = gSoloud.playBackground(*resources->sounds[sound]);
-      gSoloud.setProtectVoice(handle, true);
+SoLoud::Wav* resourcesGetSound(Resources* resources, SoundEffect sound) {
+   if (resources) {
+      return resources->sounds[sound];
    }
-   else {
-      handle = gSoloud.play(*resources->sounds[sound]);
-   }
-   return handle;
-}
-
-void resourcesStopSounds() {
-   gSoloud.stopAll();
 }
 
 unsigned int resourcesGetShader(Game* game) {
