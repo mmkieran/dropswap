@@ -16,7 +16,7 @@ void soundsDestroy() {
 int soundsPlaySound(Game* game, SoundEffect sound) {
    int handle;
    SoLoud::Wav* wav = resourcesGetSound(game->resources, sound);
-   if (sound == sound_waltz) {
+   if (sound == sound_waltz || sound == sound_anxiety) {
       wav->setLooping(true);
       handle = gSoloud.playBackground(*wav);
       gSoloud.setProtectVoice(handle, true);
@@ -25,6 +25,11 @@ int soundsPlaySound(Game* game, SoundEffect sound) {
       handle = gSoloud.play(*wav);
    }
    return handle;
+}
+
+void soundsStopSound(int handle) {
+   gSoloud.setProtectVoice(handle, false);
+   gSoloud.stop(handle);
 }
 
 void soundsStopAll() {

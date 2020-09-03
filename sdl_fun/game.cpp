@@ -221,14 +221,26 @@ void gameRender(Game* game) {
    //Remember that this has to happen after gameRender, or the clear will remove everything...
 
    //Play sounds here because of GGPO
+   static bool silence = false;
+   static bool dangerPlaying = false;
+   static int anxietyHandle;
    if (game->sounds == 0) {
       for (auto&& pair : game->soundToggles) { 
          SoundEffect sound = pair.first;
          if (pair.first == sound_anxiety && pair.second == true) {
-            soundsStopAll();
-            soundsPlaySound(game, sound);
+            //soundsStopAll();
+            if (dangerPlaying == false) { 
+               anxietyHandle = soundsPlaySound(game, sound);
+               dangerPlaying = true;
+            }
+            silence = true;
          }
-         if (pair.second == true) { soundsPlaySound(game, sound); }
+         else if (pair.first == sound_anxiety && pair.second == false) {
+            silence = false;
+            dangerPlaying = false;
+            soundsStopSound(anxietyHandle);
+         }
+         if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }
    }

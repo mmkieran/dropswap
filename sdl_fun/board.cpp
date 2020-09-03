@@ -602,9 +602,25 @@ void boardRemoveClears(Board* board) {
    int pauseTime = 0;
    int current = board->game->timer;
    bool stillChaining = false;
+   board->game->soundToggles[sound_anxiety] = false;
+
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         if (tile->type == tile_empty) { continue; }
+
+         //todo Anxiety doesn't really belong here
+         if (tileGetRow(board, tile) <= board->startH + 1 && tile->falling == false) { 
+            if (tile->type == tile_garbage) {
+               Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
+               if (garbage->falling == false) {
+                  board->game->soundToggles[sound_anxiety] = true;
+               }
+            }
+            else {
+               board->game->soundToggles[sound_anxiety] = true;
+            }
+         }
 
          if (tile->status != status_normal && tile->statusTime <= current) {  //todo fix garbage chains
             tile->status = status_normal;
@@ -665,11 +681,6 @@ void boardMoveUp(Board* board, float height) {
       board->offset += board->tileHeight;
    }
 
-   //if (board->game->players > 1 && board->chain > 1) {
-   //   boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
-   //}
-   //board->chain = 1;  //If the board is moving the chain is over
-
    std::vector <Tile*> checkTiles;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -686,7 +697,6 @@ void boardMoveUp(Board* board, float height) {
             else { dangerZone = true; }  
          } 
 
-         //tile->chain = false;  //Whenever the board is moving, the combo is over?
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
 
          tile->ypos -= nudge;  
@@ -697,7 +707,6 @@ void boardMoveUp(Board* board, float height) {
       if (board->bust == false) {  //grace period
          board->paused = true;
          board->pauseLength += GRACEPERIOD;
-         board->game->soundToggles[sound_anxiety] = true;
       }
       board->bust = true;
    }
