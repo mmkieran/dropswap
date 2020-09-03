@@ -278,13 +278,13 @@ void boardSwap(Board* board) {
    std::vector <Tile*> tiles;
    //Check if after we swapped them, either tile is falling... these don't get cleared
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
-      tile1->falling = true;
+      //tile1->falling = true;
       tile1->status = status_stop;
       tile1->statusTime = board->game->timer + FALLDELAY;
    }
    else { tiles.push_back(tile2); }
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
-      tile2->falling = true;
+      //tile2->falling = true;
       tile2->status = status_stop;
       tile2->statusTime = board->game->timer + FALLDELAY;
    }
