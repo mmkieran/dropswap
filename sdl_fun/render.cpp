@@ -387,12 +387,12 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
    Mat4x4 mat = identityMatrix();
    if (effect == visual_swapr) {
       Vec2 move = { 0.0f , 0.0f };
-      move.x -= board->tileWidth * (1 - (effectTime - board->game->timer)/ board->game->timer );
+      move.x -= board->tileWidth * (effectTime - board->game->timer)/ SWAPTIME;
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
    else if (effect == visual_swapl) {
       Vec2 move = { 0.0f , 0.0f };
-      move.x += board->tileWidth * (1 - (effectTime - board->game->timer) / board->game->timer);
+      move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
 

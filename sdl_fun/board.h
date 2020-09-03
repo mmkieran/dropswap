@@ -6,6 +6,8 @@
 
 #include <random>
 
+#define SWAPTIME 75
+
 struct Tile;
 struct Cursor;
 
