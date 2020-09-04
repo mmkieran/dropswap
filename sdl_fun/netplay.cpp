@@ -110,7 +110,9 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
 }
 
 void __cdecl ds_free_buffer_callback(void* buffer) {
-   if (buffer) { free(buffer); }
+   if (buffer) { 
+      free(buffer); 
+   }
 }
 
 bool __cdecl ds_on_event_callback(GGPOEvent* info) {
@@ -299,8 +301,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 }
 
 void gameAdvanceFrame(Game* game) {
-   for (int i = 1; i <= vectorSize(game->boards); i++) {  //Check for pauses
-      gameCheckPause(game, game->inputs[i - 1]);
+   for (int i = 0; i < game->boards.size(); i++) {  //Check for pauses
+      gameCheckPause(game, game->inputs[i]);
    }
 
    if (game->paused == false && game->playing == true) {gameUpdate(game); }

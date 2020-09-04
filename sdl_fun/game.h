@@ -67,7 +67,7 @@ struct Game {
    float windowWidth;
    float windowHeight;
 
-   Vector<Board*>* boards = nullptr;
+   std::vector <Board*> boards;
    Resources* resources = nullptr;
 
    std::map <SoundEffect, bool> soundToggles;

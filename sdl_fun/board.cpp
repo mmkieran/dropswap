@@ -324,8 +324,8 @@ void boardSwap(Board* board) {
 //Dumps garbage on the other player depending on chain size
 void boardChainGarbage(Game* game, int player, int chain) {
    Board* board;
-   if (player == 1) { board = vectorGet(game->boards, 2); }
-   else if (player == 2) { board = vectorGet(game->boards, 1); }
+   if (player == 1) { board = game->boards[0]; }
+   else if (player == 2) { board = game->boards[1]; }
 
    int gWidth = 6;
    int gHeight = 0;
@@ -374,10 +374,10 @@ static void _calcComboGarbage(Board* board, int matchSize) {
 //Dumps garbage on the other player depending on match size
 void boardComboGarbage(Game* game, int player, int matchSize) {
    if (player == 1) {
-      _calcComboGarbage(vectorGet(game->boards, 2), matchSize);  //Drop on player 2
+      _calcComboGarbage(game->boards[1], matchSize);  //Drop on player 2
    }
    else if (player == 2) {
-      _calcComboGarbage(vectorGet(game->boards, 1), matchSize);
+      _calcComboGarbage(game->boards[0], matchSize);
    }
 }
 
@@ -388,12 +388,12 @@ static void _silverClear(Game* game, int size, int player) {
 
    int metals = min(size, 7);  
    for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
-      garbageCreate(vectorGet(game->boards, victim), 6, 1, true);
+      garbageCreate(game->boards[victim], 6, 1, true);
    }
 
    if (size > 3) {  //Extra non-metal garbage
       int width = min(size - 1, 6);
-      garbageCreate(vectorGet(game->boards, victim), width, 1);
+      garbageCreate(game->boards[victim], width, 1);
    }
 }
 

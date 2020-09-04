@@ -28,6 +28,8 @@
 #include "netplay.h"
 #include "sounds.h"
 
+#define GAME_COUNTIN 2000
+
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -155,7 +157,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
-   game->boards = vectorCreate<Board*>(4, 10);
    game->seed = 0;  //generate the random seed for the board tiles
 
    game->isRunning = true;
@@ -204,21 +205,32 @@ void gameCheckPause(Game* game, UserInput input) {
 
 //Update the board state for all players
 void gameUpdate(Game* game) {
+
+   //debug for memory leak
+   //std::vector <Byte> stream;
+   //if (game->timer > 3000) {
+   //   stream = gameSave(game);
+   //}
    
-   for (int i = 1; i <= vectorSize(game->boards); i++) {
+   for (int i = 0; i < game->boards.size(); i++) {
+      if (game->boards[i] == nullptr) { continue; }
       if (game->players > 1) {
          //gameCheckPause(game, game->inputs[i - 1]);
          if (SYNC_TEST == false) {
-            boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
+            boardUpdate(game->boards[i], game->inputs[i]);
          }
          else if (SYNC_TEST == true) {
-            boardUpdate(vectorGet(game->boards, i), game->inputs[0]);
+            boardUpdate(game->boards[i], game->inputs[0]);
          }
       }
       else if (game->players == 1) {
-         boardUpdate(vectorGet(game->boards, i), game->p1Input);
+         boardUpdate(game->boards[i], game->p1Input);
       }
    }
+   //if (game->timer > 3000) {
+   //   unsigned char* start = stream.data();
+   //   gameLoad(game, start);
+   //}
 }
 
 //Call the draw function for all the boards
@@ -252,8 +264,7 @@ void gameRender(Game* game) {
 
    //Draw game objects
    if (game->playing == true) {
-      for (int i = 1; i <= vectorSize(game->boards); i++) {
-         Board* board = vectorGet(game->boards, i);
+      for (auto&& board : game->boards) {
          if (board) {
             boardRender(game, board);
          }
@@ -268,16 +279,14 @@ void gameStartMatch(Game* game) {
 
    if (game->players == 1) { game->seed = time(0); }
 
-   for (int i = 1; i <= game->players; i++) {
+   for (int i = 0; i < game->players; i++) {
       Board* board = boardCreate(game);
       board->player = i;  //todo this might not work in terms of player number??
-      vectorPushBack(game->boards, board);
-      board->pauseLength = 2000;
+      board->pauseLength = GAME_COUNTIN;
       board->paused = true;
       boardFillTiles(board);
 
-      //todo add a smarter algorithm to tile boards in screen space if more than 2
-      float xOrigin = game->tWidth * game->bWidth * (i - 1) + game->tWidth * i;
+      float xOrigin = game->tWidth * game->bWidth * i + game->tWidth * (i + 1);
       float yOrigin = game->tHeight;
 
       //todo if we want more than 2 we'll have to use a tiling algorithm
@@ -287,6 +296,7 @@ void gameStartMatch(Game* game) {
       //}
 
       board->origin = { xOrigin, yOrigin };
+      game->boards.push_back(board);
    }
    game->playing = true;
    //game->soundToggles[sound_waltz] = true;
@@ -294,13 +304,12 @@ void gameStartMatch(Game* game) {
 
 //Destroy the boards and set playing to false
 void gameEndMatch(Game* game) {
-   for (int i = 1; i <= vectorSize(game->boards); i++) {
-      Board* board = vectorGet(game->boards, i);
-      if (board) {
-         boardDestroy(board);
-         vectorClear(game->boards);
+   for (int i = 0; i < game->boards.size(); i++) {
+      if (game->boards[i]) {
+         boardDestroy(game->boards[i]);
       }
    }
+   game->boards.clear();
    game->playing = false;
    game->timer = 0;
    soundsStopAll();
@@ -332,8 +341,7 @@ void imguiRender(Game* game) {
 //Jokulhaups
 void gameDestroy(Game* game) {
 
-   for (int i = 1; i <= vectorSize(game->boards); i++) {
-      Board* board = vectorGet(game->boards, i);
+   for (auto&& board : game->boards) {
       if (board) {
          boardDestroy(board);
       }
@@ -343,8 +351,6 @@ void gameDestroy(Game* game) {
       ggpoClose(game->net->ggpo);
       game->net->ggpo = nullptr;
    }
-
-   vectorDestroy(game->boards);
 
    destroyResources(game->resources);
 
@@ -376,8 +382,7 @@ void gameStatsUI(Game* game) {
    if (game->playing == true) {
       ImGui::Begin("Game Stats");
 
-      Board* board = vectorGet(game->boards, 1);
-      boardDebug(board);
+      Board* board = game->boards[0];
       if (board) {
          //int row = cursorGetRow(board);
          //int col = cursorGetCol(board);
@@ -699,18 +704,16 @@ void gameMenuUI(Game* game) {
 
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {
-            for (int i = 1; i <= vectorSize(game->boards); i++) {
-               Board* board = vectorGet(game->boards, i);
-               boardClear(board);
+            for (auto&& board : game->boards) {
+               if (board) { boardClear(board); }
             }
          }
       }
 
       if (ImGui::Button("Make it rain")) {
          if (game->playing == true) {
-            for (int i = 1; i <= vectorSize(game->boards); i++) {
-               Board* board = vectorGet(game->boards, i);
-               makeItRain(board);
+            for (auto&& board : game->boards) {
+               if (board) { makeItRain(board); }
             }
          }
       }
@@ -725,24 +728,24 @@ void gameMenuUI(Game* game) {
 
          if (ImGui::Button("Dumpstered")) {
 
-            for (int i = 1; i <= vectorSize(game->boards); i++) {
-               Board* board = vectorGet(game->boards, i);
-               garbageCreate(board, gWidth, gHeight, isMetal);
+            for (auto&& board : game->boards) {
+               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
             }
          }
       }
 
       if (game->playing == true) {
-         for (int i = 1; i <= vectorSize(game->boards); i++) {
-            Board* board = vectorGet(game->boards, i);
-            float minFallSpeed = 0;
-            float maxFallSpeed = 8.0;
+         for (auto&& board : game->boards) {
+            if (board) {
+               float minFallSpeed = 0;
+               float maxFallSpeed = 8.0;
 
-            ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
+               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
-            float minBoardSpeed = 0;
-            float maxBoardSpeed = 10.0;
-            ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
+               float minBoardSpeed = 0;
+               float maxBoardSpeed = 10.0;
+               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
+            }
          }
       }
    }
@@ -762,8 +765,7 @@ std::vector <Byte> gameSave (Game* game) {
    //serialize game settings
    _gameSerialize(stream, game);
 
-   for (int i = 1; i <= game->players; i++) {
-      Board* board = vectorGet(game->boards, i);
+   for (auto&& board : game->boards) {
       if (board) {
          //serialize board settings
          _boardSerialize(stream, board);
@@ -780,29 +782,25 @@ std::vector <Byte> gameSave (Game* game) {
                }
             }
          }
-
          //serialize cursor
          _cursorSerialize(stream, board->cursor);
-
       }
    }
-
    return stream;
 }
 
 int gameLoad(Game* game, unsigned char* &start) {
 
    //destroy the boards
-   for (int i = 1; i <= vectorSize(game->boards); i++) {
-      Board* board = vectorGet(game->boards, i);
-      boardDestroy(board);
-      vectorClear(game->boards);
+   for (auto&& board : game->boards) {
+      if (board) { boardDestroy(board); }
+      game->boards.clear();
    }
 
    //deserialize game
    _gameDeserialize(start, game);
 
-   for (int i = 1; i <= game->players; i++) {
+   for (int i = 0; i <= game->players; i++) {
       Board* board = nullptr;
       if (game->playing) {
          board = boardCreate(game);
@@ -829,7 +827,7 @@ int gameLoad(Game* game, unsigned char* &start) {
             board->cursor = cursorCreate(board, 0, 0);
             _cursorDeserialize(start, board->cursor);
 
-            vectorPushBack(game->boards, board);
+            game->boards.push_back(board);
          }
       }
 
