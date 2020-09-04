@@ -208,7 +208,12 @@ void gameUpdate(Game* game) {
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       if (game->players > 1) {
          //gameCheckPause(game, game->inputs[i - 1]);
-         boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
+         if (SYNC_TEST == false) {
+            boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
+         }
+         else if (SYNC_TEST == true) {
+            boardUpdate(vectorGet(game->boards, i), game->inputs[0]);
+         }
       }
       else if (game->players == 1) {
          boardUpdate(vectorGet(game->boards, i), game->p1Input);
