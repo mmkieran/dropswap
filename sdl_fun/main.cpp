@@ -56,6 +56,7 @@ int main(int argc, char* args[]) {
          int leftover = (frameDelay - frameTime) / 1000;
          if (leftover > 0) {
             gameGiveIdleToGGPO(game, leftover);
+            game->ggpoTime = leftover;
          }
       }
 

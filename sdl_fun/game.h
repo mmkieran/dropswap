@@ -63,7 +63,6 @@ struct Game {
 
    UserInput p1Input;
    UserInput inputs[GAME_PLAYERS];
-   ButtonHoldCount buttonHolds;
 
    float windowWidth;
    float windowHeight;
@@ -79,8 +78,8 @@ struct Game {
    int tWidth = 64;
    int tHeight = 64;
 
-   int controls = 0;
-   int sounds = 0;
+   int controls = 0;  //Using keyboard or controller
+   int sounds = 0;  //Sound on or off
 
    bool isRunning = false;  //used in main loop
 
@@ -93,6 +92,7 @@ struct Game {
 
    int timer = 0;
    int timeDelta = 0;
+   int ggpoTime = 0;  //debug
 
    KeepTime kt;
 

@@ -6,6 +6,7 @@ typedef unsigned long long uint64_t;
 struct ButtonState {
    bool p = false;  //pressed
    bool h = false;  //held
+   Byte fc = 0;
 };
 
 struct UserInput {

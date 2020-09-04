@@ -4,14 +4,11 @@
 #include <SDL.h>
 #include <map>
 
-struct ControllerState {
-
-};
+#define HOLDTIME 15
 
 struct Controller {
    SDL_GameController* controller = nullptr;
    SDL_Joystick* joystick = nullptr;
-   ControllerState state;
    bool isController = false;
 };
 
@@ -60,52 +57,43 @@ void inputProcessKeyboard(Game* game) {
       &game->p1Input.power
    };
 
-   int* buttonHolds[] = {
-      &game->buttonHolds.left,
-      &game->buttonHolds.right,
-      &game->buttonHolds.up,
-      &game->buttonHolds.down,
-      &game->buttonHolds.nudge,
-      //presses only
-      &game->buttonHolds.swap,
-      &game->buttonHolds.pause,
-      &game->buttonHolds.power
-   };
-
    //Logic for held keys
    for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
-      if (state[ keyList[i] ] == true && *buttonHolds[i] == 0) {  //Button pressed and not held
+      if (state[ keyList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
          buttonList[i]->p = true;
-         *buttonHolds[i] += 1; //increment frame count
+         buttonList[i]->fc += 1; //increment hold count
       }
-      else if (state[keyList[i]] == true && *buttonHolds[i] > 0) {  //Button pressed and held
+      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
          buttonList[i]->p = false;
-         *buttonHolds[i] += 1;
-         if (*buttonHolds[i] > 10) {  //You held it long enough!
+         buttonList[i]->fc += 1;
+         if (buttonList[i]->fc > HOLDTIME) {  //You held it long enough!
             buttonList[i]->p = false;
             buttonList[i]->h = true;
+            buttonList[i]->fc = HOLDTIME;  //keep it maxed at 10
          }
       }
       else {
          buttonList[i]->p = false;
          buttonList[i]->h = false;
-         *buttonHolds[i] = 0;
+         buttonList[i]->fc = 0;
       }
    }
 
    //Logic for pressed keys
    for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
-      if (state[keyList[i]] == true && *buttonHolds[i] == 0) {
+      if (state[keyList[i]] == true && buttonList[i]->fc == 0) {
          buttonList[i]->p = true;
-         *buttonHolds[i] += 1; //increment frame count
+         buttonList[i]->fc += 1; //increment frame count
       }
-      else if (state[keyList[i]] == true && *buttonHolds[i] > 0) {  //holding button does nothing
+      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
          buttonList[i]->p = false;
+         buttonList[i]->fc = 1;
          continue;
       }
       else {
          buttonList[i]->p = false;
-         *buttonHolds[i] = 0;
+         buttonList[i]->h = false;
+         buttonList[i]->fc = 0;
       }
    }
 }
@@ -187,7 +175,7 @@ struct ControllerMap {
 ControllerMap cMap;
 
 void inputProcessController(Game* game) {
-   for (auto&& pair : controllers) {
+   for (auto&& pair : controllers) {  //todo currently last controller wins :(
       SDL_GameController* controller = pair.second.controller;
 
       SDL_GameControllerButton keyList[] = { //maybe make this global?
@@ -214,52 +202,43 @@ void inputProcessController(Game* game) {
          &game->p1Input.power
       };
 
-      int* buttonHolds[] = {
-         &game->buttonHolds.left,
-         &game->buttonHolds.right,
-         &game->buttonHolds.up,
-         &game->buttonHolds.down,
-         &game->buttonHolds.nudge,
-         //presses only
-         &game->buttonHolds.swap,
-         &game->buttonHolds.pause,
-         &game->buttonHolds.power
-      };
-
       //Logic for held keys
       for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
-         if (SDL_GameControllerGetButton(controller, keyList[i]) == true && *buttonHolds[i] == 0) {  //Button pressed and not held
+         if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc == 0) {  //Button pressed and not held
             buttonList[i]->p = true;
-            *buttonHolds[i] += 1; //increment frame count
+            buttonList[i]->fc += 1; //increment frame count
          }
-         else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && *buttonHolds[i] > 0) {  //Button pressed and held
+         else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc > 0) {  //Button pressed and held
             buttonList[i]->p = false;
-            *buttonHolds[i] += 1;
-            if (*buttonHolds[i] > 10) {  //You held it long enough!
+            buttonList[i]->fc += 1;
+            if (buttonList[i]->fc > HOLDTIME) {  //You held it long enough!
                buttonList[i]->p = false;
                buttonList[i]->h = true;
+               buttonList[i]->fc = HOLDTIME;
             }
          }
          else {
             buttonList[i]->p = false;
             buttonList[i]->h = false;
-            *buttonHolds[i] = 0;
+            buttonList[i]->fc = 0;
          }
       }
 
       //Logic for pressed keys
       for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
-         if (SDL_GameControllerGetButton(controller, keyList[i]) == true && *buttonHolds[i] == 0) {
+         if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc == 0) {
             buttonList[i]->p = true;
-            *buttonHolds[i] += 1; //increment frame count
+            buttonList[i]->fc += 1; //increment frame count
          }
-         else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && *buttonHolds[i] > 0) {  //holding button does nothing
+         else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc > 0) {  //holding button does nothing
             buttonList[i]->p = false;
+            buttonList[i]->fc = 1;
             continue;
          }
          else {
             buttonList[i]->p = false;
-            *buttonHolds[i] = 0;
+            buttonList[i]->h = false;
+            buttonList[i]->fc = 0;
          }
       }
    }

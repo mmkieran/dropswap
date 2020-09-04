@@ -385,6 +385,8 @@ void gameStatsUI(Game* game) {
          //ImGui::Text("%d row, %d col", row, col);
          //ImGui::NewLine();
 
+         ImGui::Text("Time for GGPO: %d", game->ggpoTime);
+
          static int lastChain = 0;
          static int chainTime = 0;
          if (board->chain > 1) { 
@@ -397,16 +399,16 @@ void gameStatsUI(Game* game) {
          ImGui::Text("Game Time: %d", game->timer);
       }
 
-      if (ImGui::CollapsingHeader("Tile Status")) {
-         for (int row = board->startH; row < board->endH; row++) {
-            for (int col = 0; col < board->w; col++) {
-               Tile* tile = boardGetTile(board, row, col);
-               ImGui::Text("%d%d", tile->chain, tile->falling);
-               ImGui::SameLine();
-            }
-            ImGui::NewLine();
-         }
-      }
+      //if (ImGui::CollapsingHeader("Tile Status")) {
+      //   for (int row = board->startH; row < board->endH; row++) {
+      //      for (int col = 0; col < board->w; col++) {
+      //         Tile* tile = boardGetTile(board, row, col);
+      //         ImGui::Text("%d%d", tile->chain, tile->falling);
+      //         ImGui::SameLine();
+      //      }
+      //      ImGui::NewLine();
+      //   }
+      //}
 
       ImGui::End();
    }

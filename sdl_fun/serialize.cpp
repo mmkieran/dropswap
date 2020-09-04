@@ -42,7 +42,6 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //writeStream(stream, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   writeStream(stream, game->buttonHolds);
    writeStream(stream, game->bHeight);
    writeStream(stream, game->bWidth);
    writeStream(stream, game->tWidth);
@@ -64,7 +63,6 @@ void _gameDeserialize(Byte* &start, Game* game) {
    //readStream(start, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   readStream(start, game->buttonHolds);
    readStream(start, game->bHeight);
    readStream(start, game->bWidth);
    readStream(start, game->tWidth);
