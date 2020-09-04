@@ -369,20 +369,6 @@ static void meshEffectDarken(Board* board, VisualEffect effect) {
 }
 
 static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
-   //VisualEffect effect = visual_none;
-   //int end = 0;
-   //for (int i = 0; i < board->visualEvents.size(); i++) {
-   //   VisualEvent e = board->visualEvents[i];
-   //   if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
-   //   else if (e.effect == visual_swapl && e.end > board->game->timer) {
-   //      effect = visual_swapl;
-   //      end = e.end;
-   //   }
-   //   else if (e.effect == visual_swapr && e.end > board->game->timer) {
-   //      effect = visual_swapr;
-   //      end = e.end;
-   //   }
-   //}
 
    Mat4x4 mat = identityMatrix();
    if (effect == visual_swapr) {
@@ -395,7 +381,6 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
       move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
       mat = transformMatrix(move, 0.0f, { 1, 1 });
    }
-
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
@@ -426,6 +411,10 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
    
+   if (effect == visual_landing) {
+      scale.y *= 0.95f;
+      dest.y = dest.y + (board->tileHeight * (1 - 0.95f) );
+   }
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    

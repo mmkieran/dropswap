@@ -184,6 +184,14 @@ void boardRender(Game* game, Board* board) {
             }
             tileDraw(board, tile, tile->effect, tile->effectTime);
          }
+         //else if (tile->effect == visual_landing) {
+         //   if (tile->effectTime <= board->game->timer) {
+         //      tile->effect = visual_none;
+         //      tile->effectTime = 0;
+         //   }
+         //   tileDraw(board, tile);
+         //   tileDraw(board, tile, tile->effect, tile->effectTime);
+         //}
          else { tileDraw(board, tile); }
       }
    }
@@ -543,6 +551,9 @@ void boardFall(Board* board, float velocity) {
                tilesToCheck.push_back(tile); 
                tile->falling = false;
                board->game->soundToggles[sound_land] = true;
+
+               tile->effect = visual_landing;  //Visual interpolation for swapping left
+               tile->effectTime = board->game->timer + 500;
             }
          }
          else if (potentialDrop == 0) {
@@ -550,6 +561,9 @@ void boardFall(Board* board, float velocity) {
                 tilesToCheck.push_back(tile);
                tile->falling = false;
                board->game->soundToggles[sound_land] = true;
+
+               tile->effect = visual_landing;  //Visual interpolation for swapping left
+               tile->effectTime = board->game->timer + 500;
             }
             else if (tile->falling == true && below->falling == true) {
                tile->falling = true;
@@ -565,7 +579,9 @@ void boardFall(Board* board, float velocity) {
                tile->falling = false;
                tilesToCheck.push_back(tile);
                board->game->soundToggles[sound_land] = true;
-               //todo ANIMATION - landing animation
+               
+               tile->effect = visual_landing;  //Visual interpolation for swapping left
+               tile->effectTime = board->game->timer + 500;
             }
             else {  //It's still falling because the tile below is still falling
                tile->falling = true;
