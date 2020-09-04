@@ -207,7 +207,7 @@ void gameUpdate(Game* game) {
    
    for (int i = 1; i <= vectorSize(game->boards); i++) {
       if (game->players > 1) {
-         gameCheckPause(game, game->inputs[i - 1]);
+         //gameCheckPause(game, game->inputs[i - 1]);
          boardUpdate(vectorGet(game->boards, i), game->inputs[i - 1]);
       }
       else if (game->players == 1) {
@@ -386,6 +386,7 @@ void gameStatsUI(Game* game) {
          //ImGui::NewLine();
 
          ImGui::Text("Time for GGPO: %d", game->ggpoTime);
+         //ImGui::Text("Checksum: %d", game->checksum);
 
          static int lastChain = 0;
          static int chainTime = 0;

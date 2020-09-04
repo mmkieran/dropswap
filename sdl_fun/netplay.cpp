@@ -101,6 +101,7 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    if (buffer) {
       memcpy(*buffer, stream.data(), *len);
       *checksum = fletcher32_checksum((short*)*buffer, *len / 2);
+      game->checksum = *checksum;
 
       return true;
    }
@@ -149,6 +150,13 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
 }
 
 bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
+
+   FILE* log = nullptr;
+   fopen_s(&log, filename, "w");
+   if (log) {
+      fprintf(log, "Current Game State\n");
+   }
+   fclose(log);
 
    //Game* game = new Game;
    //if (game) {

@@ -160,9 +160,8 @@
       <AdditionalLibraryDirectories>$(TargetDir);$(SolutionDir)Depends\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
-copy $(SolutionDir)Depends\SDL2_image\lib\x64\*.dll $(TargetDir) /Y 
-copy $(SolutionDir)Depends\SDL2_ttf\lib\x64\*.dll $(TargetDir) /Y </Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

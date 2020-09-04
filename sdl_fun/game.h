@@ -94,6 +94,8 @@ struct Game {
    int timeDelta = 0;
    int ggpoTime = 0;  //debug
 
+   int checksum = 0;
+
    KeepTime kt;
 
    uint64_t seed = 0;  //used for random number generation

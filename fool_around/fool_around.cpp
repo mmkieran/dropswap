@@ -8,22 +8,34 @@
 #include <iostream>
 #include "sdl_fun/myvector.h"
 
-#include "soloud/soloud.h"
-#include "soloud/soloud_wav.h"
+typedef unsigned char Byte;
+
+struct ButtonState {
+   bool p = false;  //pressed
+   bool h = false;  //held
+   Byte fc = 0;
+};
+
+struct UserInput {
+   ButtonState left;
+   ButtonState right;
+   ButtonState up;
+   ButtonState down;
+
+   ButtonState nudge;
+   ButtonState pause;
+   ButtonState swap;
+
+   ButtonState power;
+
+   //int msg = 0;
+   int timer = 0;
+};
 
 int main(int argc, char* args[])
 {
 
-   //SoLoud::Soloud gSoloud;
-   //SoLoud::Wav gWave;
-
-   //gSoloud.init();
-
-   //gWave.load("Alarm05.wav");
-
-   //int soundHandle = gSoloud.play(gWave);
-
-   //gSoloud.deinit();
+   printf("Size of inputs: %d", sizeof(UserInput));
 
    return 0;
 }
