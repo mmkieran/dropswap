@@ -131,6 +131,14 @@ void rendererSetScissor(int x, int y, int width, int height) {
    glScissor(x, y, width, height);
 }
 
+void rendererEnableScissor() {
+   glEnable(GL_SCISSOR_TEST);
+}
+
+void rendererDisableScissor() {
+   glDisable(GL_SCISSOR_TEST);
+}
+
 GLuint shaderCreate(ShaderStage shaderStage) {
    GLuint shader;
    if (shaderStage == vertex_shader) {

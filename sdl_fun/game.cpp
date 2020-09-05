@@ -328,8 +328,10 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   //rendererSetScissor(0, 0, width - 600, height - 128);  //todo look at scissoring
+   //rendererEnableScissor();
+   //rendererSetScissor(0, 600, width, height);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
+   //rendererDisableScissor();
 
    ImGui::Render();
 
