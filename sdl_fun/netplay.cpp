@@ -101,7 +101,6 @@ bool __cdecl ds_save_game_callback(unsigned char** buffer, int* len, int* checks
    if (buffer) {
       memcpy(*buffer, stream.data(), *len);
       *checksum = fletcher32_checksum((short*)*buffer, *len / 2);
-      game->checksum = *checksum;
 
       return true;
    }

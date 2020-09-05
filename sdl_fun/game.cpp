@@ -12,9 +12,6 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "soloud/soloud.h"
-#include "soloud/soloud_wav.h"
-
 #include "game.h"
 #include "board.h"
 #include "resources.h"
@@ -206,8 +203,8 @@ void gameCheckPause(Game* game, UserInput input) {
 //Update the board state for all players
 void gameUpdate(Game* game) {
 
-   //debug for memory leak
-   //std::vector <Byte> stream;
+
+   //std::vector <Byte> stream;  //debug for memory leak
    //if (game->timer > 3000) {
    //   stream = gameSave(game);
    //}
@@ -227,7 +224,7 @@ void gameUpdate(Game* game) {
          boardUpdate(game->boards[i], game->p1Input);
       }
    }
-   //if (game->timer > 3000) {
+   //if (game->timer > 3000) {  //debug for memory leak
    //   unsigned char* start = stream.data();
    //   gameLoad(game, start);
    //}
@@ -824,7 +821,6 @@ int gameLoad(Game* game, unsigned char* &start) {
             }
 
             //deserialize cursor
-            board->cursor = cursorCreate(board, 0, 0);
             _cursorDeserialize(start, board->cursor);
 
             game->boards.push_back(board);

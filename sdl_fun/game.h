@@ -6,7 +6,6 @@
 */
 
 #include "mymath.h"
-#include "myvector.h"
 #include "game_inputs.h"
 
 #include <stdint.h>
@@ -93,8 +92,6 @@ struct Game {
    int timer = 0;
    int timeDelta = 0;
    int ggpoTime = 0;  //debug
-
-   int checksum = 0;
 
    KeepTime kt;
 
