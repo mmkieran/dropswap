@@ -108,6 +108,7 @@ void textureAttach(Mesh* mesh);
 void textureChangeInterp(Mesh* mesh, bool nearest);
 void textureParams(Texture* texture, TextureWrap wrap);
 void textureDestroy(Texture* texture);
+
 Texture* textureLoadFromFile(const char* filename);
 int meshGetTextureHandle(Mesh* mesh);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);

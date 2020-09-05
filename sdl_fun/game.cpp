@@ -794,8 +794,8 @@ int gameLoad(Game* game, unsigned char* &start) {
    //destroy the boards
    for (auto&& board : game->boards) {
       if (board) { boardDestroy(board); }
-      game->boards.clear();
    }
+   game->boards.clear();
 
    //deserialize game
    _gameDeserialize(start, game);

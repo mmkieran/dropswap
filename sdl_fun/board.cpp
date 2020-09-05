@@ -102,6 +102,7 @@ Board* boardDestroy(Board* board) {
       }
       board->pile = garbagePileDestroy(board->pile);
       board->cursor = cursorDestroy(board->cursor);
+      board->frame = meshDestroy(board->frame);
       free(board->tiles);
       delete board;
    }
