@@ -278,22 +278,24 @@ void gameStartMatch(Game* game) {
 
    for (int i = 0; i < game->players; i++) {
       Board* board = boardCreate(game);
-      board->player = i + 1;  //todo this might not work in terms of player number??
-      board->pauseLength = GAME_COUNTIN;
-      board->paused = true;
-      boardFillTiles(board);
+      if (board) {
+         board->player = i + 1;  //todo this might not work in terms of player number??
+         board->pauseLength = GAME_COUNTIN;
+         board->paused = true;
+         boardFillTiles(board);
 
-      float xOrigin = game->tWidth * game->bWidth * i + game->tWidth * (i + 1);
-      float yOrigin = game->tHeight;
+         float xOrigin = game->tWidth * game->bWidth * i + game->tWidth * (i + 1);
+         float yOrigin = game->tHeight;
 
-      //todo if we want more than 2 we'll have to use a tiling algorithm
-      //if (i > 2) {
-      //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
-      //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
-      //}
+         //todo if we want more than 2 we'll have to use a tiling algorithm
+         //if (i > 2) {
+         //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
+         //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
+         //}
 
-      board->origin = { xOrigin, yOrigin };
-      game->boards.push_back(board);
+         board->origin = { xOrigin, yOrigin };
+         game->boards.push_back(board);
+      }
    }
    game->playing = true;
    //game->soundToggles[sound_waltz] = true;
@@ -339,9 +341,7 @@ void imguiRender(Game* game) {
 void gameDestroy(Game* game) {
 
    for (auto&& board : game->boards) {
-      if (board) {
-         boardDestroy(board);
-      }
+      if (board) { boardDestroy(board); }
    }
 
    if (game->net && game->net->ggpo) {
@@ -742,6 +742,10 @@ void gameMenuUI(Game* game) {
                float minBoardSpeed = 0;
                float maxBoardSpeed = 10.0;
                ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
+
+               float minBoardLevel = 0;
+               float maxBoardLevel = 10.0;
+               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
             }
          }
       }

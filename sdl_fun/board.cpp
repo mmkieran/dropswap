@@ -12,6 +12,7 @@
 #define CLEARTIME 2000
 #define ENTERSILVERS 30000
 #define STARTTIMER 2000
+#define LEVELUP 10
 //#define SWAPTIME 100
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
@@ -327,11 +328,13 @@ void boardChainGarbage(Game* game, int player, int chain) {
    if (player == 1) { board = game->boards[1]; }
    else if (player == 2) { board = game->boards[0]; }
 
-   int gWidth = 6;
-   int gHeight = 0;
-   if (chain - 1 > 12) { gHeight = 12; }
-   else { gHeight = chain - 1; }
-   if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
+   if (board) {
+      int gWidth = 6;
+      int gHeight = 0;
+      if (chain - 1 > 12) { gHeight = 12; }
+      else { gHeight = chain - 1; }
+      if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
+   }
 }
 
 //Calculates the size of the combo garbage to drop
@@ -373,27 +376,35 @@ static void _calcComboGarbage(Board* board, int matchSize) {
 
 //Dumps garbage on the other player depending on match size
 void boardComboGarbage(Game* game, int player, int matchSize) {
-   if (player == 1) {
-      _calcComboGarbage(game->boards[1], matchSize);  //Drop on player 2
-   }
-   else if (player == 2) {
-      _calcComboGarbage(game->boards[0], matchSize);
+   Board* board;
+   if (player == 1) { board = game->boards[1]; }
+   else if (player == 2) { board = game->boards[0]; }
+
+   if (board) {
+      if (player == 1) {
+         _calcComboGarbage(board, matchSize);  //Drop on player 2
+      }
+      else if (player == 2) {
+         _calcComboGarbage(board, matchSize);
+      }
    }
 }
 
 static void _silverClear(Game* game, int size, int player) {
-   int victim = 0;
-   if (player == 1) { victim = 2; }
-   else { victim = 1; }
+   Board* board;
+   if (player == 1) { board = game->boards[1]; }
+   else if (player == 2) { board = game->boards[0]; }
 
-   int metals = min(size, 7);  
-   for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
-      garbageCreate(game->boards[victim - 1], 6, 1, true);
-   }
+   if (board) {
+      int metals = min(size, 7);
+      for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
+         garbageCreate(board, 6, 1, true);
+      }
 
-   if (size > 3) {  //Extra non-metal garbage
-      int width = min(size - 1, 6);
-      garbageCreate(game->boards[victim - 1], width, 1);
+      if (size > 3) {  //Extra non-metal garbage
+         int width = min(size - 1, 6);
+         garbageCreate(board, width, 1);
+      }
    }
 }
 
@@ -491,6 +502,9 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       if (board->chain == 1) { 
          _calcComboPause(board, uniqueMatches.size());   //Find out how long to stop the board
          board->game->soundToggles[sound_clear] = true; 
+      }
+      if (board->level < 8) {  //todo turn this on when you're ready
+         //board->level += (float) uniqueMatches.size() / 100.0f;  //The more you clear, the faster you go
       }
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
