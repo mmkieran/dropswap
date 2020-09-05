@@ -154,6 +154,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
+   game->fbo = rendererCreateFBO(game);  //Create Framebuffer Object
+
    game->seed = 0;  //generate the random seed for the board tiles
 
    game->isRunning = true;
@@ -328,10 +330,12 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
+   rendererEnableFBO(game->fbo);
    //rendererEnableScissor();
    //rendererSetScissor(0, 600, width, height);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
    //rendererDisableScissor();
+   rendererDisableFBO();
 
    ImGui::Render();
 
@@ -355,6 +359,7 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
+   rendererDestroyFBO(game->fbo);
    soundsDestroy();
 
    //imgui stuff to shutdown

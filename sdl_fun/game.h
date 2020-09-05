@@ -20,6 +20,7 @@ typedef struct Board Board;
 typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
 typedef unsigned char Byte;
+typedef struct FBO FBO;
 
 struct GameWindow;
 
@@ -58,6 +59,8 @@ struct KeepTime {
 struct Game {
 
    GameWindow* sdl = nullptr;
+   FBO* fbo = nullptr;
+
    NetPlay* net;
 
    UserInput p1Input;

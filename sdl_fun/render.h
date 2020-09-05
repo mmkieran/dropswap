@@ -34,6 +34,7 @@ enum TextureEnum {
 
 struct Mesh;
 struct Texture;
+struct FBO;
 //struct Animation;
 //struct Graphic;
 
@@ -128,3 +129,8 @@ void rendererSetScissor(int x, int y, int width, int height);
 void rendererEnableScissor();
 void rendererDisableScissor();
 void rendererClear(float r, float g, float b, float a);
+
+FBO* rendererCreateFBO(Game* game);
+int rendererDestroyFBO(FBO* fbo);
+void rendererEnableFBO(FBO* fbo);
+void rendererDisableFBO();
