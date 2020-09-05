@@ -138,6 +138,7 @@ void garbageDeploy(Board* board) {
 //Frees the memory of a pointer to a piece of Garbage
 Garbage* garbageDestroy(Garbage* garbage) {
    if (garbage) {
+      if (garbage->mesh) { meshDestroy(garbage->mesh); }
       delete garbage;
    }
    return nullptr;

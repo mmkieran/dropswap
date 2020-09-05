@@ -278,7 +278,7 @@ void gameStartMatch(Game* game) {
 
    for (int i = 0; i < game->players; i++) {
       Board* board = boardCreate(game);
-      board->player = i;  //todo this might not work in terms of player number??
+      board->player = i + 1;  //todo this might not work in terms of player number??
       board->pauseLength = GAME_COUNTIN;
       board->paused = true;
       boardFillTiles(board);
@@ -407,16 +407,16 @@ void gameStatsUI(Game* game) {
          ImGui::Text("Game Time: %d", game->timer);
       }
 
-      //if (ImGui::CollapsingHeader("Tile Status")) {
-      //   for (int row = board->startH; row < board->endH; row++) {
-      //      for (int col = 0; col < board->w; col++) {
-      //         Tile* tile = boardGetTile(board, row, col);
-      //         ImGui::Text("%d%d", tile->chain, tile->falling);
-      //         ImGui::SameLine();
-      //      }
-      //      ImGui::NewLine();
-      //   }
-      //}
+      if (ImGui::CollapsingHeader("Tile Status")) {
+         for (int row = board->startH; row < board->endH; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               ImGui::Text("%d%d", tile->chain, tile->falling);
+               ImGui::SameLine();
+            }
+            ImGui::NewLine();
+         }
+      }
 
       ImGui::End();
    }
