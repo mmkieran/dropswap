@@ -800,7 +800,7 @@ int gameLoad(Game* game, unsigned char* &start) {
    //deserialize game
    _gameDeserialize(start, game);
 
-   for (int i = 0; i <= game->players; i++) {
+   for (int i = 0; i < game->players; i++) {
       Board* board = nullptr;
       if (game->playing) {
          board = boardCreate(game);
