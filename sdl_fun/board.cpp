@@ -324,8 +324,8 @@ void boardSwap(Board* board) {
 //Dumps garbage on the other player depending on chain size
 void boardChainGarbage(Game* game, int player, int chain) {
    Board* board;
-   if (player == 1) { board = game->boards[0]; }
-   else if (player == 2) { board = game->boards[1]; }
+   if (player == 1) { board = game->boards[1]; }
+   else if (player == 2) { board = game->boards[0]; }
 
    int gWidth = 6;
    int gHeight = 0;
@@ -388,12 +388,12 @@ static void _silverClear(Game* game, int size, int player) {
 
    int metals = min(size, 7);  
    for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
-      garbageCreate(game->boards[victim], 6, 1, true);
+      garbageCreate(game->boards[victim - 1], 6, 1, true);
    }
 
    if (size > 3) {  //Extra non-metal garbage
       int width = min(size - 1, 6);
-      garbageCreate(game->boards[victim], width, 1);
+      garbageCreate(game->boards[victim - 1], width, 1);
    }
 }
 
