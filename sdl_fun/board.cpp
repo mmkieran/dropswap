@@ -174,8 +174,7 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         //if (tile->mesh->texture == nullptr || tile->type == tile_garbage) { 
-         if (meshGetTexture(tile->mesh) == Texture_empty) {  //debug for garbage
+         if (meshGetTexture(tile->mesh) == Texture_empty) {  
             continue; 
          }
          if (tile->effect == visual_swapl || tile->effect == visual_swapr) {
