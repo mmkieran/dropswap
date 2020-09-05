@@ -79,6 +79,13 @@ struct VisualEvent {
    uint64_t end = 0;
 };
 
+struct FBO {  //Frame Buffer Object
+   GLuint handle;
+   GLuint texture;
+   float w = 0;
+   float h = 0;
+};
+
 int openglContext();
 
 GLuint vaoCreate();

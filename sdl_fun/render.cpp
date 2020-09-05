@@ -628,13 +628,6 @@ void rendererCopyTo(Mesh* mesh) {
 
 }
 
-struct FBO {  //Frame Buffer Object
-   GLuint handle;
-   GLuint texture;
-   int w = 0;
-   int h = 0;
-};
-
 FBO* rendererCreateFBO(Game* game) {
    FBO* fbo = new FBO;
    if (fbo) {
@@ -692,8 +685,8 @@ int rendererDestroyFBO(FBO* fbo) {
 }
 
 void rendererEnableFBO(FBO* fbo) {
-   rendererClear(0, 0, 0, 0);
-   glBindFramebuffer(1, fbo->handle); //Enable our special FBO
+   rendererClear(0.0, 0.0, 0.0, 0.0);
+   glBindFramebuffer(GL_FRAMEBUFFER, fbo->handle); //Enable our special FBO
 
 }
 

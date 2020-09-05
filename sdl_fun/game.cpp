@@ -415,16 +415,18 @@ void gameStatsUI(Game* game) {
          ImGui::Text("Game Time: %d", game->timer);
       }
 
-      if (ImGui::CollapsingHeader("Tile Status")) {
-         for (int row = board->startH; row < board->endH; row++) {
-            for (int col = 0; col < board->w; col++) {
-               Tile* tile = boardGetTile(board, row, col);
-               ImGui::Text("%d%d", tile->chain, tile->falling);
-               ImGui::SameLine();
-            }
-            ImGui::NewLine();
-         }
-      }
+      ImGui::Image((void*)(intptr_t)game->fbo->texture, { game->fbo->w, game->fbo->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+   //   if (ImGui::CollapsingHeader("Tile Status")) {
+   //      for (int row = board->startH; row < board->endH; row++) {
+   //         for (int col = 0; col < board->w; col++) {
+   //            Tile* tile = boardGetTile(board, row, col);
+   //            ImGui::Text("%d%d", tile->chain, tile->falling);
+   //            ImGui::SameLine();
+   //         }
+   //         ImGui::NewLine();
+   //      }
+   //   }
 
       ImGui::End();
    }
