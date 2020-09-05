@@ -627,3 +627,43 @@ void rendererCopyTo(Mesh* mesh) {
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
 }
+
+void frameBuffer(Game* game) {
+   GLuint fbo;
+   glGenFramebuffers(1, &fbo);
+
+   //Render to texture attachment
+   GLuint tex;
+   glGenTextures(1, &tex);  //create a texture object
+   glBindTexture(GL_TEXTURE_2D, tex);  //and in the darkness bind it
+   if (!tex) {
+      printf("Couldn't create texture?");
+   }
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  //textures repeat on S axis
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  //Repeat on T axis
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  //Linear interpolation instead of nearest pixel when magnify (blurs)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  //same for shrink
+
+   int internalFormat = GL_RGBA8;  //RGBA with one byte per component?
+   int colorFormat = GL_RGBA;
+
+   //type of texture, pixel components, width, height, pixel stuff, type of data, raw bytes
+   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, game->windowWidth, game->windowHeight, 0, colorFormat, GL_UNSIGNED_BYTE, NULL);
+   glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
+
+   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+   //Attach texture as a color attachment to frame buffer
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+
+   //Check if the buffer is complete
+   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+      printf("Not a valid frame buffer");
+   }
+
+   glBindFramebuffer(GL_FRAMEBUFFER, 0);  //Set back to default Frame Buffer
+   
+   //glDeleteFramebuffers(1, &fbo); //Delete it when we're done
+}
