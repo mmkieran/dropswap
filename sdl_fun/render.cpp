@@ -685,13 +685,12 @@ int rendererDestroyFBO(FBO* fbo) {
 }
 
 void rendererEnableFBO(FBO* fbo) {
-   rendererClear(0.0, 0.0, 0.0, 0.0);
    glBindFramebuffer(GL_FRAMEBUFFER, fbo->handle); //Enable our special FBO
+   rendererClear(0.0, 0.0, 0.0, 0.0);
 
 }
 
 void rendererDisableFBO() {
-
    glBindFramebuffer(GL_FRAMEBUFFER, 0);  //Set back to default Frame Buffer
 
 }
