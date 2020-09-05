@@ -232,7 +232,7 @@ void gameUpdate(Game* game) {
 
 //Call the draw function for all the boards
 void gameRender(Game* game) {
-   //Remember that this has to happen after gameRender, or the clear will remove everything...
+   //Remember that this has to happen after ImGui, or the clear will remove everything...
 
    //Play sounds here because of GGPO
    static bool silence = false;
@@ -328,6 +328,7 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
+   //rendererSetScissor(0, 0, width - 600, height - 128);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
 
    ImGui::Render();

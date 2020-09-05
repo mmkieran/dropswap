@@ -124,4 +124,5 @@ void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, 
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);
+void rendererSetScissor(int x, int y, int width, int height);
 void rendererClear(float r, float g, float b, float a);

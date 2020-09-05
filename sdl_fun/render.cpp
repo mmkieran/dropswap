@@ -115,6 +115,7 @@ GLuint vaoCreate() {
    //todo Why does it only work when I put this here?
    glDisable(GL_DEPTH_TEST);
    glEnable(GL_BLEND);  //for images with alpha values
+   glEnable(GL_SCISSOR_TEST);  //For clipping stuff out of a bounding box
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  //setup blending function
 
    return vao;
@@ -124,6 +125,10 @@ void vaoDestroy(GLuint vao) {
    if (vao != 0) {
       glDeleteVertexArrays(1, &vao);
    }
+}
+
+void rendererSetScissor(int x, int y, int width, int height) {
+   glScissor(x, y, width, height);
 }
 
 GLuint shaderCreate(ShaderStage shaderStage) {
