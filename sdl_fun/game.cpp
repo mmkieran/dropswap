@@ -336,17 +336,15 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
 
-   //rendererEnableFBO(game->fbo);
    //rendererEnableScissor();
    //rendererSetScissor(0, 600, width, height);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
    //rendererDisableScissor();
-   //rendererDisableFBO();
 
-   rendererSetTarget(0, 0, width, height);
    rendererClear(0.0, 0.0, 0.0, 0.0);
+   rendererSetTarget(0, 0, width, height);
 
-   gameStatsUI(game);  
+   boardUI(game);  
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -393,47 +391,44 @@ bool gameRunning(Game* game) {
    return game->isRunning;
 }
 
-void gameStatsUI(Game* game) {
+void boardUI(Game* game) {
    if (game->playing == true) {
-      ImGui::Begin("Game Stats");
+      ImGui::Begin("Drop and Swap");
 
       Board* board = game->boards[0];
-      if (board) {
-         ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, 0}, true, 0);
-         ImGui::Text("Time for GGPO: %d", game->ggpoTime);
-         //ImGui::Text("Checksum: %d", game->checksum);
 
-         static int lastChain = 0;
-         static int chainTime = 0;
-         if (board->chain > 1) { 
-            lastChain = board->chain; 
-            chainTime = game->timer;
-         }
-         ImGui::Text("%d chain", board->chain);
-         ImGui::Text("Last chain: %d", lastChain);
-         ImGui::Text("Pause Time: %d", board->pauseLength);
-         ImGui::Text("Game Time: %d", game->timer);
-         ImGui::EndChild();
-      }
       for (int i = 0; i < game->players; i++) {
+         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
          char playerName[20] = "Player";
          sprintf(playerName, "Player %d", i);
          ImGui::SameLine();
-         ImGui::BeginChild(playerName, ImVec2{ (float) game->tWidth * (game->bWidth + 1), (float) game->tHeight * (game->bHeight) }, true, 0);
+         ImGui::BeginChild(playerName, ImVec2{ (float) game->tWidth * (game->bWidth), (float) game->tHeight * (game->bHeight) }, true, 0);
          ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
          ImGui::EndChild();
-      }
 
-   //   if (ImGui::CollapsingHeader("Tile Status")) {
-   //      for (int row = board->startH; row < board->endH; row++) {
-   //         for (int col = 0; col < board->w; col++) {
-   //            Tile* tile = boardGetTile(board, row, col);
-   //            ImGui::Text("%d%d", tile->chain, tile->falling);
-   //            ImGui::SameLine();
-   //         }
-   //         ImGui::NewLine();
-   //      }
-   //   }
+         ImGui::PopStyleVar();
+
+         if (i == 0) {
+            if (board) {
+               ImGui::SameLine();
+               ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
+               ImGui::Text("Time for GGPO: %d", game->ggpoTime);
+
+               static int lastChain = 0;
+               static int chainTime = 0;
+               if (board->chain > 1) {
+                  lastChain = board->chain;
+                  chainTime = game->timer;
+               }
+               ImGui::Text("%d chain", board->chain);
+               ImGui::Text("Last chain: %d", lastChain);
+               ImGui::Text("Pause Time: %d", board->pauseLength);
+               ImGui::Text("Game Time: %d", game->timer);
+               ImGui::EndChild();
+            }
+         }
+      }
 
       ImGui::End();
    }

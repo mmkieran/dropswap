@@ -120,7 +120,7 @@ void imguiShowDemo();
 void imguiRender(Game* game);
 
 void gameMenuUI(Game* game);
-void gameStatsUI(Game* game);
+void boardUI(Game* game);
 
 int gameLoad(Game* game, unsigned char*& start);
 std::vector <Byte> gameSave(Game* game);
