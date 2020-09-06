@@ -181,6 +181,7 @@ void boardRender(Game* game, Board* board) {
             }
             tileDraw(board, tile, tile->effect, tile->effectTime);
          }
+
          //else if (tile->effect == visual_landing) {
          //   if (tile->effectTime <= board->game->timer) {
          //      tile->effect = visual_none;
@@ -697,7 +698,7 @@ void boardRemoveClears(Board* board) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
       if (board->chain > 1) { 
-         board->pauseLength += min((board->chain - 1) * 1000, 10000); 
+         board->pauseLength += min((board->chain - 1) * 1000, 8000); 
          board->paused = true;
       }  //Pause board after chain
       board->chain = 1; 

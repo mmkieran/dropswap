@@ -16,7 +16,6 @@ struct Garbage {
    int layers;
 
    Tile* start = nullptr;  //bot left of garbage
-   Mesh* mesh = nullptr;
 
    bool deployed = false;
    uint64_t deployTime = 0;
@@ -29,6 +28,7 @@ struct Garbage {
 struct GarbagePile {
    std::map <int, Garbage*> garbage;
    int nextID = 0;
+   Mesh* mesh = nullptr;
 };
 
 GarbagePile* garbagePileCreate();

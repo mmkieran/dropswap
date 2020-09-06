@@ -207,17 +207,11 @@ void gameCheckPause(Game* game, UserInput input) {
 
 //Update the board state for all players
 void gameUpdate(Game* game) {
-
-
-   //std::vector <Byte> stream;  //debug for memory leak
-   //if (game->timer > 3000) {
-   //   stream = gameSave(game);
-   //}
    
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i] == nullptr) { continue; }
       if (game->players > 1) {
-         //gameCheckPause(game, game->inputs[i - 1]);
+
          if (SYNC_TEST == false) {
             boardUpdate(game->boards[i], game->inputs[i]);
          }
@@ -229,10 +223,6 @@ void gameUpdate(Game* game) {
          boardUpdate(game->boards[i], game->p1Input);
       }
    }
-   //if (game->timer > 3000) {  //debug for memory leak
-   //   unsigned char* start = stream.data();
-   //   gameLoad(game, start);
-   //}
 }
 
 //Call the draw function for all the boards
@@ -828,7 +818,7 @@ int gameLoad(Game* game, unsigned char* &start) {
                for (int col = 0; col < board->w; col++) {
                   Tile* tile = boardGetTile(board, row, col);
                   //deserialize tiles
-                  tile->mesh = meshCreate(board->game);
+                  tile->mesh = meshCreate();
                   tile->garbage = nullptr;
                   _tileDeserialize(start, board, tile);
                   tileSetTexture(board, tile);

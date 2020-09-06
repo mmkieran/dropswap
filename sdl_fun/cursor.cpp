@@ -10,7 +10,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos) {
    cursor->x = xpos;
    cursor->y = ypos;
 
-   cursor->mesh = meshCreate(board->game);
+   cursor->mesh = meshCreate();
    meshSetTexture(board->game, cursor->mesh, Texture_cursor);
    textureChangeInterp(cursor->mesh, true);  //Changes Linear interpolation of the texture to Nearest
 

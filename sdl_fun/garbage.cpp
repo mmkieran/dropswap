@@ -20,6 +20,7 @@ GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
    pile = new GarbagePile;
    if (pile) {
+      pile->mesh = meshCreate();
       return pile;
    }
    return nullptr;
@@ -41,10 +42,6 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
 //Allocate memory for a piece of garbage and create a mesh... for serializing
 Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
-
-   garbage->mesh = meshCreate(board->game);
-   meshSetTexture(board->game, garbage->mesh, Texture_garbage);
-   //textureParams(garbage->mesh->texture, mirror);  //todo redo texture parameters
 
    return garbage;
 }
@@ -138,7 +135,6 @@ void garbageDeploy(Board* board) {
 //Frees the memory of a pointer to a piece of Garbage
 Garbage* garbageDestroy(Garbage* garbage) {
    if (garbage) {
-      if (garbage->mesh) { meshDestroy(garbage->mesh); }
       delete garbage;
    }
    return nullptr;

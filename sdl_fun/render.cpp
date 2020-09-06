@@ -327,7 +327,7 @@ Texture* textureLoadFromFile(const char* filename) {
    return texture;
 }
 
-Mesh* meshCreate(Game* game) {
+Mesh* meshCreate() {
 
    Mesh* mesh = new Mesh;
 
@@ -375,7 +375,7 @@ static void meshEffectDarken(Board* board, VisualEffect effect) {
 
    if (effect == visual_dark) {
       for (int i = 0; i < 4; i++) {
-         vec4[i] = 0.5;
+         vec4[i] = 0.8;
       }
    }
    shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);

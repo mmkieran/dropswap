@@ -121,7 +121,7 @@ Texture* textureLoadFromFile(const char* filename);
 int meshGetTextureHandle(Mesh* mesh);
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
 
-Mesh* meshCreate(Game* game);
+Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
 void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
 TextureEnum meshGetTexture(Mesh* mesh);

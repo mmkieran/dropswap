@@ -60,7 +60,7 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
    tile->ypos = (row - board->startH) * board->tileHeight;
 
    if (firstTime == true) {
-      tile->mesh = meshCreate(board->game);
+      tile->mesh = meshCreate();
    }
 
    tile->idGarbage = -1;
