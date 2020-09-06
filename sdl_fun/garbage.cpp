@@ -34,6 +34,7 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
             garbageDestroy(pair.second);
          }
       }
+      if (pile->mesh) { meshDestroy(pile->mesh); }
       delete pile;
    }
    return nullptr;

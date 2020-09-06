@@ -55,7 +55,7 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //if (game->players == 1) {
    //   writeStream(stream, game->timer);   //Don't serialize for 2p! We are sending as input...
    //}
-   //writeStream(stream, game->timeDelta);
+   writeStream(stream, game->timeDelta);
    writeStream(stream, game->seed);
 }
 
@@ -78,7 +78,7 @@ void _gameDeserialize(Byte* &start, Game* game) {
    //if (game->players == 1) {
    //   readStream(start, game->timer);
    //}
-   //readStream(start, game->timeDelta);
+   readStream(start, game->timeDelta);
    readStream(start, game->seed);
 }
 
@@ -191,10 +191,10 @@ void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
 void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
-   writeStream(stream, tile->type);
+   //writeStream(stream, tile->type);
    writeStream(stream, tile->xpos);
    writeStream(stream, tile->ypos);
-   writeStream(stream, tile->status);
+   //writeStream(stream, tile->status);
    //   Mesh* mesh;
    writeStream(stream, tile->falling);
    writeStream(stream, tile->clearTime);
@@ -208,10 +208,10 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
 void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
-   readStream(start, tile->type);
+   //readStream(start, tile->type);
    readStream(start, tile->xpos);
    readStream(start, tile->ypos);
-   readStream(start, tile->status);
+   //readStream(start, tile->status);
    //   Mesh* mesh;
    readStream(start, tile->falling);
    readStream(start, tile->clearTime);
