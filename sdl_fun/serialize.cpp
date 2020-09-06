@@ -90,7 +90,6 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->tileWidth);
    writeStream(stream, board->tileHeight);
    writeStream(stream, board->offset);
-   writeStream(stream, board->origin);
    //   Mesh* frame = nullptr;
    //   Tile* tiles = nullptr;
    //   Cursor* cursor = nullptr;
@@ -117,7 +116,6 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->tileWidth);
    readStream(start, board->tileHeight);
    readStream(start, board->offset);
-   readStream(start, board->origin);
    //   Mesh* frame = nullptr;
    //   Tile* tiles = nullptr;
    //   Cursor* cursor = nullptr;

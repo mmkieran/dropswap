@@ -301,7 +301,6 @@ void gameStartMatch(Game* game) {
          //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
          //}
 
-         board->origin = { xOrigin, yOrigin };
          game->boards.push_back(board);
       }
    }

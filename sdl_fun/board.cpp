@@ -74,9 +74,6 @@ Board* boardCreate(Game* game) {
          board->tileHeight = game->tHeight;
          board->tileWidth = game->tWidth;
 
-         board->frame = meshCreate(board->game);
-         meshSetTexture(board->game, board->frame, Texture_frame);
-
          board->pile = garbagePileCreate();
 
 		   boardStartRandom(board);
@@ -103,7 +100,6 @@ Board* boardDestroy(Board* board) {
       }
       board->pile = garbagePileDestroy(board->pile);
       board->cursor = cursorDestroy(board->cursor);
-      board->frame = meshDestroy(board->frame);
       free(board->tiles);
       delete board;
    }
@@ -199,9 +195,6 @@ void boardRender(Game* game, Board* board) {
    cursorDraw(board);
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
-
-   //debug basic frame
-   meshDraw(board, board->frame, 0.0f, 0.0f, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //Calculates the row based on the pointer difference in the array

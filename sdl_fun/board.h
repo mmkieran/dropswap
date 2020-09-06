@@ -22,9 +22,6 @@ struct Board {
    int tileHeight;
    float offset = 0;
 
-   Vec2 origin = { 64, 64 };  //the frame of the board starts here
-   Mesh* frame = nullptr;
-
    Tile* tiles = nullptr;
    Cursor* cursor = nullptr;
    Game* game = nullptr;
