@@ -424,10 +424,10 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
    
-   if (effect == visual_landing) {
-      scale.y *= 0.95f;
-      dest.y = dest.y + (board->tileHeight * (1 - 0.95f) );
-   }
+   //if (effect == visual_landing) {
+   //   scale.y *= 0.95f;
+   //   dest.y = dest.y + (board->tileHeight * (1 - 0.95f) );
+   //}
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    

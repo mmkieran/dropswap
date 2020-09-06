@@ -59,7 +59,7 @@ struct KeepTime {
 struct Game {
 
    GameWindow* sdl = nullptr;
-   FBO* fbo = nullptr;
+   std::vector <FBO*> fbos;
 
    NetPlay* net;
 

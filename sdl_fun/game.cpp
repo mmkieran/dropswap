@@ -154,7 +154,10 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
-   game->fbo = rendererCreateFBO(game);  //Create Framebuffer Object
+   for (int i = 0; i < 2; i++) {
+      FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object
+      if (fbo) { game->fbos.push_back(fbo); }
+   }
 
    game->seed = 0;  //generate the random seed for the board tiles
 
@@ -263,12 +266,15 @@ void gameRender(Game* game) {
 
    //Draw game objects
    if (game->playing == true) {
+      int i = 0;
       for (auto&& board : game->boards) {
+         rendererEnableFBO(game->fbos[i]);
          if (board) {
             boardRender(game, board);
          }
+         i++;
       }
-      gameStatsUI(game);  //imgui debug tools
+      rendererDisableFBO();
    }
 }
 
@@ -320,23 +326,26 @@ void gameEndMatch(Game* game) {
 //Draw the ImGui windows and the game objects
 void imguiRender(Game* game) {
 
-   rendererClear(0.0, 0.0, 0.0, 0.0);
-
    int width, height;
-   SDL_GetWindowSize(game->sdl->window, &width, &height);
+   //SDL_GetWindowSize(game->sdl->window, &width, &height);
+
+   width = game->tWidth * game->bWidth;
+   height = game->tHeight * game->bHeight;
 
    rendererSetTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
 
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, width, height);
 
-   rendererEnableFBO(game->fbo);
+   //rendererEnableFBO(game->fbo);
    //rendererEnableScissor();
    //rendererSetScissor(0, 600, width, height);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
    //rendererDisableScissor();
-   rendererDisableFBO();
+   //rendererDisableFBO();
+   rendererClear(0.0, 0.0, 0.0, 0.0);
 
+   gameStatsUI(game);  
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -359,7 +368,7 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
-   rendererDestroyFBO(game->fbo);
+   for (auto&& fbo : game->fbos) { rendererDestroyFBO(fbo); }
    soundsDestroy();
 
    //imgui stuff to shutdown
@@ -389,17 +398,7 @@ void gameStatsUI(Game* game) {
 
       Board* board = game->boards[0];
       if (board) {
-         //int row = cursorGetRow(board);
-         //int col = cursorGetCol(board);
-
-         //Tile* tile = boardGetTile(board, row, col);
-         //if (meshGetTexture(tile->mesh) != Texture_empty) {
-         //   ImGui::Image((void*)(intptr_t)meshGetTextureHandle(tile->mesh), { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-         //}
-
-         //ImGui::Text("%d row, %d col", row, col);
-         //ImGui::NewLine();
-
+         ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, 0}, true, 0);
          ImGui::Text("Time for GGPO: %d", game->ggpoTime);
          //ImGui::Text("Checksum: %d", game->checksum);
 
@@ -413,9 +412,14 @@ void gameStatsUI(Game* game) {
          ImGui::Text("Last chain: %d", lastChain);
          ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
+         ImGui::EndChild();
       }
-
-      ImGui::Image((void*)(intptr_t)game->fbo->texture, { game->fbo->w, game->fbo->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+      for (int i = 0; i < game->players; i++) {
+         ImGui::SameLine();
+         ImGui::BeginChild("Player 1", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.4f, 0 }, true, 0);
+         ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         ImGui::EndChild();
+      }
 
    //   if (ImGui::CollapsingHeader("Tile Status")) {
    //      for (int row = board->startH; row < board->endH; row++) {
