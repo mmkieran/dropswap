@@ -327,15 +327,14 @@ void gameEndMatch(Game* game) {
 void imguiRender(Game* game) {
 
    int width, height;
-   //SDL_GetWindowSize(game->sdl->window, &width, &height);
+   SDL_GetWindowSize(game->sdl->window, &width, &height);
 
-   width = game->tWidth * game->bWidth;
-   height = game->tHeight * game->bHeight;
-
-   rendererSetTarget(0, 0, width, height);  //Gotta remember if the window resizes to resize everything
+   int boardWidth = game->tWidth * game->bWidth;
+   int boardHeight = game->tHeight * game->bHeight;
+   rendererSetTarget(0, 0, boardWidth, boardHeight);  
 
    //Do this if we want the meshes to stay the same size when then window changes...
-   worldToDevice(game, 0.0f, 0.0f, width, height);
+   worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
 
    //rendererEnableFBO(game->fbo);
    //rendererEnableScissor();
@@ -343,6 +342,8 @@ void imguiRender(Game* game) {
    gameRender(game);  //Draw all game objects
    //rendererDisableScissor();
    //rendererDisableFBO();
+
+   rendererSetTarget(0, 0, width, height);
    rendererClear(0.0, 0.0, 0.0, 0.0);
 
    gameStatsUI(game);  
@@ -415,8 +416,10 @@ void gameStatsUI(Game* game) {
          ImGui::EndChild();
       }
       for (int i = 0; i < game->players; i++) {
+         char playerName[20] = "Player";
+         sprintf(playerName, "Player %d", i);
          ImGui::SameLine();
-         ImGui::BeginChild("Player 1", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.4f, 0 }, true, 0);
+         ImGui::BeginChild(playerName, ImVec2{ (float) game->tWidth * (game->bWidth + 1), (float) game->tHeight * (game->bHeight) }, true, 0);
          ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
          ImGui::EndChild();
       }

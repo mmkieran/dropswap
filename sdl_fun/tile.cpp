@@ -79,7 +79,8 @@ void tileUpdate(Board* board, Tile* tile) {
 }
 
 void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
-   Vec2 adj = board->origin;
+   //Vec2 adj = board->origin;
+   Vec2 adj = { 0.0f, 0.0f };
    textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
    if (meshGetTexture(tile->mesh) != Texture_empty) {
       if (tile->status == status_disable || tileGetRow(board, tile) == board->wBuffer - 1) {

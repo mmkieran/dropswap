@@ -61,7 +61,8 @@ void cursorDraw(Board* board) {
    Cursor* cursor = board->cursor;
    Game* game = board->game;
 
-   Vec2 adj = board->origin;
+   //Vec2 adj = board->origin;
+   Vec2 adj = { 0.0f, 0.0f };
 
    animationDraw(board, cursor->animation, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);
    //meshDraw(board, cursor->mesh, cursor->x + adj.x, cursor->y + adj.y, cursor->w, cursor->h);

@@ -144,7 +144,7 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > STARTTIMER) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f );  //Normalized for tile size of 64
+         boardMoveUp(board, board->moveSpeed / 8.0f * (board->tileHeight / 64.0f));  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
@@ -197,10 +197,11 @@ void boardRender(Game* game, Board* board) {
       }
    }
    cursorDraw(board);
-   garbageDraw(board);
+   //Garbage is just drawn as a tile texture right now
+   //garbageDraw(board);
 
    //debug basic frame
-   meshDraw(board, board->frame, board->origin.x, board->origin.y, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
+   meshDraw(board, board->frame, 0.0f, 0.0f, board->tileWidth * board->game->bWidth, board->tileHeight * board->game->bHeight);
 }
 
 //Calculates the row based on the pointer difference in the array
@@ -714,7 +715,7 @@ void boardRemoveClears(Board* board) {
 //Moves all the tile on the board up a given amount
 void boardMoveUp(Board* board, float height) {
    //Moves all tiles up a fixed amount
-   float nudge = height * board->level * (board->tileHeight / 64.0f);
+   float nudge = height * board->level;
    board->offset -= nudge;
 
    bool dangerZone = false;  //About to bust
