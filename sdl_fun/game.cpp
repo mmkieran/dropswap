@@ -27,6 +27,8 @@
 
 #define GAME_COUNTIN 2000
 
+ImFont* font1;
+
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -85,6 +87,8 @@ void imguiSetup(Game* game) {
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
+   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
+   io.Fonts->Build();
 
    //Use these for Keyboard and controller navigation
    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -623,7 +627,8 @@ void gameMenuUI(Game* game) {
       ImGui::End();
       return;
    }
-
+   
+   ImGui::PushFont(font1);
    //Game Over message
    if (ImGui::BeginPopupModal("Game Over", NULL)) {
       ImGui::Text("You won or lost or something...");
@@ -770,6 +775,7 @@ void gameMenuUI(Game* game) {
       //todo maybe just read in a file here
       ImGui::TextUnformatted(credits);
    }
+   ImGui::PopFont();
 
    ImGui::End();
 }

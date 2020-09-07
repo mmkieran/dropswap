@@ -317,7 +317,7 @@ void gameAdvanceFrame(Game* game) {
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?
    game->frameCount++;
-   if (game->frameCount % (60*5) == 0) { game->checksum = ggpoCheckSum(game); }  //Periodic checksum
+   if (game->frameCount % (60 * 5) == 0) { game->checksum = ggpoCheckSum(game); }  //Periodic checksum
 }
 
 void gameRunFrame() {

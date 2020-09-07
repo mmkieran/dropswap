@@ -10,8 +10,8 @@ typedef struct UserInput UserInput;
 //@@Start Serialize
 struct Cursor {
 
-   float x;
-   float y;
+   double x;
+   double y;
 
    Mesh* mesh;
    Animation* animation;

@@ -92,7 +92,7 @@ struct Game {
    int pauseTimer = 0;
    int pauseLength = 0;
 
-   bool syncTest = false;
+   bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
    int checksum = 0;
 
@@ -121,7 +121,6 @@ void gameRender(Game* game);
 void gameDestroy(Game* game);
 
 void imguiStartFrame(Game* game);
-void imguiShowDemo();
 void imguiRender(Game* game);
 
 void gameMenuUI(Game* game);

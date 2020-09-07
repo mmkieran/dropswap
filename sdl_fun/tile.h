@@ -32,8 +32,8 @@ struct Tile {
 
    TileType type;
 
-   float xpos;
-   float ypos;
+   double xpos;
+   double ypos;
 
    TileStatus status;
 
