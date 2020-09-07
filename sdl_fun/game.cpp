@@ -28,6 +28,8 @@
 #define GAME_COUNTIN 2000
 
 ImFont* font1;
+ImFont* font2;
+ImFont* font3;
 
 const char* credits = R"(
 A special thanks goes out to:
@@ -87,7 +89,9 @@ void imguiSetup(Game* game) {
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
-   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
+   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 14);
+   font2 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
+   font3 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
    io.Fonts->Build();
 
    //Use these for Keyboard and controller navigation
@@ -400,9 +404,20 @@ void boardUI(Game* game) {
 
          char playerName[20] = "Player";
          sprintf(playerName, "Player %d", i);
+         ImVec2 screenPos = ImGui::GetCursorScreenPos();
          ImGui::SameLine();
-         ImGui::BeginChild(playerName, ImVec2{ (float) game->tWidth * (game->bWidth), (float) game->tHeight * (game->bHeight) }, true, 0);
+         ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
+
+         //This is the secret sauce to render a texture in ImGui
+         //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
          ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+         //Proof of concept abitrary text rending
+         //todo look at ImDrawList API for arbitrary rendering
+         ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
+         ImGui::Text("%s", playerName);
+         ImGui::SetCursorScreenPos(screenPos;
+      }
          ImGui::EndChild();
 
          ImGui::PopStyleVar();
