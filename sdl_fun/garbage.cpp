@@ -383,10 +383,11 @@ void garbageFall(Board* board, float velocity) {
                }
             }
          }
+
          if (drop > 0 && landing == true) {
             if (board->pauseLength == 0) {
                board->paused = true;
-               board->pauseLength += LANDTIME;
+               board->pauseLength = LANDTIME;
             }
             board->game->soundToggles[sound_crashland] = true;
 

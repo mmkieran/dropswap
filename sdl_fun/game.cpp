@@ -162,10 +162,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->windowHeight = height;
    game->windowWidth = width;
-   for (int i = 0; i < 2; i++) {
-      FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object
-      if (fbo) { game->fbos.push_back(fbo); }
-   }
 
    game->seed = 0;  //generate the random seed for the board tiles
 
@@ -300,6 +296,8 @@ void gameStartMatch(Game* game) {
          //}
 
          game->boards.push_back(board);
+         FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object
+         if (fbo) { game->fbos.push_back(fbo); }
       }
    }
    game->playing = true;
@@ -313,6 +311,7 @@ void gameEndMatch(Game* game) {
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i]) {
          boardDestroy(game->boards[i]);
+         if (game->fbos[i]) { rendererDestroyFBO(game->fbos[i]); }
       }
    }
    game->boards.clear();
@@ -342,8 +341,8 @@ void imguiRender(Game* game) {
    gameRender(game);  //Draw all game objects
    //rendererDisableScissor();
 
-   rendererClear(0.0, 0.0, 0.0, 0.0);
    rendererSetTarget(0, 0, width, height);
+   rendererClear(0.0, 0.0, 0.0, 0.0);
 
    boardUI(game);  
    ImGui::Render();
@@ -368,7 +367,6 @@ void gameDestroy(Game* game) {
    destroyResources(game->resources);
 
    vaoDestroy(game->sdl->VAO);
-   for (auto&& fbo : game->fbos) { rendererDestroyFBO(fbo); }
    soundsDestroy();
 
    //imgui stuff to shutdown
@@ -412,12 +410,12 @@ void boardUI(Game* game) {
          //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
          ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-         //Proof of concept abitrary text rending
-         //todo look at ImDrawList API for arbitrary rendering
-         ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
-         ImGui::Text("%s", playerName);
-         ImGui::SetCursorScreenPos(screenPos;
-      }
+         ////Proof of concept abitrary text rending
+         ////todo look at ImDrawList API for arbitrary rendering
+         //ImVec2 screenPos2 = ImGui::GetCursorScreenPos();
+         //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
+         //ImGui::Text("%s", playerName);
+         //ImGui::SetCursorScreenPos(screenPos2);
          ImGui::EndChild();
 
          ImGui::PopStyleVar();

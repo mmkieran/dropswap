@@ -92,6 +92,7 @@ struct Game {
    int pauseTimer = 0;
    int pauseLength = 0;
 
+   int ggpoTime = 0;  //debug
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
    int checksum = 0;
@@ -99,7 +100,6 @@ struct Game {
    int lastTime = 0;
    int timer = 0;
    int timeDelta = 0;
-   int ggpoTime = 0;  //debug
 
    KeepTime kt;
 

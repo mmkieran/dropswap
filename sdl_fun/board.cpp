@@ -7,7 +7,7 @@
 #include "cursor.h"
 #include "garbage.h"
 
-#define GRACEPERIOD 500
+#define GRACEPERIOD 2000
 #define FALLDELAY 100
 #define CLEARTIME 2000
 #define ENTERSILVERS 30000
@@ -131,7 +131,7 @@ void boardUpdate(Board* board, UserInput input) {
    if (board->pauseLength > 0) {
       board->pauseLength -= 1000/60;  //Static FPS for now to ease syncing
 
-      if (board->pauseLength < 0) {
+      if (board->pauseLength <= 0) {
          board->paused = false;
          board->pauseLength = 0;
       }
@@ -406,7 +406,7 @@ static void _silverClear(Game* game, int size, int player) {
 //Calculate the time the board will pause after a combo
 static int _calcComboPause(Board* board, int size) {
    int time = min( (size - 1) * 1000, 5000);
-   board->pauseLength += time;
+   board->pauseLength = time;
    board->paused = true;
    return time;
 }
@@ -635,7 +635,6 @@ static TileType _tileGenType(Board* board, Tile* tile) {
 
 //Removes any tiles that have the cleared type and statuses
 void boardRemoveClears(Board* board) {
-   int pauseTime = 0;
    int current = board->game->timer;
    bool stillChaining = false;
    board->game->soundToggles[sound_anxiety] = false;
@@ -673,6 +672,8 @@ void boardRemoveClears(Board* board) {
                tile->statusTime += current + CLEARTIME;
                tile->clearTime = 0;
                tile->chain = true;
+               //board->paused = true;
+               //board->pauseLength += CLEARTIME;
             }
 
             else if (tile->clearTime + CLEARTIME <= current) {
@@ -684,13 +685,14 @@ void boardRemoveClears(Board* board) {
                int r = row - 1;
                Tile* above = boardGetTile(board, r, col);
                while (above && r >= 0) {
-                  if (above->type != tile_empty && above->type != tile_cleared) { above->chain = true; }
+                  if (above->type != tile_empty && above->type != tile_cleared && above->type != tile_garbage) { above->chain = true; }
                   r--;
                   above = boardGetTile(board, r, col);
                }
             }
          }
-         if (tile->chain == true) { stillChaining = true; }  //Is any tile still part of a chain?
+         if (tile->chain == true) { 
+            stillChaining = true; }  //Is any tile still part of a chain?
       }
    }
    if (stillChaining == false) { //No tiles are part of a chain
@@ -698,7 +700,7 @@ void boardRemoveClears(Board* board) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
       if (board->chain > 1) { 
-         board->pauseLength += min((board->chain - 1) * 1000, 8000); 
+         board->pauseLength = min((board->chain - 1) * 1000, 8000); 
          board->paused = true;
       }  //Pause board after chain
       board->chain = 1; 
@@ -744,8 +746,10 @@ void boardMoveUp(Board* board, float height) {
    
    if (dangerZone == true) {
       if (board->bust == false) {  //grace period
-         board->paused = true;
-         board->pauseLength += GRACEPERIOD;
+         if (board->pauseLength == 0) {
+            board->paused = true;
+            board->pauseLength = GRACEPERIOD;
+         }
       }
       board->bust = true;
    }
