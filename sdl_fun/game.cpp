@@ -295,6 +295,8 @@ void gameStartMatch(Game* game) {
       }
    }
    game->playing = true;
+   game->frameCount = 0;
+   game->timer = 0;
    //game->soundToggles[sound_waltz] = true;
 }
 
@@ -307,6 +309,8 @@ void gameEndMatch(Game* game) {
    }
    game->boards.clear();
    game->playing = false;
+   game->timer = 0;
+   game->frameCount = 0;
    game->timer = 0;
    soundsStopAll();
    ImGui::OpenPopup("Game Over");
@@ -404,8 +408,9 @@ void boardUI(Game* game) {
                ImGui::SameLine();
                ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
                ImGui::Text("Time for GGPO: %d", game->ggpoTime);
-               ImGui::Text("Game state: %d", game->checksum);
-               ImGui::Text("Frame count: %d", frameCount);
+               ImGui::Text("Game State: %d", game->checksum);
+               ImGui::Text("Frame Count: %d", frameCount);
+               ImGui::Text("Random Calls 1: %d", game->boards[0]->randomCalls);
                ImGui::NewLine();
 
                static int lastChain = 0;
