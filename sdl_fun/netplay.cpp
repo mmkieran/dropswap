@@ -229,7 +229,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
 
-   if (SYNC_TEST == true) {  //Set DEFINE SYNC_TEST to true to do a single player sync test
+   if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, GAME_PLAYERS, sizeof(UserInput), 1);
    }
@@ -317,7 +317,7 @@ void gameAdvanceFrame(Game* game) {
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?
    game->frameCount++;
-   if (game->timer /1000 % 10 == 0) { game->checksum = ggpoCheckSum(game); }
+   if (game->frameCount % (60*5) == 0) { game->checksum = ggpoCheckSum(game); }  //Periodic checksum
 }
 
 void gameRunFrame() {
@@ -331,7 +331,7 @@ void gameRunFrame() {
          if (game->controls == 0) { inputProcessKeyboard(game); }
          if (game->controls == 1) { inputProcessController(game); }
 
-         if (SYNC_TEST == false) {
+         if (game->syncTest == false) {
             if (game->net->localPlayer == 1) { //todo make this not hard coded
                game->p1Input.timer = game->timer;
             }
@@ -343,7 +343,7 @@ void gameRunFrame() {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
             if (game->net->localPlayer != 1) {  
-               if (SYNC_TEST == false) {
+               if (game->syncTest == false) {
                   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
                }
             }

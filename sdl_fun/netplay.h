@@ -4,9 +4,6 @@
 
 #include "game.h"
 
-//Use this to turn on synchronization testing... predicts every frame
-#define SYNC_TEST true
-
 enum PlayerConnectState {
    Connecting = 0,
    Synchronizing,

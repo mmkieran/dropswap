@@ -92,6 +92,7 @@ struct Game {
    int pauseTimer = 0;
    int pauseLength = 0;
 
+   bool syncTest = false;
    int frameCount = 0;
    int checksum = 0;
 

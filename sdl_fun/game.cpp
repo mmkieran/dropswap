@@ -212,10 +212,10 @@ void gameUpdate(Game* game) {
       if (game->boards[i] == nullptr) { continue; }
       if (game->players > 1) {
 
-         if (SYNC_TEST == false) {
+         if (game->syncTest == false) {
             boardUpdate(game->boards[i], game->inputs[i]);
          }
-         else if (SYNC_TEST == true) {
+         else if (game->syncTest == true) {
             boardUpdate(game->boards[i], game->inputs[0]);
          }
       }
@@ -386,7 +386,7 @@ void boardUI(Game* game) {
 
       Board* board = game->boards[0];
       static int frameCount = 0;
-      if (game->timer /1000 % 10 == 0) { frameCount = game->frameCount; }
+      if (game->frameCount % (60 * 5) == 0) { frameCount = game->frameCount; }  //Periodic checksum
       for (int i = 0; i < game->players; i++) {
          ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
@@ -429,10 +429,14 @@ void boardUI(Game* game) {
 
 //Show the connection window for GGPO... only for 2 players
 void ggpoSessionUI(Game* game, bool* p_open) {
+
    if (!ImGui::Begin("Host Setup", p_open) ) {
       ImGui::End();
       return;
    }
+
+   //Debug turn on sync test
+   ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];
 
@@ -635,7 +639,7 @@ void gameMenuUI(Game* game) {
       ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
       static bool showGGPOSession = false;
-      if (game->players > 1 || SYNC_TEST == true) {
+      if (game->players > 1 || game->syncTest == true) {
          if (ImGui::Button("Connection Window")) {
             showGGPOSession = true;
          }

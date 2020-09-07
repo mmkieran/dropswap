@@ -129,7 +129,7 @@ void boardUpdate(Board* board, UserInput input) {
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {
-      board->pauseLength -= 1000/60;
+      board->pauseLength -= 1000/60;  //Static FPS for now to ease syncing
 
       if (board->pauseLength < 0) {
          board->paused = false;
