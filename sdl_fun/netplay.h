@@ -5,7 +5,7 @@
 #include "game.h"
 
 //Use this to turn on synchronization testing... predicts every frame
-#define SYNC_TEST false
+#define SYNC_TEST true
 
 enum PlayerConnectState {
    Connecting = 0,
@@ -43,6 +43,9 @@ struct NetPlay {
    int hostConnNum = -1;
    int myConnNum = -1;
 };
+
+int fletcher32_checksum(short* data, size_t len);
+int ggpoCheckSum(Game* game);
 
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();

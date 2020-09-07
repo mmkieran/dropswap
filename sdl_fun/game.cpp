@@ -385,7 +385,8 @@ void boardUI(Game* game) {
       ImGui::Begin("Drop and Swap");
 
       Board* board = game->boards[0];
-
+      static int frameCount = 0;
+      if (game->timer /1000 % 10 == 0) { frameCount = game->frameCount; }
       for (int i = 0; i < game->players; i++) {
          ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
@@ -403,6 +404,9 @@ void boardUI(Game* game) {
                ImGui::SameLine();
                ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
                ImGui::Text("Time for GGPO: %d", game->ggpoTime);
+               ImGui::Text("Game state: %d", game->checksum);
+               ImGui::Text("Frame count: %d", frameCount);
+               ImGui::NewLine();
 
                static int lastChain = 0;
                static int chainTime = 0;

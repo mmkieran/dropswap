@@ -129,7 +129,7 @@ void boardUpdate(Board* board, UserInput input) {
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {
-      board->pauseLength -= board->game->timeDelta;
+      board->pauseLength -= 1000/60;
 
       if (board->pauseLength < 0) {
          board->paused = false;

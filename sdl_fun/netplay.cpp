@@ -24,6 +24,14 @@ int fletcher32_checksum(short* data, size_t len) {
    return sum2 << 16 | sum1;
 }
 
+int ggpoCheckSum(Game* game) {
+   std::vector <Byte> stream = gameSave(game);
+   int len = stream.size();
+   if (len == 0) { return 0; }
+   int checksum = fletcher32_checksum((short*)stream.data(), len / 2);
+   return checksum;
+}
+
 void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
    for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
       if (game->net->connections[i].handle == handle) {
@@ -308,6 +316,8 @@ void gameAdvanceFrame(Game* game) {
 
    //Tell GGPO we moved ahead a frame
    ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?
+   game->frameCount++;
+   if (game->timer /1000 % 10 == 0) { game->checksum = ggpoCheckSum(game); }
 }
 
 void gameRunFrame() {

@@ -60,6 +60,7 @@ int main(int argc, char* args[]) {
          }
       }
 
+      //game->lastTime = game->timer;  //Record the timer in the last frame
       if (game->playing == true && game->paused == false) {  //If we're paused, update game timer
          game->timeDelta = (game->kt.getTime() - frameStart) / 1000;
          game->timer += game->timeDelta;
