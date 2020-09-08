@@ -4,9 +4,6 @@
 #include "cursor.h"
 #include "garbage.h"
 
-
-//void testReadStream();
-
 void _gameSerialize(std::vector <Byte> &stream, Game* game);
 void _gameDeserialize(Byte* &start, Game* game);
 void _boardSerialize(std::vector <Byte> &stream, Board* board);
@@ -17,3 +14,9 @@ void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor);
 void _cursorDeserialize(Byte* &start, Cursor* cursor);
 void _garbageSerialize(std::vector <Byte> &stream, Board* board);
 void _garbageDeserialize(Byte* &start, Board* board);
+
+int gameLoad(Game* game, unsigned char*& start);
+std::vector <Byte> gameSave(Game* game);
+
+int gameLoadState(Game* game, const char* path);
+FILE* gameSaveState(Game* game, const char* filename);

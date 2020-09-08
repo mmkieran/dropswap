@@ -283,3 +283,130 @@ void _garbageDeserialize(Byte* &start, Board* board) {
       board->pile->garbage[garbage->ID] = garbage;
    }
 }
+
+
+std::vector <Byte> gameSave(Game* game) {
+   std::vector <Byte> stream;
+
+   //serialize game settings
+   _gameSerialize(stream, game);
+
+   for (auto&& board : game->boards) {
+      if (board) {
+         //serialize board settings
+         _boardSerialize(stream, board);
+
+         //serialize garbage
+         _garbageSerialize(stream, board);
+
+         //serialize tiles
+         for (int row = 0; row < board->wBuffer; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               if (tile) {
+                  _tileSerialize(stream, tile);
+               }
+            }
+         }
+         //serialize cursor
+         _cursorSerialize(stream, board->cursor);
+      }
+   }
+   return stream;
+}
+
+int gameLoad(Game* game, unsigned char*& start) {
+
+   //destroy the boards
+   for (auto&& board : game->boards) {
+      if (board) { boardDestroy(board); }
+   }
+   game->boards.clear();
+
+   //deserialize game
+   _gameDeserialize(start, game);
+
+   for (int i = 0; i < game->players; i++) {
+      Board* board = nullptr;
+      if (game->playing) {
+         board = boardCreate(game);
+         //deserialize board
+         if (board) {
+            _boardDeserialize(start, board);
+            boardLoadRandom(board);  //Return random generator to saved state using discard
+
+            //deserialize garbage
+            _garbageDeserialize(start, board);
+
+            for (int row = 0; row < board->wBuffer; row++) {
+               for (int col = 0; col < board->w; col++) {
+                  Tile* tile = boardGetTile(board, row, col);
+                  //deserialize tiles
+                  tile->mesh = meshCreate();
+                  tile->garbage = nullptr;
+                  _tileDeserialize(start, board, tile);
+                  tileSetTexture(board, tile);
+               }
+            }
+
+            //deserialize cursor
+            _cursorDeserialize(start, board->cursor);
+
+            game->boards.push_back(board);
+         }
+      }
+
+   }
+
+   return 0;
+}
+
+FILE* gameSaveState(Game* game, const char* filename) {
+   FILE* out;
+   int err = fopen_s(&out, filename, "w");
+   std::vector <Byte> stream;
+   stream = gameSave(game);
+
+   if (err == 0 && stream.size() > 0) {
+      int streamSize = stream.size();
+      fwrite(&streamSize, sizeof(int), 1, out);
+
+      //todo make this betterer?
+      for (int i = 0; i < streamSize; i++) {
+         fwrite(&stream[i], sizeof(Byte), 1, out);
+      }
+
+   }
+   else { printf("Failed to save file... Err: %d\n", err); }
+   game->save = stream;  //todo debug replace with a nicer system to store saves
+   fclose(out);
+   return out;
+}
+
+int gameLoadState(Game* game, const char* path) {
+   FILE* in;
+   int err = fopen_s(&in, path, "r");
+   std::vector <Byte> stream;
+   if (err == 0) {
+      int streamSize = 0;
+      fread(&streamSize, sizeof(int), 1, in);
+      stream.resize(streamSize);
+
+      //Byte* start = stream.data();  //Find out how to make this work, lol
+      //fread(&start, sizeof(Byte) * streamSize, 1, in);
+
+      //todo read the entire file into memory and memcpy it to the vector
+      for (int i = 0; i < streamSize; i++) {
+         char c;
+         fread(&c, sizeof(Byte), 1, in);
+         stream[i] = c;
+      }
+
+      unsigned char* start = stream.data();
+      //unsigned char* start = game->sdl->save.data();  //todo debug needs better system
+      gameLoad(game, start);
+   }
+   else { printf("Failed to load file... Err: %d\n", err); }
+   fclose(in);
+   return 1;
+}

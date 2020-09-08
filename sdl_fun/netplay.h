@@ -3,6 +3,7 @@
 #include "ggpo/ggponet.h"
 
 #include "game.h"
+#include "serialize.h"
 
 enum PlayerConnectState {
    Connecting = 0,

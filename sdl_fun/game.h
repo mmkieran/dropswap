@@ -96,6 +96,7 @@ struct Game {
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
    int checksum = 0;
+   std::vector <unsigned char> save;  //todo debug find a better place for this later
 
    int lastTime = 0;
    int timer = 0;
@@ -125,12 +126,6 @@ void imguiRender(Game* game);
 
 void gameMenuUI(Game* game);
 void boardUI(Game* game);
-
-int gameLoad(Game* game, unsigned char*& start);
-std::vector <Byte> gameSave(Game* game);
-
-int gameLoadState(Game* game, const char* path);
-FILE* gameSaveState(Game* game, const char* filename);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
