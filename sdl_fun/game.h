@@ -7,6 +7,7 @@
 
 #include "mymath.h"
 #include "game_inputs.h"
+#include "game_ui.h"
 
 #include <stdint.h>
 #include <vector>
@@ -16,19 +17,14 @@
 #define GAME_MAX_PLAYERS 20
 #define GAME_FRAME_DELAY 2
 
+struct GameWindow;
+
 typedef struct Board Board;
 typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
 typedef unsigned char Byte;
 typedef struct FBO FBO;
-
-struct GameWindow;
-
-//todo this isn't used right now
-enum GameMode {
-   versus,
-   team
-};
+typedef struct ImFont ImFont;
 
 enum SoundEffect {
    sound_swap = 0,
@@ -59,6 +55,9 @@ struct KeepTime {
 struct Game {
 
    GameWindow* sdl = nullptr;
+   float windowWidth;
+   float windowHeight;
+
    std::vector <FBO*> fbos;
 
    NetPlay* net;
@@ -66,13 +65,11 @@ struct Game {
    UserInput p1Input;
    UserInput inputs[GAME_PLAYERS];
 
-   float windowWidth;
-   float windowHeight;
-
    std::vector <Board*> boards;
    Resources* resources = nullptr;
 
    std::map <SoundEffect, bool> soundToggles;
+   std::map <int, ImFont*> fonts;
 
    int bHeight = 12;
    int bWidth = 6;
@@ -121,11 +118,7 @@ void gameRender(Game* game);
 
 void gameDestroy(Game* game);
 
-void imguiStartFrame(Game* game);
 void imguiRender(Game* game);
-
-void gameMenuUI(Game* game);
-void boardUI(Game* game);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);

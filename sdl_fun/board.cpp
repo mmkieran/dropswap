@@ -1,11 +1,6 @@
-#include <vector>
 #include <assert.h>
 
 #include "board.h"
-#include "resources.h"
-#include "tile.h"
-#include "cursor.h"
-#include "garbage.h"
 
 #define GRACEPERIOD 2000
 #define FALLDELAY 100

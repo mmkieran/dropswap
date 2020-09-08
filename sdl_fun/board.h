@@ -3,6 +3,8 @@
 #include "game.h"
 #include "garbage.h"
 #include "render.h"
+#include "tile.h"
+#include "cursor.h"
 
 #include <random>
 
@@ -67,7 +69,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 void boardRemoveClears(Board* board);
 void boardAssignSlot(Board* board, bool buffer);
 
-std::vector <Tile> boardDebug(Board* board);
 void makeItRain(Board* board);
 void boardClear(Board* board);
 

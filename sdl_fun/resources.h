@@ -7,6 +7,8 @@
 
 struct Resources;
 
+typedef struct Texture Texture;
+
 Resources* initResources();
 
 Resources* destroyResources(Resources* resources);

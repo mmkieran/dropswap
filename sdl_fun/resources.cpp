@@ -1,10 +1,5 @@
 
-#include <stdio.h>
-#include <vector>
-
-#include "render.h"
 #include "resources.h"
-#include "game.h"
 
 #include <thread>
 

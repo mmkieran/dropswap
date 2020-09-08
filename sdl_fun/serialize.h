@@ -1,8 +1,9 @@
 #include "game.h"
-#include "board.h"
-#include "tile.h"
-#include "cursor.h"
-#include "garbage.h"
+
+typedef struct Board Board;
+typedef struct Tile Tile;
+typedef struct Garbage Garbage;
+typedef struct Cursor Cursor;
 
 void _gameSerialize(std::vector <Byte> &stream, Game* game);
 void _gameDeserialize(Byte* &start, Game* game);

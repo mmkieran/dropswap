@@ -1,5 +1,7 @@
 #include "serialize.h"
 
+#include "board.h"
+
 //This resizes a vector and shoves bytes on the end
 template <typename T>
 void writeStream(std::vector <Byte> &stream, const T &input) {

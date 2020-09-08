@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
-#include <map>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -15,11 +14,7 @@
 #include "game.h"
 #include "board.h"
 #include "resources.h"
-#include "cursor.h"
-#include "tile.h"
-#include "render.h"
 #include "mymath.h"
-#include "garbage.h"
 #include "serialize.h"
 #include "game_inputs.h"
 #include "netplay.h"
@@ -27,24 +22,46 @@
 
 #define GAME_COUNTIN 2000
 
-ImFont* font1;
-ImFont* font2;
-ImFont* font3;
-
-const char* credits = R"(
-A special thanks goes out to:
-Stephanie Anderson
-Brandon Townsend
-Sean Hunter
-...
-)";
-
 struct GameWindow {
-   SDL_Window *window;
+   SDL_Window* window;
    SDL_GLContext gl_context;
 
-   unsigned int VAO;  //This doesn't really belong here
+   unsigned int VAO;
 };
+
+//Creates ImGui context
+void imguiSetup(Game* game) {
+   // Setup Dear ImGui context
+   IMGUI_CHECKVERSION();
+   ImGui::CreateContext();
+   ImGuiIO& io = ImGui::GetIO(); (void)io;
+   game->fonts[13] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 13);
+   game->fonts[20] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
+   game->fonts[30] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
+   io.Fonts->Build();
+
+   //Use these for Keyboard and controller navigation
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+   // Setup Dear ImGui style
+   ImGui::StyleColorsDark();
+   //ImGui::StyleColorsClassic();
+
+   // Setup Platform/Renderer bindings
+   const char* glsl_version = "#version 130";
+   ImGui_ImplSDL2_InitForOpenGL(game->sdl->window, game->sdl->gl_context);
+   ImGui_ImplOpenGL3_Init(glsl_version);
+
+}
+
+//Tell ImGui we started another Frame
+void imguiStartFrame(Game* game) {
+   // Start the Dear ImGui frame
+   ImGui_ImplOpenGL3_NewFrame();
+   ImGui_ImplSDL2_NewFrame(game->sdl->window);
+   ImGui::NewFrame();
+}
 
 //SDL function wrapper for getting ticks
 uint64_t sdlGetCounter() {
@@ -79,40 +96,6 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
    SDL_GL_SetSwapInterval(1); // Enable vsync
 
    return true;
-}
-
-//Creates ImGui context
-void imguiSetup(Game* game) {
-   // Setup Dear ImGui context
-   IMGUI_CHECKVERSION();
-   ImGui::CreateContext();
-   ImGuiIO& io = ImGui::GetIO(); (void)io;
-   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 13);
-   font2 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
-   font3 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
-   io.Fonts->Build();
-
-   //Use these for Keyboard and controller navigation
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-   // Setup Dear ImGui style
-   ImGui::StyleColorsDark();
-   //ImGui::StyleColorsClassic();
-
-   // Setup Platform/Renderer bindings
-   const char* glsl_version = "#version 130";
-   ImGui_ImplSDL2_InitForOpenGL(game->sdl->window, game->sdl->gl_context);
-   ImGui_ImplOpenGL3_Init(glsl_version);
-
-}
-
-//Tell ImGui we started another Frame
-void imguiStartFrame(Game* game) {
-   // Start the Dear ImGui frame
-   ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplSDL2_NewFrame(game->sdl->window);
-   ImGui::NewFrame();
 }
 
 //Create the game object and all that entails
@@ -178,12 +161,12 @@ void gameHandleEvents(Game* game) {
 
    while (SDL_PollEvent(&event)) {
 
-      ImGui_ImplSDL2_ProcessEvent(&event);
+      ImGui_ImplSDL2_ProcessEvent(&event);  //Hand events to ImGui
       if (event.type == SDL_QUIT) {
          game->isRunning = false;
       }
 
-      if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {
+      if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added
          int a = event.cdevice.which;
          controllerAdd(event.cdevice.which);
       }
@@ -200,6 +183,7 @@ void gameCheckPause(Game* game, UserInput input) {
    if (input.pause.p == true) {
       if (game->paused == true) {
          game->paused = false;
+         //todo add pause popup here
       }
       else if (game->paused == false) {
          game->paused = true;
@@ -385,7 +369,6 @@ void gameDestroy(Game* game) {
    //SDL cleanup
    SDL_DestroyWindow(game->sdl->window);
    SDL_Quit();
-   delete game->sdl;
    delete game->net;
    delete game;
 
@@ -395,410 +378,4 @@ void gameDestroy(Game* game) {
 //Returns true if the game is running... used for game loop
 bool gameRunning(Game* game) {
    return game->isRunning;
-}
-
-void boardUI(Game* game) {
-   if (game->playing == true) {
-      ImGui::Begin("Drop and Swap");
-
-      Board* board = game->boards[0];
-      static int frameCount = 0;
-      if (game->frameCount % (60 * 5) == 0) { frameCount = game->frameCount; }  //Periodic checksum
-      for (int i = 0; i < game->players; i++) {
-         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-         char playerName[20] = "Player";
-         sprintf(playerName, "Player %d", i);
-         ImVec2 screenPos = ImGui::GetCursorScreenPos();
-         ImGui::SameLine();
-         ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
-
-         //This is the secret sauce to render a texture in ImGui
-         //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
-         if (game->fbos[i]) {
-            ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-         }
-
-         ////Proof of concept abitrary text rending
-         ////todo look at ImDrawList API for arbitrary rendering
-         //ImVec2 screenPos2 = ImGui::GetCursorScreenPos();
-         //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
-         //ImGui::Text("%s", playerName);
-         //ImGui::SetCursorScreenPos(screenPos2);
-         ImGui::EndChild();
-
-         ImGui::PopStyleVar();
-
-         if (i == 0) {
-            if (board) {
-               ImGui::SameLine();
-               ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
-               ImGui::Text("Time for GGPO: %d", game->ggpoTime);
-               ImGui::Text("Game State: %d", game->checksum);
-               ImGui::Text("Frame Count: %d", frameCount);
-               ImGui::Text("Random Calls 1: %d", game->boards[0]->randomCalls);
-               ImGui::NewLine();
-
-               static int lastChain = 0;
-               static int chainTime = 0;
-               if (board->chain > 1) {
-                  lastChain = board->chain;
-                  chainTime = game->timer;
-               }
-               ImGui::Text("%d chain", board->chain);
-               ImGui::Text("Last chain: %d", lastChain);
-               ImGui::Text("Pause Time: %d", board->pauseLength);
-               ImGui::Text("Game Time: %d", game->timer);
-               ImGui::EndChild();
-            }
-         }
-      }
-
-      ImGui::End();
-   }
-}
-
-//Show the connection window for GGPO... only for 2 players
-void ggpoSessionUI(Game* game, bool* p_open) {
-
-   if (!ImGui::Begin("Host Setup", p_open) ) {
-      ImGui::End();
-      return;
-   }
-
-   //Debug turn on sync test
-   ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
-
-   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
-
-   static int seed = 0;
-   ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
-   game->seed = seed;
-   ImGui::NewLine();
-
-   static unsigned short participants = 2;
-   int pMin = 2;
-   int pMax = GAME_MAX_PLAYERS;
-
-   ImGui::PushItemWidth(120);
-   ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
-   ImGui::SameLine();
-
-   if (ImGui::Button("Load From File")) {
-      FILE* in;
-      int err = fopen_s(&in, "saves/ggpo_session_setup.csv", "r");
-
-      if (err == 0) {
-         int i = 0;  //participants
-         char* tok;
-         char buffer[2048];
-
-         fgets(buffer, 2048, in); // header
-         fgets(buffer, 2048, in); //First data line
-         while (!feof(in))
-         {
-            hostSetup[i].me = atoi( strtok(buffer, ",\n") );          // me
-            hostSetup[i].host = atoi( strtok(nullptr, ",\n") );       // host
-            hostSetup[i].playerType = atoi( strtok(nullptr, ",\n") ); // player type
-            strcpy(hostSetup[i].ipAddress, strtok(nullptr, ",\n") );  // ip address
-            hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
-
-            i++;
-            fgets(buffer, 2048, in);
-         }
-         participants = i;
-      }
-      else { printf("Failed to load file... Err: %d\n", err); }
-      fclose(in);
-   }
-
-   ImGui::SameLine();
-   if (ImGui::Button("Save To File")) {
-      FILE* out;
-      int err = fopen_s(&out, "saves/ggpo_session_setup.csv", "w");
-
-      if (err == 0) {
-         fprintf(out, "Me,Host,Player Number,Type,IP Address,Port\n");
-         for (int i = 0; i < participants; i++) {
-            fprintf(out, "%d,", hostSetup[i].me);
-            fprintf(out, "%d,", hostSetup[i].host);
-            fprintf(out, "%d,", hostSetup[i].playerType);
-            fprintf(out, "%s,", hostSetup[i].ipAddress);
-            fprintf(out, "%d,", hostSetup[i].localPort);
-            fprintf(out, "\n");
-         }
-      }
-      else { printf("Failed to create file... Err: %d\n", err); }
-      fclose(out);
-   }
-
-   ImGui::SameLine();
-   if (ImGui::Button("Clear Setup")) {
-      for (int i = 0; i < participants; i++) {
-         hostSetup[i].me = false;
-         hostSetup[i].host = false;
-         hostSetup[i].playerType = 0;
-         hostSetup[i].localPort = 7001;
-      }
-      participants = 2;
-   }
-
-
-   ImGui::PopItemWidth();
-   ImGui::NewLine();
-
-   ImGui::PushID("Player Info Set");
-   for (int i = 0; i < participants; i++) {
-
-      ImGui::PushID(i);
-      ImGui::PushItemWidth(80);
-      ImGui::Text("Player%d", i + 1);
-
-      if (ImGui::Checkbox("Me", &hostSetup[i].me)) {
-         for (int j = 0; j < participants; j++) {
-            if (hostSetup[j].me == true && i != j) { hostSetup[j].me = false; }
-         }
-      }
-      ImGui::SameLine();
-
-      if (ImGui::Checkbox("Host", &hostSetup[i].host)) {
-         for (int j = 0; j < participants; j++) {
-            if (hostSetup[j].host == true && i != j) { hostSetup[j].host = false; }
-         }
-      }
-      ImGui::SameLine();
-      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
-      ImGui::SameLine();
-      ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
-      ImGui::SameLine();
-      ImGui::InputInt("Port", &hostSetup[i].localPort);
-      ImGui::SameLine();
-      ImGui::Text(ggpoShowStatus(game, i) );
-
-      ImGui::PopItemWidth();
-      ImGui::PopID();
-   }
-   ImGui::PopID();
-   ImGui::NewLine();
-
-   if (ImGui::Button("Start Session")) {
-      ggpoCreateSession(game, hostSetup, participants);
-      //ImGui::ProgressBar(0, ImVec2(0.0f, 0.0f));
-   }
-   ImGui::SameLine();
-   if (ImGui::Button("End Session")) {
-      ggpoEndSession(game);
-   }
-
-   static bool readySent = false;
-   static bool replyRead = false;
-
-   int ready = true;
-   for (int i = 0; i < participants; i++) {
-      if (game->net->connections[i].state == 2) {
-         continue;
-      }
-      else { ready = false; }
-   }
-
-   if (ready == true) { 
-      if (ImGui::Button("Start Game")) {
-         gameStartMatch(game);
-      }
-   }
-
-   //if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
-   //   if (ImGui::Button("Send/Receive Seed")) {
-   //      if (readySent == false && game->net->localPlayer == 1) {
-   //         game->seed = time(0);
-   //         ggpoSendMessage(game->seed);
-   //         readySent = true;
-   //      }
-   //      else if (readySent == false && game->net->localPlayer != 1) {
-   //         ggpoSendMessage(1);
-   //         readySent = true;
-   //      }
-   //   }
-
-   //   static int waitTime = 0;
-   //   while (readySent == true) {
-   //      ggpoSendMessage(1);
-   //      sdlSleep(5000);
-   //      if (game->net->localPlayer != 1) {
-   //         if (game->inputs[0].timer > 0) {
-   //            game->seed = game->inputs[0].msg;
-   //            readySent = false;
-   //            gameStartMatch(game);
-   //         }
-   //      }
-   //      else if (game->net->localPlayer == 1) {
-   //         if (game->inputs[1].timer > 0) {
-   //            readySent = false;
-   //            gameStartMatch(game);
-   //         }
-   //      }
-   //      waitTime++;
-   //   }
-   //}
-   ImGui::End();
-}
-
-//Show the game menu window
-void gameMenuUI(Game* game) {
-
-   if (!ImGui::Begin("Game Menus")) {
-      ImGui::End();
-      return;
-   }
-   
-   ImGui::PushFont(font1);
-   //Game Over message
-   if (ImGui::BeginPopupModal("Game Over", NULL)) {
-      ImGui::Text("You won or lost or something...");
-      if (ImGui::Button("Accept Defeat")) {
-         ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Player Settings")) {
-      static int peoplePlaying = game->players - 1;
-      ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
-      game->players = peoplePlaying + 1;
-      ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
-      ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
-      static int backgroundMusic = 0;
-      ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
-
-      static bool showGGPOSession = false;
-      if (game->players > 1 || game->syncTest == true) {
-         if (ImGui::Button("Connection Window")) {
-            showGGPOSession = true;
-         }
-         if (showGGPOSession && game->playing == false) {
-            ggpoSessionUI(game, &showGGPOSession);
-         }
-      }
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Board Settings")) {
-      ImGui::InputInt("Tile Width", &game->tWidth, 16);
-      ImGui::InputInt("Tile Height", &game->tHeight, 16);
-
-      ImGui::InputInt("Board Width", &game->bWidth);
-      ImGui::InputInt("Board Height", &game->bHeight);
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Game Actions")) {
-      if (game->playing == false) {
-         if (ImGui::Button("Start Game")) {
-            gameStartMatch(game);
-         }
-      }
-      if (game->playing == true) {
-         if (ImGui::Button("End Game")) {
-            gameEndMatch(game);
-         }
-      }
-
-      if (game->playing == true) {
-         if (game->paused == true) {
-            if (ImGui::Button("Unpause Game")) {
-               game->paused = false;
-            }
-         }
-         else if (game->paused == false) {
-            if (ImGui::Button("Pause Game")) {
-               game->paused = true;
-            }
-         }
-      }
-
-      if (ImGui::Button("Load Board")) {
-         gameLoadState(game, "saves/game_state.dat");
-      }
-
-      if (ImGui::Button("Save Game")) {
-         gameSaveState(game, "saves/game_state.dat");
-      }
-   }
-
-   if (ImGui::CollapsingHeader("Debug")) {
-
-      static bool showDemo = false;
-      if (showDemo == false) {
-         if (ImGui::Button("Show ImGui Demo")) {
-            showDemo = true;
-         }
-      }
-      else {
-         if (ImGui::Button("Hide ImGui Demo")) {
-            showDemo = false;
-         }
-      }
-      if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
-
-      if (ImGui::Button("Clear Board")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { boardClear(board); }
-            }
-         }
-      }
-
-      if (ImGui::Button("Make it rain")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { makeItRain(board); }
-            }
-         }
-      }
-
-      if (game->playing == true) {
-         static int gWidth = 6;
-         static int gHeight = 1;
-         static bool isMetal = false;
-         ImGui::InputInt("Garbage Width", &gWidth);
-         ImGui::InputInt("Garbage Height", &gHeight);
-         ImGui::Checkbox("Metal", &isMetal);
-
-         if (ImGui::Button("Dumpstered")) {
-
-            for (auto&& board : game->boards) {
-               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
-            }
-         }
-      }
-
-      if (game->playing == true) {
-         for (auto&& board : game->boards) {
-            if (board) {
-               float minFallSpeed = 0;
-               float maxFallSpeed = 8.0;
-
-               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-               float minBoardSpeed = 0;
-               float maxBoardSpeed = 10.0;
-               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
-
-               float minBoardLevel = 0;
-               float maxBoardLevel = 10.0;
-               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
-            }
-         }
-      }
-   }
-
-
-   if (ImGui::CollapsingHeader("Credits")) {
-      //todo maybe just read in a file here
-      ImGui::TextUnformatted(credits);
-   }
-   ImGui::PopFont();
-
-   ImGui::End();
 }
