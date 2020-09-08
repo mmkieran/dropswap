@@ -229,14 +229,18 @@ void gameUpdate(Game* game) {
 
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
-   //setting up board
-
    if (game->players == 1) { game->seed = time(0); }
+
+   for (int i = 0; i < game->fbos.size(); i++) {
+      if (game->fbos[i]) {
+         rendererDestroyFBO(game->fbos[i]);
+      }
+   }
 
    for (int i = 0; i < game->players; i++) {
       Board* board = boardCreate(game);
       if (board) {
-         board->player = i + 1;  //todo this might not work in terms of player number??
+         board->player = i + 1;  
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
@@ -251,6 +255,7 @@ void gameStartMatch(Game* game) {
          //}
 
          game->boards.push_back(board);
+
          FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object
          if (fbo) { game->fbos.push_back(fbo); }
       }
@@ -266,17 +271,14 @@ void gameEndMatch(Game* game) {
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i]) {
          boardDestroy(game->boards[i]);
-         if (game->fbos[i]) { rendererDestroyFBO(game->fbos[i]); }
       }
    }
    game->boards.clear();
-   game->fbos.clear();
    game->playing = false;
    game->timer = 0;
    game->frameCount = 0;
    game->timer = 0;
    soundsStopAll();
-   ggpoEndSession(game);
    ImGui::OpenPopup("Game Over");
 }
 
@@ -368,6 +370,11 @@ void gameDestroy(Game* game) {
 
    destroyResources(game->resources);
 
+   for (int i = 0; i < game->fbos.size(); i++) {
+      if (game->fbos[i]) {
+         rendererDestroyFBO(game->fbos[i]);
+      }
+   }
    vaoDestroy(game->sdl->VAO);
    soundsDestroy();
 
