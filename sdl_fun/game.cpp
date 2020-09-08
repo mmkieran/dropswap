@@ -227,49 +227,6 @@ void gameUpdate(Game* game) {
    }
 }
 
-//Call the draw function for all the boards
-void gameRender(Game* game) {
-   //Remember that this has to happen after ImGui, or the clear will remove everything...
-
-   //Play sounds here because of GGPO
-   static bool silence = false;
-   static bool dangerPlaying = false;
-   static int anxietyHandle;
-   if (game->sounds == 0) {
-      for (auto&& pair : game->soundToggles) { 
-         SoundEffect sound = pair.first;
-         if (pair.first == sound_anxiety && pair.second == true) {
-            //soundsStopAll();
-            if (dangerPlaying == false) { 
-               anxietyHandle = soundsPlaySound(game, sound);
-               dangerPlaying = true;
-            }
-            silence = true;
-         }
-         else if (pair.first == sound_anxiety && pair.second == false) {
-            silence = false;
-            dangerPlaying = false;
-            soundsStopSound(anxietyHandle);
-         }
-         if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
-         game->soundToggles[sound] = false;
-      }
-   }
-
-   //Draw game objects
-   if (game->playing == true) {
-      int i = 0;
-      for (auto&& board : game->boards) {
-         rendererEnableFBO(game->fbos[i]);
-         if (board) {
-            boardRender(game, board);
-         }
-         i++;
-      }
-      rendererDisableFBO();
-   }
-}
-
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
    //setting up board
@@ -313,12 +270,59 @@ void gameEndMatch(Game* game) {
       }
    }
    game->boards.clear();
+   game->fbos.clear();
    game->playing = false;
    game->timer = 0;
    game->frameCount = 0;
    game->timer = 0;
    soundsStopAll();
+   ggpoEndSession(game);
    ImGui::OpenPopup("Game Over");
+}
+
+//Call the draw function for all the boards
+void gameRender(Game* game) {
+   //Remember that this has to happen after ImGui, or the clear will remove everything...
+
+   //Play sounds here because of GGPO
+   static bool silence = false;
+   static bool dangerPlaying = false;
+   static int anxietyHandle;
+   if (game->sounds == 0) {
+      for (auto&& pair : game->soundToggles) {
+         SoundEffect sound = pair.first;
+         if (pair.first == sound_anxiety && pair.second == true) {
+            //soundsStopAll();
+            if (dangerPlaying == false) {
+               anxietyHandle = soundsPlaySound(game, sound);
+               dangerPlaying = true;
+            }
+            silence = true;
+         }
+         else if (pair.first == sound_anxiety && pair.second == false) {
+            silence = false;
+            dangerPlaying = false;
+            soundsStopSound(anxietyHandle);
+         }
+         if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
+         game->soundToggles[sound] = false;
+      }
+   }
+
+   //Draw game objects
+   if (game->playing == true) {
+      int i = 0;
+      for (auto&& board : game->boards) {
+         if (game->fbos[i]) {
+            rendererEnableFBO(game->fbos[i]);
+            if (board) {
+               boardRender(game, board);
+            }
+         }
+         i++;
+      }
+      rendererDisableFBO();
+   }
 }
 
 //Draw the ImGui windows and the game objects
@@ -406,7 +410,9 @@ void boardUI(Game* game) {
 
          //This is the secret sauce to render a texture in ImGui
          //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
-         ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         if (game->fbos[i]) {
+            ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         }
 
          ////Proof of concept abitrary text rending
          ////todo look at ImDrawList API for arbitrary rendering
