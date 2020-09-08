@@ -35,8 +35,7 @@ int main(int argc, char* args[]) {
 
       imguiStartFrame(game);
 
-      //if (game->playing == false || game->paused == true) {gameMenuUI(game); }
-      gameMenuUI(game);
+      if (game->playing == false || game->paused == true) { mainUI(game); }
 
       if (game->playing == true && game->players > 1) {
          gameRunFrame();  //Only for multiplayer so far

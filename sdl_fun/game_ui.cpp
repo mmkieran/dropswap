@@ -1,6 +1,6 @@
 #include "game_ui.h"
+
 #include "board.h"
-#include "render.h"
 #include "serialize.h"
 #include "netplay.h"
 
@@ -17,90 +17,133 @@ Sean Hunter
 )";
 
 void mainUI(Game* game) {
+
+   ImGui::PushFont(game->fonts[20]);
    if (!ImGui::Begin("Menu")) {
+      ImGui::PopFont();
       ImGui::End();
       return;
    }
-   ImGui::PushFont(game->fonts[13]);
 
-   if (ImGui::Button("One Player")) {
-      gameEndMatch(game);
+   ImGui::NewLine();
+
+   float width = ImGui::GetWindowContentRegionWidth();
+
+   if (ImGui::Button("One Player", ImVec2{width, 0}) ) {
+      game->players = 1;
+      gameStartMatch(game);
+   }
+   ImGui::NewLine();
+
+   static bool showGGPOSession = false;
+   if (ImGui::Button("Two Player", ImVec2{ width, 0 }) ) {
+      game->players = 2;
+      showGGPOSession = true;
+   }
+   if (showGGPOSession && game->playing == false) {
+      ggpoSessionUI(game, &showGGPOSession);
    }
 
-   if (ImGui::Button("Two Player")) {
-      gameEndMatch(game);
+   ImGui::NewLine();
+
+   static bool showSettings = false;
+   if (ImGui::Button("Settings", ImVec2{ width, 0 }) ) {
+      showSettings = true;
+   }
+   if (showSettings) {
+      gameSettingsUI(game, &showSettings);
    }
 
-   if (ImGui::Button("Settings")) {
-      gameEndMatch(game);
-   }
+   //gameMenuUI(game);
 
-   static int peoplePlaying = game->players - 1;
-   ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
-   game->players = peoplePlaying + 1;
+   ImGui::PopFont();
+   ImGui::End();
+}
 
+static void _drawBoardTexture(Game* game, int index) {
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
+      char playerName[20] = "Player";
+      sprintf(playerName, "Player %d", index + 1);
+      ImVec2 screenPos = ImGui::GetCursorScreenPos();
+      ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
 
+      //This is the secret sauce to render a texture in ImGui
+      //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
+      if (game->fbos[index]) {
+         ImGui::Image((void*)(intptr_t)game->fbos[index]->texture, { game->fbos[index]->w, game->fbos[index]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+      }
+
+      ////Proof of concept abitrary text rending
+      ////todo look at ImDrawList API for arbitrary rendering
+      //ImVec2 screenPos2 = ImGui::GetCursorScreenPos();
+      //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
+      //ImGui::Text("%s", playerName);
+      //ImGui::SetCursorScreenPos(screenPos2);
+      ImGui::EndChild();
+
+      ImGui::PopStyleVar();
 }
 
 void boardUI(Game* game) {
    if (game->playing == true) {
+
+      ImGui::PushFont(game->fonts[20]);
       ImGui::Begin("Drop and Swap");
 
-      Board* board = game->boards[0];
-      static int frameCount = 0;
-      if (game->frameCount % (60 * 5) == 0) { frameCount = game->frameCount; }  //Periodic checksum
-      for (int i = 0; i < game->players; i++) {
-         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+      _drawBoardTexture(game, 0);
+      ImGui::SameLine();
 
-         char playerName[20] = "Player";
-         sprintf(playerName, "Player %d", i);
-         ImVec2 screenPos = ImGui::GetCursorScreenPos();
-         ImGui::SameLine();
-         ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
+      ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
+      for (auto&& board : game->boards) {
+         ImGui::NewLine();
 
-         //This is the secret sauce to render a texture in ImGui
-         //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
-         if (game->fbos[i]) {
-            ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         static int lastChain = 0;
+         static int chainTime = 0;
+         if (board->chain > 1) {
+            lastChain = board->chain;
+            chainTime = game->timer;
          }
+         ImGui::Text("%d chain", board->chain);
+         ImGui::Text("Last chain: %d", lastChain);
+         ImGui::Text("Pause Time: %d", board->pauseLength);
+         ImGui::Text("Game Time: %d", game->timer);
+         ImGui::NewLine();
 
-         ////Proof of concept abitrary text rending
-         ////todo look at ImDrawList API for arbitrary rendering
-         //ImVec2 screenPos2 = ImGui::GetCursorScreenPos();
-         //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
-         //ImGui::Text("%s", playerName);
-         //ImGui::SetCursorScreenPos(screenPos2);
-         ImGui::EndChild();
-
-         ImGui::PopStyleVar();
-
-         if (i == 0) {
-            if (board) {
-               ImGui::SameLine();
-               ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
-               ImGui::Text("Time for GGPO: %d", game->ggpoTime);
-               ImGui::Text("Game State: %d", game->checksum);
-               ImGui::Text("Frame Count: %d", frameCount);
-               ImGui::NewLine();
-
-               static int lastChain = 0;
-               static int chainTime = 0;
-               if (board->chain > 1) {
-                  lastChain = board->chain;
-                  chainTime = game->timer;
-               }
-               ImGui::Text("%d chain", board->chain);
-               ImGui::Text("Last chain: %d", lastChain);
-               ImGui::Text("Pause Time: %d", board->pauseLength);
-               ImGui::Text("Game Time: %d", game->timer);
-               ImGui::EndChild();
-            }
+         if (ImGui::Button("End Game")) {
+            gameEndMatch(game);
          }
       }
+      ImGui::EndChild();
 
+      if (game->players > 1) { 
+         ImGui::SameLine();
+         _drawBoardTexture(game, 1); 
+      }
+
+      ImGui::PopFont();
       ImGui::End();
    }
+}
+
+void gameSettingsUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Game Settings", p_open) ) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
+   ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
+   static int backgroundMusic = 0;
+   ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
+
+   ImGui::InputInt("Tile Width", &game->tWidth, 16);
+   ImGui::InputInt("Tile Height", &game->tHeight, 16);
+
+   ImGui::InputInt("Board Width", &game->bWidth);
+   ImGui::InputInt("Board Height", &game->bHeight);
+
+   ImGui::End();
 }
 
 //Show the game menu window
@@ -271,6 +314,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       return;
    }
 
+   ImGui::PushFont(game->fonts[13]);
    //Debug turn on sync test
    ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
 
@@ -445,5 +489,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    //      waitTime++;
    //   }
    //}
+
+   ImGui::PopFont();
    ImGui::End();
 }
