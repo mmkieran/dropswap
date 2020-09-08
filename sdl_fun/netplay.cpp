@@ -150,21 +150,15 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(info->u.disconnected.player, Disconnected);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
+       gameGiveIdleToGGPO(game, 1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
+   int a = 0;
 
    return true;
 }
 
 bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
-
-   FILE* log = nullptr;
-   fopen_s(&log, filename, "w");
-   if (log) {
-      fprintf(log, "Current Game State\n");
-   }
-   fclose(log);
 
    //Game* game = new Game;
    //if (game) {

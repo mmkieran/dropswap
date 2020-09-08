@@ -87,7 +87,7 @@ void imguiSetup(Game* game) {
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
-   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 14);
+   font1 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 13);
    font2 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
    font3 = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
    io.Fonts->Build();
@@ -236,6 +236,7 @@ void gameStartMatch(Game* game) {
          rendererDestroyFBO(game->fbos[i]);
       }
    }
+   game->fbos.clear();
 
    for (int i = 0; i < game->players; i++) {
       Board* board = boardCreate(game);
@@ -340,10 +341,7 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
 
-   //rendererEnableScissor();
-   //rendererSetScissor(0, 600, width, height);  //todo look at scissoring
    gameRender(game);  //Draw all game objects
-   //rendererDisableScissor();
 
    rendererSetTarget(0, 0, width, height);
    rendererClear(0.0, 0.0, 0.0, 0.0);
@@ -585,6 +583,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    if (ImGui::Button("Start Session")) {
       ggpoCreateSession(game, hostSetup, participants);
+      //ImGui::ProgressBar(0, ImVec2(0.0f, 0.0f));
    }
    ImGui::SameLine();
    if (ImGui::Button("End Session")) {
