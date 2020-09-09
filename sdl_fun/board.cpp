@@ -2,31 +2,29 @@
 
 #include "board.h"
 
-#define GRACEPERIOD 2000
-#define FALL_DELAY 100
-#define REMOVE_CLEARS 2000
-#define ENTER_SILVERS 30000
-#define START_TIMER 2000
-#define LEVEL_UP 10
+//These are all in milliseconds
+#define GRACEPERIOD 2000     //Bonus pause time when your board reaches the top before you die
+#define FALL_DELAY 100       //The pause before a tile falls after swapping
+#define REMOVE_CLEARS 2000   //Time it takes to change a cleared tile to empty
+#define ENTER_SILVERS 30000  //Time before silvers start appearing
+#define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
+#define LANDTIME 1000        //Pause board movement when garbage lands
 
-enum BoardPauseType {
-   pause_combo,
-   pause_chain,
-   pause_clear,
-   pause_crashland,
-};
+#define LEVEL_UP 10          //Rate of increase for board level based on tiles cleared
 
-static void _processBoardPause(Board* board, BoardPauseType type, int size = 0) {
-   board->paused = true;
+//This functions processes the type of pause to figure out the length of the pause
+void boardPauseTime(Board* board, BoardPauseType type, int size) {
    int currentPause = board->pauseLength;
    int time = 0;
 
    switch (type) {
    case pause_combo:
-      time = min((size - 1) * 1000, 5000);
-      board->pauseLength = time;
+      time = min( (size - 3) * 1000 + REMOVE_CLEARS, 6000);  //max pause of 6s
+      if (time > currentPause) { board->pauseLength = time;}
       break;
    case pause_chain:
+      time = min((size - 1) * 1000 + REMOVE_CLEARS, 8000);  //Max pause 8s
+      if (time > currentPause) { board->pauseLength = time; }
       break;
    case pause_clear:
       if (currentPause < REMOVE_CLEARS) {  //The board should always be paused if things need to be cleared
@@ -34,10 +32,22 @@ static void _processBoardPause(Board* board, BoardPauseType type, int size = 0) 
       }
       break;
    case pause_crashland:
+      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
+         board->pauseLength = LANDTIME;
+      }
       break;
-   default:
+   case pause_garbageclear:
+      if (currentPause < REMOVE_CLEARS) {
+         board->pauseLength = REMOVE_CLEARS;
+      }
+      break;
+   case pause_danger:
+      if (currentPause < GRACEPERIOD) {
+         board->pauseLength = GRACEPERIOD;
+      }
       break;
    }
+   board->paused = true;
 };
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
@@ -170,7 +180,7 @@ void boardUpdate(Board* board, UserInput input) {
       }
    }
 
-   if (board->bust == true && board->paused == false) {
+   if (board->danger == true && board->paused == false) {
       if (board->game->players > 1) {
          board->game->playing = false;  //todo message game over
          //todo send signal to bust instead of doing the function right here
@@ -429,14 +439,6 @@ static void _silverClear(Game* game, int size, int player) {
    }
 }
 
-//Calculate the time the board will pause after a combo
-static int _calcComboPause(Board* board, int size) {
-   int time = min( (size - 1) * 1000, 5000);
-   board->pauseLength = time;
-   board->paused = true;
-   return time;
-}
-
 //Matchmaker matchmaker make me a match!
 static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
@@ -520,13 +522,14 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
-      if (board->chain == 1) { 
-         _calcComboPause(board, uniqueMatches.size());   //Find out how long to stop the board
-         board->game->soundToggles[sound_clear] = true; 
-      }
-      if (board->level < 8) {  //todo turn this on when you're ready
+      if (board->chain > 1) { boardPauseTime(board, pause_clear); }
+      else { boardPauseTime(board, pause_combo, uniqueMatches.size()); }
+      board->game->soundToggles[sound_clear] = true; 
+
+      if (board->level < 10) {  //todo turn this on when you're ready
          //board->level += (float) uniqueMatches.size() / 100.0f;  //The more you clear, the faster you go
       }
+
       int clearTime = board->game->timer;  
       for (auto&& m : uniqueMatches) {
          if (m->type == tile_silver) { silvers++; } 
@@ -683,7 +686,7 @@ void boardRemoveClears(Board* board) {
             }
          }
 
-         if (tile->status != status_normal && tile->statusTime <= current) {  //todo fix garbage chains
+         if (tile->status != status_normal && tile->statusTime <= current) {  //Remove special temporary tile statuses
             tile->status = status_normal;
             tile->statusTime = 0;
          }
@@ -698,11 +701,10 @@ void boardRemoveClears(Board* board) {
                tile->statusTime += current + REMOVE_CLEARS;
                tile->clearTime = 0;
                tile->chain = true;
-               //board->paused = true;
-               //board->pauseLength += CLEARTIME;
+               boardPauseTime(board, pause_garbageclear);
             }
 
-            else if (tile->clearTime + REMOVE_CLEARS <= current) {
+            else if (tile->clearTime + REMOVE_CLEARS <= current) {  //Regular tile clearing
                tile->type = tile_empty;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
@@ -725,10 +727,7 @@ void boardRemoveClears(Board* board) {
       if (board->game->players > 1 && board->chain > 1) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
       }
-      if (board->chain > 1) { 
-         board->pauseLength = min((board->chain - 1) * 1000, 8000); 
-         board->paused = true;
-      }  //Pause board after chain
+      if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
       board->chain = 1; 
    }  
    return;
@@ -771,15 +770,12 @@ void boardMoveUp(Board* board, float height) {
    }
    
    if (dangerZone == true) {
-      if (board->bust == false) {  //grace period
-         if (board->pauseLength == 0) {
-            board->paused = true;
-            board->pauseLength = GRACEPERIOD;
-         }
+      if (board->danger == false) {  //grace period
+         boardPauseTime(board, pause_danger);
       }
-      board->bust = true;
+      board->danger = true;
    }
-   else { board->bust = false; }
+   else { board->danger = false; }
 
    boardCheckClear(board, checkTiles, false);
 }

@@ -10,7 +10,6 @@
 #include <assert.h>
 
 #define DEPLOYTIME 3000
-#define LANDTIME 1000
 #define SHAKETIME 100
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
@@ -385,13 +384,9 @@ void garbageFall(Board* board, float velocity) {
          }
 
          if (drop > 0 && landing == true) {
-            if (board->pauseLength == 0) {
-               board->paused = true;
-               board->pauseLength = LANDTIME;
-            }
+            boardPauseTime(board, pause_crashland);
             board->game->soundToggles[sound_crashland] = true;
 
-            //todo ANIMATION - This is where we would animate it hitting the ground
             VisualEvent event;
             event.effect = visual_shake;
             event.end = board->game->timer + SHAKETIME;

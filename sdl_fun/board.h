@@ -8,7 +8,16 @@
 
 #include <random>
 
-#define SWAPTIME 75
+#define SWAPTIME 75  //Visual delay when swapping tiles
+
+enum BoardPauseType {
+   pause_combo = 0,
+   pause_chain,
+   pause_clear,
+   pause_crashland,
+   pause_garbageclear,
+   pause_danger
+};
 
 struct Tile;
 struct Cursor;
@@ -36,6 +45,7 @@ struct Board {
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
+   bool danger = false;
    bool bust = false;
    int chain = 1;
 
@@ -55,6 +65,7 @@ Board* boardCreate(Game* game);
 Board* boardDestroy(Board* board);
 
 int boardFillTiles(Board* board);
+void boardPauseTime(Board* board, BoardPauseType type, int size = 0);
 
 Tile* boardGetTile(Board* board, int row, int col);
 

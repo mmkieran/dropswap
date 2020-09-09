@@ -100,6 +100,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->paused);
    writeStream(stream, board->pauseLength);
    writeStream(stream, board->score);
+   writeStream(stream, board->danger);
    writeStream(stream, board->bust);
    writeStream(stream, board->chain);
    writeStream(stream, board->player);
@@ -126,6 +127,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->paused);
    readStream(start, board->pauseLength);
    readStream(start, board->score);
+   readStream(start, board->danger);
    readStream(start, board->bust);
    readStream(start, board->chain);
    readStream(start, board->player);
