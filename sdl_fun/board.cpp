@@ -3,12 +3,42 @@
 #include "board.h"
 
 #define GRACEPERIOD 2000
-#define FALLDELAY 100
-#define CLEARTIME 2000
-#define ENTERSILVERS 30000
-#define STARTTIMER 2000
-#define LEVELUP 10
-//#define SWAPTIME 100
+#define FALL_DELAY 100
+#define REMOVE_CLEARS 2000
+#define ENTER_SILVERS 30000
+#define START_TIMER 2000
+#define LEVEL_UP 10
+
+enum BoardPauseType {
+   pause_combo,
+   pause_chain,
+   pause_clear,
+   pause_crashland,
+};
+
+static void _processBoardPause(Board* board, BoardPauseType type, int size = 0) {
+   board->paused = true;
+   int currentPause = board->pauseLength;
+   int time = 0;
+
+   switch (type) {
+   case pause_combo:
+      time = min((size - 1) * 1000, 5000);
+      board->pauseLength = time;
+      break;
+   case pause_chain:
+      break;
+   case pause_clear:
+      if (currentPause < REMOVE_CLEARS) {  //The board should always be paused if things need to be cleared
+         board->pauseLength = REMOVE_CLEARS;
+      }
+      break;
+   case pause_crashland:
+      break;
+   default:
+      break;
+   }
+};
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -23,7 +53,7 @@ Tile* _boardCreateArray(int width, int height) {
 int boardRandomTile(Board* board) {
 	int out = board->distribution(board->generator);
    if (out == 7) { 
-      if (board->game->timer > ENTERSILVERS) {
+      if (board->game->timer > ENTER_SILVERS) {
          out = board->distribution(board->generator);
          board->randomCalls++;
       }
@@ -133,7 +163,7 @@ void boardUpdate(Board* board, UserInput input) {
    }
    else {board->paused = false; }
 
-   if (board->game->timer > STARTTIMER) {  //2 second count in to start
+   if (board->game->timer > START_TIMER) {  //2 second count in to start
       if (board->paused == false) {
          boardMoveUp(board, board->moveSpeed / 4.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
          garbageDeploy(board);
@@ -143,6 +173,7 @@ void boardUpdate(Board* board, UserInput input) {
    if (board->bust == true && board->paused == false) {
       if (board->game->players > 1) {
          board->game->playing = false;  //todo message game over
+         //todo send signal to bust instead of doing the function right here
          gameEndMatch(board->game);
          return;
       }
@@ -238,7 +269,7 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board) {
 
-   if (board->game->timer < STARTTIMER) { return; } //No swapping during count in
+   if (board->game->timer < START_TIMER) { return; } //No swapping during count in
 
    float xCursor = cursorGetX(board->cursor);
    float yCursor = cursorGetY(board->cursor);
@@ -287,13 +318,13 @@ void boardSwap(Board* board) {
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
       //tile1->falling = true;
       tile1->status = status_stop;  
-      tile1->statusTime = board->game->timer + FALLDELAY;  //Short pause before falling
+      tile1->statusTime = board->game->timer + FALL_DELAY;  //Short pause before falling
    }
 
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
       //tile2->falling = true;
       tile2->status = status_stop;
-      tile2->statusTime = board->game->timer + FALLDELAY;  //Short pause before falling
+      tile2->statusTime = board->game->timer + FALL_DELAY;  //Short pause before falling
    }
 
    tiles.push_back(tile1); 
@@ -664,14 +695,14 @@ void boardRemoveClears(Board* board) {
                tileSetTexture(board, tile);
                tile->idGarbage = -1;
                tile->status = status_disable;
-               tile->statusTime += current + CLEARTIME;
+               tile->statusTime += current + REMOVE_CLEARS;
                tile->clearTime = 0;
                tile->chain = true;
                //board->paused = true;
                //board->pauseLength += CLEARTIME;
             }
 
-            else if (tile->clearTime + CLEARTIME <= current) {
+            else if (tile->clearTime + REMOVE_CLEARS <= current) {
                tile->type = tile_empty;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;

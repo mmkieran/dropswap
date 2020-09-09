@@ -100,7 +100,23 @@ void boardUI(Game* game) {
       ImGui::SameLine();
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
-      int count = 1;
+
+      if (game->net && game->players > 1) {
+         GGPONetworkStats stats;
+         if (game->net->localPlayer == 1) {
+            ggpo_get_network_stats(game->net->ggpo, 2, &stats);
+         }
+         else {
+            ggpo_get_network_stats(game->net->ggpo, 1, &stats);
+         }
+
+         ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+         ImGui::Text("Ping: %d ", stats.network.ping);
+         //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+         ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+         ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+      }
+
       for (auto&& board : game->boards) {
          ImGui::NewLine();
 
@@ -116,22 +132,6 @@ void boardUI(Game* game) {
          ImGui::Text("Game Time: %d", game->timer);
          ImGui::NewLine();
 
-         GGPONetworkStats stats;
-         if (game->net->localPlayer == 1) {
-            ggpo_get_network_stats(game->net->ggpo, 2, &stats);
-         }
-         else {
-            ggpo_get_network_stats(game->net->ggpo, 1, &stats);
-         }
-
-         ImGui::Text("Player %d", count);
-         ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
-         ImGui::Text("Ping: %d ", stats.network.ping);
-         ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
-         ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
-         ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
-
-         count++;
       }
 
       ImGui::EndChild();
