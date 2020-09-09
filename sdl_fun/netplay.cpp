@@ -150,7 +150,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(info->u.disconnected.player, Disconnected);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       gameGiveIdleToGGPO(game, 1000 * info->u.timesync.frames_ahead / 60);
+       sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
    int a = 0;

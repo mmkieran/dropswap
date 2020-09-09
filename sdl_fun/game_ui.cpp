@@ -102,6 +102,7 @@ void boardUI(Game* game) {
       ImGui::SameLine();
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
+      int count = 1;
       for (auto&& board : game->boards) {
          ImGui::NewLine();
 
@@ -116,7 +117,25 @@ void boardUI(Game* game) {
          ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
          ImGui::NewLine();
+
+         GGPONetworkStats stats;
+         if (game->net->localPlayer == 1) {
+            ggpo_get_network_stats(game->net->ggpo, 2, &stats);
+         }
+         else {
+            ggpo_get_network_stats(game->net->ggpo, 1, &stats);
+         }
+
+         ImGui::Text("Player %d", count);
+         ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+         ImGui::Text("Ping: %d ", stats.network.ping);
+         ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+         ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+         ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+
+         count++;
       }
+
       ImGui::EndChild();
 
       if (game->players > 1) { 
@@ -456,6 +475,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    }
 
    if (ready == true) {
+
       if (ImGui::Button("Start Game")) {
          gameStartMatch(game);
       }
@@ -496,5 +516,27 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    //}
 
    ImGui::PopFont();
+   ImGui::End();
+}
+
+void ggpoNetStatsUI(Game* game, bool* p_open) {
+
+   if (!ImGui::Begin("Network Stats", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   GGPONetworkStats stats;
+   for (int i = 0; i < game->players; i++) {
+      ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
+
+      ImGui::Text("Player %d", i + 1);
+      ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+      ImGui::Text("Ping: %d ", stats.network.ping);
+      ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+      ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+      ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+   }
+
    ImGui::End();
 }
