@@ -31,7 +31,7 @@ struct Board {
    std::vector <VisualEvent> visualEvents;
 
    float level = 1;
-   float fallSpeed = 2;
+   float fallSpeed = 8;
    float moveSpeed = 0.25;
    bool paused = false;
    int pauseLength = 0;

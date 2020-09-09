@@ -328,7 +328,7 @@ void garbageFall(Board* board, float velocity) {
       if (garbage == nullptr) { continue; }
       if (garbage->deployed == true) {
 
-         float drop = board->level * velocity;
+         float drop = velocity;
          bool landing = false;
 
          assert(garbage->start != nullptr);

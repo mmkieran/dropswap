@@ -135,7 +135,7 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > STARTTIMER) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 8.0f * (board->tileHeight / 64.0f));  //Normalized for tile size of 64
+         boardMoveUp(board, board->moveSpeed / 4.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
@@ -153,8 +153,8 @@ void boardUpdate(Board* board, UserInput input) {
       }
    }
 
-   boardFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
-   garbageFall(board, board->fallSpeed * 4.0f * (board->tileHeight / 64.0f) );  //Normalized for tile size of 64
+   boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 2.0f);  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 2.0f);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
    cursorUpdate(board, input);  //This has kinda become player...
@@ -521,7 +521,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 //Detects and adjusts all the positions of the tiles that are falling
 void boardFall(Board* board, float velocity) {
    std::vector <Tile*> tilesToCheck;
-   float drop = board->level * velocity;
+   float drop = velocity;
 
    for (int col = 0; col < board->w; col++) {
       for (int row = board->wBuffer - 1; row >= 0; row--) {
@@ -706,7 +706,7 @@ void boardRemoveClears(Board* board) {
 //Moves all the tile on the board up a given amount
 void boardMoveUp(Board* board, float height) {
    //Moves all tiles up a fixed amount
-   float nudge = height * board->level;
+   float nudge = height;
    board->offset -= nudge;
 
    bool dangerZone = false;  //About to bust
