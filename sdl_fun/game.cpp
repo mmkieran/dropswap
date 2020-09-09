@@ -42,7 +42,7 @@ void imguiSetup(Game* game) {
 
    //Use these for Keyboard and controller navigation
    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
@@ -260,6 +260,7 @@ void gameEndMatch(Game* game) {
    }
    game->boards.clear();
    game->playing = false;
+   game->paused = false;
    game->timer = 0;
    game->frameCount = 0;
    game->timer = 0;

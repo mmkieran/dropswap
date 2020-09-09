@@ -29,22 +29,29 @@ void mainUI(Game* game) {
 
    float width = ImGui::GetWindowContentRegionWidth();
 
-   if (ImGui::Button("One Player", ImVec2{width, 0}) ) {
-      game->players = 1;
-      gameStartMatch(game);
-   }
-   ImGui::NewLine();
-
-   static bool showGGPOSession = false;
-   if (ImGui::Button("Two Player", ImVec2{ width, 0 }) ) {
-      game->players = 2;
-      showGGPOSession = true;
-   }
-   if (showGGPOSession && game->playing == false) {
-      ggpoSessionUI(game, &showGGPOSession);
+   if (game->playing == true) {
+      if (ImGui::Button("End Game", ImVec2{ width, 0 })) {
+         gameEndMatch(game);
+      }
    }
 
-   ImGui::NewLine();
+   if (game->playing == false) {
+      if (ImGui::Button("One Player", ImVec2{ width, 0 })) {
+         game->players = 1;
+         gameStartMatch(game);
+      }
+      ImGui::NewLine();
+
+      static bool showGGPOSession = false;
+      if (ImGui::Button("Two Player", ImVec2{ width, 0 })) {
+         game->players = 2;
+         showGGPOSession = true;
+      }
+      if (showGGPOSession && game->playing == false) {
+         ggpoSessionUI(game, &showGGPOSession);
+      }
+      ImGui::NewLine();
+   }
 
    static bool showSettings = false;
    if (ImGui::Button("Settings", ImVec2{ width, 0 }) ) {
@@ -109,10 +116,6 @@ void boardUI(Game* game) {
          ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
          ImGui::NewLine();
-
-         if (ImGui::Button("End Game")) {
-            gameEndMatch(game);
-         }
       }
       ImGui::EndChild();
 
@@ -137,11 +140,13 @@ void gameSettingsUI(Game* game, bool* p_open) {
    static int backgroundMusic = 0;
    ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
-   ImGui::InputInt("Tile Width", &game->tWidth, 16);
-   ImGui::InputInt("Tile Height", &game->tHeight, 16);
+   if (game->playing == false) {
+      ImGui::InputInt("Tile Width", &game->tWidth, 16);
+      ImGui::InputInt("Tile Height", &game->tHeight, 16);
 
-   ImGui::InputInt("Board Width", &game->bWidth);
-   ImGui::InputInt("Board Height", &game->bHeight);
+      ImGui::InputInt("Board Width", &game->bWidth);
+      ImGui::InputInt("Board Height", &game->bHeight);
+   }
 
    ImGui::End();
 }
