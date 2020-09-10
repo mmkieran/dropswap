@@ -173,9 +173,21 @@ void boardUI(Game* game) {
          ImGui::OpenPopup("Game Over"); 
          gameOverMsg = false;
       }
+
+      //Game over popup
       if (ImGui::BeginPopupModal("Game Over")) {
          ImGui::Text("Player %d lost or something...", bustee);
          if (ImGui::Button("Accept Defeat")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
+         }
+         ImGui::EndPopup();
+      }
+
+      //Popup for player disconnect
+      if (ImGui::BeginPopupModal("Player Disconnected")) {
+         ImGui::EndPopup();
+         if (ImGui::Button("Bail out")) {
             gameEndMatch(game);
             ImGui::CloseCurrentPopup();
          }
