@@ -723,14 +723,13 @@ void boardRemoveClears(Board* board) {
       }
    }
    if (stillChaining == false) { //No tiles are part of a chain
-      if (board->game->players > 1 && board->chain > 1) {
-         boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
-         boardPauseTime(board, pause_combo, board->chain);
+      if (board->chain > 1) {
+         if (board->game->players > 1) { boardChainGarbage(board->game, board->player, board->chain); }
+         boardPauseTime(board, pause_chain, board->chain);
       }
-      //if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
       board->chain = 1; 
    }
-   else {
+   else if (stillChaining == true && board->chain > 1) {
       boardPauseTime(board, pause_clear);
    }
    return;
