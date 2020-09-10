@@ -522,8 +522,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
-      if (board->chain > 1) { boardPauseTime(board, pause_clear); }
-      else { boardPauseTime(board, pause_combo, uniqueMatches.size()); }
+      if (board->chain == 1) { boardPauseTime(board, pause_combo, uniqueMatches.size() ); }
       board->game->soundToggles[sound_clear] = true; 
 
       if (board->level < 10) {  //todo turn this on when you're ready
@@ -726,10 +725,14 @@ void boardRemoveClears(Board* board) {
    if (stillChaining == false) { //No tiles are part of a chain
       if (board->game->players > 1 && board->chain > 1) {
          boardChainGarbage(board->game, board->player, board->chain);  //Check for chains
+         boardPauseTime(board, pause_combo, board->chain);
       }
-      if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
+      //if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
       board->chain = 1; 
-   }  
+   }
+   else {
+      boardPauseTime(board, pause_clear);
+   }
    return;
 }
 
