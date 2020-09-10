@@ -35,18 +35,21 @@ int main(int argc, char* args[]) {
 
       imguiStartFrame(game);
 
+      bool bust = gameCheckBust(game);
+
       if (game->playing == false || game->paused == true) { mainUI(game); }
-      gameMenuUI(game);
 
-      if (game->playing == true && game->players > 1) {
-         gameRunFrame();  //Only for multiplayer so far
-      }
+      if (bust == false) {
+         if (game->playing == true && game->players > 1) {
+            gameRunFrame();  //Only for multiplayer so far
+         }
 
-      if (game->players == 1) {  //Single player
-         if (game->controls == 0) { inputProcessKeyboard(game); }
-         if (game->controls == 1) { inputProcessController(game); }
-         gameCheckPause(game, game->p1Input);
-         if (game->playing == true && game->paused == false) { gameUpdate(game); }
+         if (game->players == 1) {  //Single player
+            if (game->controls == 0) { inputProcessKeyboard(game); }
+            if (game->controls == 1) { inputProcessController(game); }
+            gameCheckPause(game, game->p1Input);
+            if (game->playing == true && game->paused == false) { gameUpdate(game); }
+         }
       }
 
       imguiRender(game);  //draw the board, cursor, and other things

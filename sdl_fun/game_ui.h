@@ -9,6 +9,7 @@ void mainUI(Game* game);
 void boardUI(Game* game);
 
 void gameMenuUI(Game* game);  //Old and being retired
+void onePlayerOptions(Game* game);
 
 void ggpoSessionUI(Game* game, bool* p_open);
 void ggpoNetStatsUI(Game* game, bool* p_open);

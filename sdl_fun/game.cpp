@@ -178,6 +178,18 @@ void gameHandleEvents(Game* game) {
 
 }
 
+//Check the boards to see if it's game over
+bool gameCheckBust(Game* game) {
+   //Board* busted = nullptr;
+   for (int i = 0; i < game->boards.size(); i++) {
+      if (game->boards[i]->bust == true) {
+         //busted = game->boards[i];
+         return true;
+      }
+   }
+   return false;
+}
+
 //Detect if any player paused the game
 void gameCheckPause(Game* game, UserInput input) {
    if (input.pause.p == true) {
@@ -261,11 +273,9 @@ void gameEndMatch(Game* game) {
    game->boards.clear();
    game->playing = false;
    game->paused = false;
-   game->timer = 0;
    game->frameCount = 0;
    game->timer = 0;
    soundsStopAll();
-   ImGui::OpenPopup("Game Over");
 }
 
 //Call the draw function for all the boards

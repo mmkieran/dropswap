@@ -181,17 +181,7 @@ void boardUpdate(Board* board, UserInput input) {
    }
 
    if (board->danger == true && board->paused == false) {
-      if (board->game->players > 1) {
-         board->game->playing = false;  //todo message game over
-         //todo send signal to bust instead of doing the function right here
-         gameEndMatch(board->game);
-         return;
-      }
-      else if (board->game->players == 1) {
-         board->game->playing = false;
-         gameEndMatch(board->game);
-         return;
-      }
+      board->bust = true;
    }
 
    boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64

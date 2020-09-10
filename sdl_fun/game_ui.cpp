@@ -125,6 +125,7 @@ void boardUI(Game* game) {
       //   ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
       //}
 
+      static bool gameOverMsg = false;
       for (auto&& board : game->boards) {
          ImGui::NewLine();
 
@@ -140,6 +141,10 @@ void boardUI(Game* game) {
          ImGui::Text("Game Time: %d", game->timer / 1000);
          ImGui::NewLine();
 
+         if (board->bust == true && gameOverMsg == false) {
+            gameOverMsg = true;
+         }
+
       }
 
       ImGui::EndChild();
@@ -148,8 +153,28 @@ void boardUI(Game* game) {
          ImGui::SameLine();
          _drawBoardTexture(game, 1); 
       }
+      else {
+         ImGui::SameLine();
+         ImGui::BeginChild("Debug Options");
+         onePlayerOptions(game);
+         ImGui::EndChild();
+      }
 
       ImGui::PopFont();
+
+      if (gameOverMsg == true){ 
+         ImGui::OpenPopup("Game Over"); 
+      }
+      if (ImGui::BeginPopupModal("Game Over")) {
+         ImGui::Text("You won or lost or something...");
+         if (ImGui::Button("Accept Defeat")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
+            gameOverMsg = false;
+         }
+         ImGui::EndPopup();
+      }
+
       ImGui::End();
    }
 }
@@ -180,6 +205,68 @@ void gameSettingsUI(Game* game, bool* p_open) {
    }
 
    ImGui::End();
+}
+
+void onePlayerOptions(Game* game) {
+
+   if (ImGui::Button("Load Board")) {
+      gameLoadState(game, "saves/game_state.dat");
+   }
+
+   if (ImGui::Button("Save Game")) {
+      gameSaveState(game, "saves/game_state.dat");
+   }
+
+   if (ImGui::Button("Clear Board")) {
+      if (game->playing == true) {
+         for (auto&& board : game->boards) {
+            if (board) { boardClear(board); }
+         }
+      }
+   }
+
+   if (ImGui::Button("Make it rain")) {
+      if (game->playing == true) {
+         for (auto&& board : game->boards) {
+            if (board) { makeItRain(board); }
+         }
+      }
+   }
+
+   if (game->playing == true) {
+      static int gWidth = 6;
+      static int gHeight = 1;
+      static bool isMetal = false;
+      ImGui::InputInt("Garbage Width", &gWidth);
+      ImGui::InputInt("Garbage Height", &gHeight);
+      ImGui::Checkbox("Metal", &isMetal);
+
+      if (ImGui::Button("Dumpstered")) {
+
+         for (auto&& board : game->boards) {
+            if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
+         }
+      }
+   }
+
+   if (game->playing == true) {
+      for (auto&& board : game->boards) {
+         if (board) {
+            float minFallSpeed = 0;
+            float maxFallSpeed = 20.0;
+
+            ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
+
+            float minBoardSpeed = 0;
+            float maxBoardSpeed = 10.0;
+            ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
+
+            float minBoardLevel = 0;
+            float maxBoardLevel = 10.0;
+            ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+         }
+      }
+   }
 }
 
 //Show the game menu window

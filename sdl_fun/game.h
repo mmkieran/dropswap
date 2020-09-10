@@ -107,6 +107,8 @@ struct Game {
 
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
 bool gameRunning(Game* game);
+
+bool gameCheckBust(Game* game);
 void gameCheckPause(Game* game, UserInput input);
 
 void gameHandleEvents(Game* game);
