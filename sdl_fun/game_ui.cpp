@@ -16,13 +16,18 @@ Sean Hunter
 ...
 )";
 
-struct GameStats {
+struct BoardStats {
+   std::map <int, int> chainCounts;
+   std::map <int, int> comboCounts;
+
    int lastChain = 1;
-   int apm = 0;
+   int apm = 0;  //actions per minute
    int biggestCombo = 0;
    int clears = 0;
-   int dangeresque = 0;
+   int dangeresque = 0;  //time in danger
 };
+
+std::vector <BoardStats> boardStats;
 
 void mainUI(Game* game) {
 
@@ -164,15 +169,15 @@ void boardUI(Game* game) {
 
       ImGui::PopFont();
 
-      if (gameOverMsg == true){ 
+      if (gameOverMsg == true) { 
          ImGui::OpenPopup("Game Over"); 
+         gameOverMsg = false;
       }
       if (ImGui::BeginPopupModal("Game Over")) {
          ImGui::Text("Player %d lost or something...", bustee);
          if (ImGui::Button("Accept Defeat")) {
             gameEndMatch(game);
             ImGui::CloseCurrentPopup();
-            gameOverMsg = false;
          }
          ImGui::EndPopup();
       }
