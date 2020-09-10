@@ -126,6 +126,7 @@ void boardUI(Game* game) {
       //}
 
       static bool gameOverMsg = false;
+      static int bustee = 0;
       for (auto&& board : game->boards) {
          ImGui::NewLine();
 
@@ -142,6 +143,7 @@ void boardUI(Game* game) {
          ImGui::NewLine();
 
          if (board->bust == true && gameOverMsg == false) {
+            bustee = board->player;
             gameOverMsg = true;
          }
 
@@ -166,7 +168,7 @@ void boardUI(Game* game) {
          ImGui::OpenPopup("Game Over"); 
       }
       if (ImGui::BeginPopupModal("Game Over")) {
-         ImGui::Text("You won or lost or something...");
+         ImGui::Text("Player %d lost or something...", bustee);
          if (ImGui::Button("Accept Defeat")) {
             gameEndMatch(game);
             ImGui::CloseCurrentPopup();

@@ -276,6 +276,9 @@ void gameEndMatch(Game* game) {
    game->frameCount = 0;
    game->timer = 0;
    soundsStopAll();
+   if (game->players > 1) {
+      ggpoEndSession(game);
+   }
 }
 
 //Call the draw function for all the boards
