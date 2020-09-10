@@ -572,12 +572,19 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::PopID();
    ImGui::NewLine();
 
-   if (ImGui::Button("Start Session")) {
+   if (ImGui::Button("Open Connection") && game->net->ggpo == false) {
       ggpoCreateSession(game, hostSetup, participants);
-      //ImGui::ProgressBar(0, ImVec2(0.0f, 0.0f));
+      ImGui::OpenPopup("Connection Stats");
    }
+
+   if (ImGui::BeginPopupModal("Connection Stats")) {
+      ggpoNetStatsUI(game, game->net->connections[game->net->myConnNum]);
+      if (ImGui::Button("Close")) { ImGui::CloseCurrentPopup(); }
+      ImGui::EndPopup();
+   }
+
    ImGui::SameLine();
-   if (ImGui::Button("End Session")) {
+   if (ImGui::Button("Close Connection")) {
       ggpoEndSession(game);
    }
 
@@ -637,24 +644,29 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void ggpoNetStatsUI(Game* game, bool* p_open) {
+void ggpoNetStatsUI(Game* game, PlayerConnectionInfo connect) {
 
-   if (!ImGui::Begin("Network Stats", p_open)) {
-      ImGui::End();
-      return;
-   }
+   //if (!ImGui::Begin("Network Stats", p_open)) {
+   //   ImGui::End();
+   //   return;
+   //}
+
+   int a = connect.connect_progress;
+
+   ImGui::ProgressBar(connect.connect_progress, ImVec2(0.0f, 0.0f));
 
    GGPONetworkStats stats;
    for (int i = 0; i < game->players; i++) {
+      if (game->net->localPlayer == i + 1) { continue; }
       ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
 
-      ImGui::Text("Player %d", i + 1);
+      ImGui::Text("Player %d Connection Info", i + 1);
       ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
       ImGui::Text("Ping: %d ", stats.network.ping);
-      ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+      //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
       ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
 
-   ImGui::End();
+   //ImGui::End();
 }
