@@ -3,7 +3,7 @@
 #include "board.h"
 
 //These are all in milliseconds
-#define GRACEPERIOD 2000     //Bonus pause time when your board reaches the top before you die
+#define GRACEPERIOD 1000     //Bonus pause time when your board reaches the top before you die
 #define FALL_DELAY 100       //The pause before a tile falls after swapping
 #define REMOVE_CLEARS 2000   //Time it takes to change a cleared tile to empty
 #define ENTER_SILVERS 30000  //Time before silvers start appearing
@@ -175,7 +175,7 @@ void boardUpdate(Board* board, UserInput input) {
 
    if (board->game->timer > START_TIMER) {  //2 second count in to start
       if (board->paused == false) {
-         boardMoveUp(board, board->moveSpeed / 4.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
+         boardMoveUp(board, board->moveSpeed/8.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
@@ -194,8 +194,8 @@ void boardUpdate(Board* board, UserInput input) {
       }
    }
 
-   boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 2.0f);  //Normalized for tile size of 64
-   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 2.0f);  //Normalized for tile size of 64
+   boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
    cursorUpdate(board, input);  //This has kinda become player...
@@ -729,7 +729,7 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   else if (stillChaining == true && board->chain > 1) {
+   else if (stillChaining == true) {
       boardPauseTime(board, pause_clear);
    }
    return;

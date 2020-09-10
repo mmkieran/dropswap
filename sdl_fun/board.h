@@ -41,7 +41,7 @@ struct Board {
 
    float level = 1;
    float fallSpeed = 8;
-   float moveSpeed = 0.25;
+   float moveSpeed = 1;
    bool paused = false;
    int pauseLength = 0;
    double score = 0;
