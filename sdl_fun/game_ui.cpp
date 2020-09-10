@@ -16,6 +16,14 @@ Sean Hunter
 ...
 )";
 
+struct GameStats {
+   int lastChain = 1;
+   int apm = 0;
+   int biggestCombo = 0;
+   int clears = 0;
+   int dangeresque = 0;
+};
+
 void mainUI(Game* game) {
 
    ImGui::PushFont(game->fonts[20]);
@@ -101,21 +109,21 @@ void boardUI(Game* game) {
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
-      if (game->net && game->players > 1) {
-         GGPONetworkStats stats;
-         if (game->net->localPlayer == 1) {
-            ggpo_get_network_stats(game->net->ggpo, 2, &stats);
-         }
-         else {
-            ggpo_get_network_stats(game->net->ggpo, 1, &stats);
-         }
+      //if (game->net && game->players > 1) {
+      //   GGPONetworkStats stats;
+      //   if (game->net->localPlayer == 1) {
+      //      ggpo_get_network_stats(game->net->ggpo, 2, &stats);
+      //   }
+      //   else {
+      //      ggpo_get_network_stats(game->net->ggpo, 1, &stats);
+      //   }
 
-         ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
-         ImGui::Text("Ping: %d ", stats.network.ping);
-         //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
-         ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
-         ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
-      }
+      //   ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+      //   ImGui::Text("Ping: %d ", stats.network.ping);
+      //   //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+      //   ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+      //   ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+      //}
 
       for (auto&& board : game->boards) {
          ImGui::NewLine();
@@ -128,8 +136,8 @@ void boardUI(Game* game) {
          }
          ImGui::Text("%d chain", board->chain);
          ImGui::Text("Last chain: %d", lastChain);
-         ImGui::Text("Pause Time: %d", board->pauseLength);
-         ImGui::Text("Game Time: %d", game->timer);
+         ImGui::Text("Pause Time: %d", board->pauseLength / 1000);
+         ImGui::Text("Game Time: %d", game->timer / 1000);
          ImGui::NewLine();
 
       }
@@ -158,8 +166,14 @@ void gameSettingsUI(Game* game, bool* p_open) {
    ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
    if (game->playing == false) {
-      ImGui::InputInt("Tile Width", &game->tWidth, 16);
-      ImGui::InputInt("Tile Height", &game->tHeight, 16);
+      static int tileSize = 0;
+      ImGui::Combo("Tile Size", &tileSize, "Large\0Medium\0Small\0");
+      if (tileSize == 0) { game->tWidth = game->tHeight = 64; }
+      else  if (tileSize == 1) { game->tWidth = game->tHeight = 32; }
+      else { game->tWidth = game->tHeight = 16; }
+
+      //ImGui::InputInt("Tile Width", &game->tWidth, 16);
+      //ImGui::InputInt("Tile Height", &game->tHeight, 16);
 
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
