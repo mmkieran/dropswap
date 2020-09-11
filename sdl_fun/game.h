@@ -68,7 +68,6 @@ struct Game {
    std::vector <Board*> boards;
    Resources* resources = nullptr;
 
-   std::map <SoundEffect, bool> soundToggles;
    std::map <int, ImFont*> fonts;
 
    int bHeight = 12;
