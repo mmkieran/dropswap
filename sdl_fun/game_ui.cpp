@@ -30,19 +30,6 @@ Pause       :  Start Button
 Nudge Board :  Right Bottom Trigger
 )";
 
-struct BoardStats {
-   std::map <int, int> chainCounts;
-   std::map <int, int> comboCounts;
-
-   int lastChain = 1;
-   int apm = 0;  //actions per minute
-   int biggestCombo = 0;
-   int clears = 0;
-   int dangeresque = 0;  //time in danger
-};
-
-std::vector <BoardStats> boardStats;
-
 void mainUI(Game* game) {
 
    ImGui::PushFont(game->fonts[20]);
@@ -156,8 +143,13 @@ void boardUI(Game* game) {
             lastChain = board->chain;
             chainTime = game->timer;
          }
-         ImGui::Text("%d chain", board->chain);
-         ImGui::Text("Last chain: %d", lastChain);
+         //Board Stats
+         ImGui::Text("Last chain: %d", board->boardStats.lastChain);
+         if (board->game->timer > 0) {
+            ImGui::Text("APM: %d", board->boardStats.apm / board->game->timer / 1000 * 60);
+            ImGui::Text("Dangeresque: %d", board->boardStats.dangeresque / board->game->timer / 1000 * 60);
+         }
+
          ImGui::Text("Pause Time: %d", board->pauseLength / 1000);
          ImGui::Text("Game Time: %d", game->timer / 1000);
          ImGui::NewLine();

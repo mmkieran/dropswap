@@ -512,11 +512,13 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
    int silvers = 0;
    if (uniqueMatches.size() > 0) {
+      board->boardStats.clears += uniqueMatches.size();  //Board stats
+      board->boardStats.comboCounts[uniqueMatches.size()] += 1;
       if (board->chain == 1) { boardPauseTime(board, pause_combo, uniqueMatches.size() ); }
       board->game->soundToggles[sound_clear] = true; 
 
       if (board->level < 10) {  //todo turn this on when you're ready
-         //board->level += (float) uniqueMatches.size() / 100.0f;  //The more you clear, the faster you go
+         board->level += (float) uniqueMatches.size() / 100.0f;  //The more you clear, the faster you go
       }
 
       int clearTime = board->game->timer;  
@@ -533,6 +535,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
             board->chain += 1;
             fallCombo = false;
             board->game->soundToggles[sound_chain] = true;
+            //todo visual queue that chain is occuring
          }
 
          //todo add score logic here
@@ -716,6 +719,8 @@ void boardRemoveClears(Board* board) {
       if (board->chain > 1) {
          if (board->game->players > 1) { boardChainGarbage(board->game, board->player, board->chain); }
          boardPauseTime(board, pause_chain, board->chain);
+         board->boardStats.lastChain = board->chain;
+         board->boardStats.chainCounts[board->chain] += 1;  //Board Stats
       }
       board->chain = 1; 
    }
@@ -764,6 +769,7 @@ void boardMoveUp(Board* board, float height) {
    if (dangerZone == true) {
       if (board->danger == false) {  //grace period
          boardPauseTime(board, pause_danger);
+         board->boardStats.dangeresque += 1;  //Board Stats
       }
       board->danger = true;
    }

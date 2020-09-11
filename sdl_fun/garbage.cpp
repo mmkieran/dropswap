@@ -283,6 +283,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
       _findTouching(board, checkList[i], cleared, checkList);
    }
 
+   board->boardStats.garbageCrushed += cleared.size();  //Board Stats
    garbageClear(board, cleared);
 }
 

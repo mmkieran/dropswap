@@ -22,6 +22,18 @@ enum BoardPauseType {
 struct Tile;
 struct Cursor;
 
+struct BoardStats {
+   std::map <int, int> chainCounts;
+   std::map <int, int> comboCounts;
+
+   int lastChain = 0;
+   int apm = 0;  //actions per frame
+   int biggestCombo = 0;
+   int clears = 0;
+   int dangeresque = 0;  //frames in danger
+   int garbageCrushed = 0;
+};
+
 //The top left of the board is (0, 0) for rendering and for array indices
 //@@Start Serialize
 struct Board {
@@ -38,6 +50,7 @@ struct Board {
    Game* game = nullptr;
 
    std::vector <VisualEvent> visualEvents;
+   BoardStats boardStats;
 
    float level = 1;
    float fallSpeed = 8;

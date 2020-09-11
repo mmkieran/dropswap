@@ -74,6 +74,7 @@ void cursorUpdate(Board* board, UserInput input) {
    float x = cursorGetX(board->cursor);
 
    if (input.up.p) {
+      board->boardStats.apm++;  //Board Stats
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
@@ -81,6 +82,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.down.p) {
+      board->boardStats.apm++;  //Board Stats
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
@@ -88,6 +90,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.right.p) {
+      board->boardStats.apm++;  //Board Stats
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
@@ -95,6 +98,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.left.p) {
+      board->boardStats.apm++;  //Board Stats
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));
@@ -130,10 +134,12 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.swap.p) {
+      board->boardStats.apm++;  //Board Stats
       boardSwap(board);
    }
 
    else if (input.nudge.p && board->paused == false) {
+      board->boardStats.apm++;  //Board Stats
       boardMoveUp(board, 4);
    }
 
