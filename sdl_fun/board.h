@@ -28,6 +28,7 @@ struct BoardStats {
 
    int lastChain = 0;
    int apm = 0;  //actions per frame
+   int apmCum = 0;
    int biggestCombo = 0;
    int clears = 0;
    int dangeresque = 0;  //frames in danger

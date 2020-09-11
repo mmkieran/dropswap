@@ -137,23 +137,20 @@ void boardUI(Game* game) {
       for (auto&& board : game->boards) {
          ImGui::NewLine();
 
-         static int lastChain = 0;
-         static int chainTime = 0;
-         if (board->chain > 1) {
-            lastChain = board->chain;
-            chainTime = game->timer;
-         }
          //Board Stats
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
-         if (board->game->timer > 0) {
-            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
-            ImGui::Text("APM: %d", apm);
-            int danger = (board->boardStats.dangeresque / (board->game->timer / 1000.0f)) * 60.0f;
-            ImGui::Text("Dangeresque: %d", danger);
+         board->boardStats.apmCum += board->boardStats.apm;
+         if (game->frameCount % (60 * 5) == 0) {
+            board->boardStats.apm = 0;
          }
+         int apmCum = (board->boardStats.apmCum / (board->game->timer / 1000.0f)) * 60.0f;
+         int apm = (board->boardStats.apm / 5.0f )* 60.0f;
+         ImGui::Text("Average APM: %d", apmCum);
+         ImGui::Text("5s running APM: %d", apm);
+         ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
 
-         ImGui::Text("Pause Time: %d", board->pauseLength / 1000);
-         ImGui::Text("Game Time: %d", game->timer / 1000);
+         ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
+         ImGui::Text("Game Time: %d s", game->timer / 1000);
          ImGui::NewLine();
 
          if (board->bust == true && gameOverMsg == false) {

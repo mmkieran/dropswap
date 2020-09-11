@@ -671,10 +671,12 @@ void boardRemoveClears(Board* board) {
                Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
                if (garbage->falling == false) {
                   board->game->soundToggles[sound_anxiety] = true;
+                  board->boardStats.dangeresque += 1;  //Board Stats
                }
             }
             else {
                board->game->soundToggles[sound_anxiety] = true;
+               board->boardStats.dangeresque += 1;  //Board Stats
             }
          }
 
@@ -769,7 +771,6 @@ void boardMoveUp(Board* board, float height) {
    if (dangerZone == true) {
       if (board->danger == false) {  //grace period
          boardPauseTime(board, pause_danger);
-         board->boardStats.dangeresque += 1;  //Board Stats
       }
       board->danger = true;
    }
