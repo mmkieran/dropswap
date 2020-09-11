@@ -146,8 +146,10 @@ void boardUI(Game* game) {
          //Board Stats
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
          if (board->game->timer > 0) {
-            ImGui::Text("APM: %d", board->boardStats.apm / board->game->timer / 1000 * 60);
-            ImGui::Text("Dangeresque: %d", board->boardStats.dangeresque / board->game->timer / 1000 * 60);
+            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
+            ImGui::Text("APM: %d", apm);
+            int danger = (board->boardStats.dangeresque / (board->game->timer / 1000.0f)) * 60.0f;
+            ImGui::Text("Dangeresque: %d", danger);
          }
 
          ImGui::Text("Pause Time: %d", board->pauseLength / 1000);
