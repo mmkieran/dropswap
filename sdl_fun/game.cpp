@@ -180,10 +180,8 @@ void gameHandleEvents(Game* game) {
 
 //Check the boards to see if it's game over
 bool gameCheckBust(Game* game) {
-   //Board* busted = nullptr;
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i]->bust == true) {
-         //busted = game->boards[i];
          return true;
       }
    }

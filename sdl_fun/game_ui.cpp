@@ -16,6 +16,20 @@ Sean Hunter
 ...
 )";
 
+const char* keyboardControls = R"(
+Movement    :  Arrow Keys
+Swap        :  SPACEBAR
+Pause       :  RETURN
+Nudge Board :  R
+)";
+
+const char* gamepadControls = R"(
+Movement    :  D Pad
+Swap        :  A Button
+Pause       :  Start Button
+Nudge Board :  Right Bottom Trigger
+)";
+
 struct BoardStats {
    std::map <int, int> chainCounts;
    std::map <int, int> comboCounts;
@@ -44,6 +58,7 @@ void mainUI(Game* game) {
 
    if (game->playing == true) {
       if (ImGui::Button("End Game", ImVec2{ width, 0 })) {
+         //ImGui::OpenPopup("Game Over");
          gameEndMatch(game);
       }
    }
@@ -211,7 +226,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
    if (game->playing == false) {
       static int tileSize = 0;
-      ImGui::Combo("Tile Size", &tileSize, "Large\0Medium\0Small\0");
+      ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
       if (tileSize == 0) { game->tWidth = game->tHeight = 64; }
       else  if (tileSize == 1) { game->tWidth = game->tHeight = 32; }
       else { game->tWidth = game->tHeight = 16; }
@@ -221,6 +236,21 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
+   }
+
+   if (game->controls == 0) { ImGui::TextUnformatted(keyboardControls); }
+   else if (game->controls == 1) { ImGui::TextUnformatted(gamepadControls); }
+
+   static bool showDemo = false;
+   if (showDemo == false) {
+      if (ImGui::Button("Show ImGui Demo")) {
+         showDemo = true;
+      }
+   }
+   else {
+      if (ImGui::Button("Hide ImGui Demo")) {
+         showDemo = false;
+      }
    }
 
    ImGui::End();
@@ -286,166 +316,6 @@ void onePlayerOptions(Game* game) {
          }
       }
    }
-}
-
-//Show the game menu window
-void gameMenuUI(Game* game) {
-
-   if (!ImGui::Begin("Game Menus")) {
-      ImGui::End();
-      return;
-   }
-
-   ImGui::PushFont(game->fonts[13]);
-   //Game Over message
-   if (ImGui::BeginPopupModal("Game Over", NULL)) {
-      ImGui::Text("You won or lost or something...");
-      if (ImGui::Button("Accept Defeat")) {
-         ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Player Settings")) {
-      static int peoplePlaying = game->players - 1;
-      ImGui::Combo("Players", &peoplePlaying, "One Player\0Two Player\0");
-      game->players = peoplePlaying + 1;
-      ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
-      ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
-      static int backgroundMusic = 0;
-      ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
-
-      static bool showGGPOSession = false;
-      if (game->players > 1 || game->syncTest == true) {
-         if (ImGui::Button("Connection Window")) {
-            showGGPOSession = true;
-         }
-         if (showGGPOSession && game->playing == false) {
-            ggpoSessionUI(game, &showGGPOSession);
-         }
-      }
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Board Settings")) {
-      ImGui::InputInt("Tile Width", &game->tWidth, 16);
-      ImGui::InputInt("Tile Height", &game->tHeight, 16);
-
-      ImGui::InputInt("Board Width", &game->bWidth);
-      ImGui::InputInt("Board Height", &game->bHeight);
-   }
-
-   ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-   if (ImGui::CollapsingHeader("Game Actions")) {
-      if (game->playing == false) {
-         if (ImGui::Button("Start Game")) {
-            gameStartMatch(game);
-         }
-      }
-      if (game->playing == true) {
-         if (ImGui::Button("End Game")) {
-            gameEndMatch(game);
-         }
-      }
-
-      if (game->playing == true) {
-         if (game->paused == true) {
-            if (ImGui::Button("Unpause Game")) {
-               game->paused = false;
-            }
-         }
-         else if (game->paused == false) {
-            if (ImGui::Button("Pause Game")) {
-               game->paused = true;
-            }
-         }
-      }
-
-      if (ImGui::Button("Load Board")) {
-         gameLoadState(game, "saves/game_state.dat");
-      }
-
-      if (ImGui::Button("Save Game")) {
-         gameSaveState(game, "saves/game_state.dat");
-      }
-   }
-
-   if (ImGui::CollapsingHeader("Debug")) {
-
-      static bool showDemo = false;
-      if (showDemo == false) {
-         if (ImGui::Button("Show ImGui Demo")) {
-            showDemo = true;
-         }
-      }
-      else {
-         if (ImGui::Button("Hide ImGui Demo")) {
-            showDemo = false;
-         }
-      }
-      if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
-
-      if (ImGui::Button("Clear Board")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { boardClear(board); }
-            }
-         }
-      }
-
-      if (ImGui::Button("Make it rain")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { makeItRain(board); }
-            }
-         }
-      }
-
-      if (game->playing == true) {
-         static int gWidth = 6;
-         static int gHeight = 1;
-         static bool isMetal = false;
-         ImGui::InputInt("Garbage Width", &gWidth);
-         ImGui::InputInt("Garbage Height", &gHeight);
-         ImGui::Checkbox("Metal", &isMetal);
-
-         if (ImGui::Button("Dumpstered")) {
-
-            for (auto&& board : game->boards) {
-               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
-            }
-         }
-      }
-
-      if (game->playing == true) {
-         for (auto&& board : game->boards) {
-            if (board) {
-               float minFallSpeed = 0;
-               float maxFallSpeed = 20.0;
-
-               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-               float minBoardSpeed = 0;
-               float maxBoardSpeed = 10.0;
-               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
-
-               float minBoardLevel = 0;
-               float maxBoardLevel = 10.0;
-               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
-            }
-         }
-      }
-   }
-
-
-   if (ImGui::CollapsingHeader("Credits")) {
-      //todo maybe just read in a file here
-      ImGui::TextUnformatted(credits);
-   }
-   ImGui::PopFont();
-
-   ImGui::End();
 }
 
 //Show the connection window for GGPO... only for 2 players
@@ -572,20 +442,31 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::PopID();
    ImGui::NewLine();
 
-   if (ImGui::Button("Open Connection") && game->net->ggpo == false) {
-      ggpoCreateSession(game, hostSetup, participants);
-      ImGui::OpenPopup("Connection Stats");
+   if (game->net->ggpo == nullptr) {
+      if (ImGui::Button("Open Connection")) {
+         ggpoCreateSession(game, hostSetup, participants);
+      }
    }
 
-   if (ImGui::BeginPopupModal("Connection Stats")) {
-      ggpoNetStatsUI(game, game->net->connections[game->net->myConnNum]);
-      if (ImGui::Button("Close")) { ImGui::CloseCurrentPopup(); }
-      ImGui::EndPopup();
-   }
+   static bool netStats = false;
+   if (game->net && game->net->ggpo) {
+      if (ImGui::Button("Connection Info")) {
+         netStats = true;
+      }
+      if (netStats == true) { ggpoNetStatsUI(game, &netStats); }
 
-   ImGui::SameLine();
-   if (ImGui::Button("Close Connection")) {
-      ggpoEndSession(game);
+      ImGui::SameLine();
+      if (ImGui::Button("Close Connection")) {
+         ggpoEndSession(game);
+      }
+      if (game->net && game->net->connections[game->net->myConnNum].state != 2) {
+         ImGui::Text("Connecting...");
+         ImGui::NewLine();
+      }
+      else if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
+         ImGui::Text("Ready");
+         ImGui::NewLine();
+      }
    }
 
    static bool readySent = false;
@@ -644,16 +525,14 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void ggpoNetStatsUI(Game* game, PlayerConnectionInfo connect) {
+void ggpoNetStatsUI(Game* game, bool* p_open) {
 
-   //if (!ImGui::Begin("Network Stats", p_open)) {
-   //   ImGui::End();
-   //   return;
-   //}
+   if (!ImGui::Begin("Network Stats", p_open)) {
+      ImGui::End();
+      return;
+   }
 
-   int a = connect.connect_progress;
-
-   ImGui::ProgressBar(connect.connect_progress, ImVec2(0.0f, 0.0f));
+   //ImGui::ProgressBar(connect.connect_progress, ImVec2(0.0f, 0.0f));
 
    GGPONetworkStats stats;
    for (int i = 0; i < game->players; i++) {
@@ -668,5 +547,5 @@ void ggpoNetStatsUI(Game* game, PlayerConnectionInfo connect) {
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
 
-   //ImGui::End();
+   ImGui::End();
 }
