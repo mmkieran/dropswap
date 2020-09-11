@@ -7,6 +7,7 @@ SoLoud::Soloud gSoloud;
 std::map <SoundEffect, SoundState> soundBoard;
 
 struct SoundState {
+   int handle = -1;
    bool play = false;
    int coolDown = 0;
    bool loop = false;
@@ -28,29 +29,43 @@ static void _setCoolDown(SoundEffect sound) {
    case sound_crashland:
       soundBoard[sound].coolDown = 50;
    default:
-      soundBoard[sound].coolDown = 1;
+      soundBoard[sound].coolDown = 0;
    }
 }
 
-int soundsPlaySound(Game* game, SoundEffect sound, background = false, bool silence = false) {
-   if (soundBoard[sound].coolDown <= game->timer) { return; }
-   if (soundBoard[sound].finish >= game->timer) { return; }
+int soundsPlaySound(Game* game, SoundEffect sound, bool silence = false) {
    if (soundBoard[sound].play == true) { return; }
+   if (soundBoard[sound].coolDown <= game->timer) { return; }
+   else {
+      soundBoard[sound].play = false;
+   }
+   if (soundBoard[sound].finish >= game->timer) { return; }
 
    int handle;
    SoLoud::Wav* wav = resourcesGetSound(game->resources, sound);
 
-   if (background == true) { 
-      wav->setLooping(true);
-      soundBoard[sound].loop = true;
-      handle = gSoloud.playBackground(*wav); 
-      gSoloud.setProtectVoice(handle, true);
-      soundBoard[sound].interrupt = false;
-   }
-   else { handle = gSoloud.play(*wav); }
+   handle = gSoloud.play(*wav); 
    soundBoard[sound].play = true;
    soundBoard[sound].finish = game->timer + wav->getLength();
    _setCoolDown(sound);
+
+   return handle;
+}
+
+int soundsPlayBackground(Game* game, SoundEffect sound) {
+   if (soundBoard[sound].play == true) { return; }
+   if (soundBoard[sound].coolDown <= game->timer) { return; }
+
+   int handle;
+   SoLoud::Wav* wav = resourcesGetSound(game->resources, sound);
+
+   wav->setLooping(true);
+   soundBoard[sound].loop = true;
+   handle = gSoloud.playBackground(*wav);
+   gSoloud.setProtectVoice(handle, true);
+   soundBoard[sound].interrupt = false;
+
+   soundBoard[sound].play = true;
 
    return handle;
 }
