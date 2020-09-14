@@ -1,11 +1,10 @@
 #pragma once
 
-typedef struct Game Game;
-enum SoundEffect;
+#include "game.h"
 
 void soundsInit();
 void soundsDestroy();
 
-int soundsPlaySound(Game* game, SoundEffect sound, background = false, bool silence = false);
+int soundsPlaySound(Game* game, SoundEffect sound);
 void soundsStopAll();
 void soundsStopSound(int handle);
