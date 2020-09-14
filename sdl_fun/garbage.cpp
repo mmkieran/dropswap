@@ -372,7 +372,7 @@ void garbageFall(Board* board, float velocity) {
             }
          }
 
-         if (drop < board->level * velocity){ landing = true; }
+         if (drop < velocity){ landing = true; }
 
          //If the bottom layer can fall, adjust the ypos with the max drop
          if (garbage->falling == true && drop > 0) {
@@ -386,7 +386,7 @@ void garbageFall(Board* board, float velocity) {
 
          if (drop > 0 && landing == true) {
             boardPauseTime(board, pause_crashland);
-            board->game->soundToggles[sound_crashland] = true;
+            if (drop > 0.1f) { board->game->soundToggles[sound_crashland] = true; }
 
             VisualEvent event;
             event.effect = visual_shake;

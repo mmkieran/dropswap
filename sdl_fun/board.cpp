@@ -552,6 +552,7 @@ void boardFall(Board* board, float velocity) {
    for (int col = 0; col < board->w; col++) {
       for (int row = board->wBuffer - 1; row >= 0; row--) {
          Tile* tile = boardGetTile(board, row, col);
+         bool prevFall = tile->falling;  //Was the tile falling previously
 
          if (tile->type == tile_empty || tile->type == tile_cleared || tile->type == tile_garbage) {continue; } 
          if (tile->status == status_disable || tile->status == status_stop) {  //Don't fall if it's stopped/disabled
@@ -578,22 +579,14 @@ void boardFall(Board* board, float velocity) {
             if (below->falling == true) { 
                tile->falling = true; }
             else { 
-               tilesToCheck.push_back(tile); 
                tile->falling = false;
-               board->game->soundToggles[sound_land] = true;
 
-               tile->effect = visual_landing;  //Visual interpolation for swapping left
-               tile->effectTime = board->game->timer + 500;
             }
          }
          else if (potentialDrop == 0) {
             if (tile->falling == true && below->falling == false) {  //Happens if garbage is cleared
-                tilesToCheck.push_back(tile);
                tile->falling = false;
-               board->game->soundToggles[sound_land] = true;
 
-               tile->effect = visual_landing;  //Visual interpolation for swapping left
-               tile->effectTime = board->game->timer + 500;
             }
             else if (tile->falling == true && below->falling == true) {
                tile->falling = true;
@@ -607,11 +600,7 @@ void boardFall(Board* board, float velocity) {
             tile->ypos = below->ypos - board->tileHeight;
             if (below->falling == false) {
                tile->falling = false;
-               tilesToCheck.push_back(tile);
-               board->game->soundToggles[sound_land] = true;
                
-               tile->effect = visual_landing;  //Visual interpolation for swapping left
-               tile->effectTime = board->game->timer + 500;
             }
             else {  //It's still falling because the tile below is still falling
                tile->falling = true;
@@ -620,6 +609,11 @@ void boardFall(Board* board, float velocity) {
          else if (potentialDrop > drop) {  //We can fall as much as we want
             tile->ypos += drop;
             tile->falling = true;
+         }
+
+         if (prevFall == true && tile->falling == false) {
+            tilesToCheck.push_back(tile);
+            board->game->soundToggles[sound_land] = true;
          }
       }
    }
