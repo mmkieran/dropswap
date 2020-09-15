@@ -372,7 +372,7 @@ const char* ggpoShowStatus(Game* game, int playerIndex) {
          out = "Disconnecting";
          break;
       default:
-         out = "None";
+         out = "";
          break;
       }
    }

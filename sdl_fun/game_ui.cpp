@@ -30,6 +30,20 @@ Pause       :  Start Button
 Nudge Board :  Right Bottom Trigger
 )";
 
+//Tooltip helper text
+static void HelpMarker(const char* desc)
+{
+   ImGui::TextDisabled("(?)");
+   if (ImGui::IsItemHovered())
+   {
+      ImGui::BeginTooltip();
+      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+      ImGui::TextUnformatted(desc);
+      ImGui::PopTextWrapPos();
+      ImGui::EndTooltip();
+   }
+}
+
 void mainUI(Game* game) {
 
    ImGui::PushFont(game->fonts[20]);
@@ -223,6 +237,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
          showDemo = false;
       }
    }
+   if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
 
    ImGui::End();
 }
@@ -300,12 +315,16 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::PushFont(game->fonts[13]);
    //Debug turn on sync test
    ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
+   ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];
+
+   ImGui::NewLine();
 
    static int seed = 0;
    ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
    game->seed = seed;
+   ImGui::SameLine(); HelpMarker("Both Players must agree on the seed before the match starts.");
    ImGui::NewLine();
 
    static unsigned short participants = 2;
@@ -314,6 +333,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    ImGui::PushItemWidth(120);
    ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
+   ImGui::SameLine(); HelpMarker("Select the number of people (players/spectators) who will take part in the match.\n The host must be a player.");
    ImGui::SameLine();
 
    if (ImGui::Button("Load From File")) {
@@ -363,6 +383,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       else { printf("Failed to create file... Err: %d\n", err); }
       fclose(out);
    }
+   ImGui::SameLine(); HelpMarker("You can save/load the connection setup below to a CSV in the game's assets folder.");
 
    ImGui::SameLine();
    if (ImGui::Button("Clear Setup")) {
@@ -404,8 +425,9 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
       ImGui::SameLine();
       ImGui::InputInt("Port", &hostSetup[i].localPort);
+      ImGui::SameLine(); HelpMarker("Select a unique port number that you will use to send information to host.");
       ImGui::SameLine();
-      ImGui::Text(ggpoShowStatus(game, i));
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ggpoShowStatus(game, i) );
 
       ImGui::PopItemWidth();
       ImGui::PopID();
@@ -431,11 +453,11 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          ggpoEndSession(game);
       }
       if (game->net && game->net->connections[game->net->myConnNum].state != 2) {
-         ImGui::Text("Connecting...");
+         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
          ImGui::NewLine();
       }
       else if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
-         ImGui::Text("Ready");
+         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
          ImGui::NewLine();
       }
    }
@@ -455,6 +477,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       if (ImGui::Button("Start Game")) {
          gameStartMatch(game);
       }
+      ImGui::SameLine(); HelpMarker("Try and hit start roughly at the same time, lol.");
    }
 
    ImGui::PopFont();
