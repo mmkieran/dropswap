@@ -226,18 +226,22 @@ void gameSettingsUI(Game* game, bool* p_open) {
    if (game->controls == 0) { ImGui::TextUnformatted(keyboardControls); }
    else if (game->controls == 1) { ImGui::TextUnformatted(gamepadControls); }
 
-   static bool showDemo = false;
-   if (showDemo == false) {
-      if (ImGui::Button("Show ImGui Demo")) {
-         showDemo = true;
+   ImGui::Checkbox("Show Debug Options", &game->debug);
+
+   if (game->debug == true) {
+      static bool showDemo = false;
+      if (showDemo == false) {
+         if (ImGui::Button("Show ImGui Demo")) {
+            showDemo = true;
+         }
       }
-   }
-   else {
-      if (ImGui::Button("Hide ImGui Demo")) {
-         showDemo = false;
+      else {
+         if (ImGui::Button("Hide ImGui Demo")) {
+            showDemo = false;
+         }
       }
+      if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
    }
-   if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
 
    ImGui::End();
 }
@@ -252,53 +256,53 @@ void onePlayerOptions(Game* game) {
       gameSaveState(game, "saves/game_state.dat");
    }
 
-   if (ImGui::Button("Clear Board")) {
+   if (game->debug == true) {
+      if (ImGui::Button("Clear Board")) {
+         if (game->playing == true) {
+            for (auto&& board : game->boards) {
+               if (board) { boardClear(board); }
+            }
+         }
+      }
+
+      if (ImGui::Button("Make it rain")) {
+         if (game->playing == true) {
+            for (auto&& board : game->boards) {
+               if (board) { makeItRain(board); }
+            }
+         }
+      }
+
+      if (game->playing == true) {
+         static int gWidth = 6;
+         static int gHeight = 1;
+         static bool isMetal = false;
+         if (ImGui::Button("Dumpstered")) {
+            for (auto&& board : game->boards) {
+               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
+            }
+         }
+         ImGui::InputInt("Garbage Width", &gWidth);
+         ImGui::InputInt("Garbage Height", &gHeight);
+         ImGui::Checkbox("Metal", &isMetal);
+      }
+
       if (game->playing == true) {
          for (auto&& board : game->boards) {
-            if (board) { boardClear(board); }
-         }
-      }
-   }
+            if (board) {
+               float minFallSpeed = 0;
+               float maxFallSpeed = 20.0;
 
-   if (ImGui::Button("Make it rain")) {
-      if (game->playing == true) {
-         for (auto&& board : game->boards) {
-            if (board) { makeItRain(board); }
-         }
-      }
-   }
+               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
-   if (game->playing == true) {
-      static int gWidth = 6;
-      static int gHeight = 1;
-      static bool isMetal = false;
-      ImGui::InputInt("Garbage Width", &gWidth);
-      ImGui::InputInt("Garbage Height", &gHeight);
-      ImGui::Checkbox("Metal", &isMetal);
+               float minBoardSpeed = 0;
+               float maxBoardSpeed = 10.0;
+               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
 
-      if (ImGui::Button("Dumpstered")) {
-
-         for (auto&& board : game->boards) {
-            if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
-         }
-      }
-   }
-
-   if (game->playing == true) {
-      for (auto&& board : game->boards) {
-         if (board) {
-            float minFallSpeed = 0;
-            float maxFallSpeed = 20.0;
-
-            ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-            float minBoardSpeed = 0;
-            float maxBoardSpeed = 10.0;
-            ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
-
-            float minBoardLevel = 0;
-            float maxBoardLevel = 10.0;
-            ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+               float minBoardLevel = 0;
+               float maxBoardLevel = 10.0;
+               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+            }
          }
       }
    }
@@ -314,7 +318,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    ImGui::PushFont(game->fonts[13]);
    //Debug turn on sync test
-   ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
+   if (game->debug == true) { ImGui::Checkbox("DEBUG: sync test", &game->syncTest); }
    ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];

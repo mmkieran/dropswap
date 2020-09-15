@@ -89,6 +89,7 @@ struct Game {
    int pauseTimer = 0;
    int pauseLength = 0;
 
+   bool debug = true;
    int ggpoTime = 0;  //debug
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
