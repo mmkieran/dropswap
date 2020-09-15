@@ -16,20 +16,6 @@ Sean Hunter
 ...
 )";
 
-const char* keyboardControls = R"(
-Movement    :  Arrow Keys
-Swap        :  SPACEBAR
-Pause       :  RETURN
-Nudge Board :  R
-)";
-
-const char* gamepadControls = R"(
-Movement    :  D Pad
-Swap        :  A Button
-Pause       :  Start Button
-Nudge Board :  Right Bottom Trigger
-)";
-
 //Tooltip helper text
 static void HelpMarker(const char* desc)
 {
@@ -44,6 +30,7 @@ static void HelpMarker(const char* desc)
    }
 }
 
+//Main menu UI
 void mainUI(Game* game) {
 
    ImGui::PushFont(game->fonts[20]);
@@ -94,6 +81,7 @@ void mainUI(Game* game) {
    ImGui::End();
 }
 
+//Helper to draw the board texture into the ImGui child window
 static void _drawBoardTexture(Game* game, int index) {
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
@@ -119,6 +107,7 @@ static void _drawBoardTexture(Game* game, int index) {
       ImGui::PopStyleVar();
 }
 
+//Draw the window and child regions for the board texture to be rendered in
 void boardUI(Game* game) {
    if (game->playing == true) {
 
@@ -136,6 +125,7 @@ void boardUI(Game* game) {
          ImGui::NewLine();
 
          //Board Stats
+         ImGui::Text("Player %d", board->player);
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
          if (board->game->timer > 0) {
             int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -198,6 +188,31 @@ void boardUI(Game* game) {
    }
 }
 
+//Helper function to provide hotkeys or buttons
+static void _explainControls(Game* game) {
+   //todo make it configurable later
+   float width = ImGui::GetWindowContentRegionWidth();
+   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
+   ImGui::NewLine();
+   ImGui::Button("Controls", ImVec2{ width, 0 });
+
+   int ratio = 3;
+   if (game->controls == 0) {
+      ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Arrow Keys");
+      ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("SPACEBAR");
+      ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RETURN");
+      ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("R");
+   }
+
+   else if (game->controls == 1) {
+      ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("D Pad");
+      ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("A");
+      ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Start");
+      ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RB Trigger");
+   }
+   ImGui::PopStyleColor();
+}
+
 void gameSettingsUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("Game Settings", p_open) ) {
       ImGui::End();
@@ -207,7 +222,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
    ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
    ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
    static int backgroundMusic = 0;
-   ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
+   //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
    if (game->playing == false) {
       static int tileSize = 0;
@@ -222,9 +237,9 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
    }
-
-   if (game->controls == 0) { ImGui::TextUnformatted(keyboardControls); }
-   else if (game->controls == 1) { ImGui::TextUnformatted(gamepadControls); }
+     
+   _explainControls(game);
+   ImGui::NewLine();
 
    ImGui::Checkbox("Show Debug Options", &game->debug);
 
@@ -248,13 +263,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
 void onePlayerOptions(Game* game) {
 
-   if (ImGui::Button("Load Board")) {
-      gameLoadState(game, "saves/game_state.dat");
-   }
-
-   if (ImGui::Button("Save Game")) {
-      gameSaveState(game, "saves/game_state.dat");
-   }
+   if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
+   if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
    if (game->debug == true) {
       if (ImGui::Button("Clear Board")) {
@@ -318,8 +328,10 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    ImGui::PushFont(game->fonts[13]);
    //Debug turn on sync test
-   if (game->debug == true) { ImGui::Checkbox("DEBUG: sync test", &game->syncTest); }
-   ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
+   if (game->debug == true) {
+      ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
+      ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
+   }
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];
 
