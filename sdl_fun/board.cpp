@@ -10,7 +10,7 @@
 #define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
 #define LANDTIME 1000        //Pause board movement when garbage lands
 
-#define LEVEL_UP 10          //Rate of increase for board level based on tiles cleared
+#define LEVEL_UP 200.0f          //Rate of increase for board level based on tiles cleared
 
 //This functions processes the type of pause to figure out the length of the pause
 void boardPauseTime(Board* board, BoardPauseType type, int size) {
@@ -518,7 +518,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       board->game->soundToggles[sound_clear] = true; 
 
       if (board->level < 10) {  //todo turn this on when you're ready
-         board->level += (float) uniqueMatches.size() / 100.0f;  //The more you clear, the faster you go
+         board->level += (float) uniqueMatches.size() / LEVEL_UP;  //The more you clear, the faster you go
       }
 
       int clearTime = board->game->timer;  
