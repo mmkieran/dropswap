@@ -65,6 +65,7 @@ void cursorDraw(Board* board) {
 }
 
 void cursorUpdate(Board* board, UserInput input) {
+   bool apm = false;
 
    if (board->cursor->y <= 0) {
       board->cursor->y = board->tileHeight + board->offset;
@@ -74,7 +75,7 @@ void cursorUpdate(Board* board, UserInput input) {
    float x = cursorGetX(board->cursor);
 
    if (input.up.p) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       if (y - board->tileHeight <= 0) { return; }
       else {
          cursorSetY(board->cursor, (y - board->tileHeight));
@@ -82,7 +83,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.down.p) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
          cursorSetY(board->cursor, (y + board->tileHeight));
@@ -90,7 +91,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.right.p) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
          cursorSetX(board->cursor, (x + board->tileWidth));
@@ -98,7 +99,7 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.left.p) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       if (x <= 0) { return; }
       else {
          cursorSetX(board->cursor, (x - board->tileWidth));
@@ -134,17 +135,19 @@ void cursorUpdate(Board* board, UserInput input) {
    }
 
    else if (input.swap.p) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       boardSwap(board);
    }
 
    else if (input.nudge.p && board->paused == false) {
-      board->boardStats.apm++;  //Board Stats
+      apm = true;  //Board Stats
       boardMoveUp(board, 4);
    }
 
    else if (input.nudge.h && board->paused == false) {
       boardMoveUp(board, 4);
    }
+
+   if (apm == true) { board->boardStats.apm++; }
 }
 

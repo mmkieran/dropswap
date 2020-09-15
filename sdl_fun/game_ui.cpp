@@ -139,14 +139,10 @@ void boardUI(Game* game) {
 
          //Board Stats
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
-         board->boardStats.apmCum += board->boardStats.apm;
-         if (game->frameCount % (60 * 5) == 0) {
-            board->boardStats.apm = 0;
+         if (board->game->timer > 0) {
+            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
+            ImGui::Text("APM: %d", apm);
          }
-         int apmCum = (board->boardStats.apmCum / (board->game->timer / 1000.0f)) * 60.0f;
-         int apm = (board->boardStats.apm / 5.0f )* 60.0f;
-         ImGui::Text("Average APM: %d", apmCum);
-         ImGui::Text("5s running APM: %d", apm);
          ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
 
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
@@ -461,7 +457,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    }
 
    static bool readySent = false;
-   static bool replyRead = false;
 
    int ready = true;
    for (int i = 0; i < participants; i++) {
@@ -477,40 +472,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          gameStartMatch(game);
       }
    }
-
-   //if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
-   //   if (ImGui::Button("Send/Receive Seed")) {
-   //      if (readySent == false && game->net->localPlayer == 1) {
-   //         game->seed = time(0);
-   //         ggpoSendMessage(game->seed);
-   //         readySent = true;
-   //      }
-   //      else if (readySent == false && game->net->localPlayer != 1) {
-   //         ggpoSendMessage(1);
-   //         readySent = true;
-   //      }
-   //   }
-
-   //   static int waitTime = 0;
-   //   while (readySent == true) {
-   //      ggpoSendMessage(1);
-   //      sdlSleep(5000);
-   //      if (game->net->localPlayer != 1) {
-   //         if (game->inputs[0].timer > 0) {
-   //            game->seed = game->inputs[0].msg;
-   //            readySent = false;
-   //            gameStartMatch(game);
-   //         }
-   //      }
-   //      else if (game->net->localPlayer == 1) {
-   //         if (game->inputs[1].timer > 0) {
-   //            readySent = false;
-   //            gameStartMatch(game);
-   //         }
-   //      }
-   //      waitTime++;
-   //   }
-   //}
 
    ImGui::PopFont();
    ImGui::End();
