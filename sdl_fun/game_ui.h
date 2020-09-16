@@ -15,3 +15,5 @@ void ggpoNetStatsUI(Game* game, bool* p_open);
 
 void gameSettingsUI(Game* game, bool* p_open);
 
+void launchPopup(const char* p_name);
+

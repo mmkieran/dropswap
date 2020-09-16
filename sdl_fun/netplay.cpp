@@ -148,6 +148,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        break;
    case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
        SetConnectState(info->u.disconnected.player, Disconnected);
+       //launchPopup("Player Disconnected");
        break;
    case GGPO_EVENTCODE_TIMESYNC:
        sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
@@ -235,7 +236,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 0);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, 10000);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing

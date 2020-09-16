@@ -141,9 +141,7 @@ void boardUI(Game* game) {
             bustee = board->player;
             gameOverMsg = true;
          }
-
       }
-
       ImGui::EndChild();
 
       if (game->players > 1) { 
@@ -152,7 +150,7 @@ void boardUI(Game* game) {
       }
       else {
          ImGui::SameLine();
-         ImGui::BeginChild("Debug Options");
+         ImGui::BeginChild("One Player Options");
          onePlayerOptions(game);
          ImGui::EndChild();
       }
@@ -175,15 +173,35 @@ void boardUI(Game* game) {
       }
 
       //Popup for player disconnect
-      if (ImGui::BeginPopupModal("Player Disconnected")) {
-         ImGui::EndPopup();
-         if (ImGui::Button("Bail out")) {
-            gameEndMatch(game);
-            ImGui::CloseCurrentPopup();
-         }
-         ImGui::EndPopup();
-      }
+      for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
+         if (game->net->connections[i].state == Disconnecting) {
+            ImGui::OpenPopup("Player Disconnecting");
 
+            if (ImGui::BeginPopupModal("Player Disconnecting")) {
+               game->paused = true;
+               float delta = (game->kt.getTime() - game->net->connections[i].disconnect_start) / 1000;
+               ImGui::ProgressBar( delta / game->net->connections[i].disconnect_timeout, ImVec2(0.0f, 0.0f));
+               if (ImGui::Button("Bail out")) {
+                  gameEndMatch(game);
+                  ImGui::CloseCurrentPopup();
+               }
+               ImGui::EndPopup();
+            }
+         }
+
+         if (game->net->connections[i].state == Disconnected) {
+            ImGui::OpenPopup("Player Disconnected");
+
+            if (ImGui::BeginPopupModal("Player Disconnected")) {
+               game->paused = true;
+               if (ImGui::Button("Bail out")) {
+                  gameEndMatch(game);
+                  ImGui::CloseCurrentPopup();
+               }
+               ImGui::EndPopup();
+            }
+         }
+      }
       ImGui::End();
    }
 }
@@ -468,11 +486,11 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       if (ImGui::Button("Close Connection")) {
          ggpoEndSession(game);
       }
-      if (game->net && game->net->connections[game->net->myConnNum].state != 2) {
+      if (game->net && game->net->connections[game->net->myConnNum].state != Running) {
          ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
          ImGui::NewLine();
       }
-      else if (game->net && game->net->connections[game->net->myConnNum].state == 2) {
+      else if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
          ImGui::NewLine();
       }
@@ -482,7 +500,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    int ready = true;
    for (int i = 0; i < participants; i++) {
-      if (game->net->connections[i].state == 2) {
+      if (game->net->connections[i].state == Running) {
          continue;
       }
       else { ready = false; }
@@ -523,4 +541,8 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    }
 
    ImGui::End();
+}
+
+void launchPopup(const char* p_name) {
+   ImGui::OpenPopup(p_name);
 }

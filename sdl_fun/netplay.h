@@ -4,6 +4,7 @@
 
 #include "game.h"
 #include "serialize.h"
+#include "game_ui.h"
 
 enum PlayerConnectState {
    Connecting = 0,
