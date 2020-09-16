@@ -16,14 +16,21 @@ Sean Hunter
 ...
 )";
 
-std::map <const char*, bool> popups;
+std::map <PopupType, bool> popups = {
+   {Popup_GameOver, false},
+   {Popup_Disconnect, false},
+};
 
-void addPopup(const char* name) {
-   popups[name] = true;
+void popupEnable(PopupType popup) {
+   popups[popup] = true;
 }
 
-void removePopup(const char* name) {
-   popups[name] = false;
+bool popupStatus(PopupType popup) {
+   return popups[popup];
+}
+
+void popupDisable(PopupType popup) {
+   popups[popup] = false;
 }
 
 //Tooltip helper text
@@ -129,7 +136,6 @@ void boardUI(Game* game) {
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
-      static bool gameOverMsg = false;
       static int bustee = 0;
       for (auto&& board : game->boards) {
          ImGui::NewLine();
@@ -147,9 +153,9 @@ void boardUI(Game* game) {
          ImGui::Text("Game Time: %d s", game->timer / 1000);
          ImGui::NewLine();
 
-         if (board->bust == true && gameOverMsg == false) {
+         if (board->bust == true && popupStatus(Popup_GameOver) == false ) {
             bustee = board->player;
-            gameOverMsg = true;
+            popupEnable(Popup_GameOver);
          }
       }
       ImGui::EndChild();
@@ -164,22 +170,20 @@ void boardUI(Game* game) {
          onePlayerOptions(game);
          ImGui::EndChild();
       }
-
       ImGui::PopFont();
 
-      if (gameOverMsg == true) { 
-         ImGui::OpenPopup("Game Over"); 
-         gameOverMsg = false;
-      }
-
       //Game over popup
-      if (ImGui::BeginPopupModal("Game Over")) {
-         ImGui::Text("Player %d lost or something...", bustee);
-         if (ImGui::Button("Accept Defeat")) {
-            gameEndMatch(game);
-            ImGui::CloseCurrentPopup();
+      if (popupStatus(Popup_GameOver) == true) {
+         ImGui::OpenPopup("Game Over");
+         if (ImGui::BeginPopupModal("Game Over")) {
+            ImGui::Text("Player %d lost or something...", bustee);
+            if (ImGui::Button("Accept Defeat")) {
+               gameEndMatch(game);
+               ImGui::CloseCurrentPopup();
+               popupDisable(Popup_GameOver);
+            }
+            ImGui::EndPopup();
          }
-         ImGui::EndPopup();
       }
 
       //Popup for player disconnect
@@ -540,8 +544,4 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    }
 
    ImGui::End();
-}
-
-void launchPopup(const char* p_name) {
-   ImGui::OpenPopup(p_name);
 }

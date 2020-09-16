@@ -2,6 +2,11 @@
 
 #include "game.h"
 
+enum PopupType {
+   Popup_GameOver = 0,
+   Popup_Disconnect,
+};
+
 void imguiSetup(Game* game);
 void imguiStartFrame(Game* game);
 
@@ -15,5 +20,6 @@ void ggpoNetStatsUI(Game* game, bool* p_open);
 
 void gameSettingsUI(Game* game, bool* p_open);
 
-void launchPopup(const char* p_name);
-
+void popupEnable(PopupType popup);
+bool popupStatus(PopupType popup);
+void popupDisable(PopupType popup);
