@@ -19,6 +19,7 @@ Sean Hunter
 std::map <PopupType, bool> popups = {
    {Popup_GameOver, false},
    {Popup_Disconnect, false},
+   {Popup_Waiting, false},
 };
 
 void popupEnable(PopupType popup) {
@@ -58,7 +59,6 @@ void mainUI(Game* game) {
    }
 
    ImGui::NewLine();
-
    float width = ImGui::GetWindowContentRegionWidth();
 
    if (game->playing == true) {
@@ -186,25 +186,45 @@ void boardUI(Game* game) {
          }
       }
 
-      //Popup for player disconnect
-      if (bustee == 0) {
-         for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-            if (game->net->connections[i].state == Disconnecting || game->net->connections[i].state == Disconnected) {
-               ImGui::OpenPopup("Player Disconnecting");
-
-               if (ImGui::BeginPopupModal("Player Disconnecting")) {
-                  game->paused = true;
-                  float delta = (game->kt.getTime() - game->net->connections[i].disconnect_start) / 1000;
-                  ImGui::ProgressBar(delta / game->net->connections[i].disconnect_timeout, ImVec2(0.0f, 0.0f));
-                  if (ImGui::Button("Bail out")) {
-                     gameEndMatch(game);
-                     ImGui::CloseCurrentPopup();
-                  }
-                  ImGui::EndPopup();
+      //Disconnect popup
+      if (popupStatus(Popup_Disconnect) == true && popupStatus(Popup_GameOver) == false) {
+         ImGui::SetNextWindowSize({ 200, 200 });
+         ImGui::OpenPopup("Player Disconnecting");
+         if (ImGui::BeginPopupModal("Player Disconnecting")) {
+            game->paused = true;
+            int currentTime = game->kt.getTime();
+            for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
+               PlayerConnectionInfo connect = game->net->connections[i];
+               if (connect.state == Disconnecting) {
+                  float delta = (currentTime - connect.disconnect_start) / 1000;
+                  ImGui::Text("Player %d", connect.handle); 
+                  ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
+               }
+               if (connect.state == Disconnected) {
+                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
                }
             }
+            if (ImGui::Button("Bail out")) {
+               gameEndMatch(game);
+               ImGui::CloseCurrentPopup();
+               popupDisable(Popup_Disconnect);
+            }
+            ImGui::EndPopup();
          }
       }
+
+      //if (popupStatus(Popup_Waiting) == true) {
+      //   ImGui::OpenPopup("Waiting for Player to Catch Up");
+      //   if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
+      //      if (ImGui::Button("Quit")) {
+      //         gameEndMatch(game);
+      //         ImGui::CloseCurrentPopup();
+      //         popupDisable(Popup_Waiting);
+      //      }
+      //      ImGui::EndPopup();
+      //   }
+      //}
+
       ImGui::End();
    }
 }

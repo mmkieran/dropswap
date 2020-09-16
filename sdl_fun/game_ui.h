@@ -5,6 +5,7 @@
 enum PopupType {
    Popup_GameOver = 0,
    Popup_Disconnect,
+   Popup_Waiting,
 };
 
 void imguiSetup(Game* game);

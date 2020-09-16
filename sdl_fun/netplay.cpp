@@ -142,15 +142,19 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        break;
    case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
        SetDisconnectTimeout(info->u.connection_interrupted.player, game->kt.getTime(), info->u.connection_interrupted.disconnect_timeout);
+       popupEnable(Popup_Disconnect);
        break;
    case GGPO_EVENTCODE_CONNECTION_RESUMED:
        SetConnectState(info->u.connection_resumed.player, Running);
+       popupDisable(Popup_Disconnect);
+       game->paused = false;
        break;
    case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
        SetConnectState(info->u.disconnected.player, Disconnected);
-       //launchPopup("Player Disconnected");
+       //popupEnable(Popup_Disconnect);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
+       //popupEnable(Popup_Waiting);
        sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
