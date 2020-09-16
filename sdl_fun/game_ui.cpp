@@ -173,32 +173,34 @@ void boardUI(Game* game) {
       }
 
       //Popup for player disconnect
-      for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-         if (game->net->connections[i].state == Disconnecting) {
-            ImGui::OpenPopup("Player Disconnecting");
+      if (bustee == 0) {
+         for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
+            if (game->net->connections[i].state == Disconnecting) {
+               ImGui::OpenPopup("Player Disconnecting");
 
-            if (ImGui::BeginPopupModal("Player Disconnecting")) {
-               game->paused = true;
-               float delta = (game->kt.getTime() - game->net->connections[i].disconnect_start) / 1000;
-               ImGui::ProgressBar( delta / game->net->connections[i].disconnect_timeout, ImVec2(0.0f, 0.0f));
-               if (ImGui::Button("Bail out")) {
-                  gameEndMatch(game);
-                  ImGui::CloseCurrentPopup();
+               if (ImGui::BeginPopupModal("Player Disconnecting")) {
+                  game->paused = true;
+                  float delta = (game->kt.getTime() - game->net->connections[i].disconnect_start) / 1000;
+                  ImGui::ProgressBar(delta / game->net->connections[i].disconnect_timeout, ImVec2(0.0f, 0.0f));
+                  if (ImGui::Button("Bail out")) {
+                     gameEndMatch(game);
+                     ImGui::CloseCurrentPopup();
+                  }
+                  ImGui::EndPopup();
                }
-               ImGui::EndPopup();
             }
-         }
 
-         if (game->net->connections[i].state == Disconnected) {
-            ImGui::OpenPopup("Player Disconnected");
+            if (game->net->connections[i].state == Disconnected) {
+               ImGui::OpenPopup("Player Disconnected");
 
-            if (ImGui::BeginPopupModal("Player Disconnected")) {
-               game->paused = true;
-               if (ImGui::Button("Bail out")) {
-                  gameEndMatch(game);
-                  ImGui::CloseCurrentPopup();
+               if (ImGui::BeginPopupModal("Player Disconnected")) {
+                  game->paused = true;
+                  if (ImGui::Button("Bail out")) {
+                     gameEndMatch(game);
+                     ImGui::CloseCurrentPopup();
+                  }
+                  ImGui::EndPopup();
                }
-               ImGui::EndPopup();
             }
          }
       }
