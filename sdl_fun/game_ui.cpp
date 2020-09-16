@@ -16,6 +16,16 @@ Sean Hunter
 ...
 )";
 
+std::map <const char*, bool> popups;
+
+void addPopup(const char* name) {
+   popups[name] = true;
+}
+
+void removePopup(const char* name) {
+   popups[name] = false;
+}
+
 //Tooltip helper text
 static void HelpMarker(const char* desc)
 {
@@ -175,26 +185,13 @@ void boardUI(Game* game) {
       //Popup for player disconnect
       if (bustee == 0) {
          for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-            if (game->net->connections[i].state == Disconnecting) {
+            if (game->net->connections[i].state == Disconnecting || game->net->connections[i].state == Disconnected) {
                ImGui::OpenPopup("Player Disconnecting");
 
                if (ImGui::BeginPopupModal("Player Disconnecting")) {
                   game->paused = true;
                   float delta = (game->kt.getTime() - game->net->connections[i].disconnect_start) / 1000;
                   ImGui::ProgressBar(delta / game->net->connections[i].disconnect_timeout, ImVec2(0.0f, 0.0f));
-                  if (ImGui::Button("Bail out")) {
-                     gameEndMatch(game);
-                     ImGui::CloseCurrentPopup();
-                  }
-                  ImGui::EndPopup();
-               }
-            }
-
-            if (game->net->connections[i].state == Disconnected) {
-               ImGui::OpenPopup("Player Disconnected");
-
-               if (ImGui::BeginPopupModal("Player Disconnected")) {
-                  game->paused = true;
                   if (ImGui::Button("Bail out")) {
                      gameEndMatch(game);
                      ImGui::CloseCurrentPopup();
