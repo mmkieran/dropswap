@@ -175,7 +175,9 @@ struct ControllerMap {
 ControllerMap cMap;
 
 void inputProcessController(Game* game) {
+   std::vector <UserInput> cInputs;
    for (auto&& pair : controllers) {  //todo currently last controller wins :(
+      
       SDL_GameController* controller = pair.second.controller;
 
       SDL_GameControllerButton keyList[] = { //maybe make this global?

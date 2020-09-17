@@ -165,6 +165,9 @@ void gameHandleEvents(Game* game) {
       if (event.type == SDL_QUIT) {
          game->isRunning = false;
       }
+      if (event.type == SDL_KEYDOWN) {
+         if (event.key.keysym.sym == SDLK_ESCAPE) { game->paused = true; }
+      }
 
       if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added
          int a = event.cdevice.which;
@@ -193,7 +196,6 @@ void gameCheckPause(Game* game, UserInput input) {
    if (input.pause.p == true) {
       if (game->paused == true) {
          game->paused = false;
-         //todo add pause popup here
       }
       else if (game->paused == false) {
          game->paused = true;
