@@ -326,8 +326,7 @@ void gameRunFrame() {
       int disconnect_flags;
 
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
-         if (game->controls == 0) { inputProcessKeyboard(game); }
-         if (game->controls == 1) { inputProcessController(game); }
+         processInputs(game);
 
          if (game->syncTest == false) {
             if (game->net->localPlayer == 1) { //todo make this not hard coded

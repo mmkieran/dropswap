@@ -438,10 +438,10 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       Tile* t2 = tiles[current + 1];
       Tile* t3 = tiles[current + 2];
 
-      if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
-         current++;
-         continue;
-      }
+      //if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
+      //   current++;
+      //   continue;
+      //}
 
       if (t1->status == status_disable || t2->status == status_disable || t3->status == status_disable) {  // if it's disabled, don't match it
          current++;
@@ -574,36 +574,12 @@ void boardFall(Board* board, float velocity) {
          float potentialDrop = drop;
          potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
 
-         if (potentialDrop < 0) {  //We swapped a tile into it as it fell
+         if (potentialDrop <= drop) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
-            if (below->falling == true) { 
+            if (below->falling == true || below->type == tile_cleared) { 
                tile->falling = true; }
             else { 
                tile->falling = false;
-
-            }
-         }
-         else if (potentialDrop == 0) {
-            if (tile->falling == true && below->falling == false) {  //Happens if garbage is cleared
-               tile->falling = false;
-
-            }
-            else if (tile->falling == true && below->falling == true) {
-               tile->falling = true;
-            }
-            else {
-               tile->falling = false;
-               tile->chain = false;
-            }
-         }
-         else if (potentialDrop <= drop) {  //It can fall a little bit further, check for clear on land
-            tile->ypos = below->ypos - board->tileHeight;
-            if (below->falling == false) {
-               tile->falling = false;
-               
-            }
-            else {  //It's still falling because the tile below is still falling
-               tile->falling = true;
             }
          }
          else if (potentialDrop > drop) {  //We can fall as much as we want
@@ -657,6 +633,7 @@ void boardRemoveClears(Board* board) {
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         if (tile->falling == false) { tile->chain = false; }
          if (tile->type == tile_empty) { continue; }
 
          //todo Anxiety doesn't really belong here
@@ -707,8 +684,7 @@ void boardRemoveClears(Board* board) {
                }
             }
          }
-         if (tile->chain == true) { 
-            stillChaining = true; }  //Is any tile still part of a chain?
+         if (tile->chain == true) { stillChaining = true; }  //Is any tile still part of a chain?
       }
    }
    if (stillChaining == false) { //No tiles are part of a chain

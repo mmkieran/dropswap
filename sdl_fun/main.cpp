@@ -46,8 +46,6 @@ int main(int argc, char* args[]) {
 
          if (game->players == 1) {  //Single player
             processInputs(game);
-            //if (game->controls == 0) { inputProcessKeyboard(game); }
-            //if (game->controls == 1) { inputProcessController(game); }
             gameCheckPause(game, game->p1Input);
             if (game->playing == true && game->paused == false) { gameUpdate(game); }
          }
