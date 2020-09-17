@@ -10,7 +10,7 @@
 #define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
 #define LANDTIME 1000        //Pause board movement when garbage lands
 
-#define LEVEL_UP 200.0f          //Rate of increase for board level based on tiles cleared
+#define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
 //This functions processes the type of pause to figure out the length of the pause
 void boardPauseTime(Board* board, BoardPauseType type, int size) {
@@ -438,10 +438,10 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       Tile* t2 = tiles[current + 1];
       Tile* t3 = tiles[current + 2];
 
-      //if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
-      //   current++;
-      //   continue;
-      //}
+      if (t1->falling || t2->falling || t3->falling) {  // if it's falling, don't match it
+         current++;
+         continue;
+      }
 
       if (t1->status == status_disable || t2->status == status_disable || t3->status == status_disable) {  // if it's disabled, don't match it
          current++;
@@ -514,10 +514,10 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    if (uniqueMatches.size() > 0) {
       board->boardStats.clears += uniqueMatches.size();  //Board stats
       board->boardStats.comboCounts[uniqueMatches.size()] += 1;
-      if (board->chain == 1) { boardPauseTime(board, pause_combo, uniqueMatches.size() ); }
+      boardPauseTime(board, pause_combo, uniqueMatches.size() );
       board->game->soundToggles[sound_clear] = true; 
 
-      if (board->level < 10) {  //todo turn this on when you're ready
+      if (board->level < 10) {  
          board->level += (float) uniqueMatches.size() / LEVEL_UP;  //The more you clear, the faster you go
       }
 
@@ -529,6 +529,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //clear block and set timer
          meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
+         //m->chain = true;
          m->clearTime = clearTime;
          m->falling = false;
          if (fallCombo && m->chain == true) {
@@ -576,12 +577,10 @@ void boardFall(Board* board, float velocity) {
 
          if (potentialDrop <= drop) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
-            if (below->falling == true || below->type == tile_cleared) { 
+            if (below->falling == true) { 
                tile->falling = true; }
             else { 
                tile->falling = false;
-               if (below->type == tile_cleared || below->chain == true) { tile->falling = false; }
-               else { tile->chain = false; }
             }
          }
          else if (potentialDrop > drop) {  //We can fall as much as we want
@@ -592,6 +591,17 @@ void boardFall(Board* board, float velocity) {
          if (prevFall == true && tile->falling == false) {
             tilesToCheck.push_back(tile);
             board->game->soundToggles[sound_land] = true;
+         }
+         else if (prevFall == false && tile->falling == false) {
+            int lookDown = 2;
+            Tile* below = boardGetTile(board, row + 1, col);
+            while (below && below->type != tile_cleared) {
+               below = boardGetTile(board, row + lookDown, col);
+               lookDown++;
+            }
+            if (below == nullptr) {
+               tile->chain = false;
+            }
          }
       }
    }
@@ -672,6 +682,7 @@ void boardRemoveClears(Board* board) {
 
             else if (tile->clearTime + REMOVE_CLEARS <= current) {  //Regular tile clearing
                tile->type = tile_empty;
+               tile->chain = false;
                meshSetTexture(board->game, tile->mesh, Texture_empty);
                tile->clearTime = 0;
 
@@ -691,7 +702,7 @@ void boardRemoveClears(Board* board) {
    if (stillChaining == false) { //No tiles are part of a chain
       if (board->chain > 1) {
          if (board->game->players > 1) { boardChainGarbage(board->game, board->player, board->chain); }
-         boardPauseTime(board, pause_chain, board->chain);
+         boardPauseTime(board, pause_chain, board->chain); 
          board->boardStats.lastChain = board->chain;
          board->boardStats.chainCounts[board->chain] += 1;  //Board Stats
       }
