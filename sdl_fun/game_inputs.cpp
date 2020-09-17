@@ -80,14 +80,26 @@ ButtonState* buttonList[] = {
    &p1Input.power
 };
 
-bool resetList[8];
+bool resetList[8] = { true };
 
 void resetButtonStates(Game* game) {
    for (int i = 0; i < 8; i++) {  //todo maybe make the count smarter... 
-      if (buttonList[i]->h != true) {
+      if (resetList[i] == true) {
+         buttonList[i]->p = false;
+         buttonList[i]->h = false;
          buttonList[i]->fc = 0;
       }
    }
+}
+
+void processInputs(Game* game) {
+   for (int i = 0; i < 8; i++) {
+      resetList[i] = true;
+   }
+   inputProcessKeyboard(game); 
+   inputProcessController(game); 
+   resetButtonStates(game);
+   game->p1Input = p1Input;
 }
 
 void inputProcessKeyboard(Game* game) {
@@ -99,6 +111,7 @@ void inputProcessKeyboard(Game* game) {
       if (state[ keyboardList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
          buttonList[i]->p = true;
          buttonList[i]->fc += 1; //increment hold count
+         resetList[i] = false;
       }
       else if (state[keyboardList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
          buttonList[i]->p = false;
@@ -108,12 +121,8 @@ void inputProcessKeyboard(Game* game) {
             buttonList[i]->h = true;
             buttonList[i]->fc = HOLDTIME;  //keep it maxed at 10
          }
+         resetList[i] = false;
       }
-      //else {
-      //   buttonList[i]->p = false;
-      //   buttonList[i]->h = false;
-      //   buttonList[i]->fc = 0;
-      //}
    }
 
    //Logic for pressed keys
@@ -121,17 +130,14 @@ void inputProcessKeyboard(Game* game) {
       if (state[keyboardList[i]] == true && buttonList[i]->fc == 0) {
          buttonList[i]->p = true;
          buttonList[i]->fc += 1; //increment frame count
+         resetList[i] = false;
       }
       else if (state[keyboardList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
          buttonList[i]->p = false;
          buttonList[i]->fc = 1;
+         resetList[i] = false;
          continue;
       }
-      //else {
-      //   buttonList[i]->p = false;
-      //   buttonList[i]->h = false;
-      //   buttonList[i]->fc = 0;
-      //}
    }
 }
 
@@ -207,6 +213,7 @@ void inputProcessController(Game* game) {
          if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc == 0) {  //Button pressed and not held
             buttonList[i]->p = true;
             buttonList[i]->fc += 1; //increment frame count
+            resetList[i] = false;
          }
          else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc > 0) {  //Button pressed and held
             buttonList[i]->p = false;
@@ -216,12 +223,8 @@ void inputProcessController(Game* game) {
                buttonList[i]->h = true;
                buttonList[i]->fc = HOLDTIME;
             }
+            resetList[i] = false;
          }
-         //else {
-         //   buttonList[i]->p = false;
-         //   buttonList[i]->h = false;
-         //   buttonList[i]->fc = 0;
-         //}
       }
 
       //Logic for pressed keys
@@ -229,17 +232,14 @@ void inputProcessController(Game* game) {
          if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc == 0) {
             buttonList[i]->p = true;
             buttonList[i]->fc += 1; //increment frame count
+            resetList[i] = false;
          }
          else if (SDL_GameControllerGetButton(controller, keyList[i]) == true && buttonList[i]->fc > 0) {  //holding button does nothing
             buttonList[i]->p = false;
             buttonList[i]->fc = 1;
+            resetList[i] = false;
             continue;
          }
-         //else {
-         //   buttonList[i]->p = false;
-         //   buttonList[i]->h = false;
-         //   buttonList[i]->fc = 0;
-         //}
       }
    }
 }

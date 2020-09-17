@@ -38,6 +38,7 @@ struct ButtonHoldCount {
    int power = 0;
 };
 
+void processInputs(Game* game);
 void inputProcessKeyboard(Game* game);
 void inputProcessController(Game* game);
 
