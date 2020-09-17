@@ -12,8 +12,6 @@ struct Controller {
    bool isController = false;
 };
 
-std::map <int, Controller> controllers;  //Hash map for controllers
-
 struct KeyboardMap {
    Uint8 hk_left = SDL_SCANCODE_LEFT;
    Uint8 hk_right = SDL_SCANCODE_RIGHT;
@@ -27,43 +25,82 @@ struct KeyboardMap {
    Uint8 hk_power = SDL_SCANCODE_F;
 };
 
-KeyboardMap kmap;  //todo where should this live?
+struct ControllerMap {
+   SDL_GameControllerButton c_left = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
+   SDL_GameControllerButton c_right = SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
+   SDL_GameControllerButton c_up = SDL_CONTROLLER_BUTTON_DPAD_UP;
+   SDL_GameControllerButton c_down = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
+
+   SDL_GameControllerButton c_nudge = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+
+   SDL_GameControllerButton c_swap = SDL_CONTROLLER_BUTTON_A;
+   SDL_GameControllerButton c_pause = SDL_CONTROLLER_BUTTON_START;
+   SDL_GameControllerButton c_power = SDL_CONTROLLER_BUTTON_X;
+};
+
+//Globals for controller and keyboard keys
+std::map <int, Controller> controllers;  //Hash map for controllers
+KeyboardMap kmap; //Hard-coded map of the SDL hotkeys
+ControllerMap cMap;  //Hard-coded map of SDL controller buttons
+UserInput p1Input = { 0 };  //Global to hold user input
+
+Uint8 keyboardList[] = {
+   kmap.hk_left,
+   kmap.hk_right,
+   kmap.hk_up,
+   kmap.hk_down,
+   kmap.hk_nudge,
+   //presses only
+   kmap.hk_swap,
+   kmap.hk_pause,
+   kmap.hk_power
+};
+
+SDL_GameControllerButton keyList[] = { 
+   cMap.c_left,
+   cMap.c_right,
+   cMap.c_up,
+   cMap.c_down,
+   cMap.c_nudge,
+   //presses only
+   cMap.c_swap,
+   cMap.c_pause,
+   cMap.c_power
+};
+
+ButtonState* buttonList[] = {
+   &p1Input.left,
+   &p1Input.right,
+   &p1Input.up,
+   &p1Input.down,
+   &p1Input.nudge,
+   //presses only
+   &p1Input.swap,
+   &p1Input.pause,
+   &p1Input.power
+};
+
+bool resetList[8];
+
+void resetButtonStates(Game* game) {
+   for (int i = 0; i < 8; i++) {  //todo maybe make the count smarter... 
+      if (buttonList[i]->h != true) {
+         buttonList[i]->fc = 0;
+      }
+   }
+}
 
 void inputProcessKeyboard(Game* game) {
 
    const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-   Uint8 keyList[] = { //maybe make this global?
-      kmap.hk_left,
-      kmap.hk_right,
-      kmap.hk_up,
-      kmap.hk_down,
-      kmap.hk_nudge,
-      //presses only
-      kmap.hk_swap,
-      kmap.hk_pause,
-      kmap.hk_power
-   };
-
-   ButtonState* buttonList[] = {
-      &game->p1Input.left,
-      &game->p1Input.right,
-      &game->p1Input.up,
-      &game->p1Input.down,
-      &game->p1Input.nudge,
-      //presses only
-      &game->p1Input.swap,
-      &game->p1Input.pause,
-      &game->p1Input.power
-   };
-
    //Logic for held keys
    for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
-      if (state[ keyList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
+      if (state[ keyboardList[i] ] == true && buttonList[i]->fc == 0) {  //Button pressed and not held
          buttonList[i]->p = true;
          buttonList[i]->fc += 1; //increment hold count
       }
-      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
+      else if (state[keyboardList[i]] == true && buttonList[i]->fc > 0) {  //Button pressed and held
          buttonList[i]->p = false;
          buttonList[i]->fc += 1;
          if (buttonList[i]->fc > HOLDTIME) {  //You held it long enough!
@@ -72,29 +109,29 @@ void inputProcessKeyboard(Game* game) {
             buttonList[i]->fc = HOLDTIME;  //keep it maxed at 10
          }
       }
-      else {
-         buttonList[i]->p = false;
-         buttonList[i]->h = false;
-         buttonList[i]->fc = 0;
-      }
+      //else {
+      //   buttonList[i]->p = false;
+      //   buttonList[i]->h = false;
+      //   buttonList[i]->fc = 0;
+      //}
    }
 
    //Logic for pressed keys
    for (int i = 5; i < 8; i++) {  //todo maybe make the count smarter... 
-      if (state[keyList[i]] == true && buttonList[i]->fc == 0) {
+      if (state[keyboardList[i]] == true && buttonList[i]->fc == 0) {
          buttonList[i]->p = true;
          buttonList[i]->fc += 1; //increment frame count
       }
-      else if (state[keyList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
+      else if (state[keyboardList[i]] == true && buttonList[i]->fc > 0) {  //holding button does nothing
          buttonList[i]->p = false;
          buttonList[i]->fc = 1;
          continue;
       }
-      else {
-         buttonList[i]->p = false;
-         buttonList[i]->h = false;
-         buttonList[i]->fc = 0;
-      }
+      //else {
+      //   buttonList[i]->p = false;
+      //   buttonList[i]->h = false;
+      //   buttonList[i]->fc = 0;
+      //}
    }
 }
 
@@ -159,50 +196,11 @@ int controllerCloseAll() {
    return 1;
 }
 
-struct ControllerMap {
-   SDL_GameControllerButton c_left = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
-   SDL_GameControllerButton c_right = SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
-   SDL_GameControllerButton c_up = SDL_CONTROLLER_BUTTON_DPAD_UP;
-   SDL_GameControllerButton c_down = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
-
-   SDL_GameControllerButton c_nudge = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
-
-   SDL_GameControllerButton c_swap = SDL_CONTROLLER_BUTTON_A;
-   SDL_GameControllerButton c_pause = SDL_CONTROLLER_BUTTON_START;
-   SDL_GameControllerButton c_power = SDL_CONTROLLER_BUTTON_X;
-};
-
-ControllerMap cMap;
-
 void inputProcessController(Game* game) {
    std::vector <UserInput> cInputs;
    for (auto&& pair : controllers) {  //todo currently last controller wins :(
       
       SDL_GameController* controller = pair.second.controller;
-
-      SDL_GameControllerButton keyList[] = { //maybe make this global?
-         cMap.c_left,
-         cMap.c_right,
-         cMap.c_up,
-         cMap.c_down,
-         cMap.c_nudge,
-         //presses only
-         cMap.c_swap,
-         cMap.c_pause,
-         cMap.c_power
-      };
-
-      ButtonState* buttonList[] = {
-         &game->p1Input.left,
-         &game->p1Input.right,
-         &game->p1Input.up,
-         &game->p1Input.down,
-         &game->p1Input.nudge,
-         //presses only
-         &game->p1Input.swap,
-         &game->p1Input.pause,
-         &game->p1Input.power
-      };
 
       //Logic for held keys
       for (int i = 0; i < 5; i++) {  //todo maybe make the count smarter... 
@@ -219,11 +217,11 @@ void inputProcessController(Game* game) {
                buttonList[i]->fc = HOLDTIME;
             }
          }
-         else {
-            buttonList[i]->p = false;
-            buttonList[i]->h = false;
-            buttonList[i]->fc = 0;
-         }
+         //else {
+         //   buttonList[i]->p = false;
+         //   buttonList[i]->h = false;
+         //   buttonList[i]->fc = 0;
+         //}
       }
 
       //Logic for pressed keys
@@ -237,11 +235,11 @@ void inputProcessController(Game* game) {
             buttonList[i]->fc = 1;
             continue;
          }
-         else {
-            buttonList[i]->p = false;
-            buttonList[i]->h = false;
-            buttonList[i]->fc = 0;
-         }
+         //else {
+         //   buttonList[i]->p = false;
+         //   buttonList[i]->h = false;
+         //   buttonList[i]->fc = 0;
+         //}
       }
    }
 }
