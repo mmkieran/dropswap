@@ -580,6 +580,8 @@ void boardFall(Board* board, float velocity) {
                tile->falling = true; }
             else { 
                tile->falling = false;
+               if (below->type == tile_cleared || below->chain == true) { tile->falling = false; }
+               else { tile->chain = false; }
             }
          }
          else if (potentialDrop > drop) {  //We can fall as much as we want
@@ -633,7 +635,6 @@ void boardRemoveClears(Board* board) {
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->falling == false) { tile->chain = false; }
          if (tile->type == tile_empty) { continue; }
 
          //todo Anxiety doesn't really belong here
@@ -788,12 +789,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
       int row, col;
 
-      //These are ideas for how to calculate row, lol... remove later
-      //if (t.falling == false) { row = ceil(t.ypos / board->tileHeight + board->startH); }
-      //else { row = floor(t.ypos / board->tileHeight + board->startH); }
       row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
-
-      //row = (t.ypos - board->offset) / board->tileHeight + board->startH;
       col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);

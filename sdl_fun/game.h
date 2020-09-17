@@ -125,3 +125,5 @@ void imguiRender(Game* game);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
+
+void debugCursor(Game* game);

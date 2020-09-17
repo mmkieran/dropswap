@@ -323,6 +323,7 @@ void gameRender(Game* game) {
          i++;
       }
       rendererDisableFBO();
+      debugCursor(game);
    }
 }
 
@@ -392,4 +393,48 @@ void gameDestroy(Game* game) {
 //Returns true if the game is running... used for game loop
 bool gameRunning(Game* game) {
    return game->isRunning;
+}
+
+void debugCursor(Game* game) {
+   if (game->playing == true) {
+      ImGui::Begin("Cursor Debug");
+
+      Board* board = game->boards[0];
+      if (board) {
+         int row = cursorGetRow(board);
+         int col = cursorGetCol(board);
+
+         Tile* tile = boardGetTile(board, row, col);
+         if (meshGetTexture(tile->mesh) != Texture_empty) {
+            //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         }
+
+         ImGui::Text("%d row, %d col", row, col);
+         ImGui::NewLine();
+
+         static int lastChain = 0;
+         static int chainTime = 0;
+         if (board->chain > 1) {
+            lastChain = board->chain;
+            chainTime = game->timer;
+         }
+         ImGui::Text("%d chain", board->chain);
+         ImGui::Text("Last chain: %d", lastChain);
+         ImGui::Text("Pause Time: %d", board->pauseLength);
+         ImGui::Text("Game Time: %d", game->timer);
+      }
+
+      if (ImGui::CollapsingHeader("Tile Status")) {
+         for (int row = board->startH; row < board->endH; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               ImGui::Text("%d%d", tile->chain, tile->falling);
+               ImGui::SameLine();
+            }
+            ImGui::NewLine();
+         }
+      }
+
+      ImGui::End();
+   }
 }
