@@ -384,36 +384,34 @@ static void meshEffectDarken(Board* board, VisualEffect effect) {
 static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
 
    Mat4x4 mat = identityMatrix();
+   Vec2 move = { 0.0f , 0.0f };
+   bool moved = false;
+
+   //Swapping interpolated movement
    if (effect == visual_swapr) {
-      Vec2 move = { 0.0f , 0.0f };
       move.x -= board->tileWidth * (effectTime - board->game->timer)/ SWAPTIME;
-      mat = transformMatrix(move, 0.0f, { 1, 1 });
+      moved = true;
    }
    else if (effect == visual_swapl) {
-      Vec2 move = { 0.0f , 0.0f };
       move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
-      mat = transformMatrix(move, 0.0f, { 1, 1 });
+      moved = true;
    }
-   shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
-}
 
-static void meshEffectShake(Board* board) {
-   VisualEffect effect = visual_none;
+   //Tremble on garbage landing
+   VisualEffect effect2 = visual_none;
    for (int i = 0; i < board->visualEvents.size(); i++) {
       VisualEvent e = board->visualEvents[i];
       if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
       else if (e.effect == visual_shake && e.end > board->game->timer) {
-         effect = visual_shake;
+         effect2 = visual_shake;
       }
    }
-
-   Mat4x4 mat = identityMatrix();
-
-   if (effect == visual_shake) {
-      Vec2 move = {0.0f , 0.0f};
-      move.y += sin(board->game->timer);
-      mat = transformMatrix(move, 0.0f, { 1, 1 });
+   if (effect2 == visual_shake) { 
+      move.y += sin(board->game->timer); 
+      moved = true;
    }
+
+   if (moved == true) { mat = transformMatrix(move, 0.0f, { 1, 1 }); }
 
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
@@ -432,7 +430,6 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    
    meshEffectDarken(board, effect);
-   meshEffectShake(board);
    meshEffectDisplace(board, effect, effectTime);
 
    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
