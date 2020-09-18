@@ -117,17 +117,18 @@ static void _drawBoardTexture(Game* game, int index) {
       for (int i = 0; i < board->visualEvents.size(); i++) {
          VisualEvent e = board->visualEvents[i];
          if (e.effect == visual_clear && e.end > game->timer) {
-            ImGui::SetNextWindowPos({ e.pos.x, e.pos.y });
-            ImGui::SetNextWindowBgAlpha(0.7f);
-            ImGui::OpenPopup("Chain counter");
-            if (ImGui::BeginPopup("Chain counter")) {
-               if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
-               else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo);  }
-               ImGui::EndPopup();
+            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
+               ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
+               ImGui::SetNextWindowBgAlpha(0.7f);
+               ImGui::OpenPopup("Chain counter");
+               if (ImGui::BeginPopup("Chain counter")) {
+                  if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
+                  else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
+                  ImGui::EndPopup();
+               }
             }
          }
       }
-      ImGui::SetCursorScreenPos(screenPos);
 
       ImGui::EndChild();
       ImGui::PopStyleVar();
@@ -272,10 +273,9 @@ void gameSettingsUI(Game* game, bool* p_open) {
    static int backgroundMusic = 0;
    //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
+   ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
+   ImGui::Combo("Show Controls", &game->controls, "Keyboard\0Controller\0");
    if (game->playing == false) {
-
-      ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
-      ImGui::Combo("Show Controls", &game->controls, "Keyboard\0Controller\0");
 
       static int tileSize = 0;
       ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");

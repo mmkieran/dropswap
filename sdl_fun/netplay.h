@@ -16,11 +16,11 @@ enum PlayerConnectState {
 
 struct PlayerConnectionInfo {
    GGPOPlayerType       type;
-   GGPOPlayerHandle     handle;
+   GGPOPlayerHandle     handle = -1;
    PlayerConnectState   state;
-   int                  connect_progress;
-   int                  disconnect_timeout;
-   int                  disconnect_start;
+   int                  connect_progress = 0;
+   int                  disconnect_timeout = 0;
+   int                  disconnect_start = 0;
 };
 
 //todo not sure where this belong right now

@@ -586,7 +586,7 @@ void boardFall(Board* board, float velocity) {
             tile->ypos = below->ypos - board->tileHeight;
             if (below->falling == true) {
                tile->falling = true;
-               tilesToCheck.push_back(tile);  //debug just check 'em all and see if they need to be cleared
+               //tilesToCheck.push_back(tile);  //debug just check 'em all and see if they need to be cleared
             }
             else { 
                tile->falling = false;
@@ -597,6 +597,7 @@ void boardFall(Board* board, float velocity) {
             tile->falling = true;
          }
 
+         tilesToCheck.push_back(tile);  //debug just check 'em all for clears
          if (prevFall == true && tile->falling == false) {
             //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
             board->game->soundToggles[sound_land] = true;
