@@ -204,7 +204,7 @@ int controllerCloseAll() {
 
 void inputProcessController(Game* game) {
    std::vector <UserInput> cInputs;
-   for (auto&& pair : controllers) {  //todo currently last controller wins :(
+   for (auto&& pair : controllers) {  
       
       SDL_GameController* controller = pair.second.controller;
 

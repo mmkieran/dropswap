@@ -544,7 +544,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
             board->chain += 1;
             fallCombo = false;
             board->game->soundToggles[sound_chain] = true;
-            //todo visual queue that chain is occuring
          }
 
          //todo add score logic here
@@ -585,8 +584,10 @@ void boardFall(Board* board, float velocity) {
 
          if (potentialDrop <= drop) {  //We swapped a tile into it as it fell
             tile->ypos = below->ypos - board->tileHeight;
-            if (below->falling == true) { 
-               tile->falling = true; }
+            if (below->falling == true) {
+               tile->falling = true;
+               tilesToCheck.push_back(tile);  //debug just check 'em all and see if they need to be cleared
+            }
             else { 
                tile->falling = false;
             }
@@ -596,10 +597,9 @@ void boardFall(Board* board, float velocity) {
             tile->falling = true;
          }
 
-         tilesToCheck.push_back(tile);  //debug just check 'em all and see if it happens
          if (prevFall == true && tile->falling == false) {
-            tilesToCheck.push_back(tile);
-            //board->game->soundToggles[sound_land] = true;
+            //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
+            board->game->soundToggles[sound_land] = true;
          }
          else if (prevFall == false && tile->falling == false) {
             int lookDown = 2;

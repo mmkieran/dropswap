@@ -245,12 +245,6 @@ void gameStartMatch(Game* game) {
          float xOrigin = game->tWidth * game->bWidth * i + game->tWidth * (i + 1);
          float yOrigin = game->tHeight;
 
-         //todo if we want more than 2 we'll have to use a tiling algorithm
-         //if (i > 2) {
-         //   xOrigin = game->tWidth * game->bWidth * (i - 3) + game->tWidth * (i - 2);
-         //   yOrigin += game->tHeight * game->bHeight + game->tHeight * 2;
-         //}
-
          game->boards.push_back(board);
 
          FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object

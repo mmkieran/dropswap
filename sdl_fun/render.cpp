@@ -87,10 +87,7 @@ void main() {
 
 int openglContext() {
 
-   //todo check what can go wrong here
-
-   // Create graphics context
-   //ImGui also uses these
+   // Create graphics context... ImGui also uses these
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -112,7 +109,6 @@ GLuint vaoCreate() {
    glBindVertexArray(vao);
 
    //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
-   //todo Why does it only work when I put this here?
    glDisable(GL_DEPTH_TEST);
    glEnable(GL_BLEND);  //for images with alpha values
    glEnable(GL_SCISSOR_TEST);  //For clipping stuff out of a bounding box
@@ -370,7 +366,6 @@ Mesh* meshCreate() {
 };
 
 static void meshEffectDarken(Board* board, VisualEffect effect) {
-   //todo add effect handling here
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
 
    if (effect == visual_dark) {
@@ -420,7 +415,7 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
-   Vec2 dest = {round(destX) , round(destY)};  //todo rounding here feels bad for the vibration issue. Maybe a better place?
+   Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
    
    //if (effect == visual_landing) {
    //   scale.y *= 0.95f;
@@ -479,7 +474,6 @@ Animation* animationDestroy(Animation* animation) {
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
    //This is for changing where the texture is sampled from the original image
 
-   //todo this feels unnecessary, just figure out the math later, lol
    Mat4x4 projection = textureOriginToWorld(game, mesh->texture->w, mesh->texture->h);
    Mat4x4 device = worldToTextureCoords(game, mesh->texture->w, mesh->texture->h);
 

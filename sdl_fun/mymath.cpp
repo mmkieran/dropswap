@@ -59,7 +59,7 @@ Mat4x4 multiplyMatrix(Mat4x4 left, Mat4x4 right) {
          float sum = 0;
          for (int k = 0; k < 4; k++) {
             //This is confusing, but you use the third index to increment columns for left and rows in right
-            //todo I made it row major order... sadness
+            //I made it row major order... sadness
             sum += left.values[4 * i + k] * right.values[4 * k + j];
          }
          out.values[4 * i + j] = sum;

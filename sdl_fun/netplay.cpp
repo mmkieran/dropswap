@@ -209,7 +209,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    cb.load_game_state = ds_load_game_callback;
    cb.save_game_state = ds_save_game_callback;
    cb.free_buffer = ds_free_buffer_callback;
-   cb.on_event = ds_on_event_callback;  //todo come back and reorganize the connection status functions
+   cb.on_event = ds_on_event_callback;  
    cb.log_game_state = ds_log_game_state_callback;  //This is turned off right now
 
    int sessionPort = 7001;
@@ -313,9 +313,8 @@ void gameAdvanceFrame(Game* game) {
    if (game->paused == false && game->playing == true) {gameUpdate(game); }
 
    //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->net->ggpo);  //todo do we do this if we're paused?
+   ggpo_advance_frame(game->net->ggpo); 
    game->frameCount++;
-   //if (game->frameCount % (60 * 5) == 0) { game->checksum = ggpoCheckSum(game); }  //Periodic checksum
 }
 
 void gameRunFrame() {
@@ -329,7 +328,7 @@ void gameRunFrame() {
          processInputs(game);
 
          if (game->syncTest == false) {
-            if (game->net->localPlayer == 1) { //todo make this not hard coded
+            if (game->net->localPlayer == 1) { 
                game->p1Input.timer = game->timer;
             }
          }

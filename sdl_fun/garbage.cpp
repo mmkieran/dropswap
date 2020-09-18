@@ -122,7 +122,7 @@ void garbageDeploy(Board* board) {
                garbage->deployed = true;
                garbage->deployTime = 0;
             }
-            else { startRow = rowFull -1; }  //todo I think this is minus 1, it used to be plus??
+            else { startRow = rowFull -1; }  
             if (startRow > 0) {
                noSpace = true;
             }

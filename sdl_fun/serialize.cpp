@@ -407,7 +407,6 @@ int gameLoadState(Game* game, const char* path) {
       }
 
       unsigned char* start = stream.data();
-      //unsigned char* start = game->sdl->save.data();  //todo debug needs better system
       gameLoad(game, start);
    }
    else { printf("Failed to load file... Err: %d\n", err); }
