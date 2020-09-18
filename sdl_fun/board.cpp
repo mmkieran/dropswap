@@ -514,6 +514,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    if (uniqueMatches.size() > 0) {
       board->boardStats.clears += uniqueMatches.size();  //Board stats
       board->boardStats.comboCounts[uniqueMatches.size()] += 1;
+      board->boardStats.lastCombo = uniqueMatches.size();
       boardPauseTime(board, pause_combo, uniqueMatches.size() );
       board->game->soundToggles[sound_clear] = true; 
 
@@ -595,9 +596,10 @@ void boardFall(Board* board, float velocity) {
             tile->falling = true;
          }
 
+         tilesToCheck.push_back(tile);  //debug just check 'em all and see if it happens
          if (prevFall == true && tile->falling == false) {
             tilesToCheck.push_back(tile);
-            board->game->soundToggles[sound_land] = true;
+            //board->game->soundToggles[sound_land] = true;
          }
          else if (prevFall == false && tile->falling == false) {
             int lookDown = 2;

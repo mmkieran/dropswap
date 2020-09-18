@@ -113,27 +113,18 @@ static void _drawBoardTexture(Game* game, int index) {
          ImGui::Image((void*)(intptr_t)game->fbos[index]->texture, { game->fbos[index]->w, game->fbos[index]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
       }
 
-      for (int i = 0; i < game->boards[index]->visualEvents.size(); i++) {
-         VisualEvent e = game->boards[index]->visualEvents[i];
+      Board* board = game->boards[index];
+      for (int i = 0; i < board->visualEvents.size(); i++) {
+         VisualEvent e = board->visualEvents[i];
          if (e.effect == visual_clear && e.end > game->timer) {
             ImGui::SetNextWindowPos({ e.pos.x, e.pos.y });
-            //ImGui::SetNextWindowBgAlpha(0.35f);
-            //ImGui::SetNextWindowSize({ 30, 30 });
+            ImGui::SetNextWindowBgAlpha(0.7f);
             ImGui::OpenPopup("Chain counter");
             if (ImGui::BeginPopup("Chain counter")) {
-               ImGui::Text("%d X", game->boards[index]->chain);
+               if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
+               else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo);  }
                ImGui::EndPopup();
             }
-            //static bool chainCount = true;
-            //ImGui::SetNextWindowPos({ e.pos.x, e.pos.y });
-            //ImGui::SetNextWindowSize({ 20, 20 });
-            //ImGui::Begin("Chain Counter", &chainCount,
-            //   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoFocusOnAppearing |
-            //   ImGuiWindowFlags_NoResize
-            //);
-            //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + e.pos.x, screenPos.y + e.pos.y });
-            //ImGui::Text("%d X", game->boards[index]->chain);
-            //ImGui::End();
          }
       }
       ImGui::SetCursorScreenPos(screenPos);
