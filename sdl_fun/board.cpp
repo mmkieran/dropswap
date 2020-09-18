@@ -517,6 +517,14 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       boardPauseTime(board, pause_combo, uniqueMatches.size() );
       board->game->soundToggles[sound_clear] = true; 
 
+      //first try to render arbitrary text over the board
+      VisualEvent event;
+      event.effect = visual_clear;
+      event.end = board->game->timer + REMOVE_CLEARS/2;
+      event.pos.x = board->cursor->x;
+      event.pos.y = board->cursor->y;
+      board->visualEvents.push_back(event);
+
       if (board->level < 10) {  
          board->level += (float) uniqueMatches.size() / LEVEL_UP;  //The more you clear, the faster you go
       }
@@ -529,7 +537,6 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //clear block and set timer
          meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
-         //m->chain = true;
          m->clearTime = clearTime;
          m->falling = false;
          if (fallCombo && m->chain == true) {
@@ -708,9 +715,9 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   else if (stillChaining == true) {
-      boardPauseTime(board, pause_clear);
-   }
+   //else if (stillChaining == true) {
+   //   boardPauseTime(board, pause_clear);
+   //}
    return;
 }
 
@@ -732,7 +739,6 @@ void boardMoveUp(Board* board, float height) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-
          if (tile->type == tile_empty) { continue; }  //don't move up empty blocks
 
          //Bust logic
@@ -743,9 +749,7 @@ void boardMoveUp(Board* board, float height) {
             }
             else { dangerZone = true; }  
          } 
-
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
-
          tile->ypos -= nudge;  
       }
    }
@@ -872,17 +876,4 @@ void boardClear(Board* board) {
          tile->garbage = nullptr;
       }
    }
-}
-
-//Returns a vector of all the tiles in the board
-std::vector <Tile> boardDebug(Board* board) {
-   std::vector <Tile> tileList;
-
-   for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         tileList.push_back(*tile);
-      }
-   }
-   return tileList;
 }

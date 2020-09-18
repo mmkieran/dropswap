@@ -141,11 +141,11 @@ void cursorUpdate(Board* board, UserInput input) {
 
    else if (input.nudge.p && board->paused == false) {
       apm = true;  //Board Stats
-      boardMoveUp(board, 4);
+      boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
    }
 
    else if (input.nudge.h && board->paused == false) {
-      boardMoveUp(board, 4);
+      boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
    }
 
    if (apm == true) { board->boardStats.apm++; }

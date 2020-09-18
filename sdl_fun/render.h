@@ -35,17 +35,6 @@ enum TextureEnum {
 struct Mesh;
 struct Texture;
 struct FBO;
-//struct Animation;
-//struct Graphic;
-
-enum AnimationState {
-   Anim_None = 0,
-   Anim_Loop, //This has a continuous animation like the cursor
-   Anim_Landing, //Need a separate one for garbage?
-   Anim_Cleared,
-   Anim_Swapping,
-   Anim_Disabled
-};
 
 struct Animation {
    Texture* texture = nullptr;
@@ -72,11 +61,13 @@ enum VisualEffect {
    visual_swapr,  //right swap
    visual_clear,
    visual_landing,
+   visual_text,
 };
 
 struct VisualEvent {
    VisualEffect effect = visual_none;
    uint64_t end = 0;
+   Vec2 pos;
 };
 
 struct FBO {  //Frame Buffer Object

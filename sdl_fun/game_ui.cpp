@@ -113,14 +113,16 @@ static void _drawBoardTexture(Game* game, int index) {
          ImGui::Image((void*)(intptr_t)game->fbos[index]->texture, { game->fbos[index]->w, game->fbos[index]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
       }
 
-      ////Proof of concept abitrary text rending
-      ////todo look at ImDrawList API for arbitrary rendering
-      //ImVec2 screenPos2 = ImGui::GetCursorScreenPos();
-      //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + 64, screenPos.y + 64 });
-      //ImGui::Text("%s", playerName);
-      //ImGui::SetCursorScreenPos(screenPos2);
-      ImGui::EndChild();
+      for (int i = 0; i < game->boards[index]->visualEvents.size(); i++) {
+         VisualEvent e = game->boards[index]->visualEvents[i];
+         if (e.effect == visual_clear && e.end > game->timer) {
+            ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + e.pos.x, screenPos.y + e.pos.y });
+            ImGui::Text("%d X", game->boards[index]->chain);
+         }
+      }
+      ImGui::SetCursorScreenPos(screenPos);
 
+      ImGui::EndChild();
       ImGui::PopStyleVar();
 }
 
@@ -260,12 +262,14 @@ void gameSettingsUI(Game* game, bool* p_open) {
       return;
    }
 
-   ImGui::Combo("Game Controls", &game->controls, "Keyboard\0Controller\0");
-   ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
    static int backgroundMusic = 0;
    //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
    if (game->playing == false) {
+
+      ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
+      ImGui::Combo("Show Controls", &game->controls, "Keyboard\0Controller\0");
+
       static int tileSize = 0;
       ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
       if (tileSize == 0) { game->tWidth = game->tHeight = 64; }
@@ -278,7 +282,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
    }
-     
+   
    _explainControls(game);
    ImGui::NewLine();
 
@@ -547,8 +551,6 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ImGui::End();
       return;
    }
-
-   //ImGui::ProgressBar(connect.connect_progress, ImVec2(0.0f, 0.0f));
 
    GGPONetworkStats stats;
    for (int i = 0; i < game->players; i++) {

@@ -8,7 +8,7 @@
 
 #include <random>
 
-#define SWAPTIME 75  //Visual delay when swapping tiles
+#define SWAPTIME 80  //Visual delay when swapping tiles
 
 enum BoardPauseType {
    pause_combo = 0,
