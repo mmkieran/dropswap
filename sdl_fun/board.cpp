@@ -521,8 +521,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       VisualEvent event;
       event.effect = visual_clear;
       event.end = board->game->timer + REMOVE_CLEARS/2;
-      event.pos.x = board->cursor->x;
-      event.pos.y = board->cursor->y;
+      event.pos.x = uniqueMatches[0]->xpos + board->tileWidth;
+      event.pos.y = uniqueMatches[0]->ypos + board->tileHeight;
       board->visualEvents.push_back(event);
 
       if (board->level < 10) {  

@@ -116,8 +116,24 @@ static void _drawBoardTexture(Game* game, int index) {
       for (int i = 0; i < game->boards[index]->visualEvents.size(); i++) {
          VisualEvent e = game->boards[index]->visualEvents[i];
          if (e.effect == visual_clear && e.end > game->timer) {
-            ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + e.pos.x, screenPos.y + e.pos.y });
-            ImGui::Text("%d X", game->boards[index]->chain);
+            ImGui::SetNextWindowPos({ e.pos.x, e.pos.y });
+            //ImGui::SetNextWindowBgAlpha(0.35f);
+            //ImGui::SetNextWindowSize({ 30, 30 });
+            ImGui::OpenPopup("Chain counter");
+            if (ImGui::BeginPopup("Chain counter")) {
+               ImGui::Text("%d X", game->boards[index]->chain);
+               ImGui::EndPopup();
+            }
+            //static bool chainCount = true;
+            //ImGui::SetNextWindowPos({ e.pos.x, e.pos.y });
+            //ImGui::SetNextWindowSize({ 20, 20 });
+            //ImGui::Begin("Chain Counter", &chainCount,
+            //   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoFocusOnAppearing |
+            //   ImGuiWindowFlags_NoResize
+            //);
+            //ImGui::SetCursorScreenPos(ImVec2{ screenPos.x + e.pos.x, screenPos.y + e.pos.y });
+            //ImGui::Text("%d X", game->boards[index]->chain);
+            //ImGui::End();
          }
       }
       ImGui::SetCursorScreenPos(screenPos);
