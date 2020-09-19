@@ -880,3 +880,58 @@ void boardClear(Board* board) {
       }
    }
 }
+
+void aiFindDanger() {
+
+}
+
+//Very basic search for vertical 2 and swap to match
+void aiFindMatch(Board* board) {
+   std::vector <Tile*> pair;
+   //Search columns
+   for (int col = 0; col < board->w; col++) {
+      std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
+      int current = 0;
+
+      if (pair.size() > 0) { break; }
+
+      while (current + 1 < tiles.size()) {
+         Tile* t1 = tiles[current];
+         Tile* t2 = tiles[current + 1];
+
+         if (t1->falling || t2->falling || 
+            t1->status == status_disable || t2->status == status_disable ||
+            t1->status == status_stop || t2->status == status_stop) { 
+            current++;
+            continue;
+         }
+
+         if (t1->type != tile_empty && t1->type != tile_cleared) {
+            if (t1->type == t2->type) {
+               if ((t1->ypos == t2->ypos) || (t1->xpos == t2->xpos)) {
+                  pair.push_back(t1);
+                  pair.push_back(t2);
+                  break;
+               }
+            }
+         }
+      }
+   }
+   
+   Tile* target = nullptr;
+   int row = tileGetRow(board, pair[0]);
+   int col = tileGetCol(board, pair[0]);
+   Tile* above = boardGetTile(board, row - 1, col);
+   if (above) {
+      std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
+      for (auto&& tile : tiles) {
+         if (tile->type == pair[0]->type) {
+
+         }
+      }
+   }
+}
+
+void boardAI(Board* board) {
+   
+}
