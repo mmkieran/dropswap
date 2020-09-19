@@ -146,6 +146,17 @@ void boardUI(Game* game) {
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
+      if (game->debug && game->players > 1) {
+         static int ggpoTime = 0;
+         static int frameCount = 0;
+         if (game->frameCount % 60 == 0) {
+            ggpoTime = game->ggpoTime;
+            frameCount = game->frameCount;
+         }
+         ImGui::Text("GGPO Time: %d s", ggpoTime);
+         ImGui::Text("Frame Count: %d s", frameCount);
+      }
+
       static int bustee = 0;
       for (auto&& board : game->boards) {
          ImGui::NewLine();

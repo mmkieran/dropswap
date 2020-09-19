@@ -309,16 +309,14 @@ void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->boards.size(); i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
    }
+   gameUpdate(game); 
 
-   if (game->paused == false && game->playing == true) {gameUpdate(game); }
-
-   //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->net->ggpo); 
+   ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
    game->frameCount++;
 }
 
 void gameRunFrame() {
-
+   if (game->playing == false) { return; }
    if (game->net && game->net->ggpo) {
 
       GGPOErrorCode result = GGPO_OK;

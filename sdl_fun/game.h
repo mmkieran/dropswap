@@ -116,6 +116,7 @@ void gameHandleEvents(Game* game);
 void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
+void gameSinglePlayer(Game* game);
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 
