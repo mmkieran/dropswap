@@ -53,6 +53,11 @@ int main(int argc, char* args[]) {
 
       imguiRender(game);  //draw the board, cursor, and other things
 
+      //game->lastTime = game->timer;  //Record the timer in the last frame
+      if (game->playing == true && game->paused == false && bust == false) {  //If we're paused, update game timer
+         game->timer += frameDelay / 1000;
+      }
+
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          int leftover = (frameDelay - frameTime) / 1000;
@@ -60,12 +65,6 @@ int main(int argc, char* args[]) {
             gameGiveIdleToGGPO(game, leftover);
             game->ggpoTime = leftover;
          }
-      }
-
-      //game->lastTime = game->timer;  //Record the timer in the last frame
-      if (game->playing == true && game->paused == false && bust == false) {  //If we're paused, update game timer
-         game->timeDelta = (game->kt.getTime() - frameStart) / 1000;
-         game->timer += game->timeDelta;
       }
    }
 

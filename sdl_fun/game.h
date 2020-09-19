@@ -13,9 +13,9 @@
 #include <vector>
 #include <map>
 
-#define GAME_PLAYERS 2
-#define GAME_MAX_PLAYERS 10
-#define GAME_FRAME_DELAY 2
+#define GAME_PLAYERS        2
+#define GAME_MAX_PLAYERS    4
+#define GAME_FRAME_DELAY    2
 
 struct GameWindow;
 
