@@ -251,7 +251,7 @@ void boardUI(Game* game) {
 }
 
 //Helper function to provide hotkeys or buttons
-static void _explainControls(Game* game) {
+static void _explainControls(Game* game, int controls) {
    //todo make it configurable later
    float width = ImGui::GetWindowContentRegionWidth();
    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
@@ -259,14 +259,14 @@ static void _explainControls(Game* game) {
    ImGui::Button("Controls", ImVec2{ width, 0 });
 
    int ratio = 3;
-   if (game->controls == 0) {
+   if (controls == 0) {
       ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Arrow Keys");
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("SPACEBAR");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RETURN");
       ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("R");
    }
 
-   else if (game->controls == 1) {
+   else if (controls == 1) {
       ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("D Pad");
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("A");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Start");
@@ -285,7 +285,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
    //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
    ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
-   ImGui::Combo("Show Controls", &game->controls, "Keyboard\0Controller\0");
+   static int gameControls = 0;
+   ImGui::Combo("Show Controls", &gameControls, "Keyboard\0Controller\0");
    if (game->playing == false) {
 
       static int tileSize = 0;
@@ -301,8 +302,18 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::InputInt("Board Height", &game->bHeight);
    }
    
-   _explainControls(game);
+   _explainControls(game, gameControls);
    ImGui::NewLine();
+
+   if (ImGui::CollapsingHeader("Game Timings") ) {
+      ImGui::SliderScalar("Remove Clear", ImGuiDataType_U32, &game->timings.removeClear[0], &game->timings.removeClear[1], &game->timings.removeClear[2]);
+      ImGui::SliderScalar("Fall Delay", ImGuiDataType_U32, &game->timings.fallDelay[0], &game->timings.fallDelay[1], &game->timings.fallDelay[2]);
+      ImGui::SliderScalar("Grace Period", ImGuiDataType_U32, &game->timings.gracePeriod[0], &game->timings.gracePeriod[1], &game->timings.gracePeriod[2]);
+      ImGui::SliderScalar("Deploy Time", ImGuiDataType_U32, &game->timings.deployTime[0], &game->timings.deployTime[1], &game->timings.deployTime[2]);
+      ImGui::SliderScalar("Start Countdown", ImGuiDataType_U32, &game->timings.countIn[0], &game->timings.countIn[1], &game->timings.countIn[2]);
+      ImGui::SliderScalar("Land Time", ImGuiDataType_U32, &game->timings.landPause[0], &game->timings.landPause[1], &game->timings.landPause[2]);
+      ImGui::SliderScalar("Enter Silvers", ImGuiDataType_U32, &game->timings.enterSilver[0], &game->timings.enterSilver[1], &game->timings.enterSilver[2]);
+   }
 
    ImGui::Checkbox("Show Debug Options", &game->debug);
 

@@ -3,12 +3,12 @@
 #include "board.h"
 
 //These are all in milliseconds
-#define GRACEPERIOD 1000     //Bonus pause time when your board reaches the top before you die
-#define FALL_DELAY 100       //The pause before a tile falls after swapping
-#define REMOVE_CLEARS 2000   //Time it takes to change a cleared tile to empty
-#define ENTER_SILVERS 30000  //Time before silvers start appearing
-#define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
-#define LANDTIME 1000        //Pause board movement when garbage lands
+//#define GRACEPERIOD 1000     //Bonus pause time when your board reaches the top before you die
+//#define FALL_DELAY 100       //The pause before a tile falls after swapping
+//#define REMOVE_CLEARS 2000   //Time it takes to change a cleared tile to empty
+//#define ENTER_SILVERS 30000  //Time before silvers start appearing
+//#define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
+//#define LANDTIME 1000        //Pause board movement when garbage lands
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
@@ -19,31 +19,31 @@ void boardPauseTime(Board* board, BoardPauseType type, int size) {
 
    switch (type) {
    case pause_combo:
-      time = min( (size - 3) * 1000 + REMOVE_CLEARS, 6000);  //max pause of 6s
+      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
       if (time > currentPause) { board->pauseLength = time;}
       break;
    case pause_chain:
-      time = min((size - 1) * 1000 + REMOVE_CLEARS, 8000);  //Max pause 8s
+      time = min((size - 1) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
       if (time > currentPause) { board->pauseLength = time; }
       break;
    case pause_clear:
-      if (currentPause < REMOVE_CLEARS) {  //The board should always be paused if things need to be cleared
-         board->pauseLength = REMOVE_CLEARS;
+      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
+         board->pauseLength = board->game->timings.removeClear[0];
       }
       break;
    case pause_crashland:
       if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
-         board->pauseLength = LANDTIME;
+         board->pauseLength = board->game->timings.landPause[0];
       }
       break;
    case pause_garbageclear:
-      if (currentPause < REMOVE_CLEARS) {
-         board->pauseLength = REMOVE_CLEARS;
+      if (currentPause < board->game->timings.removeClear[0]) {
+         board->pauseLength = board->game->timings.removeClear[0];
       }
       break;
    case pause_danger:
-      if (currentPause < GRACEPERIOD) {
-         board->pauseLength = GRACEPERIOD;
+      if (currentPause < board->game->timings.gracePeriod[0]) {
+         board->pauseLength = board->game->timings.gracePeriod[0];
       }
       break;
    }
@@ -63,7 +63,7 @@ Tile* _boardCreateArray(int width, int height) {
 int boardRandomTile(Board* board) {
 	int out = board->distribution(board->generator);
    if (out == 7) { 
-      if (board->game->timer > ENTER_SILVERS) {
+      if (board->game->timer > board->game->timings.enterSilver[0]) {
          out = board->distribution(board->generator);
          board->randomCalls++;
       }
@@ -173,7 +173,7 @@ void boardUpdate(Board* board, UserInput input) {
    }
    else {board->paused = false; }
 
-   if (board->game->timer > START_TIMER) {  //2 second count in to start
+   if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
       if (board->paused == false) {
          boardMoveUp(board, board->moveSpeed/8.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
          garbageDeploy(board);
@@ -269,7 +269,7 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board) {
 
-   if (board->game->timer < START_TIMER) { return; } //No swapping during count in
+   if (board->game->timer < board->game->timings.countIn[0]) { return; } //No swapping during count in
 
    float xCursor = cursorGetX(board->cursor);
    float yCursor = cursorGetY(board->cursor);
@@ -318,13 +318,13 @@ void boardSwap(Board* board) {
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
       //tile1->falling = true;
       tile1->status = status_stop;  
-      tile1->statusTime = board->game->timer + FALL_DELAY;  //Short pause before falling
+      tile1->statusTime = board->game->timer + board->game->timings.fallDelay[0];  //Short pause before falling
    }
 
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
       //tile2->falling = true;
       tile2->status = status_stop;
-      tile2->statusTime = board->game->timer + FALL_DELAY;  //Short pause before falling
+      tile2->statusTime = board->game->timer + board->game->timings.fallDelay[0];  //Short pause before falling
    }
 
    tiles.push_back(tile1); 
@@ -521,7 +521,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       //first try to render arbitrary text over the board
       VisualEvent event;
       event.effect = visual_clear;
-      event.end = board->game->timer + REMOVE_CLEARS/2;
+      event.end = board->game->timer + board->game->timings.removeClear[0] /2;
       event.pos.x = uniqueMatches[0]->xpos + board->tileWidth;
       event.pos.y = uniqueMatches[0]->ypos + board->tileHeight;
       board->visualEvents.push_back(event);
@@ -684,13 +684,13 @@ void boardRemoveClears(Board* board) {
                tileSetTexture(board, tile);
                tile->idGarbage = -1;
                tile->status = status_disable;
-               tile->statusTime += current + REMOVE_CLEARS;
+               tile->statusTime += current + board->game->timings.removeClear[0];
                tile->clearTime = 0;
                tile->chain = true;
                boardPauseTime(board, pause_garbageclear);
             }
 
-            else if (tile->clearTime + REMOVE_CLEARS <= current) {  //Regular tile clearing
+            else if (tile->clearTime + board->game->timings.removeClear[0] <= current) {  //Regular tile clearing
                tile->type = tile_empty;
                tile->chain = false;
                meshSetTexture(board->game, tile->mesh, Texture_empty);

@@ -51,6 +51,17 @@ struct KeepTime {
    }
 };
 
+struct GameTimings {
+   //Value, min and max
+   int gracePeriod[3] = { 1000, 0, 5000 };     //Bonus pause time when your board reaches the top before you die
+   int fallDelay[3] = { 100, 0, 1000 };        //The pause before a tile falls after swapping
+   int removeClear[3] = { 2000, 1000, 5000 };  //Time it takes to change a cleared tile to empty
+   int enterSilver[3] = { 30000, 0, 120000 };  //Time before silvers start appearing
+   int countIn[3] = { 2000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
+   int landPause[3] = { 1000, 0, 5000 };       //Pause board movement when garbage lands
+   int deployTime[3] = { 3000, 0, 5000 };
+};
+
 //@@Start Serialize
 struct Game {
 
@@ -71,13 +82,14 @@ struct Game {
    std::map <SoundEffect, bool> soundToggles;
    std::map <int, ImFont*> fonts;
 
+   GameTimings timings;
+
    int bHeight = 12;
    int bWidth = 6;
 
    int tWidth = 64;
    int tHeight = 64;
 
-   int controls = 0;  //Using keyboard or controller
    int sounds = 0;  //Sound on or off
 
    bool isRunning = false;  //used in main loop
