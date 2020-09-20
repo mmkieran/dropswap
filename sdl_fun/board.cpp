@@ -888,24 +888,26 @@ struct TileIndex {
 
 struct AILogic {
    TileIndex target;
-   TileIndex pair;
+   TileIndex dest;
 };
 
 AILogic aiLogic;
 
-void aiFindDanger() {
-
+void aiFindDanger(Board* board) {
+   if (board->danger == true) {
+      //Prioritize clearing garbage and move/match at the top
+   }
 }
 
 //Very basic search for vertical 2 and swap to match
 void aiFindMatch(Board* board) {
-   std::vector <Tile*> pair;
+   std::vector <Tile*> dest;
    //Search columns
    for (int col = 0; col < board->w; col++) {
       std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
       int current = 0;
 
-      if (pair.size() > 0) { break; }
+      if (dest.size() > 0) { break; }
 
       while (current + 1 < tiles.size()) {
          Tile* t1 = tiles[current];
@@ -921,8 +923,7 @@ void aiFindMatch(Board* board) {
          if (t1->type != tile_empty && t1->type != tile_cleared) {
             if (t1->type == t2->type) {
                if ((t1->ypos == t2->ypos) || (t1->xpos == t2->xpos)) {
-                  pair.push_back(t1);
-                  pair.push_back(t2);
+                  dest.push_back(t1);
                   break;
                }
             }
@@ -930,29 +931,61 @@ void aiFindMatch(Board* board) {
       }
    }
    
+   //For now just use the first dest we find
    Tile* target = nullptr;
-   int row = tileGetRow(board, pair[0]);
-   int col = tileGetCol(board, pair[0]);
+   int row = tileGetRow(board, dest[0]);
+   int col = tileGetCol(board, dest[0]);
+
    Tile* above = boardGetTile(board, row - 1, col);
    if (above) {
       std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
       for (auto&& tile : tiles) {
-         if (above->type == pair[0]->type) {
-            target = above;
+         if (tile->type == dest[0]->type) {
+            target = tile;
+            aiLogic.dest.col = col;
+            aiLogic.dest.row = row - 1;
+            break;
          }
       }
    }
    if (above == nullptr) {
-      Tile* below = boardGetTile(board, row + 1, col);
+      Tile* below = boardGetTile(board, row + 2, col);
       if (below) {
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
          for (auto&& tile : tiles) {
-            if (tile->type == pair[0]->type) {
+            if (tile->type == dest[0]->type) {
                target = tile;
+               aiLogic.dest.col = col;
+               aiLogic.dest.row = row + 2;
+               break;
             }
          }
       }
    }
+   if (target) { 
+      row = tileGetRow(board, target);
+      col = tileGetCol(board, target);
+      aiLogic.target.col = col; 
+      aiLogic.target.row = row; 
+   }
+}
+
+void aiMove(Board* board) {
+   if (board->offset == 0) { int a = 0; }  //We should update rows if the board offset rolls over
+   int colDiff = 0;
+   if (board->game->frameCount % 5) {
+      colDiff = aiLogic.dest.col - aiLogic.target.col;
+   }
+   if (colDiff < 0) {
+      //move right to left
+   }
+   else if (colDiff > 0) {
+      //move left to right
+   }
+}
+
+void aiOutcome(Board* board) {
+
 }
 
 void boardAI(Board* board) {
