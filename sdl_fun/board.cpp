@@ -881,6 +881,18 @@ void boardClear(Board* board) {
    }
 }
 
+struct TileIndex {
+   int col = -1;
+   int row = -1;
+};
+
+struct AILogic {
+   TileIndex target;
+   TileIndex pair;
+};
+
+AILogic aiLogic;
+
 void aiFindDanger() {
 
 }
@@ -925,8 +937,19 @@ void aiFindMatch(Board* board) {
    if (above) {
       std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
       for (auto&& tile : tiles) {
-         if (tile->type == pair[0]->type) {
-
+         if (above->type == pair[0]->type) {
+            target = above;
+         }
+      }
+   }
+   if (above == nullptr) {
+      Tile* below = boardGetTile(board, row + 1, col);
+      if (below) {
+         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
+         for (auto&& tile : tiles) {
+            if (tile->type == pair[0]->type) {
+               target = tile;
+            }
          }
       }
    }
