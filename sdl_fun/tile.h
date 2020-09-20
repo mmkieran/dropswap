@@ -42,13 +42,13 @@ struct Tile {
    bool falling;
    uint64_t clearTime;
    uint64_t statusTime;
-   bool chain;
+   bool chain = false;
 
    Garbage* garbage;
-   int idGarbage;
+   int idGarbage = -1;
 
-   VisualEffect effect;
-   uint64_t effectTime;
+   VisualEffect effect = visual_none;
+   uint64_t effectTime = 0;
 };
 //@@End Serialize
 
