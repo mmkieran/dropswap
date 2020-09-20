@@ -970,12 +970,18 @@ void aiFindMatch(Board* board) {
    }
 }
 
+void aiUpdateTargets(Board* board) {
+   aiLogic.target.row += 1;
+   aiLogic.dest.row += 1;
+}
+
 void aiMove(Board* board) {
-   if (board->offset == 0) { int a = 0; }  //We should update rows if the board offset rolls over
    int colDiff = 0;
    if (board->game->frameCount % 5) {
       colDiff = aiLogic.dest.col - aiLogic.target.col;
    }
+   int x = cursorGetX(board->cursor);
+   int y = cursorGetY(board->cursor);
    if (colDiff < 0) {
       //move right to left
    }
