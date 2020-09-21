@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "board.h"
+#include <list>
 
 //These are all in milliseconds
 //#define GRACEPERIOD 1000     //Bonus pause time when your board reaches the top before you die
@@ -881,6 +882,16 @@ void boardClear(Board* board) {
    }
 }
 
+enum CursorStep {
+   cursor_none = 0,
+   cursor_left,
+   cursor_right,
+   cursor_up,
+   cursor_down,
+   cursor_swap,
+   cursor_COUNT,
+};
+
 struct TileIndex {
    int col = -1;
    int row = -1;
@@ -889,17 +900,14 @@ struct TileIndex {
 struct AILogic {
    TileIndex target;
    TileIndex dest;
+
+   std::list <CursorStep> matchSteps;
+   //std::vector <CursorStep> steps;
 };
 
 AILogic aiLogic;
 
-void aiFindDanger(Board* board) {
-   if (board->danger == true) {
-      //Prioritize clearing garbage and move/match at the top
-   }
-}
-
-//Very basic search for vertical 2 and swap to match
+//Very basic search for vertical 2 and decide on tile to swap in to match
 void aiFindMatch(Board* board) {
    std::vector <Tile*> dest;
    //Search columns
@@ -931,69 +939,112 @@ void aiFindMatch(Board* board) {
       }
    }
    
-   //For now just use the first dest we find
    Tile* target = nullptr;
-   int row = tileGetRow(board, dest[0]);
-   int col = tileGetCol(board, dest[0]);
+   for (int i = 0; i < dest.size(); i++) {
+      int row = tileGetRow(board, dest[i]);
+      int col = tileGetCol(board, dest[i]);
 
-   Tile* above = boardGetTile(board, row - 1, col);
-   if (above) {
-      std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
-      for (auto&& tile : tiles) {
-         if (tile->type == dest[0]->type) {
-            target = tile;
-            aiLogic.dest.col = col;
-            aiLogic.dest.row = row - 1;
-            break;
-         }
-      }
-   }
-   if (above == nullptr) {
-      Tile* below = boardGetTile(board, row + 2, col);
-      if (below) {
+      Tile* above = boardGetTile(board, row - 1, col);
+      if (above) {
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
          for (auto&& tile : tiles) {
-            if (tile->type == dest[0]->type) {
+            if (tile->type == dest[i]->type) {
                target = tile;
                aiLogic.dest.col = col;
-               aiLogic.dest.row = row + 2;
+               aiLogic.dest.row = row - 1;
                break;
             }
          }
       }
-   }
-   if (target) { 
-      row = tileGetRow(board, target);
-      col = tileGetCol(board, target);
-      aiLogic.target.col = col; 
-      aiLogic.target.row = row; 
-   }
-}
-
-void aiUpdateTargets(Board* board) {
-   aiLogic.target.row += 1;
-   aiLogic.dest.row += 1;
-}
-
-void aiMove(Board* board) {
-   int colDiff = 0;
-   if (board->game->frameCount % 5) {
-      colDiff = aiLogic.dest.col - aiLogic.target.col;
-   }
-   int x = cursorGetX(board->cursor);
-   int y = cursorGetY(board->cursor);
-   if (colDiff < 0) {
-      //move right to left
-   }
-   else if (colDiff > 0) {
-      //move left to right
+      if (above == nullptr) {
+         Tile* below = boardGetTile(board, row + 2, col);
+         if (below) {
+            std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
+            for (auto&& tile : tiles) {
+               if (tile->type == dest[i]->type) {
+                  target = tile;
+                  aiLogic.dest.col = col;
+                  aiLogic.dest.row = row + 2;
+                  break;
+               }
+            }
+         }
+      }
+      if (target) {
+         row = tileGetRow(board, target);
+         col = tileGetCol(board, target);
+         aiLogic.target.col = col;
+         aiLogic.target.row = row;
+         break;
+      }
    }
 }
 
-void aiOutcome(Board* board) {
+void aiGetSteps(Board* board) {
 
+   //Figure out if the target needs to move left or right
+   int moveDirection = aiLogic.dest.col - aiLogic.target.col;
+
+   //Calculate steps to move cursor into place
+   int cursorCol = cursorGetCol(board);
+   int cursorRow = cursorGetRow(board);
+
+   int colDiff = aiLogic.target.col - cursorCol;
+   int rowDiff = aiLogic.target.row - cursorRow;
+
+   if (moveDirection < 0) { colDiff - 1; }  //If we need to swap left, shift the cursor left one
+
+   for (int i = 0; i < abs(colDiff); i++) {
+      if (colDiff < 0) {        //move left
+         aiLogic.matchSteps.push_back(cursor_left);
+      }
+      else if (colDiff > 0) {   //move right
+         aiLogic.matchSteps.push_back(cursor_right);
+      }
+   }
+   for (int i = 0; i < abs(rowDiff); i++) {
+      if (rowDiff < 0) {        //move up
+         aiLogic.matchSteps.push_back(cursor_up);
+      }
+      else if (rowDiff > 0) {   //move down
+         aiLogic.matchSteps.push_back(cursor_down);
+      }
+   }
+
+   //Figure out how many swaps to move the target tile to the destination
+   for (int i = 0; i < abs(moveDirection); i++) {
+      aiLogic.matchSteps.push_back(cursor_swap);
+      if (moveDirection < 0) {        //move left
+         aiLogic.matchSteps.push_back(cursor_left);
+      }
+      else if (moveDirection > 0) {   //move right
+         aiLogic.matchSteps.push_back(cursor_right);
+      }
+   }
+}
+
+void aiDoStep(Board* board) {
+   CursorStep step = aiLogic.matchSteps.front();
+   aiLogic.matchSteps.pop_front();
+   switch (step) {
+   case cursor_left:
+      board->game->p1Input.left.p = true;
+   case cursor_right:
+      board->game->p1Input.right.p = true;
+   case cursor_up:
+      board->game->p1Input.up.p = true;
+   case cursor_down:
+      board->game->p1Input.down.p = true;
+   case cursor_swap:
+      board->game->p1Input.swap.p = true;
+   }
 }
 
 void boardAI(Board* board) {
-   
+   if (aiLogic.matchSteps.empty() == true) {
+      aiFindMatch(board);
+      aiGetSteps(board);
+   }
+
+   aiDoStep(board);
 }
