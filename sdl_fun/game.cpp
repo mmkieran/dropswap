@@ -440,3 +440,7 @@ void debugCursor(Game* game) {
       ImGui::End();
    }
 }
+
+void gameAI(Game* game, int index) {
+   boardAI(game->boards[index]);
+}

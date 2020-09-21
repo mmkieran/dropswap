@@ -41,6 +41,7 @@ struct ButtonHoldCount {
 void processInputs(Game* game);
 void inputProcessKeyboard(Game* game);
 void inputProcessController(Game* game);
+void resetButtonStates(Game* game);
 
 void controllerAdd(int id);
 void controllerRemove(int id);

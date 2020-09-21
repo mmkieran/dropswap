@@ -41,6 +41,7 @@ struct NetPlay {
    bool host = false;
    int hostConnNum = -1;
    int myConnNum = -1;
+   bool ai = false;
 };
 
 int fletcher32_checksum(short* data, size_t len);

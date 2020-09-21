@@ -1046,5 +1046,7 @@ void boardAI(Board* board) {
       aiGetSteps(board);
    }
 
-   aiDoStep(board);
+   if (board->game->frameCount % 5) {
+      aiDoStep(board);
+   }
 }
