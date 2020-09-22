@@ -92,6 +92,14 @@ void resetButtonStates(Game* game) {
    }
 }
 
+void aiResetButtonStates(Game* game) {
+   for (int i = 0; i < 8; i++) {  //todo maybe make the count smarter... 
+      buttonList[i]->p = false;
+      buttonList[i]->h = false;
+      buttonList[i]->fc = 0;
+   }
+}
+
 void processInputs(Game* game) {
    for (int i = 0; i < 8; i++) {
       resetList[i] = true;

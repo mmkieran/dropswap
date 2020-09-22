@@ -84,6 +84,8 @@ struct Game {
 
    GameTimings timings;
 
+   bool ai = true;  //debug
+
    int bHeight = 12;
    int bWidth = 6;
 

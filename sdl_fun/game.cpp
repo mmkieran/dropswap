@@ -226,8 +226,10 @@ void gameUpdate(Game* game) {
 void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
+   if (game->ai == true) { gameAI(game, 0); }  //debug
    gameCheckPause(game, game->p1Input);
    gameUpdate(game);
+   game->frameCount++;
 }
 
 //Create the boards and set playing to true
@@ -442,5 +444,6 @@ void debugCursor(Game* game) {
 }
 
 void gameAI(Game* game, int index) {
+   aiResetButtonStates(game);
    boardAI(game->boards[index]);
 }

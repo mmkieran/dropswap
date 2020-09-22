@@ -921,21 +921,22 @@ void aiFindMatch(Board* board) {
          Tile* t1 = tiles[current];
          Tile* t2 = tiles[current + 1];
 
-         if (t1->falling || t2->falling || 
-            t1->status == status_disable || t2->status == status_disable ||
-            t1->status == status_stop || t2->status == status_stop) { 
+         if (t1->falling == true || t2->falling == true || 
+            t1->status == status_disable || t2->status == status_disable || 
+            t1->status == status_stop || t2->status == status_stop || 
+            t1->type == tile_empty || t2->type == tile_empty ||
+            t1->type == tile_garbage || t2->type == tile_garbage ) {
             current++;
             continue;
          }
 
-         if (t1->type != tile_empty && t1->type != tile_cleared) {
-            if (t1->type == t2->type) {
-               if ((t1->ypos == t2->ypos) || (t1->xpos == t2->xpos)) {
-                  dest.push_back(t1);
-                  break;
-               }
+         if (t1->type == t2->type) {
+            if ((t1->ypos == t2->ypos) || (t1->xpos == t2->xpos)) {
+               dest.push_back(t1);
+               break;
             }
          }
+         current++;
       }
    }
    
@@ -946,7 +947,7 @@ void aiFindMatch(Board* board) {
 
       Tile* above = boardGetTile(board, row - 1, col);
       if (above) {
-         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
+         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row - 1);
          for (auto&& tile : tiles) {
             if (tile->type == dest[i]->type) {
                target = tile;
@@ -959,7 +960,7 @@ void aiFindMatch(Board* board) {
       if (above == nullptr) {
          Tile* below = boardGetTile(board, row + 2, col);
          if (below) {
-            std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);
+            std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 2);
             for (auto&& tile : tiles) {
                if (tile->type == dest[i]->type) {
                   target = tile;
@@ -992,7 +993,7 @@ void aiGetSteps(Board* board) {
    int colDiff = aiLogic.target.col - cursorCol;
    int rowDiff = aiLogic.target.row - cursorRow;
 
-   if (moveDirection < 0) { colDiff - 1; }  //If we need to swap left, shift the cursor left one
+   if (moveDirection < 0) { colDiff -= 1; }  //If we need to swap left, shift the cursor left one
 
    for (int i = 0; i < abs(colDiff); i++) {
       if (colDiff < 0) {        //move left
@@ -1029,24 +1030,33 @@ void aiDoStep(Board* board) {
    switch (step) {
    case cursor_left:
       board->game->p1Input.left.p = true;
+      break;
    case cursor_right:
       board->game->p1Input.right.p = true;
+      break;
    case cursor_up:
       board->game->p1Input.up.p = true;
+      break;
    case cursor_down:
       board->game->p1Input.down.p = true;
+      break;
    case cursor_swap:
       board->game->p1Input.swap.p = true;
+      break;
    }
 }
 
 void boardAI(Board* board) {
    if (aiLogic.matchSteps.empty() == true) {
-      aiFindMatch(board);
-      aiGetSteps(board);
+      if (board->game->timer > board->game->timings.countIn[0]) {
+         aiFindMatch(board);
+         aiGetSteps(board);
+      }
    }
 
-   if (board->game->frameCount % 5) {
-      aiDoStep(board);
+   if (board->game->frameCount % 5 == 0) {
+      if (aiLogic.matchSteps.empty() == false) {
+         aiDoStep(board);
+      }
    }
 }
