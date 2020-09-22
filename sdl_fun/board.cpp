@@ -893,16 +893,19 @@ enum CursorStep {
 };
 
 struct TileIndex {
-   int col = -1;
-   int row = -1;
+   int col = INT_MIN;
+   int row = INT_MIN;
+};
+
+struct MoveInfo {
+   TileIndex target;
+   TileIndex dest;
 };
 
 struct AILogic {
-   TileIndex target;
-   TileIndex dest;
 
+   std::list <MoveInfo> moves;
    std::list <CursorStep> matchSteps;
-   //std::vector <CursorStep> steps;
 };
 
 AILogic aiLogic;
@@ -910,6 +913,7 @@ AILogic aiLogic;
 //Very basic search for vertical 2 and decide on tile to swap in to match
 void aiFindMatch(Board* board) {
    std::vector <Tile*> dest;
+
    //Search columns
    for (int col = 0; col < board->w; col++) {
       std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
@@ -940,7 +944,6 @@ void aiFindMatch(Board* board) {
       }
    }
    
-   Tile* target = nullptr;
    for (int i = 0; i < dest.size(); i++) {
       int row = tileGetRow(board, dest[i]);
       int col = tileGetCol(board, dest[i]);
@@ -950,9 +953,14 @@ void aiFindMatch(Board* board) {
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row - 1);
          for (auto&& tile : tiles) {
             if (tile->type == dest[i]->type) {
-               target = tile;
-               aiLogic.dest.col = col;
-               aiLogic.dest.row = row - 1;
+               MoveInfo move;
+               move.dest.col = col;
+               move.dest.row = row - 1;
+               int r = tileGetRow(board, tile);
+               int c = tileGetCol(board, tile);
+               move.target.col = c;
+               move.target.row = r;
+               aiLogic.moves.push_back(move);
                break;
             }
          }
@@ -963,64 +971,65 @@ void aiFindMatch(Board* board) {
             std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 2);
             for (auto&& tile : tiles) {
                if (tile->type == dest[i]->type) {
-                  target = tile;
-                  aiLogic.dest.col = col;
-                  aiLogic.dest.row = row + 2;
+                  MoveInfo move;
+                  move.dest.col = col;
+                  move.dest.row = row + 2;
+                  int r = tileGetRow(board, tile);
+                  int c = tileGetCol(board, tile);
+                  move.target.col = c;
+                  move.target.row = r;
+                  aiLogic.moves.push_back(move);
                   break;
                }
             }
          }
-      }
-      if (target) {
-         row = tileGetRow(board, target);
-         col = tileGetCol(board, target);
-         aiLogic.target.col = col;
-         aiLogic.target.row = row;
-         break;
       }
    }
 }
 
 void aiGetSteps(Board* board) {
 
-   //Figure out if the target needs to move left or right
-   int moveDirection = aiLogic.dest.col - aiLogic.target.col;
+   for (auto&& move : aiLogic.moves) {
+      //Figure out if the target needs to move left or right
+      int moveDirection = move.dest.col - move.target.col;
 
-   //Calculate steps to move cursor into place
-   int cursorCol = cursorGetCol(board);
-   int cursorRow = cursorGetRow(board);
+      //Calculate steps to move cursor into place
+      int cursorCol = cursorGetCol(board);
+      int cursorRow = cursorGetRow(board);
 
-   int colDiff = aiLogic.target.col - cursorCol;
-   int rowDiff = aiLogic.target.row - cursorRow;
+      int colDiff = move.target.col - cursorCol;
+      int rowDiff = move.target.row - cursorRow;
 
-   if (moveDirection < 0) { colDiff -= 1; }  //If we need to swap left, shift the cursor left one
+      if (moveDirection < 0) { colDiff -= 1; }  //If we need to swap left, shift the cursor left one
 
-   for (int i = 0; i < abs(colDiff); i++) {
-      if (colDiff < 0) {        //move left
-         aiLogic.matchSteps.push_back(cursor_left);
+      for (int i = 0; i < abs(colDiff); i++) {
+         if (colDiff < 0) {        //move left
+            aiLogic.matchSteps.push_back(cursor_left);
+         }
+         else if (colDiff > 0) {   //move right
+            aiLogic.matchSteps.push_back(cursor_right);
+         }
       }
-      else if (colDiff > 0) {   //move right
-         aiLogic.matchSteps.push_back(cursor_right);
+      for (int i = 0; i < abs(rowDiff); i++) {
+         if (rowDiff < 0) {        //move up
+            aiLogic.matchSteps.push_back(cursor_up);
+         }
+         else if (rowDiff > 0) {   //move down
+            aiLogic.matchSteps.push_back(cursor_down);
+         }
       }
-   }
-   for (int i = 0; i < abs(rowDiff); i++) {
-      if (rowDiff < 0) {        //move up
-         aiLogic.matchSteps.push_back(cursor_up);
-      }
-      else if (rowDiff > 0) {   //move down
-         aiLogic.matchSteps.push_back(cursor_down);
-      }
-   }
 
-   //Figure out how many swaps to move the target tile to the destination
-   for (int i = 0; i < abs(moveDirection); i++) {
-      aiLogic.matchSteps.push_back(cursor_swap);
-      if (moveDirection < 0) {        //move left
-         aiLogic.matchSteps.push_back(cursor_left);
+      //Figure out how many swaps to move the target tile to the destination
+      for (int i = 0; i < abs(moveDirection); i++) {
+         aiLogic.matchSteps.push_back(cursor_swap);
+         if (moveDirection < 0) {        //move left
+            aiLogic.matchSteps.push_back(cursor_left);
+         }
+         else if (moveDirection > 0) {   //move right
+            aiLogic.matchSteps.push_back(cursor_right);
+         }
       }
-      else if (moveDirection > 0) {   //move right
-         aiLogic.matchSteps.push_back(cursor_right);
-      }
+      aiLogic.moves.pop_front();
    }
 }
 
