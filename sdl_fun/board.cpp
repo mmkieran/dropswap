@@ -911,7 +911,7 @@ struct AILogic {
 AILogic aiLogic;
 
 //Very basic search for vertical 2 and decide on tile to swap in to match
-void aiFindMatch(Board* board) {
+void airFindVertMatch(Board* board) {
    std::vector <Tile*> dest;
 
    //Search columns
@@ -919,7 +919,7 @@ void aiFindMatch(Board* board) {
       std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
       int current = 0;
 
-      if (dest.size() > 0) { break; }
+      //if (dest.size() > 0) { break; }
 
       while (current + 1 < tiles.size()) {
          Tile* t1 = tiles[current];
@@ -944,6 +944,7 @@ void aiFindMatch(Board* board) {
       }
    }
    
+   bool topMatchFound = false;
    for (int i = 0; i < dest.size(); i++) {
       int row = tileGetRow(board, dest[i]);
       int col = tileGetCol(board, dest[i]);
@@ -961,11 +962,12 @@ void aiFindMatch(Board* board) {
                move.target.col = c;
                move.target.row = r;
                aiLogic.moves.push_back(move);
+               topMatchFound = true;
                break;
             }
          }
       }
-      if (above == nullptr) {
+      if (topMatchFound == false) {
          Tile* below = boardGetTile(board, row + 2, col);
          if (below) {
             std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 2);
@@ -982,6 +984,45 @@ void aiFindMatch(Board* board) {
                   break;
                }
             }
+         }
+      }
+   }
+}
+
+void aiFindHorizMatch(Board* board) {
+   std::vector <Tile*> dest;
+
+   //Search rows 
+   for (int row = board->startH - 1; row < board->endH; row++) {
+      std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);  //tiles in row ordered left to right
+      std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
+
+      for (auto&& tile : tiles) {  //Skip this stuff
+         if (tile->falling == true || tile->status == status_disable ||
+            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+            continue;
+         }
+         tileCounts[tile->type].push_back(tile);
+      }
+
+      for (auto&& pair : tileCounts) {
+         if (pair.second.size() >= 3) {  //If we have three tiles of the same type in a row
+            int row = tileGetRow(board, pair.second[0]);
+            int col = tileGetCol(board, pair.second[0]);
+
+            for (int i = 1; i < 3; i++) {
+
+               MoveInfo move;
+               move.dest.col = col + i;
+               move.dest.row = row;
+               int r = tileGetRow(board, pair.second[i]);
+               int c = tileGetCol(board, pair.second[i]);
+               move.target.col = c;
+               move.target.row = r;
+               aiLogic.moves.push_back(move);
+
+            }
+            break;
          }
       }
    }
@@ -1029,8 +1070,8 @@ void aiGetSteps(Board* board) {
             aiLogic.matchSteps.push_back(cursor_right);
          }
       }
-      aiLogic.moves.pop_front();
    }
+   aiLogic.moves.clear();
 }
 
 void aiDoStep(Board* board) {
@@ -1058,8 +1099,9 @@ void aiDoStep(Board* board) {
 void boardAI(Board* board) {
    if (aiLogic.matchSteps.empty() == true) {
       if (board->game->timer > board->game->timings.countIn[0]) {
-         aiFindMatch(board);
-         aiGetSteps(board);
+         //airFindVertMatch(board);
+         aiFindHorizMatch(board);
+         if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
    }
 
