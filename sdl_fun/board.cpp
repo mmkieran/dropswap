@@ -919,8 +919,6 @@ void airFindVertMatch(Board* board) {
       std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
       int current = 0;
 
-      //if (dest.size() > 0) { break; }
-
       while (current + 1 < tiles.size()) {
          Tile* t1 = tiles[current];
          Tile* t2 = tiles[current + 1];
@@ -929,6 +927,7 @@ void airFindVertMatch(Board* board) {
             t1->status == status_disable || t2->status == status_disable || 
             t1->status == status_stop || t2->status == status_stop || 
             t1->type == tile_empty || t2->type == tile_empty ||
+            t1->type == tile_cleared || t2->type == tile_cleared ||
             t1->type == tile_garbage || t2->type == tile_garbage ) {
             current++;
             continue;
@@ -998,7 +997,7 @@ void aiFindHorizMatch(Board* board) {
       std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
 
       for (auto&& tile : tiles) {  //Skip this stuff
-         if (tile->falling == true || tile->status == status_disable ||
+         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
             tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
             continue;
          }
@@ -1028,15 +1027,22 @@ void aiFindHorizMatch(Board* board) {
    }
 }
 
+void aiDanger(Board* board) {
+   /*
+   * If a tile is above a threshold 
+   look in the row below for empty tiles and move a tile to it
+
+   */
+}
+
 void aiGetSteps(Board* board) {
+   //Calculate steps to move cursor into place
+   int cursorCol = cursorGetCol(board);
+   int cursorRow = cursorGetRow(board);
 
    for (auto&& move : aiLogic.moves) {
       //Figure out if the target needs to move left or right
       int moveDirection = move.dest.col - move.target.col;
-
-      //Calculate steps to move cursor into place
-      int cursorCol = cursorGetCol(board);
-      int cursorRow = cursorGetRow(board);
 
       int colDiff = move.target.col - cursorCol;
       int rowDiff = move.target.row - cursorRow;
@@ -1046,17 +1052,21 @@ void aiGetSteps(Board* board) {
       for (int i = 0; i < abs(colDiff); i++) {
          if (colDiff < 0) {        //move left
             aiLogic.matchSteps.push_back(cursor_left);
+            cursorCol--;
          }
          else if (colDiff > 0) {   //move right
             aiLogic.matchSteps.push_back(cursor_right);
+            cursorCol++;
          }
       }
       for (int i = 0; i < abs(rowDiff); i++) {
          if (rowDiff < 0) {        //move up
             aiLogic.matchSteps.push_back(cursor_up);
+            cursorRow--;
          }
          else if (rowDiff > 0) {   //move down
             aiLogic.matchSteps.push_back(cursor_down);
+            cursorRow++;
          }
       }
 
@@ -1099,7 +1109,7 @@ void aiDoStep(Board* board) {
 void boardAI(Board* board) {
    if (aiLogic.matchSteps.empty() == true) {
       if (board->game->timer > board->game->timings.countIn[0]) {
-         //airFindVertMatch(board);
+         airFindVertMatch(board);
          aiFindHorizMatch(board);
          if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
