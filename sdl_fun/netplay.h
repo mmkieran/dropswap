@@ -42,6 +42,8 @@ struct NetPlay {
    int hostConnNum = -1;
    int myConnNum = -1;
    bool ai = false;
+   int frameDelay[3] = { 2, 1, 10 };
+   int disconnectTime[3] = { 0, 0, 30000 };
 };
 
 int fletcher32_checksum(short* data, size_t len);

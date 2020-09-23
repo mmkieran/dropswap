@@ -240,7 +240,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 30000);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing
@@ -267,7 +267,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
          if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
             game->net->localPlayer = handle;
-            ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
+            ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
          }
       }
    }
@@ -301,7 +301,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       game->net->connections[myNumber].handle = handle2;
       game->net->connections[myNumber].type = game->net->players[myNumber].type;
       game->net->localPlayer = handle2;
-      ggpo_set_frame_delay(game->net->ggpo, handle2, GAME_FRAME_DELAY);  //Set frame delay for the session
+      ggpo_set_frame_delay(game->net->ggpo, handle2, game->net->frameDelay[0]);  //Set frame delay for the session
    }
 }
 

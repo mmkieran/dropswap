@@ -48,9 +48,10 @@ int main(int argc, char* args[]) {
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          game->ggpoTime = (frameDelay - frameTime) / 1000;
-         if (game->ggpoTime > 0) {
+         if (game->players > 1) {
             gameGiveIdleToGGPO(game, game->ggpoTime);
          }
+         else { sdlSleep(game->ggpoTime); }
       }
    }
 

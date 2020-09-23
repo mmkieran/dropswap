@@ -406,6 +406,8 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
       ImGui::Checkbox("I AM A ROBOT", &game->net->ai);
+      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
    }
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];
