@@ -882,6 +882,8 @@ void boardClear(Board* board) {
    }
 }
 
+
+//Everything below here if for AI Logic
 enum CursorStep {
    cursor_none = 0,
    cursor_left,
@@ -904,8 +906,8 @@ struct MoveInfo {
 
 struct AILogic {
 
-   std::list <MoveInfo> moves;
-   std::list <CursorStep> matchSteps;
+   std::list <MoveInfo> moves;         //Each tile's current row/col and destination
+   std::list <CursorStep> matchSteps;  //The Cursor movements needed to make a match
 };
 
 AILogic aiLogic;
@@ -1036,37 +1038,82 @@ bool aiFindHorizMatch(Board* board) {
    return matchFound;
 }
 
-bool aiDanger(Board* board) {
-   /*
-   * If a tile is above a threshold 
-   look in the row below for empty tiles and move a tile to it
+static bool _validTile(Board* board, Tile* tile) {
+   if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+      tile->status == status_stop || tile->type == tile_empty) {
+      return false;
+   }
+   else { return true; }
+}
 
-   */
+bool aiDanger(Board* board) {
    bool moveFound = false;
    for (int row = board->startH - 1; row < board->startH + 4; row++) {
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { break; }
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
-            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
-            continue;
-         }
+         if (_validTile(board, tile) == false) { continue; }
 
-         //Find a hole in the next row down
-         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 1);  
-         for (auto&& below : tiles) {
-            if (below->type == tile_empty) {
-               aiLogic.moves.clear();
+         if (tile->type == tile_garbage) {  //Clear garbage here
+            //Find vertical and then horizontal matches below it... loop through bottom tile of garbage
+            //For vertical, if not 2 in row, find surrounding ones
+            Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
+            int gRow = tileGetRow(board, garbage->start);
 
-               MoveInfo move;
-               move.target.col = col;
-               move.target.row = row;
+            Tile* below[3];
+            bool badTiles = false;
+            for (int i = 0; i < 3; i++) { //Check if three tiles below garbage can be used
+               int currRow = gRow + i + 1;
+               below[i] = boardGetTile(board, currRow, col); 
+               if (below[i] == nullptr || _validTile(board, below[i]) == false) { badTiles = true;  break; }
+            }
+            if (badTiles == true) { continue; }
 
-               move.dest.col = tileGetCol(board, below);
-               move.dest.row = tileGetRow(board, below);
-               aiLogic.moves.push_front(move);
+            std::vector <Tile*> matches;  //Can we find three in a row
+            for (int i = 1; i < 3; i++) {  //Compare 2nd and 3rd tile with the first below garbage
+               int currRow = gRow + i + 1;
+               if (below[0]->type != below[i]->type) {
+                  std::vector <Tile*> tiles = boardGetAllTilesInRow(board, currRow);
+                  for (int j = 0; j < tiles.size(); j++) {  //Go through all tiles in same row
+                     if (tiles[j]->type == below[0]->type) {
+                        matches.push_back(tiles[j]);
+                        break;
+                     }
+                  }
+               }
+               else { matches.push_back(below[i]); }
+            }
+            if (matches.size() == 2) {
+               for (auto&& match : matches) {
+                  MoveInfo move;
+
+                  move.target.col = tileGetCol(board, match);
+                  move.target.row = tileGetRow(board, match);
+
+                  move.dest.col = col;
+                  move.dest.row = move.target.row;
+                  aiLogic.moves.push_front(move);
+               }
                moveFound = true;
-               break;
+            }
+         }
+         else {
+            //Find a hole in the next row down and send tile there
+            std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 1);
+            for (auto&& below : tiles) {
+               if (below->type == tile_empty) {
+                  aiLogic.moves.clear();
+
+                  MoveInfo move;
+                  move.target.col = col;
+                  move.target.row = row;
+
+                  move.dest.col = tileGetCol(board, below);
+                  move.dest.row = tileGetRow(board, below);
+                  aiLogic.moves.push_front(move);
+                  moveFound = true;
+                  break;
+               }
             }
          }
       }
@@ -1128,7 +1175,7 @@ void aiGetSteps(Board* board) {
 void aiDoStep(Board* board) {
    UserInput input = { 0 };
 
-   if (board->game->frameCount % 1 == 0) {  //This is so it doesn't have 1000 apm
+   if (board->game->frameCount % 5 == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
