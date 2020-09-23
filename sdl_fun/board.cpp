@@ -911,8 +911,9 @@ struct AILogic {
 AILogic aiLogic;
 
 //Very basic search for vertical 2 and decide on tile to swap in to match
-void airFindVertMatch(Board* board) {
+bool aiFindVertMatch(Board* board) {
    std::vector <Tile*> dest;
+   bool matchFound = false;
 
    //Search columns
    for (int col = 0; col < board->w; col++) {
@@ -943,8 +944,9 @@ void airFindVertMatch(Board* board) {
       }
    }
    
-   bool topMatchFound = false;
+   bool topFound = false;
    for (int i = 0; i < dest.size(); i++) {
+      if (matchFound == true) { break; }
       int row = tileGetRow(board, dest[i]);
       int col = tileGetCol(board, dest[i]);
 
@@ -961,12 +963,13 @@ void airFindVertMatch(Board* board) {
                move.target.col = c;
                move.target.row = r;
                aiLogic.moves.push_back(move);
-               topMatchFound = true;
+               topFound = true;
+               matchFound = true;
                break;
             }
          }
       }
-      if (topMatchFound == false) {
+      if (topFound == false) {
          Tile* below = boardGetTile(board, row + 2, col);
          if (below) {
             std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 2);
@@ -980,19 +983,23 @@ void airFindVertMatch(Board* board) {
                   move.target.col = c;
                   move.target.row = r;
                   aiLogic.moves.push_back(move);
+                  matchFound = true;
                   break;
                }
             }
          }
       }
    }
+   return matchFound;
 }
 
-void aiFindHorizMatch(Board* board) {
+bool aiFindHorizMatch(Board* board) {
    std::vector <Tile*> dest;
 
    //Search rows 
+   bool matchFound = false;
    for (int row = board->startH - 1; row < board->endH; row++) {
+      if (matchFound == true) { break; }
       std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);  //tiles in row ordered left to right
       std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
 
@@ -1021,18 +1028,50 @@ void aiFindHorizMatch(Board* board) {
                aiLogic.moves.push_back(move);
 
             }
+            matchFound = true;
             break;
          }
       }
    }
+   return matchFound;
 }
 
-void aiDanger(Board* board) {
+bool aiDanger(Board* board) {
    /*
    * If a tile is above a threshold 
    look in the row below for empty tiles and move a tile to it
 
    */
+   bool moveFound = false;
+   for (int row = board->startH - 1; row < board->startH + 4; row++) {
+      for (int col = 0; col < board->w; col++) {
+         if (moveFound == true) { break; }
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+            continue;
+         }
+
+         //Find a hole in the next row down
+         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 1);  
+         for (auto&& below : tiles) {
+            if (below->type == tile_empty) {
+               aiLogic.moves.clear();
+
+               MoveInfo move;
+               move.target.col = col;
+               move.target.row = row;
+
+               move.dest.col = tileGetCol(board, below);
+               move.dest.row = tileGetRow(board, below);
+               aiLogic.moves.push_back(move);
+               moveFound = true;
+               break;
+            }
+         }
+      }
+   }
+   return moveFound;
 }
 
 void aiGetSteps(Board* board) {
@@ -1075,9 +1114,11 @@ void aiGetSteps(Board* board) {
          aiLogic.matchSteps.push_back(cursor_swap);
          if (moveDirection < 0) {        //move left
             aiLogic.matchSteps.push_back(cursor_left);
+            cursorCol--;
          }
          else if (moveDirection > 0) {   //move right
             aiLogic.matchSteps.push_back(cursor_right);
+            cursorCol++;
          }
       }
    }
@@ -1107,15 +1148,16 @@ void aiDoStep(Board* board) {
 }
 
 void boardAI(Board* board) {
-   if (aiLogic.matchSteps.empty() == true) {
-      if (board->game->timer > board->game->timings.countIn[0]) {
-         airFindVertMatch(board);
-         aiFindHorizMatch(board);
+   if (board->game->timer > board->game->timings.countIn[0]) {
+      aiDanger(board);
+      if (aiLogic.matchSteps.empty() == true) {
+         bool vertMatch = aiFindVertMatch(board);
+         if (vertMatch) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
    }
 
-   if (board->game->frameCount % 5 == 0) {
+   if (board->game->frameCount % 10 == 0) {
       if (aiLogic.matchSteps.empty() == false) {
          aiDoStep(board);
       }
