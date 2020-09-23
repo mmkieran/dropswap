@@ -1128,26 +1128,27 @@ void aiGetSteps(Board* board) {
 void aiDoStep(Board* board) {
    UserInput input = { 0 };
 
-   CursorStep step = aiLogic.matchSteps.front();
-   aiLogic.matchSteps.pop_front();
-   switch (step) {
-   case cursor_left:
-      input.left.p = true;
-      break;
-   case cursor_right:
-      input.right.p = true;
-      break;
-   case cursor_up:
-      input.up.p = true;
-      break;
-   case cursor_down:
-      input.down.p = true;
-      break;
-   case cursor_swap:
-      input.swap.p = true;
-      break;
+   if (board->game->frameCount % 1 == 0) {  //This is so it doesn't have 1000 apm
+      CursorStep step = aiLogic.matchSteps.front();
+      aiLogic.matchSteps.pop_front();
+      switch (step) {
+      case cursor_left:
+         input.left.p = true;
+         break;
+      case cursor_right:
+         input.right.p = true;
+         break;
+      case cursor_up:
+         input.up.p = true;
+         break;
+      case cursor_down:
+         input.down.p = true;
+         break;
+      case cursor_swap:
+         input.swap.p = true;
+         break;
+      }
    }
-
    board->game->p1Input = input;
 }
 
@@ -1163,9 +1164,7 @@ void boardAI(Board* board) {
       }
    }
 
-   if (board->game->frameCount % 5 == 0) {
-      if (aiLogic.matchSteps.empty() == false) {
-         aiDoStep(board);
-      }
+   if (aiLogic.matchSteps.empty() == false) {
+      aiDoStep(board);
    }
 }
