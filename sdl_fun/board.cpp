@@ -1064,7 +1064,7 @@ bool aiDanger(Board* board) {
 
                move.dest.col = tileGetCol(board, below);
                move.dest.row = tileGetRow(board, below);
-               aiLogic.moves.push_back(move);
+               aiLogic.moves.push_front(move);
                moveFound = true;
                break;
             }
@@ -1126,38 +1126,44 @@ void aiGetSteps(Board* board) {
 }
 
 void aiDoStep(Board* board) {
+   UserInput input = { 0 };
+
    CursorStep step = aiLogic.matchSteps.front();
    aiLogic.matchSteps.pop_front();
    switch (step) {
    case cursor_left:
-      board->game->p1Input.left.p = true;
+      input.left.p = true;
       break;
    case cursor_right:
-      board->game->p1Input.right.p = true;
+      input.right.p = true;
       break;
    case cursor_up:
-      board->game->p1Input.up.p = true;
+      input.up.p = true;
       break;
    case cursor_down:
-      board->game->p1Input.down.p = true;
+      input.down.p = true;
       break;
    case cursor_swap:
-      board->game->p1Input.swap.p = true;
+      input.swap.p = true;
       break;
    }
+
+   board->game->p1Input = input;
 }
 
 void boardAI(Board* board) {
    if (board->game->timer > board->game->timings.countIn[0]) {
-      aiDanger(board);
-      if (aiLogic.matchSteps.empty() == true) {
-         bool vertMatch = aiFindVertMatch(board);
-         if (vertMatch) { aiFindHorizMatch(board); }
+      bool danger = aiDanger(board);
+      if (aiLogic.matchSteps.empty()) {
+         if (danger == false) {
+            bool vertMatch = aiFindVertMatch(board);
+            if (vertMatch == false) { aiFindHorizMatch(board); }
+         }
          if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
    }
 
-   if (board->game->frameCount % 10 == 0) {
+   if (board->game->frameCount % 5 == 0) {
       if (aiLogic.matchSteps.empty() == false) {
          aiDoStep(board);
       }
