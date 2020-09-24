@@ -719,9 +719,9 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   //else if (stillChaining == true) {
-   //   boardPauseTime(board, pause_clear);
-   //}
+   else if (stillChaining == true) {
+      boardPauseTime(board, pause_clear);
+   }
    return;
 }
 
@@ -1046,9 +1046,9 @@ static bool _validTile(Board* board, Tile* tile) {
    else { return true; }
 }
 
-bool aiDanger(Board* board) {
+bool aiFlattenBoard(Board* board) {
    bool moveFound = false;
-   for (int row = board->startH - 1; row < board->startH + 4; row++) {
+   for (int row = board->startH - 1; row < board->startH + board->endH/2; row++) {
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { break; }
          Tile* tile = boardGetTile(board, row, col);
@@ -1065,7 +1065,7 @@ bool aiDanger(Board* board) {
             for (int i = 0; i < 3; i++) { //Check if three tiles below garbage can be used
                int currRow = gRow + i + 1;
                below[i] = boardGetTile(board, currRow, col); 
-               if (below[i] == nullptr || _validTile(board, below[i]) == false) { badTiles = true;  break; }
+               if (below[i] == nullptr || _validTile(board, below[i]) == false || below[i]->type == tile_garbage) { badTiles = true;  break; }
             }
             if (badTiles == true) { continue; }
 
@@ -1175,7 +1175,7 @@ void aiGetSteps(Board* board) {
 void aiDoStep(Board* board) {
    UserInput input = { 0 };
 
-   if (board->game->frameCount % 5 == 0) {  //This is so it doesn't have 1000 apm
+   if (board->game->frameCount % 4 == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
@@ -1201,12 +1201,12 @@ void aiDoStep(Board* board) {
 
 void boardAI(Board* board) {
    if (board->game->timer > board->game->timings.countIn[0]) {
-      bool danger = aiDanger(board);
-      if (aiLogic.matchSteps.empty()) {
-         if (danger == false) {
-            bool vertMatch = aiFindVertMatch(board);
-            if (vertMatch == false) { aiFindHorizMatch(board); }
-         }
+      if (aiLogic.matchSteps.empty() == true) {
+            aiFindVertMatch(board);
+            aiFindHorizMatch(board); 
+            if (aiLogic.matchSteps.empty() == true || board->danger == true) {
+               aiFlattenBoard(board);
+            }
          if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
    }
