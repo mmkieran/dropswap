@@ -326,8 +326,7 @@ void gameRunFrame() {
 
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          if (game->ai == false) { processInputs(game); }
-         else { 
-             
+         else {        
             if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
             else { gameAI(game, 0); }
          }

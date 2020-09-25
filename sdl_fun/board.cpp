@@ -913,11 +913,6 @@ struct AILogic {
 
 AILogic aiLogic;
 
-void aiClearMoves() {
-   aiLogic.matchSteps.clear();
-   aiLogic.moves.clear();
-}
-
 static bool _validTile(Board* board, Tile* tile) {
    if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
       tile->status == status_stop || tile->type == tile_empty) {

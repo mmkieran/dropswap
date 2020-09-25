@@ -75,6 +75,12 @@ void mainUI(Game* game) {
       }
       ImGui::NewLine();
 
+      //if (ImGui::Button("One Player vs Compy", ImVec2{ width, 0 })) {
+      //   game->players = 1;
+      //   gameStartMatch(game);
+      //}
+      //ImGui::NewLine();
+
       static bool showGGPOSession = false;
       if (ImGui::Button("Two Player", ImVec2{ width, 0 })) {
          game->players = 2;
