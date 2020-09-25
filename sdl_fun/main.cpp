@@ -51,7 +51,8 @@ int main(int argc, char* args[]) {
          if (game->players > 1) {
             gameGiveIdleToGGPO(game, game->ggpoTime);
          }
-         else { sdlSleep(game->ggpoTime); }
+         else { 
+            sdlSleep(game->ggpoTime); }
       }
    }
 

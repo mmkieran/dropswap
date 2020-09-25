@@ -920,127 +920,6 @@ static bool _validTile(Board* board, Tile* tile) {
    else { return true; }
 }
 
-//Very basic search for vertical 2 and decide on tile to swap in to match
-bool aiFindVertMatch(Board* board) {
-   std::vector <Tile*> dest;
-   bool matchFound = false;
-
-   //Search columns
-   for (int col = 0; col < board->w; col++) {
-      std::vector <Tile*> tiles = boardGetAllTilesInCol(board, col);
-      int current = 0;
-
-      while (current + 1 < tiles.size()) {
-         Tile* t1 = tiles[current];
-         Tile* t2 = tiles[current + 1];
-
-         if (_validTile(board, t1) == false || _validTile(board, t2) == false || t1->type == tile_garbage || t2->type == tile_garbage ) {
-            current++;
-            continue;
-         }
-
-         if (t1->type == t2->type) {
-            if ((t1->ypos == t2->ypos) || (t1->xpos == t2->xpos)) {
-               dest.push_back(t1);
-               break;
-            }
-         }
-         current++;
-      }
-   }
-   
-   bool topFound = false;
-   for (int i = 0; i < dest.size(); i++) {
-      if (matchFound == true) { break; }
-      int row = tileGetRow(board, dest[i]);
-      int col = tileGetCol(board, dest[i]);
-
-      Tile* above = boardGetTile(board, row - 1, col);
-      if (above) {
-         std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row - 1);
-         for (auto&& tile : tiles) {
-            if (tile->type == dest[i]->type) {
-               MoveInfo move;
-               move.dest.col = col;
-               move.dest.row = row - 1;
-               int r = tileGetRow(board, tile);
-               int c = tileGetCol(board, tile);
-               move.target.col = c;
-               move.target.row = r;
-               aiLogic.moves.push_back(move);
-               topFound = true;
-               matchFound = true;
-               break;
-            }
-         }
-      }
-      if (topFound == false) {
-         Tile* below = boardGetTile(board, row + 2, col);
-         if (below) {
-            std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 2);
-            for (auto&& tile : tiles) {
-               if (tile->type == dest[i]->type) {
-                  MoveInfo move;
-                  move.dest.col = col;
-                  move.dest.row = row + 2;
-                  int r = tileGetRow(board, tile);
-                  int c = tileGetCol(board, tile);
-                  move.target.col = c;
-                  move.target.row = r;
-                  aiLogic.moves.push_back(move);
-                  matchFound = true;
-                  break;
-               }
-            }
-         }
-      }
-   }
-   return matchFound;
-}
-
-bool aiFindHorizMatch(Board* board) {
-   std::vector <Tile*> dest;
-
-   //Search rows 
-   bool matchFound = false;
-   for (int row = board->startH - 1; row < board->endH; row++) {
-      if (matchFound == true) { break; }
-      std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);  //tiles in row ordered left to right
-      std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
-
-      for (auto&& tile : tiles) {  //Skip this stuff
-         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
-            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
-            continue;
-         }
-         tileCounts[tile->type].push_back(tile);
-      }
-
-      for (auto&& pair : tileCounts) {
-         if (pair.second.size() >= 3) {  //If we have three tiles of the same type in a row
-            int row = tileGetRow(board, pair.second[0]);
-            int col = tileGetCol(board, pair.second[0]);
-
-            for (int i = 1; i < 3; i++) {
-
-               MoveInfo move;
-               move.dest.col = col + i;
-               move.dest.row = row;
-               int r = tileGetRow(board, pair.second[i]);
-               int c = tileGetCol(board, pair.second[i]);
-               move.target.col = c;
-               move.target.row = r;
-               aiLogic.moves.push_back(move);
-
-            }
-            matchFound = true;
-            break;
-         }
-      }
-   }
-   return matchFound;
-}
-
 static bool _vertMatch(Board* board, int row, int col) {
    bool moveFound = false;
 
@@ -1055,7 +934,7 @@ static bool _vertMatch(Board* board, int row, int col) {
 
    std::vector <Tile*> matches;  //Can we find three in a row
    for (int i = 1; i < 3; i++) {  //Compare 2nd and 3rd tile with the first below garbage
-      int currRow = row;
+      int currRow = row + i;
       if (tSet[0]->type != tSet[i]->type) {
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, currRow);
          for (int j = 0; j < tiles.size(); j++) {  //Go through all tiles in same row
@@ -1084,6 +963,63 @@ static bool _vertMatch(Board* board, int row, int col) {
    return moveFound;
 }
 
+//Very basic search for vertical 2 and decide on tile to swap in to match
+bool aiFindVertMatch(Board* board) {
+   bool moveFound = false;
+
+   for (int row = board->startH - 1; row < board->endH - 3; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
+
+         moveFound = _vertMatch(board, row, col);
+         if (moveFound == true) { return moveFound; }
+      }
+   }
+
+   return moveFound;
+}
+
+bool aiFindHorizMatch(Board* board) {
+   bool moveFound = false;
+   for (int row = board->startH - 1; row < board->endH; row++) {
+      if (moveFound == true) { break; }
+      std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row);  //tiles in row ordered left to right
+      std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
+
+      for (auto&& tile : tiles) {  //Skip this stuff
+         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+            continue;
+         }
+         tileCounts[tile->type].push_back(tile);
+      }
+
+      for (auto&& pair : tileCounts) {
+         if (pair.second.size() >= 3) {  //If we have three tiles of the same type in a row
+            int row = tileGetRow(board, pair.second[0]);
+            int col = tileGetCol(board, pair.second[0]);
+
+            for (int i = 1; i < 3; i++) {
+
+               MoveInfo move;
+               move.dest.col = col + i;
+               move.dest.row = row;
+               int r = tileGetRow(board, pair.second[i]);
+               int c = tileGetCol(board, pair.second[i]);
+               move.target.col = c;
+               move.target.row = r;
+               aiLogic.moves.push_back(move);
+
+            }
+            moveFound = true;
+            break;
+         }
+      }
+   }
+   return moveFound;
+}
+
 bool aiClearGarbage(Board* board) {
    bool moveFound = false;
    for (auto&& pair : board->pile->garbage) {
@@ -1100,7 +1036,7 @@ bool aiClearGarbage(Board* board) {
 
 bool aiFlattenBoard(Board* board) {
    bool moveFound = false;
-   for (int row = board->startH - 1; row < board->startH + board->endH/2; row++) {
+   for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)/2; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
@@ -1181,7 +1117,7 @@ void aiGetSteps(Board* board) {
 void aiDoStep(Board* board) {
    UserInput input = { 0 };
 
-   if (board->game->frameCount % 4 == 0) {  //This is so it doesn't have 1000 apm
+   if (board->game->frameCount % 5 == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
