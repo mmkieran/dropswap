@@ -1106,6 +1106,7 @@ void aiGetSteps(Board* board) {
       //Figure out how many swaps to move the target tile to the destination
       for (int i = 0; i < abs(moveDirection); i++) {
          aiLogic.matchSteps.push_back(cursor_swap);
+         if (abs(moveDirection) == 1) { break; }
          if (moveDirection < 0) {        //move left
             aiLogic.matchSteps.push_back(cursor_left);
             cursorCol--;

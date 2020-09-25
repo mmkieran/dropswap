@@ -77,7 +77,7 @@ bool __cdecl ds_begin_game_callback(const char*) {
 bool __cdecl ds_advance_frame_callback(int) {
 
    int disconnect_flags;
-   if (game->ai == true) { gameAIClear(); }
+   //if (game->ai == true) { gameAIClear(); }
 
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
@@ -326,7 +326,10 @@ void gameRunFrame() {
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          if (game->ai == false) { processInputs(game); }
          else { 
-            gameAI(game, game->net->localPlayer - 1); }
+             
+            if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
+            else { gameAI(game, 0); }
+         }
 
          if (game->syncTest == false) {
             if (game->net->localPlayer == 1) { 
