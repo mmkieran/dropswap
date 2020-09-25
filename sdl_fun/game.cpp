@@ -447,3 +447,7 @@ void gameAI(Game* game, int index) {
    aiResetButtonStates(game);
    boardAI(game->boards[index]);
 }
+
+void gameAIClear() {
+   aiClearMoves();
+}

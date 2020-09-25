@@ -144,3 +144,4 @@ void gameEndMatch(Game* game);
 void debugCursor(Game* game);
 
 void gameAI(Game* game, int index);
+void gameAIClear();

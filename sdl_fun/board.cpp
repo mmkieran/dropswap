@@ -912,6 +912,11 @@ struct AILogic {
 
 AILogic aiLogic;
 
+void aiClearMoves() {
+   aiLogic.matchSteps.clear();
+   aiLogic.moves.clear();
+}
+
 static bool _validTile(Board* board, Tile* tile) {
    if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
       tile->status == status_stop || tile->type == tile_empty) {
@@ -1024,7 +1029,7 @@ bool aiClearGarbage(Board* board) {
    bool moveFound = false;
    for (auto&& pair : board->pile->garbage) {
       Garbage* garbage = pair.second;
-      if (garbage->deployed) {
+      if (garbage->deployed && garbage->falling == false) {
          int gRow = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
@@ -1036,7 +1041,7 @@ bool aiClearGarbage(Board* board) {
 
 bool aiFlattenBoard(Board* board) {
    bool moveFound = false;
-   for (int row = board->startH - 1; row < board->endH - 2; row++) {
+   for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)/2; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
@@ -1144,9 +1149,9 @@ void aiDoStep(Board* board) {
 void boardAI(Board* board) {
    if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
-         aiClearGarbage(board);
-         aiFindVertMatch(board);
-         aiFindHorizMatch(board); 
+         aiClearGarbage(board); 
+         if (aiLogic.moves.empty()) { aiFindVertMatch(board); }
+         if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
 
          if (aiLogic.moves.empty() == false) { aiGetSteps(board); }

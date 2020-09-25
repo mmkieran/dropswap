@@ -109,3 +109,4 @@ bool aiFindHorizMatch(Board* board);
 void aiGetSteps(Board* board);
 void aiDoStep(Board* board);
 void boardAI(Board* board);
+void aiClearMoves();
