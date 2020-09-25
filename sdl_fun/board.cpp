@@ -24,7 +24,7 @@ void boardPauseTime(Board* board, BoardPauseType type, int size) {
       if (time > currentPause) { board->pauseLength = time;}
       break;
    case pause_chain:
-      time = min((size - 1) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
+      time = min( (size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
       if (time > currentPause) { board->pauseLength = time; }
       break;
    case pause_clear:
@@ -516,7 +516,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       board->boardStats.clears += uniqueMatches.size();  //Board stats
       board->boardStats.comboCounts[uniqueMatches.size()] += 1;
       board->boardStats.lastCombo = uniqueMatches.size();
-      boardPauseTime(board, pause_combo, uniqueMatches.size() );
+      if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
+      else { boardPauseTime(board, pause_combo, uniqueMatches.size()); }
       board->game->soundToggles[sound_clear] = true; 
 
       //first try to render arbitrary text over the board
@@ -719,9 +720,9 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   else if (stillChaining == true) {
-      boardPauseTime(board, pause_clear);
-   }
+   //else if (stillChaining == true) {
+   //   boardPauseTime(board, pause_clear);
+   //}
    return;
 }
 

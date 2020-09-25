@@ -81,6 +81,7 @@ bool __cdecl ds_advance_frame_callback(int) {
 
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
 
    //Call function to advance frame
    gameAdvanceFrame(game);
