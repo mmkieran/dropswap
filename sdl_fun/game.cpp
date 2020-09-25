@@ -230,6 +230,7 @@ void gameSinglePlayer(Game* game) {
    gameCheckPause(game, game->p1Input);
    gameUpdate(game);
    game->frameCount++;
+   game->timer = game->frameCount * (1000.0f / 60.0f);
 }
 
 //Create the boards and set playing to true

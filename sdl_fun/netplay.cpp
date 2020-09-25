@@ -77,11 +77,9 @@ bool __cdecl ds_begin_game_callback(const char*) {
 bool __cdecl ds_advance_frame_callback(int) {
 
    int disconnect_flags;
-   //if (game->ai == true) { gameAIClear(); }
 
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-   game->timer = game->inputs[0].timer;  //We want to use the timer from p1
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -160,8 +158,6 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
-   int a = 0;
-
    return true;
 }
 
@@ -313,8 +309,9 @@ void gameAdvanceFrame(Game* game) {
    }
    gameUpdate(game); 
 
-   ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
    game->frameCount++;
+   game->timer = game->frameCount * (1000.0f / 60.0f);
+   ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
 void gameRunFrame() {
@@ -330,23 +327,12 @@ void gameRunFrame() {
             if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
             else { gameAI(game, 0); }
          }
-
-         if (game->syncTest == false) {
-            if (game->net->localPlayer == 1) { 
-               game->p1Input.timer = game->timer;
-            }
-         }
          result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
-            if (game->net->localPlayer != 1) {  
-               if (game->syncTest == false) {
-                  game->timer = game->inputs[0].timer;  //We want to use the timer from p1
-               }
-            }
             gameAdvanceFrame(game);  //Update the game 
          }
       }

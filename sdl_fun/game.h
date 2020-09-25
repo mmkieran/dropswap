@@ -80,6 +80,8 @@ struct Game {
    Resources* resources = nullptr;
 
    std::map <SoundEffect, bool> soundToggles;
+   int sounds = 0;  //Sound on or off
+
    std::map <int, ImFont*> fonts;
 
    GameTimings timings;
@@ -88,11 +90,8 @@ struct Game {
 
    int bHeight = 12;
    int bWidth = 6;
-
    int tWidth = 64;
    int tHeight = 64;
-
-   int sounds = 0;  //Sound on or off
 
    bool isRunning = false;  //used in main loop
 
@@ -100,20 +99,14 @@ struct Game {
    bool playing = false;
 
    bool paused = false;
-   int pauseTimer = 0;
-   int pauseLength = 0;
 
    bool debug = true;
    int ggpoTime = 0;  //debug
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
-   int checksum = 0;
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
-   int lastTime = 0;
    int timer = 0;
-   int timeDelta = 0;
-
    KeepTime kt;
 
    uint64_t seed = 0;  //used for random number generation

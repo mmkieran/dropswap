@@ -52,11 +52,8 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->players);
    writeStream(stream, game->playing);
    writeStream(stream, game->paused);
-   writeStream(stream, game->pauseTimer);
-   writeStream(stream, game->pauseLength);
-   //if (game->players == 1) {
-   //   writeStream(stream, game->timer);   //Don't serialize for 2p! We are sending as input...
-   //}
+   writeStream(stream, game->frameCount);
+   writeStream(stream, game->timer);
    writeStream(stream, game->seed);
 }
 
@@ -74,11 +71,8 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->players);
    readStream(start, game->playing);
    readStream(start, game->paused);
-   readStream(start, game->pauseTimer);
-   readStream(start, game->pauseLength);
-   //if (game->players == 1) {
-   //   readStream(start, game->timer);
-   //}
+   readStream(start, game->frameCount);
+   readStream(start, game->timer);
    readStream(start, game->seed);
 }
 

@@ -41,10 +41,6 @@ int main(int argc, char* args[]) {
       }
       imguiRender(game);  //draw the board, cursor, and other things
 
-      if (game->playing == true && game->paused == false && bust == false) {  //If we're not paused, update game timer
-         game->timer += frameDelay / 1000;
-      }
-
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          game->ggpoTime = (frameDelay - frameTime) / 1000;
