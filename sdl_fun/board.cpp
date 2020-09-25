@@ -1042,7 +1042,7 @@ bool aiClearGarbage(Board* board) {
 
 bool aiFlattenBoard(Board* board) {
    bool moveFound = false;
-   for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)/2; row++) {
+   for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)*3/4; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
