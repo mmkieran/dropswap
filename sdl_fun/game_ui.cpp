@@ -142,6 +142,9 @@ static void _drawBoardTexture(Game* game, int index) {
 
 static void _gameResults(Game* game) {
    for (auto&& board : game->boards) {
+      char playerName[20] = "Player";
+      sprintf(playerName, "Player %d", board->player);
+      //ImGui::BeginChild(playerName);
       ImGui::Text("Player: %d", board->player);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -156,7 +159,9 @@ static void _gameResults(Game* game) {
       for (auto&& combo : board->boardStats.comboCounts) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
-      if (board->player == 1) { ImGui::SameLine(); }
+      ImGui::NewLine();
+      //ImGui::EndChild();
+      //if (board->player == 1) { ImGui::SameLine(); }
    }
 }
 
