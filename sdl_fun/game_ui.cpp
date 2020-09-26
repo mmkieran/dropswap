@@ -140,6 +140,26 @@ static void _drawBoardTexture(Game* game, int index) {
       ImGui::PopStyleVar();
 }
 
+static void _gameResults(Game* game) {
+   for (auto&& board : game->boards) {
+      ImGui::Text("Player: %d", board->player);
+      ImGui::NewLine();
+      int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
+      int danger = board->boardStats.dangeresque / 60.0f;
+      ImGui::Text("APM: %d", apm);
+      ImGui::Text("Cleared Tiles: %d", board->boardStats.clears);
+      ImGui::Text("Danger Time: %d", danger);
+      ImGui::Text("Garbage destroyed: %d", board->boardStats.garbageCrushed);
+      for (auto&& chain : board->boardStats.chainCounts) {
+         ImGui::Text("%d Chains: %d", chain.first, board->boardStats.chainCounts[chain.first]);
+      }
+      for (auto&& combo : board->boardStats.comboCounts) {
+         ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
+      }
+      if (board->player == 1) { ImGui::SameLine(); }
+   }
+}
+
 //Draw the window and child regions for the board texture to be rendered in
 void boardUI(Game* game) {
    if (game->playing == true) {
@@ -197,6 +217,7 @@ void boardUI(Game* game) {
          ImGui::OpenPopup("Game Over");
          if (ImGui::BeginPopupModal("Game Over")) {
             ImGui::Text("Player %d lost or something...", bustee);
+            _gameResults(game);
             if (ImGui::Button("Accept Defeat")) {
                gameEndMatch(game);
                ImGui::CloseCurrentPopup();
