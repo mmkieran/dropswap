@@ -141,10 +141,12 @@ static void _drawBoardTexture(Game* game, int index) {
 }
 
 static void _gameResults(Game* game) {
+   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+   float width = ImGui::GetWindowContentRegionWidth();
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->player);
-      //ImGui::BeginChild(playerName);
+      ImGui::BeginChild(playerName, ImVec2{ width / game->players - (game->players * 4), 300 }, true);
       ImGui::Text("Player: %d", board->player);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -160,9 +162,10 @@ static void _gameResults(Game* game) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
       ImGui::NewLine();
-      //ImGui::EndChild();
-      //if (board->player == 1) { ImGui::SameLine(); }
+      ImGui::EndChild();
+      if (board->player == 1 && game->players > 1) { ImGui::SameLine(); }
    }
+   ImGui::PopStyleVar();
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -220,8 +223,9 @@ void boardUI(Game* game) {
       //Game over popup
       if (popupStatus(Popup_GameOver) == true) {
          ImGui::OpenPopup("Game Over");
-         if (ImGui::BeginPopupModal("Game Over")) {
+         if (ImGui::BeginPopupModal("Game Over"), NULL, ImGuiWindowFlags_AlwaysAutoResize) {
             ImGui::Text("Player %d lost or something...", bustee);
+            ImGui::NewLine();
             _gameResults(game);
             if (ImGui::Button("Accept Defeat")) {
                gameEndMatch(game);
