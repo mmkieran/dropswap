@@ -51,6 +51,17 @@ struct KeepTime {
    }
 };
 
+struct GameTimings {
+   //Value, min and max
+   int gracePeriod[3] = { 1000, 0, 5000 };     //Bonus pause time when your board reaches the top before you die
+   int fallDelay[3] = { 100, 0, 1000 };        //The pause before a tile falls after swapping
+   int removeClear[3] = { 2000, 1000, 5000 };  //Time it takes to change a cleared tile to empty
+   int enterSilver[3] = { 30000, 0, 120000 };  //Time before silvers start appearing
+   int countIn[3] = { 2000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
+   int landPause[3] = { 1000, 0, 5000 };       //Pause board movement when garbage lands
+   int deployTime[3] = { 3000, 0, 5000 };
+};
+
 //@@Start Serialize
 struct Game {
 
@@ -69,16 +80,18 @@ struct Game {
    Resources* resources = nullptr;
 
    std::map <SoundEffect, bool> soundToggles;
+   int sounds = 0;  //Sound on or off
+
    std::map <int, ImFont*> fonts;
+
+   GameTimings timings;
+
+   bool ai = true;  //debug
 
    int bHeight = 12;
    int bWidth = 6;
-
    int tWidth = 64;
    int tHeight = 64;
-
-   int controls = 0;  //Using keyboard or controller
-   int sounds = 0;  //Sound on or off
 
    bool isRunning = false;  //used in main loop
 
@@ -86,20 +99,13 @@ struct Game {
    bool playing = false;
 
    bool paused = false;
-   int pauseTimer = 0;
-   int pauseLength = 0;
 
    bool debug = true;
-   int ggpoTime = 0;  //debug
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
-   int checksum = 0;
    std::vector <unsigned char> save;  //todo debug find a better place for this later
 
-   int lastTime = 0;
    int timer = 0;
-   int timeDelta = 0;
-
    KeepTime kt;
 
    uint64_t seed = 0;  //used for random number generation
@@ -116,6 +122,7 @@ void gameHandleEvents(Game* game);
 void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
+void gameSinglePlayer(Game* game);
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 
@@ -127,3 +134,5 @@ void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
 
 void debugCursor(Game* game);
+
+void gameAI(Game* game, int index);

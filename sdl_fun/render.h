@@ -61,7 +61,7 @@ enum VisualEffect {
    visual_swapr,  //right swap
    visual_clear,
    visual_landing,
-   visual_text,
+   visual_COUNT
 };
 
 struct VisualEvent {

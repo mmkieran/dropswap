@@ -41,6 +41,8 @@ struct NetPlay {
    bool host = false;
    int hostConnNum = -1;
    int myConnNum = -1;
+   int frameDelay[3] = { 2, 1, 10 };
+   int disconnectTime[3] = { 0, 0, 30000 };
 };
 
 int fletcher32_checksum(short* data, size_t len);
@@ -56,5 +58,3 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
-
-void ggpoSendMessage(int msg);

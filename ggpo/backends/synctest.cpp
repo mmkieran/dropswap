@@ -193,7 +193,8 @@ SyncTestBackend::BeginLog(int saving)
            _sync.GetFrameCount(),
            _rollingback ? "replay" : "original");
 
-    fopen_s(&_logfp, filename, "w");
+    //kmm disabled for now
+    //fopen_s(&_logfp, filename, "w");
 }
 
 void
@@ -208,10 +209,11 @@ SyncTestBackend::EndLog()
 void
 SyncTestBackend::LogSaveStates(SavedInfo &info)
 {
+   //kmm disabled for now
    char filename[MAX_PATH];
    sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
-   _callbacks.log_game_state(filename, (unsigned char *)info.buf, info.cbuf);
+   //_callbacks.log_game_state(filename, (unsigned char *)info.buf, info.cbuf);  
 
    sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
-   _callbacks.log_game_state(filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
+   //_callbacks.log_game_state(filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
 }

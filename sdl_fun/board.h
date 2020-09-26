@@ -103,3 +103,9 @@ int tileGetCol(Board* board, Tile* tile);
 int boardRandomTile(Board* board);
 void boardStartRandom(Board* board);
 void boardLoadRandom(Board* board);
+
+bool aiFindVertMatch(Board* board);
+bool aiFindHorizMatch(Board* board);
+void aiGetSteps(Board* board);
+void aiDoStep(Board* board);
+void boardAI(Board* board);

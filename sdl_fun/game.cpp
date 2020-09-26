@@ -205,7 +205,7 @@ void gameCheckPause(Game* game, UserInput input) {
 
 //Update the board state for all players
 void gameUpdate(Game* game) {
-   
+   if (game->playing == false || game->paused == true) { return; }
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i] == nullptr) { continue; }
       if (game->players > 1) {
@@ -221,6 +221,16 @@ void gameUpdate(Game* game) {
          boardUpdate(game->boards[i], game->p1Input);
       }
    }
+}
+
+void gameSinglePlayer(Game* game) {
+   if (game->playing == false) { return; }
+   processInputs(game);
+   if (game->ai == true) { gameAI(game, 0); }  //debug
+   gameCheckPause(game, game->p1Input);
+   gameUpdate(game);
+   game->frameCount++;
+   game->timer = game->frameCount * (1000.0f / 60.0f);
 }
 
 //Create the boards and set playing to true
@@ -317,7 +327,7 @@ void gameRender(Game* game) {
          i++;
       }
       rendererDisableFBO();
-      debugCursor(game);
+      //debugCursor(game);
    }
 }
 
@@ -334,6 +344,7 @@ void imguiRender(Game* game) {
    //Do this if we want the meshes to stay the same size when then window changes...
    worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
 
+   if (game->playing == false || game->paused == true) { mainUI(game); }
    gameRender(game);  //Draw all game objects
 
    rendererSetTarget(0, 0, width, height);
@@ -412,7 +423,6 @@ void debugCursor(Game* game) {
             lastChain = board->chain;
             chainTime = game->timer;
          }
-         ImGui::Text("%d chain", board->chain);
          ImGui::Text("Last chain: %d", lastChain);
          ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
@@ -431,4 +441,9 @@ void debugCursor(Game* game) {
 
       ImGui::End();
    }
+}
+
+void gameAI(Game* game, int index) {
+   aiResetButtonStates(game);
+   boardAI(game->boards[index]);
 }

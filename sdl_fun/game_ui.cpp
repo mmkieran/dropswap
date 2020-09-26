@@ -75,6 +75,12 @@ void mainUI(Game* game) {
       }
       ImGui::NewLine();
 
+      //if (ImGui::Button("One Player vs Compy", ImVec2{ width, 0 })) {
+      //   game->players = 1;
+      //   gameStartMatch(game);
+      //}
+      //ImGui::NewLine();
+
       static bool showGGPOSession = false;
       if (ImGui::Button("Two Player", ImVec2{ width, 0 })) {
          game->players = 2;
@@ -145,6 +151,10 @@ void boardUI(Game* game) {
       ImGui::SameLine();
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
+
+      if (game->debug && game->players > 1) {
+         ImGui::Text("Frame Count: %d s", game->frameCount);
+      }
 
       static int bustee = 0;
       for (auto&& board : game->boards) {
@@ -240,7 +250,7 @@ void boardUI(Game* game) {
 }
 
 //Helper function to provide hotkeys or buttons
-static void _explainControls(Game* game) {
+static void _explainControls(Game* game, int controls) {
    //todo make it configurable later
    float width = ImGui::GetWindowContentRegionWidth();
    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
@@ -248,14 +258,14 @@ static void _explainControls(Game* game) {
    ImGui::Button("Controls", ImVec2{ width, 0 });
 
    int ratio = 3;
-   if (game->controls == 0) {
+   if (controls == 0) {
       ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Arrow Keys");
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("SPACEBAR");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RETURN");
       ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("R");
    }
 
-   else if (game->controls == 1) {
+   else if (controls == 1) {
       ImGui::Button("Movement", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("D Pad");
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("A");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Start");
@@ -274,7 +284,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
    //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
    ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
-   ImGui::Combo("Show Controls", &game->controls, "Keyboard\0Controller\0");
+   static int gameControls = 0;
+   ImGui::Combo("Show Controls", &gameControls, "Keyboard\0Controller\0");
    if (game->playing == false) {
 
       static int tileSize = 0;
@@ -290,8 +301,18 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::InputInt("Board Height", &game->bHeight);
    }
    
-   _explainControls(game);
+   _explainControls(game, gameControls);
    ImGui::NewLine();
+
+   if (ImGui::CollapsingHeader("Game Timings") ) {
+      ImGui::SliderScalar("Remove Clear", ImGuiDataType_U32, &game->timings.removeClear[0], &game->timings.removeClear[1], &game->timings.removeClear[2]);
+      ImGui::SliderScalar("Fall Delay", ImGuiDataType_U32, &game->timings.fallDelay[0], &game->timings.fallDelay[1], &game->timings.fallDelay[2]);
+      ImGui::SliderScalar("Grace Period", ImGuiDataType_U32, &game->timings.gracePeriod[0], &game->timings.gracePeriod[1], &game->timings.gracePeriod[2]);
+      ImGui::SliderScalar("Deploy Time", ImGuiDataType_U32, &game->timings.deployTime[0], &game->timings.deployTime[1], &game->timings.deployTime[2]);
+      ImGui::SliderScalar("Start Countdown", ImGuiDataType_U32, &game->timings.countIn[0], &game->timings.countIn[1], &game->timings.countIn[2]);
+      ImGui::SliderScalar("Land Time", ImGuiDataType_U32, &game->timings.landPause[0], &game->timings.landPause[1], &game->timings.landPause[2]);
+      ImGui::SliderScalar("Enter Silvers", ImGuiDataType_U32, &game->timings.enterSilver[0], &game->timings.enterSilver[1], &game->timings.enterSilver[2]);
+   }
 
    ImGui::Checkbox("Show Debug Options", &game->debug);
 
@@ -383,6 +404,9 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (game->debug == true) {
       ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
+      ImGui::Checkbox("I AM A ROBOT", &game->ai);
+      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
    }
 
    static SessionInfo hostSetup[GAME_MAX_PLAYERS];

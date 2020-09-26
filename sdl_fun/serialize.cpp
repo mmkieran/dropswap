@@ -52,11 +52,8 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->players);
    writeStream(stream, game->playing);
    writeStream(stream, game->paused);
-   writeStream(stream, game->pauseTimer);
-   writeStream(stream, game->pauseLength);
-   //if (game->players == 1) {
-   //   writeStream(stream, game->timer);   //Don't serialize for 2p! We are sending as input...
-   //}
+   writeStream(stream, game->frameCount);
+   writeStream(stream, game->timer);
    writeStream(stream, game->seed);
 }
 
@@ -74,11 +71,8 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->players);
    readStream(start, game->playing);
    readStream(start, game->paused);
-   readStream(start, game->pauseTimer);
-   readStream(start, game->pauseLength);
-   //if (game->players == 1) {
-   //   readStream(start, game->timer);
-   //}
+   readStream(start, game->frameCount);
+   readStream(start, game->timer);
    readStream(start, game->seed);
 }
 
@@ -171,6 +165,23 @@ void _deserializeTileStatus(Byte* &start, Tile* tile) {
    else { tile->status = status_normal; }
 }
 
+//void _serializeVisualEffect(std::vector <Byte>& stream, Tile* tile) {
+//   int effect = 0;
+//   if (tile->effect) {
+//      effect = (int)tile->effect;
+//   }
+//   writeStream(stream, effect);
+//}
+//
+//void _deserializeVisualEffect(Byte*& start, Tile* tile) {
+//   int effect;
+//   readStream(start, effect);
+//   if (effect >= 0 && effect < visual_COUNT) {
+//      tile->effect = (VisualEffect)effect;
+//   }
+//   else { tile->effect = visual_none; }
+//}
+
 //Special serializers for Garbage
 void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
    bool garbageStart = false;
@@ -193,10 +204,10 @@ void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
 void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
-   //writeStream(stream, tile->type);
+   //_serializeVisualEffect(stream, tile);
+   //writeStream(stream, tile->effectTime);
    writeStream(stream, tile->xpos);
    writeStream(stream, tile->ypos);
-   //writeStream(stream, tile->status);
    //   Mesh* mesh;
    writeStream(stream, tile->falling);
    writeStream(stream, tile->clearTime);
@@ -210,10 +221,10 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
 void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
-   //readStream(start, tile->type);
+   //_deserializeVisualEffect(start, tile);
+   //readStream(start, tile->effectTime);
    readStream(start, tile->xpos);
    readStream(start, tile->ypos);
-   //readStream(start, tile->status);
    //   Mesh* mesh;
    readStream(start, tile->falling);
    readStream(start, tile->clearTime);

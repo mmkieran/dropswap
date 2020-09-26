@@ -32,39 +32,23 @@ int main(int argc, char* args[]) {
       frameStart = game->kt.getTime();
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
-
       imguiStartFrame(game);
 
       bool bust = gameCheckBust(game);
-
-      if (game->playing == false || game->paused == true) { mainUI(game); }
-
       if (bust == false) {
-         if (game->playing == true && game->players > 1) {
-            gameRunFrame();  //Only for multiplayer so far
-         }
-
-         if (game->players == 1) {  //Single player
-            processInputs(game);
-            gameCheckPause(game, game->p1Input);
-            if (game->playing == true && game->paused == false) { gameUpdate(game); }
-         }
+         if (game->players > 1) { gameRunFrame(); }
+         else if (game->players == 1) { gameSinglePlayer(game); }
       }
-
       imguiRender(game);  //draw the board, cursor, and other things
-
-      //game->lastTime = game->timer;  //Record the timer in the last frame
-      if (game->playing == true && game->paused == false && bust == false) {  //If we're paused, update game timer
-         game->timer += frameDelay / 1000;
-      }
 
       frameTime = game->kt.getTime() - frameStart;
       if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
          int leftover = (frameDelay - frameTime) / 1000;
-         if (leftover > 0) {
+         if (game->players > 1) {
             gameGiveIdleToGGPO(game, leftover);
-            game->ggpoTime = leftover;
          }
+         else { 
+            sdlSleep(leftover); }
       }
    }
 

@@ -9,7 +9,7 @@
 
 #include <assert.h>
 
-#define DEPLOYTIME 3000
+//#define DEPLOYTIME 3000
 #define SHAKETIME 100
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
@@ -53,7 +53,7 @@ Garbage* garbageCreate(Board* board, int width, int layers, bool metal) {
    garbage->ID = board->pile->nextID;
    garbage->width = width;
    garbage->layers = layers;
-   garbage->deployTime = board->game->timer + DEPLOYTIME;
+   garbage->deployTime = board->game->timer + board->game->timings.deployTime[0];
    if (metal == true) { garbage->metal = true; }
 
    board->pile->garbage[garbage->ID] = garbage;

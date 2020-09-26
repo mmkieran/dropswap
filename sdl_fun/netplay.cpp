@@ -158,8 +158,6 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
        break;
    }
-   int a = 0;
-
    return true;
 }
 
@@ -240,7 +238,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 
    // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, 30000);  //debug no disconnect for now
+   ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
    if (hostNumber == myNumber) {  //I'm hosting and playing
@@ -267,7 +265,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
          if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
             game->net->localPlayer = handle;
-            ggpo_set_frame_delay(game->net->ggpo, handle, GAME_FRAME_DELAY);
+            ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
          }
       }
    }
@@ -301,7 +299,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       game->net->connections[myNumber].handle = handle2;
       game->net->connections[myNumber].type = game->net->players[myNumber].type;
       game->net->localPlayer = handle2;
-      ggpo_set_frame_delay(game->net->ggpo, handle2, GAME_FRAME_DELAY);  //Set frame delay for the session
+      ggpo_set_frame_delay(game->net->ggpo, handle2, game->net->frameDelay[0]);  //Set frame delay for the session
    }
 }
 
@@ -309,28 +307,25 @@ void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->boards.size(); i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
    }
+   gameUpdate(game); 
 
-   if (game->paused == false && game->playing == true) {gameUpdate(game); }
-
-   //Tell GGPO we moved ahead a frame
-   ggpo_advance_frame(game->net->ggpo); 
    game->frameCount++;
+   game->timer = game->frameCount * (1000.0f / 60.0f);
+   ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
 void gameRunFrame() {
-
+   if (game->playing == false) { return; }
    if (game->net && game->net->ggpo) {
 
       GGPOErrorCode result = GGPO_OK;
       int disconnect_flags;
 
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
-         processInputs(game);
-
-         if (game->syncTest == false) {
-            if (game->net->localPlayer == 1) { 
-               game->p1Input.timer = game->timer;
-            }
+         if (game->ai == false) { processInputs(game); }
+         else {        
+            if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
+            else { gameAI(game, 0); }
          }
          result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
       }
@@ -338,11 +333,6 @@ void gameRunFrame() {
       if (GGPO_SUCCEEDED(result)) {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
-            if (game->net->localPlayer != 1) {  
-               if (game->syncTest == false) {
-                  game->timer = game->inputs[0].timer;  //We want to use the timer from p1
-               }
-            }
             gameAdvanceFrame(game);  //Update the game 
          }
       }
@@ -399,21 +389,5 @@ void ggpoEndSession(Game* game) {
       ggpoClose(game->net->ggpo);
       delete game->net;
       game->net = new NetPlay;
-   }
-}
-
-void ggpoSendMessage(int msg) {
-
-   GGPOErrorCode result = GGPO_OK;
-   int disconnect_flags;
-
-   game->p1Input.timer = msg;
-
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-      if (GGPO_SUCCEEDED(result)) {
-         ggpo_advance_frame(game->net->ggpo);
-      }
    }
 }
