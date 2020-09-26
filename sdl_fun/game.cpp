@@ -165,7 +165,10 @@ void gameHandleEvents(Game* game) {
          game->isRunning = false;
       }
       if (event.type == SDL_KEYDOWN) {
-         if (event.key.keysym.sym == SDLK_ESCAPE) { game->paused = true; }
+         if (event.key.keysym.sym == SDLK_ESCAPE) { 
+            if (game->players == 1 && game->ai == true) { gameEndMatch(game); }
+            else { game->paused = true; }
+         }
       }
 
       if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added

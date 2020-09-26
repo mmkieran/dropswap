@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <SDL.h>
 
-#include <Windows.h>  //For win socks 
+//#include <Windows.h>  //For win socks 
+#include <winsock.h>  //For win socks 
 
 #include "game.h"
 
