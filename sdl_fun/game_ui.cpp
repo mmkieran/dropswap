@@ -153,7 +153,7 @@ void boardUI(Game* game) {
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
       if (game->debug && game->players > 1) {
-         ImGui::Text("Frame Count: %d s", game->frameCount);
+         ImGui::Text("Frame Count: %d", game->frameCount);
       }
 
       static int bustee = 0;
@@ -340,6 +340,7 @@ void onePlayerOptions(Game* game) {
    if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
    if (game->debug == true) {
+      ImGui::Checkbox("Turn On AI", &game->ai);
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {
             for (auto&& board : game->boards) {

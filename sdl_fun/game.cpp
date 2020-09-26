@@ -148,7 +148,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    game->isRunning = true;
 
-   game->p1Input.timer = 0;
    controllerGetAll();  //Find any attached controllers
    soundsInit();  //Initialize SoLoud components
 
