@@ -101,7 +101,6 @@ struct Game {
    bool paused = false;
 
    bool debug = true;
-   int ggpoTime = 0;  //debug
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
    std::vector <unsigned char> save;  //todo debug find a better place for this later
@@ -137,4 +136,3 @@ void gameEndMatch(Game* game);
 void debugCursor(Game* game);
 
 void gameAI(Game* game, int index);
-void gameAIClear();

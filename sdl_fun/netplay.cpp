@@ -391,19 +391,3 @@ void ggpoEndSession(Game* game) {
       game->net = new NetPlay;
    }
 }
-
-void ggpoSendMessage(int msg) {
-
-   GGPOErrorCode result = GGPO_OK;
-   int disconnect_flags;
-
-   game->p1Input.timer = msg;
-
-   result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
-      if (GGPO_SUCCEEDED(result)) {
-         ggpo_advance_frame(game->net->ggpo);
-      }
-   }
-}
