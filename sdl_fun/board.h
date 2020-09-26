@@ -26,9 +26,8 @@ struct BoardStats {
    std::map <int, int> chainCounts;
    std::map <int, int> comboCounts;
 
-   int lastChain = 0;
    int apm = 0;  //frames with action
-   int apmCum = 0;
+   int lastChain = 0;
    int lastCombo = 0;
    int clears = 0;
    int dangeresque = 0;  //frames in danger

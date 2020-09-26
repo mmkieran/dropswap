@@ -76,6 +76,63 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->seed);
 }
 
+
+void _boardStatsSerialize(std::vector <Byte>& stream, Board* board) {
+
+   writeStream(stream, board->boardStats.apm);
+   writeStream(stream, board->boardStats.lastChain);
+   writeStream(stream, board->boardStats.lastCombo);
+   writeStream(stream, board->boardStats.clears);
+   writeStream(stream, board->boardStats.dangeresque);
+   writeStream(stream, board->boardStats.garbageCrushed);
+
+   int count = board->boardStats.chainCounts.size();
+   writeStream(stream, count);
+   if (count > 0) {
+      for (auto&& pair : board->boardStats.chainCounts) {
+         writeStream(stream, pair.first);
+         writeStream(stream, pair.second);
+      }
+   }
+
+   int count2 = board->boardStats.comboCounts.size();
+   writeStream(stream, count2);
+   if (count2 > 0) {
+      for (auto&& pair : board->boardStats.comboCounts) {
+         writeStream(stream, pair.first);
+         writeStream(stream, pair.second);
+      }
+   }
+}
+
+void _boardStatsDeserialize(Byte*& start, Board* board) {
+
+   readStream(start, board->boardStats.apm);
+   readStream(start, board->boardStats.lastChain);
+   readStream(start, board->boardStats.lastCombo);
+   readStream(start, board->boardStats.clears);
+   readStream(start, board->boardStats.dangeresque);
+   readStream(start, board->boardStats.garbageCrushed);
+
+   int count = 0;
+   readStream(start, count);
+   for (int i = 0; i < count; i++) {
+      int chain, number;
+      readStream(start, chain);
+      readStream(start, number);
+      board->boardStats.chainCounts[chain] = number;
+   }
+
+   int count2 = 0;
+   readStream(start, count2);
+   for (int i = 0; i < count2; i++) {
+      int combo, number;
+      readStream(start, combo);
+      readStream(start, number);
+      board->boardStats.comboCounts[combo] = number;
+   }
+}
+
 void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->startH);
    writeStream(stream, board->endH);
@@ -101,6 +158,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    //   GarbagePile* pile = nullptr;
    writeStream(stream, board->seed);
    writeStream(stream, board->randomCalls);
+   _boardStatsSerialize(stream, board);
 }
 
 void _boardDeserialize(Byte* &start, Board* board) {
@@ -128,6 +186,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    //   GarbagePile* pile = nullptr;
    readStream(start, board->seed);
    readStream(start, board->randomCalls);
+   _boardStatsDeserialize(start, board);
 }
 
 //Below are special deserializers for Tile enums
@@ -252,7 +311,6 @@ void _cursorDeserialize(Byte* &start, Cursor* cursor) {
    readStream(start, cursor->h);
    readStream(start, cursor->w);
 }
-
 
 void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
 
