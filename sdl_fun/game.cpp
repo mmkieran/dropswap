@@ -423,7 +423,6 @@ void debugCursor(Game* game) {
             lastChain = board->chain;
             chainTime = game->timer;
          }
-         ImGui::Text("%d GGPO Time", game->ggpoTime);
          ImGui::Text("Last chain: %d", lastChain);
          ImGui::Text("Pause Time: %d", board->pauseLength);
          ImGui::Text("Game Time: %d", game->timer);
