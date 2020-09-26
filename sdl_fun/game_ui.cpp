@@ -156,7 +156,6 @@ static void _gameResults(Game* game) {
       for (auto&& combo : board->boardStats.comboCounts) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
-      if (board->player == 1) { ImGui::SameLine(); }
    }
 }
 
