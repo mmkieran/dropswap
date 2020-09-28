@@ -117,7 +117,14 @@ Board* boardCreate(Game* game) {
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
-         board->cursor = cursorCreate(board, cursorX, cursorY);
+         if (game->players == 1) {
+            board->cursors.push_back( cursorCreate(board, cursorX, cursorY) );
+         }
+         else if (game->players > 1) {
+            for (int i = 0; i < game->players / 2; i++) {
+               board->cursors.push_back(cursorCreate(board, cursorX, cursorY + i));
+            }
+         }
 
          return board;
       }
@@ -135,7 +142,9 @@ Board* boardDestroy(Board* board) {
          }
       }
       board->pile = garbagePileDestroy(board->pile);
-      board->cursor = cursorDestroy(board->cursor);
+      for (auto&& cursor : board->cursors) {
+         cursorDestroy(cursor);
+      }
       free(board->tiles);
       delete board;
    }
@@ -220,7 +229,9 @@ void boardRender(Game* game, Board* board) {
          else { tileDraw(board, tile); }
       }
    }
-   cursorDraw(board);
+   for (auto&& cursor : board->cursors) {
+      cursorDraw(board);
+   }
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
 }
@@ -268,12 +279,12 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 }
 
 //Swap two tiles on the board horizontally
-void boardSwap(Board* board) {
+void boardSwap(Board* board, Cursor* cursor) {
 
    if (board->game->timer < board->game->timings.countIn[0]) { return; } //No swapping during count in
 
-   float xCursor = cursorGetX(board->cursor);
-   float yCursor = cursorGetY(board->cursor);
+   float xCursor = cursorGetX(cursor);
+   float yCursor = cursorGetY(cursor);
 
    int col = cursorGetCol(board);
    int row = cursorGetRow(board);
@@ -720,8 +731,8 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   //else if (stillChaining == true) {
-   //   boardPauseTime(board, pause_clear);
+   //else if (stillChaining == true && board->chain > 1) {
+   //   if (board->pauseLength == 0) { board->pauseLength = 100; board->paused = true; }
    //}
    return;
 }

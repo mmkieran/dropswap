@@ -46,7 +46,7 @@ struct Board {
    float offset = 0;
 
    Tile* tiles = nullptr;
-   Cursor* cursor = nullptr;
+   std::vector <Cursor*> cursors;
    Game* game = nullptr;
 
    std::vector <VisualEvent> visualEvents;

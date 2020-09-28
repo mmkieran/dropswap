@@ -79,7 +79,7 @@ bool __cdecl ds_advance_frame_callback(int) {
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+   ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -227,7 +227,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
-      result = ggpo_start_synctest(&game->net->ggpo, &cb, name, GAME_PLAYERS, sizeof(UserInput), 1);
+      result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
    }
    else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_SPECTATOR){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
@@ -331,7 +331,7 @@ void gameRunFrame() {
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
-         result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * GAME_PLAYERS, &disconnect_flags);
+         result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
             gameAdvanceFrame(game);  //Update the game 
          }
@@ -382,7 +382,7 @@ int ggpoDisconnectPlayer(int player){
 
 void ggpoEndSession(Game* game) {
    if (game->net) {
-      for (int i = 0; i < GAME_PLAYERS; i++) {
+      for (int i = 0; i < game->players; i++) {
          ggpoDisconnectPlayer(i + 1);
 
       }

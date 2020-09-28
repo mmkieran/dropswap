@@ -47,24 +47,22 @@ float cursorGetY(Cursor* cursor) {
    return cursor->y;
 }
 
-int cursorGetRow(Board* board) {
-   int row = (board->cursor->y + board->tileHeight - 0.00001) / board->tileHeight + board->startH;
+int cursorGetRow(Board* board, Cursor* cursor) {
+   int row = (cursor->y + board->tileHeight - 0.00001) / board->tileHeight + board->startH;
    return row;
-   //return (int)(board->cursor->y - board->offset) / board->tileHeight + board->startH;
 }
 
-int cursorGetCol(Board* board) {
-   return (int)board->cursor->x / board->tileWidth;
+int cursorGetCol(Board* board, Cursor* cursor) {
+   return (int)cursor->x / board->tileWidth;
 }
 
-void cursorDraw(Board* board) {
-   Cursor* cursor = board->cursor;
+void cursorDraw(Board* board, Cursor* cursor) {
    Game* game = board->game;
 
    animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 }
 
-void cursorUpdate(Board* board, UserInput input) {
+void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
 
    if (board->cursor->y <= 0) {

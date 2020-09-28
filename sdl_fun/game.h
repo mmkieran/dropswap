@@ -13,9 +13,7 @@
 #include <vector>
 #include <map>
 
-#define GAME_PLAYERS        2
 #define GAME_MAX_PLAYERS    4
-#define GAME_FRAME_DELAY    2
 
 struct GameWindow;
 
@@ -55,7 +53,7 @@ struct GameTimings {
    //Value, min and max
    int gracePeriod[3] = { 1000, 0, 5000 };     //Bonus pause time when your board reaches the top before you die
    int fallDelay[3] = { 100, 0, 1000 };        //The pause before a tile falls after swapping
-   int removeClear[3] = { 2000, 1000, 5000 };  //Time it takes to change a cleared tile to empty
+   int removeClear[3] = { 2000, 2000, 5000 };  //Time it takes to change a cleared tile to empty
    int enterSilver[3] = { 30000, 0, 120000 };  //Time before silvers start appearing
    int countIn[3] = { 2000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
    int landPause[3] = { 1000, 0, 5000 };       //Pause board movement when garbage lands
@@ -74,7 +72,7 @@ struct Game {
    NetPlay* net;
 
    UserInput p1Input;
-   UserInput inputs[GAME_PLAYERS];
+   UserInput inputs[GAME_MAX_PLAYERS];
 
    std::vector <Board*> boards;
    Resources* resources = nullptr;
