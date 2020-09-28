@@ -246,16 +246,15 @@ void gameStartMatch(Game* game) {
    }
    game->fbos.clear();
 
-   for (int i = 0; i < game->players; i++) {
+   int players = game->players;
+   if (players > 2) { players = 2; }
+   for (int i = 0; i < players; i++) {
       Board* board = boardCreate(game);
       if (board) {
          board->player = i + 1;  
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
-
-         float xOrigin = game->tWidth * game->bWidth * i + game->tWidth * (i + 1);
-         float yOrigin = game->tHeight;
 
          game->boards.push_back(board);
 
