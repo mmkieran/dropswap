@@ -295,8 +295,9 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
 }
 
 void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
-   writeStream(stream, board->cursors.size());
-   for (int i = 0; i < board->cursors.size(); i++) {
+   int cursorNumber = board->cursors.size();
+   writeStream(stream, cursorNumber);
+   for (int i = 0; i < cursorNumber; i++) {
       Cursor* cursor = board->cursors[i];
       writeStream(stream, cursor->x);
       writeStream(stream, cursor->y);
@@ -318,7 +319,6 @@ void _cursorDeserialize(Byte* &start, Board* board) {
       //   Animation* animation;
       readStream(start, cursor->h);
       readStream(start, cursor->w);
-      board->cursors.push_back(cursor);
    }
 }
 

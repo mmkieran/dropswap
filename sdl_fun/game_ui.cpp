@@ -75,22 +75,24 @@ void mainUI(Game* game) {
       }
       ImGui::NewLine();
 
-      //if (ImGui::Button("One Player vs Compy", ImVec2{ width, 0 })) {
-      //   game->players = 1;
-      //   gameStartMatch(game);
-      //}
-      //ImGui::NewLine();
-
       static bool showGGPOSession = false;
       if (ImGui::Button("Two Player", ImVec2{ width, 0 })) {
          game->players = 2;
          showGGPOSession = true;
       }
+      ImGui::NewLine();
+
+      if (ImGui::Button("Four Player", ImVec2{ width, 0 })) {
+         game->players = 4;
+         showGGPOSession = true;
+      }
+      ImGui::NewLine();
+
       if (showGGPOSession && game->playing == false) {
          ggpoSessionUI(game, &showGGPOSession);
       }
-      ImGui::NewLine();
    }
+
 
    static bool showSettings = false;
    if (ImGui::Button("Settings", ImVec2{ width, 0 }) ) {
@@ -450,7 +452,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::SameLine(); HelpMarker("Both Players must agree on the seed before the match starts.");
    ImGui::NewLine();
 
-   static unsigned short participants = 2;
+   static unsigned short participants = game->players;
    int pMin = 2;
    int pMax = GAME_MAX_PLAYERS;
 
