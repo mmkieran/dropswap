@@ -145,9 +145,9 @@ static void _gameResults(Game* game) {
    float width = ImGui::GetWindowContentRegionWidth();
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
-      sprintf(playerName, "Player %d", board->player);
+      sprintf(playerName, "Player %d", board->team);
       ImGui::BeginChild(playerName, ImVec2{ width / game->players - (game->players * 4), 300 }, true);
-      ImGui::Text("Player: %d", board->player);
+      ImGui::Text("Player: %d", board->team);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
       int danger = board->boardStats.dangeresque / 60.0f;
@@ -163,7 +163,7 @@ static void _gameResults(Game* game) {
       }
       ImGui::NewLine();
       ImGui::EndChild();
-      if (board->player == 1 && game->players > 1) { ImGui::SameLine(); }
+      if (board->team == 1 && game->players > 1) { ImGui::SameLine(); }
    }
    ImGui::PopStyleVar();
 }
@@ -189,7 +189,7 @@ void boardUI(Game* game) {
          ImGui::NewLine();
 
          //Board Stats
-         ImGui::Text("Player %d", board->player);
+         ImGui::Text("Player %d", board->team);
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
          if (board->game->timer > 0) {
             int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -202,7 +202,7 @@ void boardUI(Game* game) {
          ImGui::NewLine();
 
          if (board->bust == true && popupStatus(Popup_GameOver) == false ) {
-            bustee = board->player;
+            bustee = board->team;
             popupEnable(Popup_GameOver);
          }
       }

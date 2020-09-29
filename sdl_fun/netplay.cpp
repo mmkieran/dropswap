@@ -179,7 +179,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    //            fprintf(log, "Boards: %d\n", vectorSize(game->boards));
    //            for (int i = 1; i <= vectorSize(game->boards); i++) {
    //                Board* board = vectorGet(game->boards, i);
-   //                fprintf(log, "Player: %d\n", board->player);
+   //                fprintf(log, "Player: %d\n", board->team);
    //                fprintf(log, "RandomCalls: %d\n", board->randomCalls);
    //            }
    //        }

@@ -62,7 +62,7 @@ struct Board {
    bool bust = false;
    int chain = 1;
 
-   int player = 1;
+   int team = 1;
 
    GarbagePile* pile = nullptr;
 
