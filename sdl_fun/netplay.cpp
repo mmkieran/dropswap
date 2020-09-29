@@ -162,38 +162,8 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
 }
 
 bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, int len) {
+   //This goes into sync log... which I disabled in GGPO synctest right now
 
-   //Game* game = new Game;
-   //if (game) {
-   //    game->boards = vectorCreate<Board*>(4, 10);
-   //    if (game->boards) {
-   //        gameLoad(game, buffer);
-
-   //        FILE* log = nullptr;
-   //        fopen_s(&log, filename, "w");
-   //        if (log) {
-   //            fprintf(log, "Current Game State\n");
-   //            fprintf(log, "Players: %d\n", game->players);
-   //            fprintf(log, "Game timer: %d\n", game->timer);
-   //            fprintf(log, "Seed: %d\n", game->seed);
-   //            fprintf(log, "Boards: %d\n", vectorSize(game->boards));
-   //            for (int i = 1; i <= vectorSize(game->boards); i++) {
-   //                Board* board = vectorGet(game->boards, i);
-   //                fprintf(log, "Player: %d\n", board->team);
-   //                fprintf(log, "RandomCalls: %d\n", board->randomCalls);
-   //            }
-   //        }
-
-   //        fclose(log);
-
-   //        for (int i = 1; i <= vectorSize(game->boards); i++) {
-   //            Board* board = vectorGet(game->boards, i);
-   //            boardDestroy(board);
-   //        }
-   //        vectorDestroy(game->boards);
-   //    }
-   //}
-   //delete game;
    return true;
 }
 
