@@ -241,69 +241,36 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  //debug no disconnect for now
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
-   if (hostNumber == myNumber) {  //I'm hosting and playing
-      game->net->host = true;
-      for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
-         if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
-            game->net->players[i].size = sizeof(GGPOPlayer);
-            game->net->players[i].player_num = connects[i].player;
-         }
-         game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
-         if (i != hostNumber) {  //Everybody else is remote
-            strcpy(game->net->players[i].u.remote.ip_address, connects[i].ipAddress);
-            game->net->players[i].u.remote.port = connects[i].localPort;
-         }
-
-         GGPOPlayerHandle handle;
-         result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);  //Add a player to GGPO session
-         if (result != GGPO_OK) { printf("Couldn't add player %d", i); }
-
-         game->net->connections[i].handle = handle;
-         game->net->connections[i].type = game->net->players[i].type;
-
-         if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-            game->net->localPlayer = handle;
-            ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
-         }
+   for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
+      if (hostNumber != myNumber && connects[i].playerType == GGPO_PLAYERTYPE_SPECTATOR) { continue; }  //Host takes care of spectators
+      if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
+         game->net->players[i].size = sizeof(GGPOPlayer);
+         game->net->players[i].player_num = connects[i].player;
       }
-   }
+      game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
-   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm only playing
-      //Add host to session
-      game->net->players[hostNumber].player_num = connects[hostNumber].player;
-      game->net->players[hostNumber].size = sizeof(GGPOPlayer);
-      game->net->players[hostNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
+      if (i != myNumber) {  //Everybody else is remote
+         strcpy(game->net->players[i].u.remote.ip_address, connects[i].ipAddress);
+         game->net->players[i].u.remote.port = connects[i].localPort;
+      }
 
-      strcpy(game->net->players[hostNumber].u.remote.ip_address, connects[hostNumber].ipAddress);
-      game->net->players[hostNumber].u.remote.port = connects[hostNumber].localPort;
+      GGPOPlayerHandle handle;
+      result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);  //Add a player to GGPO session
+      if (result != GGPO_OK) { printf("Couldn't add player %d", i); }  //todo add a popup here
 
-      GGPOPlayerHandle handle1;
-      result = ggpo_add_player(game->net->ggpo, &game->net->players[hostNumber], &handle1);  //Add the host
-      if (result != GGPO_OK) { printf("Couldn't add player %d", hostNumber); }
+      game->net->connections[i].handle = handle;
+      game->net->connections[i].type = game->net->players[i].type;
 
-      game->net->connections[hostNumber].handle = handle1;
-      game->net->connections[hostNumber].type = game->net->players[hostNumber].type;
-
-      //Add me to the session
-      game->net->host = false;
-      game->net->players[myNumber].player_num = connects[myNumber].player;
-      game->net->players[myNumber].size = sizeof(GGPOPlayer);
-      game->net->players[myNumber].type = (GGPOPlayerType)connects[myNumber].playerType;
-
-      GGPOPlayerHandle handle2;
-      result = ggpo_add_player(game->net->ggpo, &game->net->players[myNumber], &handle2);  //Add me to the session
-      if (result != GGPO_OK) { printf("Couldn't add player %d", myNumber); }
-
-      game->net->connections[myNumber].handle = handle2;
-      game->net->connections[myNumber].type = game->net->players[myNumber].type;
-      game->net->localPlayer = handle2;
-      ggpo_set_frame_delay(game->net->ggpo, handle2, game->net->frameDelay[0]);  //Set frame delay for the session
+      if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+         game->net->localPlayer = handle;
+         ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
+      }
    }
 }
 
 void gameAdvanceFrame(Game* game) {
-   for (int i = 0; i < game->boards.size(); i++) {  //Check for pauses
+   for (int i = 0; i < game->players; i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
    }
    gameUpdate(game); 

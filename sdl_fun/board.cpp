@@ -202,7 +202,8 @@ void boardUpdate(Board* board) {
 
       if (board->game->syncTest == false) {
          for (int i = 0; i < board->cursors.size(); i++) {
-            int index = i + (board->team - 1);
+            int index = i;
+            if (board->team == 2 && board->game->players > 2) { index += 2; }
             cursorUpdate(board, board->cursors[i], board->game->inputs[index]);  //This has kinda become player...
          }
       }
