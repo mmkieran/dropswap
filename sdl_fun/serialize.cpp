@@ -318,6 +318,7 @@ void _cursorDeserialize(Byte* &start, Board* board) {
       //   Animation* animation;
       readStream(start, cursor->h);
       readStream(start, cursor->w);
+      board->cursors.push_back(cursor);
    }
 }
 

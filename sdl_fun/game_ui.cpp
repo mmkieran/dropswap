@@ -543,6 +543,8 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          }
       }
       ImGui::SameLine();
+      ImGui::Combo("Team", &hostSetup[i].team, "Team 1\0Team2\0");
+      ImGui::SameLine();
       ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
       ImGui::SameLine();
       ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
