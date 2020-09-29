@@ -476,6 +476,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          {
             hostSetup[i].me = atoi(strtok(buffer, ",\n"));          // me
             hostSetup[i].host = atoi(strtok(nullptr, ",\n"));       // host
+            hostSetup[i].player = atoi(strtok(nullptr, ",\n"));       // host
             hostSetup[i].playerType = atoi(strtok(nullptr, ",\n")); // player type
             strcpy(hostSetup[i].ipAddress, strtok(nullptr, ",\n"));  // ip address
             hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
@@ -499,6 +500,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          for (int i = 0; i < participants; i++) {
             fprintf(out, "%d,", hostSetup[i].me);
             fprintf(out, "%d,", hostSetup[i].host);
+            fprintf(out, "%d,", hostSetup[i].player);
             fprintf(out, "%d,", hostSetup[i].playerType);
             fprintf(out, "%s,", hostSetup[i].ipAddress);
             fprintf(out, "%d,", hostSetup[i].localPort);

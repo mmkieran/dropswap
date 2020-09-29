@@ -122,7 +122,7 @@ Board* boardCreate(Game* game) {
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               board->cursors.push_back(cursorCreate(board, cursorX, cursorY + i));
+               board->cursors.push_back(cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) ));
             }
          }
 

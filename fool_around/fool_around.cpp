@@ -27,9 +27,6 @@ struct UserInput {
    ButtonState swap;
 
    ButtonState power;
-
-   //int msg = 0;
-   int timer = 0;
 };
 
 int main(int argc, char* args[])
