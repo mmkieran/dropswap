@@ -1094,12 +1094,13 @@ bool aiFlattenBoard(Board* board) {
 
 void aiGetSteps(Board* board, int player) {
    //Calculate steps to move cursor into place
+   Cursor* cursor = nullptr;
    if (board->game->players <= 2) {
-      Cursor* cursor = board->cursors[0];
+      cursor = board->cursors[0];
    }
    else if (board->game->players > 2) {
       int index = player % 2;
-      Cursor* cursor = board->cursors[index];
+      cursor = board->cursors[index];
    }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);

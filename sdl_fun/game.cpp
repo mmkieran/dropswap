@@ -436,7 +436,7 @@ bool gameRunning(Game* game) {
 void gameAI(Game* game, int player) {
    aiResetButtonStates(game);
    if (game->players <= 2) {
-      boardAI(game->boards[player]);
+      boardAI(game->boards[player], player);
    }
    else if (game->players > 2) {
       boardAI(game->boards[player / 2], player);
