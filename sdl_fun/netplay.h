@@ -31,7 +31,7 @@ struct SessionInfo {
    int localPort = 7001;
    int playerType = 0;
    char ipAddress[32] = "127.0.0.1";
-   int team = 0;
+   int player = 0;
 };
 
 struct NetPlay {
@@ -39,7 +39,6 @@ struct NetPlay {
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
-   int team = 0;
    bool host = false;
    int hostConnNum = -1;
    int myConnNum = -1;

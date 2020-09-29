@@ -244,10 +244,9 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    if (hostNumber == myNumber) {  //I'm hosting and playing
       game->net->host = true;
       for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
-         if (i == hostNumber) { game->net->players[i].player_num = 1; }
-         else if (connects[i].playerType == GGPO_PLAYERTYPE_REMOTE) { game->net->players[i].player_num = 2; }
          if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
             game->net->players[i].size = sizeof(GGPOPlayer);
+            game->net->players[i].player_num = connects[i].player;
          }
          game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
@@ -272,7 +271,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
    else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_LOCAL) {  //I'm only playing
       //Add host to session
-      game->net->players[hostNumber].player_num = 1;
+      game->net->players[hostNumber].player_num = connects[hostNumber].player;
       game->net->players[hostNumber].size = sizeof(GGPOPlayer);
       game->net->players[hostNumber].type = (GGPOPlayerType)connects[hostNumber].playerType;
 
@@ -288,7 +287,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
       //Add me to the session
       game->net->host = false;
-      game->net->players[myNumber].player_num = 2;
+      game->net->players[myNumber].player_num = connects[myNumber].player;
       game->net->players[myNumber].size = sizeof(GGPOPlayer);
       game->net->players[myNumber].type = (GGPOPlayerType)connects[myNumber].playerType;
 

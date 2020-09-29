@@ -169,7 +169,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
 }
 
 //Update all tiles that are moving, falling, cleared, etc.
-void boardUpdate(Board* board, UserInput input) {
+void boardUpdate(Board* board) {
 
    boardRemoveClears(board);
 
@@ -198,9 +198,22 @@ void boardUpdate(Board* board, UserInput input) {
    garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
-   for (int i = 0; i < board->cursors.size(); i++) {
-      int index = i + (board->team - 1);
-      cursorUpdate(board, board->cursors[i], board->game->inputs[index]);  //This has kinda become player...
+   if (board->game->players >= 2) {
+
+      if (board->game->syncTest == false) {
+         for (int i = 0; i < board->cursors.size(); i++) {
+            int index = i + (board->team - 1);
+            cursorUpdate(board, board->cursors[i], board->game->inputs[index]);  //This has kinda become player...
+         }
+      }
+      else if (board->game->syncTest == true) {
+         for (int i = 0; i < board->cursors.size(); i++) {
+            cursorUpdate(board, board->cursors[i], board->game->inputs[0]);
+         }
+      }
+   }
+   else if (board->game->players == 1) {
+      cursorUpdate(board, board->cursors[0], board->game->p1Input);
    }
 }
 
@@ -1079,8 +1092,15 @@ bool aiFlattenBoard(Board* board) {
    return moveFound;
 }
 
-void aiGetSteps(Board* board) {
+void aiGetSteps(Board* board, int player) {
    //Calculate steps to move cursor into place
+   if (board->game->players <= 2) {
+      Cursor* cursor = board->cursors[0];
+   }
+   else if (board->game->players > 2) {
+      int index = player % 2;
+      Cursor* cursor = board->cursors[index];
+   }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
 
@@ -1159,7 +1179,7 @@ void aiDoStep(Board* board) {
    board->game->p1Input = input;
 }
 
-void boardAI(Board* board) {
+void boardAI(Board* board, int player) {
    if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
          aiClearGarbage(board); 
@@ -1167,7 +1187,7 @@ void boardAI(Board* board) {
          if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
 
-         if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
+         if (aiLogic.moves.empty() == false) { aiGetSteps(board, player); }
       }
    }
 

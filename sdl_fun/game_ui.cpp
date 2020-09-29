@@ -528,7 +528,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
       ImGui::PushID(i);
       ImGui::PushItemWidth(80);
-      ImGui::Text("Player%d", i + 1);
+      //ImGui::Text("Player%d", i + 1);
 
       if (ImGui::Checkbox("Me", &hostSetup[i].me)) {
          for (int j = 0; j < participants; j++) {
@@ -543,7 +543,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          }
       }
       ImGui::SameLine();
-      ImGui::Combo("Team", &hostSetup[i].team, "Team 1\0Team2\0");
+      ImGui::DragInt("Player Number", &hostSetup[i].player, 1, 1.0, 4);
       ImGui::SameLine();
       ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
       ImGui::SameLine();

@@ -133,7 +133,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
 
    else if (input.swap.p) {
       apm = true;  //Board Stats
-      boardSwap(board);
+      boardSwap(board, cursor);
    }
 
    else if (input.nudge.p && board->paused == false) {
