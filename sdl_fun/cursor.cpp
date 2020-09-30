@@ -47,38 +47,35 @@ float cursorGetY(Cursor* cursor) {
    return cursor->y;
 }
 
-int cursorGetRow(Board* board) {
-   int row = (board->cursor->y + board->tileHeight - 0.00001) / board->tileHeight + board->startH;
+int cursorGetRow(Board* board, Cursor* cursor) {
+   int row = (cursor->y + board->tileHeight - 0.00001) / board->tileHeight + board->startH;
    return row;
-   //return (int)(board->cursor->y - board->offset) / board->tileHeight + board->startH;
 }
 
-int cursorGetCol(Board* board) {
-   return (int)board->cursor->x / board->tileWidth;
+int cursorGetCol(Board* board, Cursor* cursor) {
+   return (int)cursor->x / board->tileWidth;
 }
 
-void cursorDraw(Board* board) {
-   Cursor* cursor = board->cursor;
-   Game* game = board->game;
+void cursorDraw(Board* board, Cursor* cursor) {
 
    animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 }
 
-void cursorUpdate(Board* board, UserInput input) {
+void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
 
-   if (board->cursor->y <= 0) {
-      board->cursor->y = board->tileHeight + board->offset;
+   if (cursor->y <= 0) {
+      cursor->y = board->tileHeight + board->offset;
    }
 
-   float y = cursorGetY(board->cursor);
-   float x = cursorGetX(board->cursor);
+   float y = cursorGetY(cursor);
+   float x = cursorGetX(cursor);
 
    if (input.up.p) {
       apm = true;  //Board Stats
       if (y - board->tileHeight <= 0) { return; }
       else {
-         cursorSetY(board->cursor, (y - board->tileHeight));
+         cursorSetY(cursor, (y - board->tileHeight));
       }
    }
 
@@ -86,7 +83,7 @@ void cursorUpdate(Board* board, UserInput input) {
       apm = true;  //Board Stats
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
-         cursorSetY(board->cursor, (y + board->tileHeight));
+         cursorSetY(cursor, (y + board->tileHeight));
       }
    }
 
@@ -94,7 +91,7 @@ void cursorUpdate(Board* board, UserInput input) {
       apm = true;  //Board Stats
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
-         cursorSetX(board->cursor, (x + board->tileWidth));
+         cursorSetX(cursor, (x + board->tileWidth));
       }
    }
 
@@ -102,41 +99,41 @@ void cursorUpdate(Board* board, UserInput input) {
       apm = true;  //Board Stats
       if (x <= 0) { return; }
       else {
-         cursorSetX(board->cursor, (x - board->tileWidth));
+         cursorSetX(cursor, (x - board->tileWidth));
       }
    }
 
    else if (input.right.h) {
       if (x >= (board->w - 2) * board->tileWidth) { return; }
       else {
-         cursorSetX(board->cursor, (x + board->tileWidth));
+         cursorSetX(cursor, (x + board->tileWidth));
       }
    }
 
    else if (input.left.h) {
       if (x <= 0) { return; }
       else {
-         cursorSetX(board->cursor, (x - board->tileWidth));
+         cursorSetX(cursor, (x - board->tileWidth));
       }
    }
 
    else if (input.up.h) {
       if (y - board->tileHeight <= 0) { return; }
       else {
-         cursorSetY(board->cursor, (y - board->tileHeight));
+         cursorSetY(cursor, (y - board->tileHeight));
       }
    }
 
    else if (input.down.h) {
       if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
       else {
-         cursorSetY(board->cursor, (y + board->tileHeight));
+         cursorSetY(cursor, (y + board->tileHeight));
       }
    }
 
    else if (input.swap.p) {
       apm = true;  //Board Stats
-      boardSwap(board);
+      boardSwap(board, cursor);
    }
 
    else if (input.nudge.p && board->paused == false) {

@@ -154,7 +154,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->danger);
    writeStream(stream, board->bust);
    writeStream(stream, board->chain);
-   writeStream(stream, board->player);
+   writeStream(stream, board->team);
    //   GarbagePile* pile = nullptr;
    writeStream(stream, board->seed);
    writeStream(stream, board->randomCalls);
@@ -182,7 +182,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->danger);
    readStream(start, board->bust);
    readStream(start, board->chain);
-   readStream(start, board->player);
+   readStream(start, board->team);
    //   GarbagePile* pile = nullptr;
    readStream(start, board->seed);
    readStream(start, board->randomCalls);
@@ -294,22 +294,32 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileGarbage(start, board, tile);
 }
 
-void _cursorSerialize(std::vector <Byte> &stream, Cursor* cursor) {
-   writeStream(stream, cursor->x);
-   writeStream(stream, cursor->y);
-   //   Mesh* mesh;
-   //   Animation* animation;
-   writeStream(stream, cursor->h);
-   writeStream(stream, cursor->w);
+void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
+   int cursorNumber = board->cursors.size();
+   writeStream(stream, cursorNumber);
+   for (int i = 0; i < cursorNumber; i++) {
+      Cursor* cursor = board->cursors[i];
+      writeStream(stream, cursor->x);
+      writeStream(stream, cursor->y);
+      //   Mesh* mesh;
+      //   Animation* animation;
+      writeStream(stream, cursor->h);
+      writeStream(stream, cursor->w);
+   }
 }
 
-void _cursorDeserialize(Byte* &start, Cursor* cursor) {
-   readStream(start, cursor->x);
-   readStream(start, cursor->y);
-   //   Mesh* mesh;
-   //   Animation* animation;
-   readStream(start, cursor->h);
-   readStream(start, cursor->w);
+void _cursorDeserialize(Byte* &start, Board* board) {
+   int cursorNumber = 0;
+   readStream(start, cursorNumber );
+   for (int i = 0; i < cursorNumber; i++) {
+      Cursor* cursor = board->cursors[i];
+      readStream(start, cursor->x);
+      readStream(start, cursor->y);
+      //   Mesh* mesh;
+      //   Animation* animation;
+      readStream(start, cursor->h);
+      readStream(start, cursor->w);
+   }
 }
 
 void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
@@ -382,7 +392,7 @@ std::vector <Byte> gameSave(Game* game) {
             }
          }
          //serialize cursor
-         _cursorSerialize(stream, board->cursor);
+         _cursorSerialize(stream, board);
       }
    }
    return stream;
@@ -399,7 +409,9 @@ int gameLoad(Game* game, unsigned char*& start) {
    //deserialize game
    _gameDeserialize(start, game);
 
-   for (int i = 0; i < game->players; i++) {
+   int players = game->players;
+   if (players > 2) { players = 2; }
+   for (int i = 0; i < players; i++) {
       Board* board = nullptr;
       if (game->playing) {
          board = boardCreate(game);
@@ -423,7 +435,7 @@ int gameLoad(Game* game, unsigned char*& start) {
             }
 
             //deserialize cursor
-            _cursorDeserialize(start, board->cursor);
+            _cursorDeserialize(start, board);
 
             game->boards.push_back(board);
          }

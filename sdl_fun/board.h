@@ -46,7 +46,7 @@ struct Board {
    float offset = 0;
 
    Tile* tiles = nullptr;
-   Cursor* cursor = nullptr;
+   std::vector <Cursor*> cursors;
    Game* game = nullptr;
 
    std::vector <VisualEvent> visualEvents;
@@ -62,7 +62,7 @@ struct Board {
    bool bust = false;
    int chain = 1;
 
-   int player = 1;
+   int team = 1;
 
    GarbagePile* pile = nullptr;
 
@@ -82,11 +82,11 @@ void boardPauseTime(Board* board, BoardPauseType type, int size = 0);
 
 Tile* boardGetTile(Board* board, int row, int col);
 
-void boardUpdate(Board* board, UserInput input);
+void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
 
 void boardMoveUp(Board* board, float height);
-void boardSwap(Board* board);
+void boardSwap(Board* board, Cursor* cursor);
 
 void boardFall(Board* board, float velocity);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -107,4 +107,4 @@ bool aiFindVertMatch(Board* board);
 bool aiFindHorizMatch(Board* board);
 void aiGetSteps(Board* board);
 void aiDoStep(Board* board);
-void boardAI(Board* board);
+void boardAI(Board* board, int player);

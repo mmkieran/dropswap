@@ -117,7 +117,14 @@ Board* boardCreate(Game* game) {
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
-         board->cursor = cursorCreate(board, cursorX, cursorY);
+         if (game->players <= 2) {
+            board->cursors.push_back( cursorCreate(board, cursorX, cursorY) );
+         }
+         else if (game->players > 2) {
+            for (int i = 0; i < 2; i++) {
+               board->cursors.push_back(cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) ));
+            }
+         }
 
          return board;
       }
@@ -135,7 +142,9 @@ Board* boardDestroy(Board* board) {
          }
       }
       board->pile = garbagePileDestroy(board->pile);
-      board->cursor = cursorDestroy(board->cursor);
+      for (auto&& cursor : board->cursors) {
+         cursorDestroy(cursor);
+      }
       free(board->tiles);
       delete board;
    }
@@ -160,7 +169,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
 }
 
 //Update all tiles that are moving, falling, cleared, etc.
-void boardUpdate(Board* board, UserInput input) {
+void boardUpdate(Board* board) {
 
    boardRemoveClears(board);
 
@@ -189,7 +198,25 @@ void boardUpdate(Board* board, UserInput input) {
    garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
-   cursorUpdate(board, input);  //This has kinda become player...
+   if (board->game->players >= 2) {
+
+      if (board->game->syncTest == false) {
+         for (int i = 0; i < board->cursors.size(); i++) {
+            int index = i;
+            if (board->team == 2 && board->game->players > 2) { index += 2; }  //There are two cursors per board here
+            else if (board->team == 2 && board->game->players == 2) { index += 1; }  //One cursor per board
+            cursorUpdate(board, board->cursors[i], board->game->inputs[index]);  //This has kinda become player...
+         }
+      }
+      else if (board->game->syncTest == true) {
+         for (int i = 0; i < board->cursors.size(); i++) {
+            cursorUpdate(board, board->cursors[i], board->game->inputs[0]);
+         }
+      }
+   }
+   else if (board->game->players == 1) {
+      cursorUpdate(board, board->cursors[0], board->game->p1Input);
+   }
 }
 
 //Draw all objects on the board
@@ -220,7 +247,9 @@ void boardRender(Game* game, Board* board) {
          else { tileDraw(board, tile); }
       }
    }
-   cursorDraw(board);
+   for (auto&& cursor : board->cursors) {
+      cursorDraw(board, cursor);
+   }
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
 }
@@ -268,15 +297,15 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
 }
 
 //Swap two tiles on the board horizontally
-void boardSwap(Board* board) {
+void boardSwap(Board* board, Cursor* cursor) {
 
    if (board->game->timer < board->game->timings.countIn[0]) { return; } //No swapping during count in
 
-   float xCursor = cursorGetX(board->cursor);
-   float yCursor = cursorGetY(board->cursor);
+   float xCursor = cursorGetX(cursor);
+   float yCursor = cursorGetY(cursor);
 
-   int col = cursorGetCol(board);
-   int row = cursorGetRow(board);
+   int col = cursorGetCol(board, cursor);
+   int row = cursorGetRow(board, cursor);
 
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
@@ -508,7 +537,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (board->game->players > 1 && uniqueMatches.size() > 3) {  //Check for combos in clear
-      boardComboGarbage(board->game, board->player, uniqueMatches.size() );
+      boardComboGarbage(board->game, board->team, uniqueMatches.size() );
    }
 
    int silvers = 0;
@@ -551,7 +580,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //todo add score logic here
       }
    }
-   if (silvers > 0 && board->game->players > 1) { _silverClear(board->game, silvers, board->player); }
+   if (silvers > 0 && board->game->players > 1) { _silverClear(board->game, silvers, board->team); }
 }
 
 //Detects and adjusts all the positions of the tiles that are falling
@@ -713,15 +742,15 @@ void boardRemoveClears(Board* board) {
    }
    if (stillChaining == false) { //No tiles are part of a chain
       if (board->chain > 1) {
-         if (board->game->players > 1) { boardChainGarbage(board->game, board->player, board->chain); }
+         if (board->game->players > 1) { boardChainGarbage(board->game, board->team, board->chain); }
          boardPauseTime(board, pause_chain, board->chain); 
          board->boardStats.lastChain = board->chain;
          board->boardStats.chainCounts[board->chain] += 1;  //Board Stats
       }
       board->chain = 1; 
    }
-   //else if (stillChaining == true) {
-   //   boardPauseTime(board, pause_clear);
+   //else if (stillChaining == true && board->chain > 1) {
+   //   if (board->pauseLength == 0) { board->pauseLength = 100; board->paused = true; }
    //}
    return;
 }
@@ -734,7 +763,9 @@ void boardMoveUp(Board* board, float height) {
 
    bool dangerZone = false;  //About to bust
 
-   cursorSetY(board->cursor, cursorGetY(board->cursor) - nudge);  //adjust cursor position
+   for (auto&& cursor : board->cursors) {
+      cursorSetY(cursor, cursorGetY(cursor) - nudge);  //adjust cursor position
+   }
 
    if (board->offset <= -1 * board->tileHeight) {
       board->offset += board->tileHeight;
@@ -1063,10 +1094,18 @@ bool aiFlattenBoard(Board* board) {
    return moveFound;
 }
 
-void aiGetSteps(Board* board) {
+void aiGetSteps(Board* board, int player) {
    //Calculate steps to move cursor into place
-   int cursorCol = cursorGetCol(board);
-   int cursorRow = cursorGetRow(board);
+   Cursor* cursor = nullptr;
+   if (board->game->players <= 2) {
+      cursor = board->cursors[0];
+   }
+   else if (board->game->players > 2) {
+      int index = player % 2;
+      cursor = board->cursors[index];
+   }
+   int cursorCol = cursorGetCol(board, cursor);
+   int cursorRow = cursorGetRow(board, cursor);
 
    for (auto&& move : aiLogic.moves) {
       if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
@@ -1143,7 +1182,7 @@ void aiDoStep(Board* board) {
    board->game->p1Input = input;
 }
 
-void boardAI(Board* board) {
+void boardAI(Board* board, int player) {
    if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
          aiClearGarbage(board); 
@@ -1151,7 +1190,7 @@ void boardAI(Board* board) {
          if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
 
-         if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
+         if (aiLogic.moves.empty() == false) { aiGetSteps(board, player); }
       }
    }
 

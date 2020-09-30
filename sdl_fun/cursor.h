@@ -36,8 +36,8 @@ void cursorSetY(Cursor* cursor, float y);
 float cursorGetX(Cursor* cursor);
 float cursorGetY(Cursor* cursor);
 
-int cursorGetRow(Board* board);
-int cursorGetCol(Board* board);
+int cursorGetRow(Board* board, Cursor* cursor);
+int cursorGetCol(Board* board, Cursor* cursor);
 
-void cursorUpdate(Board* board, UserInput input);
-void cursorDraw(Board* board);
+void cursorUpdate(Board* board, Cursor* cursor, UserInput input);
+void cursorDraw(Board* board, Cursor* cursor);
