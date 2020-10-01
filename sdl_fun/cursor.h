@@ -8,6 +8,7 @@ typedef struct UserInput UserInput;
 
 //@@Start Serialize
 struct Cursor {
+   int index = 0;
 
    double x;
    double y;

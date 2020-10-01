@@ -59,6 +59,11 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 void cursorDraw(Board* board, Cursor* cursor) {
 
    animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
+   //todo this is kinda a hacky way to display the tag for the cursor... should generalize meshDraw for any object/particle
+   if (cursor->index == 2) { meshSetTexture(board->game, cursor->mesh, Texture_cursor2); }
+   else { meshSetTexture(board->game, cursor->mesh, Texture_cursor1); }
+   meshDraw(board, cursor->mesh, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
+   meshSetTexture(board->game, cursor->mesh, Texture_cursor);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {

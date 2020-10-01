@@ -118,11 +118,15 @@ Board* boardCreate(Game* game) {
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          if (game->players <= 2) {
-            board->cursors.push_back( cursorCreate(board, cursorX, cursorY) );
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY);
+            cursor->index = 1;
+            board->cursors.push_back(cursor);
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               board->cursors.push_back(cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) ));
+               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) );
+               cursor->index = i + 1;
+               board->cursors.push_back(cursor);
             }
          }
 
