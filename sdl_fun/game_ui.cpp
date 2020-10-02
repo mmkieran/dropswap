@@ -652,7 +652,8 @@ int error2 = 0;
 UPNPUrls upnp_urls;
 IGDdatas upnp_data;
 char aLanAddr[64];
-const char* pPort = "8000";
+const char* internalPort = "8000";
+const char* externalPort = "8000";
 
 int status;
 
@@ -680,13 +681,27 @@ void portForwardUITest() {
    else { ImGui::Text("No valid IGD... yet!"); }
    ImGui::NewLine();
 
-   if (ImGui::Button("Map Port")) {
+   static bool portMapped = false;
+   if (ImGui::Button("Map Port") ) {
       if (status == 1) {
-         error2 = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, pPort, pPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
+         error2 = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, externalPort, internalPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
       }
+      if (!error2) { portMapped = true; }
    }
 
    if (error2) { ImGui::Text("Failed to map port... %s"), strupnperror(error2); }
+
+   if (ImGui::Button("Delete Port Mapping") && portMapped == true) {
+      //This port is the external port
+      error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, internalPort, "UDP", 0);
+   }
+
+   if (error != 0) { ImGui::Text("Failed to delete port: %s", strupnperror(error)); }
+
+   if (ImGui::Button("Free the stuff")) {
+      FreeUPNPUrls(&upnp_urls);
+      freeUPNPDevlist(upnp_devices);
+   }
 
    ImGui::End();
 }
