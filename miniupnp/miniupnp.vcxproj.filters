@@ -21,12 +21,6 @@
     <ClCompile Include="igd_desc_parse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="listdevices.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="minihttptestserver.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="minisoap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,40 +30,16 @@
     <ClCompile Include="miniupnpc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="miniupnpcmodule.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="miniwget.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="minixml.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="minixmlvalid.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="portlistingparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="receivedata.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testigddescparse.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testminiwget.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testminixml.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testportlistingparse.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="testupnpreplyparse.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="upnpc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="upnpcommands.c">
@@ -84,14 +54,8 @@
     <ClCompile Include="upnpreplyparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wingenminiupnpcstrings.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="codelength.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="connecthostport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -107,19 +71,7 @@
     <ClInclude Include="miniupnpc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="miniupnpc_declspec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="miniupnpc_socketdef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="miniupnpctypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="miniwget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="miniwget_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="minixml.h">
@@ -141,6 +93,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="upnpreplyparse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miniupnpcstrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="declspec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miniwget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

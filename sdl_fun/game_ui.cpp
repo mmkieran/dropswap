@@ -8,6 +8,11 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+//Port Forwarding magic
+#include "miniupnp/miniupnpc.h"
+#include "miniupnp/upnpcommands.h"
+#include "miniupnp/upnperrors.h"
+
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -101,6 +106,8 @@ void mainUI(Game* game) {
    if (showSettings) {
       gameSettingsUI(game, &showSettings);
    }
+
+   portForwardUITest();
 
    ImGui::PopFont();
    ImGui::End();
@@ -632,6 +639,54 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
+
+   ImGui::End();
+}
+
+//UPNP Devices we discovered
+UPNPDev* upnp_devices = 0;
+int error = 0;
+int error2 = 0;
+
+//Internet Gateway Device info
+UPNPUrls upnp_urls;
+IGDdatas upnp_data;
+char aLanAddr[64];
+const char* pPort = "8000";
+
+int status;
+
+void portForwardUITest() {
+   if (!ImGui::Begin("Port Forward test") ) {
+      ImGui::End();
+      return;
+   }
+
+   if (ImGui::Button("Detect Devices")) {
+      upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
+   }
+
+   if (error != 0) { ImGui::Text("Error discovering devices %s", strupnperror(error) ); }
+   ImGui::NewLine();
+
+   if (ImGui::Button("Get Valid IGD")) {
+      status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
+   }
+
+   ImGui::Text("status: %d, lan address: %s", status, aLanAddr);
+   ImGui::NewLine();
+
+   if (status == 1) { ImGui::Text("Found a valid IGD: %s", upnp_urls.controlURL); }
+   else { ImGui::Text("No valid IGD... yet!"); }
+   ImGui::NewLine();
+
+   if (ImGui::Button("Map Port")) {
+      if (status == 1) {
+         error2 = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, pPort, pPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
+      }
+   }
+
+   if (error2) { ImGui::Text("Failed to map port... %s"), strupnperror(error2); }
 
    ImGui::End();
 }

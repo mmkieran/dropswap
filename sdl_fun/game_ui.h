@@ -24,3 +24,5 @@ void gameSettingsUI(Game* game, bool* p_open);
 void popupEnable(PopupType popup);
 bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
+
+void portForwardUITest();

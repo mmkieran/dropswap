@@ -21,41 +21,28 @@
   <ItemGroup>
     <ClCompile Include="connecthostport.c" />
     <ClCompile Include="igd_desc_parse.c" />
-    <ClCompile Include="listdevices.c" />
-    <ClCompile Include="minihttptestserver.c" />
     <ClCompile Include="minisoap.c" />
     <ClCompile Include="minissdpc.c" />
     <ClCompile Include="miniupnpc.c" />
-    <ClCompile Include="miniupnpcmodule.c" />
     <ClCompile Include="miniwget.c" />
     <ClCompile Include="minixml.c" />
-    <ClCompile Include="minixmlvalid.c" />
     <ClCompile Include="portlistingparse.c" />
     <ClCompile Include="receivedata.c" />
-    <ClCompile Include="testigddescparse.c" />
-    <ClCompile Include="testminiwget.c" />
-    <ClCompile Include="testminixml.c" />
-    <ClCompile Include="testportlistingparse.c" />
-    <ClCompile Include="testupnpreplyparse.c" />
-    <ClCompile Include="upnpc.c" />
     <ClCompile Include="upnpcommands.c" />
     <ClCompile Include="upnpdev.c" />
     <ClCompile Include="upnperrors.c" />
     <ClCompile Include="upnpreplyparse.c" />
-    <ClCompile Include="wingenminiupnpcstrings.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="codelength.h" />
     <ClInclude Include="connecthostport.h" />
+    <ClInclude Include="declspec.h" />
     <ClInclude Include="igd_desc_parse.h" />
     <ClInclude Include="minisoap.h" />
     <ClInclude Include="minissdpc.h" />
     <ClInclude Include="miniupnpc.h" />
+    <ClInclude Include="miniupnpcstrings.h" />
     <ClInclude Include="miniupnpctypes.h" />
-    <ClInclude Include="miniupnpc_declspec.h" />
-    <ClInclude Include="miniupnpc_socketdef.h" />
     <ClInclude Include="miniwget.h" />
-    <ClInclude Include="miniwget_private.h" />
     <ClInclude Include="minixml.h" />
     <ClInclude Include="portlistingparse.h" />
     <ClInclude Include="receivedata.h" />
@@ -166,10 +153,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;MINIUPNP_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -183,10 +171,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;MINIUPNP_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>
