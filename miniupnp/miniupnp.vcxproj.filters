@@ -98,10 +98,13 @@
     <ClInclude Include="miniupnpcstrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="declspec.h">
+    <ClInclude Include="miniwget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="miniwget.h">
+    <ClInclude Include="miniupnpc_declspec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="codelength.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
