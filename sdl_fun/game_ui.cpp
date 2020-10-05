@@ -8,11 +8,6 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-//Port Forwarding magic
-#include "miniupnp/miniupnpc.h"
-#include "miniupnp/upnpcommands.h"
-#include "miniupnp/upnperrors.h"
-
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -106,8 +101,6 @@ void mainUI(Game* game) {
    if (showSettings) {
       gameSettingsUI(game, &showSettings);
    }
-
-   portForwardUITest();
 
    ImGui::PopFont();
    ImGui::End();
@@ -445,6 +438,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
+      ImGui::Checkbox("Use UPNP connection", &game->ai);
       ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
       ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
    }
@@ -638,69 +632,6 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
       ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
-   }
-
-   ImGui::End();
-}
-
-//UPNP Devices we discovered
-UPNPDev* upnp_devices = 0;
-int error = 0;
-int error2 = 0;
-
-//Internet Gateway Device info
-UPNPUrls upnp_urls;
-IGDdatas upnp_data;
-char aLanAddr[64];
-const char* internalPort = "8000";
-const char* externalPort = "8000";
-
-int status;
-
-void portForwardUITest() {
-   if (!ImGui::Begin("Port Forward test") ) {
-      ImGui::End();
-      return;
-   }
-
-   if (ImGui::Button("Detect Devices")) {
-      upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
-   }
-
-   if (error != 0) { ImGui::Text("Error discovering devices %s", strupnperror(error) ); }
-   ImGui::NewLine();
-
-   if (ImGui::Button("Get Valid IGD")) {
-      status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
-   }
-
-   ImGui::Text("status: %d, lan address: %s", status, aLanAddr);
-   ImGui::NewLine();
-
-   if (status == 1) { ImGui::Text("Found a valid IGD: %s", upnp_urls.controlURL); }
-   else { ImGui::Text("No valid IGD... yet!"); }
-   ImGui::NewLine();
-
-   static bool portMapped = false;
-   if (ImGui::Button("Map Port") ) {
-      if (status == 1) {
-         error2 = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, externalPort, internalPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
-      }
-      if (!error2) { portMapped = true; }
-   }
-
-   if (error2) { ImGui::Text("Failed to map port... %s"), strupnperror(error2); }
-
-   if (ImGui::Button("Delete Port Mapping") && portMapped == true) {
-      //This port is the external port
-      error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, internalPort, "UDP", 0);
-   }
-
-   if (error != 0) { ImGui::Text("Failed to delete port: %s", strupnperror(error)); }
-
-   if (ImGui::Button("Free the stuff")) {
-      FreeUPNPUrls(&upnp_urls);
-      freeUPNPDevlist(upnp_devices);
    }
 
    ImGui::End();

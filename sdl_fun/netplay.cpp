@@ -1,6 +1,20 @@
 
 #include "netplay.h"
 
+//Port Forwarding magic
+#include "miniupnp/miniupnpc.h"
+#include "miniupnp/upnpcommands.h"
+#include "miniupnp/upnperrors.h"
+
+//UPNP Devices we discovered
+UPNPDev* upnp_devices = 0;
+
+//Internet Gateway Device info
+UPNPUrls upnp_urls;
+IGDdatas upnp_data;
+char aLanAddr[64];
+int sessionPort = 7001;
+
 extern Game* game;  //I dunno how I feel about this
 
 int fletcher32_checksum(short* data, size_t len) {
@@ -167,6 +181,25 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    return true;
 }
 
+static bool upnpStartup(int port) {
+   int error, status;
+   upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
+   if (error == 0) {
+      status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
+      //   if (status == 1) { printf("Found a valid IGD: %s", upnp_urls.controlURL); }
+      if (status == 1) {
+         char upnpPort[32];
+         sprintf(upnpPort, "%d", port);
+         error = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, upnpPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
+         if (!error) {
+            return true;
+         }
+      }
+   }
+
+   return false;
+}
+
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants) {
    GGPOErrorCode result;
 
@@ -180,7 +213,6 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    cb.on_event = ds_on_event_callback;  
    cb.log_game_state = ds_log_game_state_callback;  //This is turned off right now
 
-   int sessionPort = 7001;
    int hostNumber = -1;
    int myNumber = -1;
    int spectators = 0;
@@ -194,6 +226,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
+   bool upnpSuccess = upnpStartup(sessionPort);
 
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
@@ -316,14 +349,32 @@ int ggpoDisconnectPlayer(int player){
    else return 0;
 }
 
+static bool upnpCleanup(int port) {
+   char upnpPort[32];
+   sprintf(upnpPort, "%d", port);
+
+   int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
+
+   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
+
+   FreeUPNPUrls(&upnp_urls);
+   freeUPNPDevlist(upnp_devices);
+   return error;
+}
+
 void ggpoEndSession(Game* game) {
    if (game->net) {
       for (int i = 0; i < game->players; i++) {
          ggpoDisconnectPlayer(i + 1);
 
       }
+      
+      upnpCleanup(sessionPort);
       ggpoClose(game->net->ggpo);
       delete game->net;
       game->net = new NetPlay;
    }
 }
+
+
+
