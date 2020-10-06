@@ -181,6 +181,7 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    return true;
 }
 
+//Discover if the local gateway device can use UPNP and port-forward the local port
 static bool upnpStartup(int port) {
    int error, status;
    upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
@@ -200,6 +201,7 @@ static bool upnpStartup(int port) {
    return false;
 }
 
+//Create a GGPO session and add players/spectators 
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants) {
    GGPOErrorCode result;
 
@@ -240,8 +242,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       result = ggpo_start_session(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort);
    }
 
-   // Disconnect clients after 3000 ms and start our count-down timer for disconnects after 1000 ms
-   ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  //debug no disconnect for now
+   // Give disconnects notification after 1000 ms and then disconnect clients after xxxx ms
+   ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
 
@@ -272,6 +274,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
 }
 
+//Updates the game, notifies GGPO and advances the frame
 void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->players; i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
@@ -283,6 +286,7 @@ void gameAdvanceFrame(Game* game) {
    ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
+//Used to synchronize inputs in GGPO and advance the frame
 void gameRunFrame() {
    if (game->playing == false) { return; }
    if (game->net && game->net->ggpo) {
@@ -308,12 +312,14 @@ void gameRunFrame() {
    }
 }
 
+//End a GGPO session
 void ggpoClose(GGPOSession* ggpo) {
    if (ggpo) {
       ggpo_close_session(ggpo);
    }
 }
 
+//Display the connection status based on the PlayerConnectState Enum
 const char* ggpoShowStatus(Game* game, int playerIndex) {
    const char* out = "";
    if (game->net) {
@@ -341,7 +347,8 @@ const char* ggpoShowStatus(Game* game, int playerIndex) {
    return out;
 }
 
-int ggpoDisconnectPlayer(int player){
+//Disconnect a player by number
+int ggpoDisconnectPlayer(int player) {
    GGPOErrorCode result = ggpo_disconnect_player(game->net->ggpo, player);
    if (GGPO_SUCCEEDED(result)) {
       return 1;
@@ -349,6 +356,7 @@ int ggpoDisconnectPlayer(int player){
    else return 0;
 }
 
+//Deletes local port mapping and free resources for UPNP devices/urls
 static bool upnpCleanup(int port) {
    char upnpPort[32];
    sprintf(upnpPort, "%d", port);
@@ -362,6 +370,7 @@ static bool upnpCleanup(int port) {
    return error;
 }
 
+//Disconnect players and recreate game->net
 void ggpoEndSession(Game* game) {
    if (game->net) {
       for (int i = 0; i < game->players; i++) {

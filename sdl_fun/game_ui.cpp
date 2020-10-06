@@ -614,6 +614,18 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
+void connectStatusUI() {
+   if (!ImGui::Begin("Connection Status")) {
+      ImGui::End();
+      return;
+   }
+
+   static ImGuiTextBuffer buff;
+
+
+   ImGui::End();
+}
+
 void ggpoNetStatsUI(Game* game, bool* p_open) {
 
    if (!ImGui::Begin("Network Stats", p_open)) {
