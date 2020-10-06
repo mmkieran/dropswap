@@ -1,6 +1,8 @@
 
 #include "netplay.h"
 
+#include <string>
+
 //Port Forwarding magic
 #include "miniupnp/miniupnpc.h"
 #include "miniupnp/upnpcommands.h"
@@ -189,16 +191,32 @@ static bool upnpStartup(int port) {
       status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
       //   if (status == 1) { printf("Found a valid IGD: %s", upnp_urls.controlURL); }
       if (status == 1) {
+         game->net->messages.push_back("Discovered a device that can use UPNP"); 
          char upnpPort[32];
          sprintf(upnpPort, "%d", port);
          error = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, upnpPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
          if (!error) {
+            game->net->messages.push_back("Port Mapping Complete"); 
             return true;
          }
       }
    }
-
+   game->net->messages.push_back("Failed to complete port mapping");
    return false;
+}
+
+//Deletes local port mapping and free resources for UPNP devices/urls
+static bool upnpCleanup(int port) {
+   char upnpPort[32];
+   sprintf(upnpPort, "%d", port);
+
+   int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
+
+   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
+
+   FreeUPNPUrls(&upnp_urls);
+   freeUPNPDevlist(upnp_devices);
+   return error;
 }
 
 //Create a GGPO session and add players/spectators 
@@ -228,7 +246,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
-   bool upnpSuccess = upnpStartup(sessionPort);
+   if (game->net->useUPNP) { bool upnpSuccess = upnpStartup(sessionPort); }
 
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
@@ -241,6 +259,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    else {  //Start a regular GGPO Session
       result = ggpo_start_session(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort);
    }
+
+   if (result == GGPO_OK) { game->net->messages.push_back("Started GGPO Session"); }
 
    // Give disconnects notification after 1000 ms and then disconnect clients after xxxx ms
    ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  
@@ -272,6 +292,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
       }
    }
+   if (result == GGPO_OK) { game->net->messages.push_back("Added player slots"); }
 }
 
 //Updates the game, notifies GGPO and advances the frame
@@ -295,8 +316,8 @@ void gameRunFrame() {
       int disconnect_flags;
 
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
-         if (game->ai == false) { processInputs(game); }
-         else {        
+         processInputs(game); 
+         if (game->ai == true) {        
             if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
             else { gameAI(game, 0); }
          }
@@ -317,6 +338,7 @@ void ggpoClose(GGPOSession* ggpo) {
    if (ggpo) {
       ggpo_close_session(ggpo);
    }
+   if (game->net->useUPNP) { upnpCleanup(sessionPort); }
 }
 
 //Display the connection status based on the PlayerConnectState Enum
@@ -356,20 +378,6 @@ int ggpoDisconnectPlayer(int player) {
    else return 0;
 }
 
-//Deletes local port mapping and free resources for UPNP devices/urls
-static bool upnpCleanup(int port) {
-   char upnpPort[32];
-   sprintf(upnpPort, "%d", port);
-
-   int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
-
-   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
-
-   FreeUPNPUrls(&upnp_urls);
-   freeUPNPDevlist(upnp_devices);
-   return error;
-}
-
 //Disconnect players and recreate game->net
 void ggpoEndSession(Game* game) {
    if (game->net) {
@@ -377,13 +385,8 @@ void ggpoEndSession(Game* game) {
          ggpoDisconnectPlayer(i + 1);
 
       }
-      
-      upnpCleanup(sessionPort);
       ggpoClose(game->net->ggpo);
       delete game->net;
       game->net = new NetPlay;
    }
 }
-
-
-

@@ -44,6 +44,8 @@ struct NetPlay {
    int myConnNum = -1;
    int frameDelay[3] = { 2, 1, 10 };
    int disconnectTime[3] = { 10000, 0, 30000 };
+   std::vector <char*> messages;
+   bool useUPNP = true;
 };
 
 int fletcher32_checksum(short* data, size_t len);
