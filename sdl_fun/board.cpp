@@ -326,6 +326,7 @@ void boardSwap(Board* board, Cursor* cursor) {
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
    if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
    if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
+   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap disabled tiles
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling == true && tile2->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
@@ -1107,6 +1108,44 @@ bool aiFlattenBoard(Board* board) {
       }
    }
    return moveFound;
+}
+
+void aiChain(Board* board) {
+   for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type == tile_cleared) {
+            Tile* right = boardGetTile(board, row, col + 1);
+
+            //vertical match
+            bool vertMatch = false;
+            Tile* below = boardGetTile(board, row + 1, col);
+            if (below->type == tile_cleared || below->type == tile_empty) {
+               vertMatch = true;
+               int lookDown = 2;
+               while (below && (below->type == tile_cleared || below->type == tile_empty)) {
+                  below = boardGetTile(board, row + lookDown, col);
+                  lookDown++;
+               }
+               std::vector <Tile*> belowTiles = boardGetAllTilesInRow(board, row + lookDown);
+
+               std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
+               for (auto&& tile : belowTiles) {  //Skip this stuff
+                  if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+                     tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+                     continue;
+                  }
+                  tileCounts[tile->type].push_back(tile);
+               }
+               for (auto&& pair : tileCounts) {
+                  if (pair.second.size() >= 2) {  //If we have three tiles of the same type in a row
+                     
+                  }
+               }
+            }
+         }
+      }
+   }
 }
 
 void aiGetSteps(Board* board, int player) {
