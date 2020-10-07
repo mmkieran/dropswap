@@ -944,6 +944,7 @@ struct AILogic {
 
    std::list <MoveInfo> moves;         //Each tile's current row/col and destination
    std::list <CursorStep> matchSteps;  //The Cursor movements needed to make a match
+   TileIndex lastDest;
 };
 
 AILogic aiLogic;
@@ -1079,19 +1080,28 @@ bool aiFlattenBoard(Board* board) {
 
          //Find a hole in the next row down and send tile there
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 1);
+         int closestCol = 1000;
+         int closestDist = 1000;
          for (auto&& below : tiles) {
             if (below->type == tile_empty) {
-
-               MoveInfo move;
-               move.target.col = col;
-               move.target.row = row;
-
-               move.dest.col = tileGetCol(board, below);
-               move.dest.row = tileGetRow(board, below);
-               aiLogic.moves.push_back(move);
-               moveFound = true;
-               break;
+               int belowCol = tileGetCol(board, below);
+               int dist = abs(col - belowCol);
+               if (dist < closestDist ) {
+                  closestCol = belowCol;
+                  closestDist = dist;
+               }
             }
+         }
+         if (closestCol != 1000) {
+            MoveInfo move;
+            move.target.col = col;
+            move.target.row = row;
+
+            move.dest.col = closestCol;
+            move.dest.row = row;
+            aiLogic.moves.push_back(move);
+            moveFound = true;
+            break;
          }
       }
    }
@@ -1113,6 +1123,7 @@ void aiGetSteps(Board* board, int player) {
 
    for (auto&& move : aiLogic.moves) {
       if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
+      if (move.target.col == aiLogic.lastDest.col && move.target.row == aiLogic.lastDest.row) { continue; }
       //Figure out if the target needs to move left or right
       int moveDirection = move.dest.col - move.target.col;
 
@@ -1155,6 +1166,7 @@ void aiGetSteps(Board* board, int player) {
             cursorCol++;
          }
       }
+      aiLogic.lastDest = move.dest;
    }
    aiLogic.moves.clear();
 }
