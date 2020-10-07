@@ -1214,7 +1214,7 @@ void aiGetSteps(Board* board, int player) {
 void aiDoStep(Board* board) {
    //UserInput input = { 0 };
 
-   if (board->game->frameCount % 5 == 0) {  //This is so it doesn't have 1000 apm
+   if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {

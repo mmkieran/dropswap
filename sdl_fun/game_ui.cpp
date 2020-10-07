@@ -364,6 +364,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
          }
       }
       if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
+      ImGui::SliderScalar("AI Frames Before Action", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
    }
 
    ImGui::End();
@@ -376,6 +377,8 @@ void onePlayerOptions(Game* game) {
 
    if (game->debug == true) {
       ImGui::Checkbox("Turn On AI", &game->ai);
+      ImGui::SliderScalar("AI Frames Before Action", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {
             for (auto&& board : game->boards) {

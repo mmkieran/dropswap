@@ -212,6 +212,8 @@ void gameUpdate(Game* game) {
       if (game->boards[i] == nullptr) { continue; }
       boardUpdate(game->boards[i]);
    }
+   game->frameCount++;
+   game->timer = game->frameCount * (1000.0f / 60.0f);
 }
 
 void gameSinglePlayer(Game* game) {
@@ -220,8 +222,6 @@ void gameSinglePlayer(Game* game) {
    if (game->ai == true) { gameAI(game, 0); }  //debug
    gameCheckPause(game, game->p1Input);
    gameUpdate(game);
-   game->frameCount++;
-   game->timer = game->frameCount * (1000.0f / 60.0f);
 }
 
 //Create the boards and set playing to true

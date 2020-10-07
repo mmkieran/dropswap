@@ -85,6 +85,7 @@ struct Game {
    GameTimings timings;
 
    bool ai = false;  //debug
+   int aiDelay[3] = { 4, 1, 10 };   //The AI takes an action every x frames
 
    int bHeight = 12;
    int bWidth = 6;

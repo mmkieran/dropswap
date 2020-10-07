@@ -301,9 +301,6 @@ void gameAdvanceFrame(Game* game) {
       gameCheckPause(game, game->inputs[i]);
    }
    gameUpdate(game); 
-
-   game->frameCount++;
-   game->timer = game->frameCount * (1000.0f / 60.0f);
    ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
