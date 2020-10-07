@@ -642,7 +642,7 @@ void connectStatusUI(Game* game, bool* p_open) {
    }
    else {
       for (auto&& message : game->net->messages) {
-         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message);
+         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message.c_str());
       }
    }
 

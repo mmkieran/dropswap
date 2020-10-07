@@ -6,6 +6,8 @@
 #include "serialize.h"
 #include "game_ui.h"
 
+#include <string>
+
 enum PlayerConnectState {
    Connecting = 0,
    Synchronizing,
@@ -44,7 +46,7 @@ struct NetPlay {
    int myConnNum = -1;
    int frameDelay[3] = { 2, 1, 10 };
    int disconnectTime[3] = { 10000, 0, 30000 };
-   std::vector <char*> messages;
+   std::vector <std::string> messages;
    bool useUPNP = true;
 };
 
