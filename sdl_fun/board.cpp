@@ -893,10 +893,10 @@ void makeItRain(Board* board) {
             type = (TileType)current;
          }
          if (col % 2 == 0) {
-            tileInit(board, tile, row, col, type, true);
+            tileInit(board, tile, row, col, type);
          }
          else {
-            tileInit(board, tile, row + 1, col, type, true);
+            tileInit(board, tile, row + 1, col, type);
          }
       }
    }
@@ -1172,30 +1172,30 @@ void aiGetSteps(Board* board, int player) {
 }
 
 void aiDoStep(Board* board) {
-   UserInput input = { 0 };
+   //UserInput input = { 0 };
 
    if (board->game->frameCount % 5 == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
       case cursor_left:
-         input.left.p = true;
+         board->game->p1Input.left.p = true;
          break;
       case cursor_right:
-         input.right.p = true;
+         board->game->p1Input.right.p = true;
          break;
       case cursor_up:
-         input.up.p = true;
+         board->game->p1Input.up.p = true;
          break;
       case cursor_down:
-         input.down.p = true;
+         board->game->p1Input.down.p = true;
          break;
       case cursor_swap:
-         input.swap.p = true;
+         board->game->p1Input.swap.p = true;
          break;
       }
    }
-   board->game->p1Input = input;
+   //board->game->p1Input = input;
 }
 
 void boardAI(Board* board, int player) {
@@ -1213,8 +1213,8 @@ void boardAI(Board* board, int player) {
    if (aiLogic.matchSteps.empty() == false) {
       aiDoStep(board);
    }
-   else {  //No steps so wipe out the inputs
-      UserInput input = { 0 };
-      board->game->p1Input = input;
-   }
+   //else {  //No steps so wipe out the inputs
+   //   UserInput input = { 0 };
+   //   board->game->p1Input = input;
+   //}
 }
