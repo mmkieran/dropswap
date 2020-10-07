@@ -944,7 +944,6 @@ struct AILogic {
 
    std::list <MoveInfo> moves;         //Each tile's current row/col and destination
    std::list <CursorStep> matchSteps;  //The Cursor movements needed to make a match
-   TileIndex lastDest;
 };
 
 AILogic aiLogic;
@@ -1077,6 +1076,8 @@ bool aiFlattenBoard(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
+         Tile* below = boardGetTile(board, row + 1, col);
+         if (below && (below->falling == true || below->type == tile_empty)) { continue; }
 
          //Find a hole in the next row down and send tile there
          std::vector <Tile*> tiles = boardGetAllTilesInRow(board, row + 1);
@@ -1123,7 +1124,6 @@ void aiGetSteps(Board* board, int player) {
 
    for (auto&& move : aiLogic.moves) {
       if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
-      if (move.target.col == aiLogic.lastDest.col && move.target.row == aiLogic.lastDest.row) { continue; }
       //Figure out if the target needs to move left or right
       int moveDirection = move.dest.col - move.target.col;
 
@@ -1166,7 +1166,6 @@ void aiGetSteps(Board* board, int player) {
             cursorCol++;
          }
       }
-      aiLogic.lastDest = move.dest;
    }
    aiLogic.moves.clear();
 }
