@@ -18,6 +18,7 @@ void onePlayerOptions(Game* game);
 
 void ggpoSessionUI(Game* game, bool* p_open);
 void ggpoNetStatsUI(Game* game, bool* p_open);
+void connectStatusUI(Game* game, bool* p_open);
 
 void gameSettingsUI(Game* game, bool* p_open);
 

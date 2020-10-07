@@ -8,6 +8,9 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+
+#include <thread>
+
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -438,6 +441,9 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
+      ImGui::SameLine(); HelpMarker("This turns on the AI for the game.");
+      ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
+      ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
       ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
       ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
    }
@@ -564,11 +570,17 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::PopID();
    ImGui::NewLine();
 
+   static bool connectStats = false;
    if (game->net->ggpo == nullptr) {
       if (ImGui::Button("Open Connection")) {
-         ggpoCreateSession(game, hostSetup, participants);
+         connectStats = true;
+         std::thread ggpoSessionThread(ggpoCreateSession, game, hostSetup, participants);
+         ggpoSessionThread.detach();
+         //ggpoCreateSession(game, hostSetup, participants);
       }
    }
+
+   if (connectStats) { connectStatusUI(game, &connectStats); }
 
    static bool netStats = false;
    if (game->net && game->net->ggpo) {
@@ -580,6 +592,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::SameLine();
       if (ImGui::Button("Close Connection")) {
          ggpoEndSession(game);
+         connectStats = netStats = false;
       }
       if (game->net && game->net->connections[game->net->myConnNum].state != Running) {
          ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
@@ -610,6 +623,26 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    }
 
    ImGui::PopFont();
+   ImGui::End();
+}
+
+//Gives feedback (messages) about the progress of the GGPO connection thread
+void connectStatusUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Connection Status", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+      game->net->messages.clear();
+      *p_open = false;
+   }
+   else {
+      for (auto&& message : game->net->messages) {
+         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message);
+      }
+   }
+
    ImGui::End();
 }
 

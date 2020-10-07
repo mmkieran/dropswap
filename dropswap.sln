@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ggpo", "ggpo\ggpo.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soloud", "soloud\soloud.vcxproj", "{092A96F6-F56C-4946-9038-6C58899BA9AB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniupnp", "miniupnp\miniupnp.vcxproj", "{1BD11AC2-4C53-4423-9325-CCB21E2D1972}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{092A96F6-F56C-4946-9038-6C58899BA9AB}.Release|x64.Build.0 = Release|x64
 		{092A96F6-F56C-4946-9038-6C58899BA9AB}.Release|x86.ActiveCfg = Release|Win32
 		{092A96F6-F56C-4946-9038-6C58899BA9AB}.Release|x86.Build.0 = Release|Win32
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Debug|x64.ActiveCfg = Debug|x64
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Debug|x64.Build.0 = Debug|x64
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Debug|x86.ActiveCfg = Debug|Win32
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Debug|x86.Build.0 = Debug|Win32
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Release|x64.ActiveCfg = Release|x64
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Release|x64.Build.0 = Release|x64
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Release|x86.ActiveCfg = Release|Win32
+		{1BD11AC2-4C53-4423-9325-CCB21E2D1972}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

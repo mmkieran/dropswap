@@ -91,7 +91,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;MINIUPNP_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir);$(SolutionDir)Depends\stb\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -108,7 +108,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Depends\SDL2\lib\x64;$(TargetDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;GGPO.lib;soloud.lib;winmm.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;IPHlpApi.Lib;winmm.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
@@ -159,7 +159,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_UNICODE;UNICODE;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_UNICODE;UNICODE;_CONSOLE;_CRT_SECURE_NO_WARNINGS;MINIUPNP_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Depends\SDL2\include;$(SolutionDir);$(SolutionDir)Depends\stb\include;$(SolutionDir)Depends\ggpo\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -171,7 +171,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Depends\SDL2\lib\x64;$(TargetDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;GGPO.lib;soloud.lib;winmm.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;IPHlpApi.Lib;winmm.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
@@ -234,6 +234,9 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     </ProjectReference>
     <ProjectReference Include="..\imgui\example_sdl_opengl3.vcxproj">
       <Project>{bbaeb705-1669-40f3-8567-04cf6a991f4c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\miniupnp\miniupnp.vcxproj">
+      <Project>{1bd11ac2-4c53-4423-9325-ccb21e2d1972}</Project>
     </ProjectReference>
     <ProjectReference Include="..\soloud\soloud.vcxproj">
       <Project>{092a96f6-f56c-4946-9038-6c58899ba9ab}</Project>
