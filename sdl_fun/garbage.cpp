@@ -349,39 +349,31 @@ void garbageFall(Board* board, float velocity) {
             //Figure out how far each tile in the garbage could fall
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight); 
 
-            if (potentialDrop < 0) {  //Probably swapped a tile into it as it fell?
-               garbage->falling = false;
-               break;
-            }
-            else if (potentialDrop == 0) { //It is stopped
+            if (potentialDrop <= 0) {  //Probably swapped a tile into it as it fell?
                garbage->falling = false;
                break;
             }
             else if (potentialDrop <= drop) {  //It can fall a little bit further
                drop = potentialDrop;
-               garbage->falling = true;
-            }
-            else if (potentialDrop > drop) {  //We can fall as much as we want
-               garbage->falling = true;
-            }
-            else {
-               printf("Something bad happened dropping: %d, %f, %f", tile->type, tile->xpos, tile->ypos);
-               __debugbreak;
-               garbage->falling = false;
-               break;
             }
          }
 
-         if (drop < velocity){ landing = true; }
-
          //If the bottom layer can fall, adjust the ypos with the max drop
-         if (garbage->falling == true && drop > 0) {
+         if (garbage->falling != false && drop > 0) {
+            garbage->falling = true;
+            garbage->totalFall += drop;
+
             for (int r = row; r > row - garbage->layers; r--) {
                for (int c = col; c < garbage->width + col; c++) {
                   Tile* tile = boardGetTile(board, r, c);
                   tile->ypos += drop;
                }
             }
+         }
+
+         if (drop < velocity) { 
+            landing = true; 
+
          }
 
          if (drop > 0 && landing == true) {

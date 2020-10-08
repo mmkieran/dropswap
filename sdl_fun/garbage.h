@@ -21,6 +21,7 @@ struct Garbage {
    uint64_t deployTime = 0;
 
    bool falling = true;
+   int totalFall = 0;
    bool metal = false;
 };
 //@@End Serialize
