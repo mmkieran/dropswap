@@ -43,10 +43,15 @@ int main(int argc, char* args[]) {
       imguiRender(game);  //draw the board, cursor, and other things
 
       frameTime = game->kt.getTime() - frameStart;
-      if (frameDelay >= frameTime) {  //Wait so we get a steady frame rate
+      if (frameDelay >= frameTime) {  //Check if we have to wait to get the proper frames per second
          int leftover = (frameDelay - frameTime) / 1000;
          if (game->players > 1) {
-            gameGiveIdleToGGPO(game, leftover);
+            gameGiveIdleToGGPO(game, leftover - 1);  //Give some time to GGPO
+            frameTime = game->kt.getTime() - frameStart;  
+            if (frameDelay >= frameTime) {  //Check if we have time leftover
+               leftover = (frameDelay - frameTime) / 1000;
+               sdlSleep(leftover);  //Sleep away the afternoon
+            }
          }
          else { 
             sdlSleep(leftover); }

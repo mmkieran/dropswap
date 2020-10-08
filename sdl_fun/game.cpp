@@ -93,7 +93,7 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   SDL_GL_SetSwapInterval(1); // Enable vsync
+   SDL_GL_SetSwapInterval(0); // I owe Sean so much for this tip... DO NOT Enable vsync... it eats up all the frame time
 
    return true;
 }
@@ -324,8 +324,8 @@ void gameRender(Game* game) {
 //Draw the ImGui windows and the game objects
 void imguiRender(Game* game) {
 
-   int width, height;
-   SDL_GetWindowSize(game->sdl->window, &width, &height);
+   //int width, height;
+   //SDL_GetWindowSize(game->sdl->window, &width, &height);
 
    int boardWidth = game->tWidth * game->bWidth;
    int boardHeight = game->tHeight * game->bHeight;
@@ -337,7 +337,7 @@ void imguiRender(Game* game) {
    if (game->playing == false || game->paused == true) { mainUI(game); }
    gameRender(game);  //Draw all game objects
 
-   rendererSetTarget(0, 0, width, height);
+   rendererSetTarget(0, 0, NULL, NULL);
    rendererClear(0.0, 0.0, 0.0, 0.0);
 
    boardUI(game);  
