@@ -81,6 +81,27 @@ void gameGiveIdleToGGPO(Game* game, int time) {
    }
 }
 
+//Calculate how long we have to wait to get a steady frame rate
+void gameFrameDelay(Game* game) {
+   game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
+   if (game->kt.frameDelay >= game->kt.frameTime) {  //Check if we have to wait to get the proper frames per second
+      int leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
+      if (game->players > 1) {
+         gameGiveIdleToGGPO(game, leftover - 1);  //Give some time to GGPO
+
+         //Check if we STILL have time leftover
+         game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
+         if (game->kt.frameDelay >= game->kt.frameTime) {
+            leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
+            sdlSleep(leftover);  //Sleep away the afternoon
+         }
+      }
+      else {
+         sdlSleep(leftover);
+      }
+   }
+}
+
 //Create the SDL Window for the game
 bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int width, int height) {
    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
@@ -389,49 +410,6 @@ void gameDestroy(Game* game) {
 bool gameRunning(Game* game) {
    return game->isRunning;
 }
-
-//void debugCursor(Game* game) {
-//   if (game->playing == true) {
-//      ImGui::Begin("Cursor Debug");
-//
-//      Board* board = game->boards[0];
-//      if (board) {
-//         int row = cursorGetRow(board);
-//         int col = cursorGetCol(board);
-//
-//         Tile* tile = boardGetTile(board, row, col);
-//         if (meshGetTexture(tile->mesh) != Texture_empty) {
-//            //ImGui::Image((void*)(intptr_t)tile->mesh->texture->handle, { 64, 64 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-//         }
-//
-//         ImGui::Text("%d row, %d col", row, col);
-//         ImGui::NewLine();
-//
-//         static int lastChain = 0;
-//         static int chainTime = 0;
-//         if (board->chain > 1) {
-//            lastChain = board->chain;
-//            chainTime = game->timer;
-//         }
-//         ImGui::Text("Last chain: %d", lastChain);
-//         ImGui::Text("Pause Time: %d", board->pauseLength);
-//         ImGui::Text("Game Time: %d", game->timer);
-//      }
-//
-//      if (ImGui::CollapsingHeader("Tile Status")) {
-//         for (int row = board->startH; row < board->endH; row++) {
-//            for (int col = 0; col < board->w; col++) {
-//               Tile* tile = boardGetTile(board, row, col);
-//               ImGui::Text("%d%d", tile->chain, tile->falling);
-//               ImGui::SameLine();
-//            }
-//            ImGui::NewLine();
-//         }
-//      }
-//
-//      ImGui::End();
-//   }
-//}
 
 void gameAI(Game* game, int player) {
    if (game->players <= 2) {

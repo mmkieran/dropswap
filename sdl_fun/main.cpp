@@ -10,18 +10,9 @@
 
 Game *game = nullptr;
 
-const int FPS = 60;
-const int frameDelay = 1000000 / FPS;  //microseconds
-
-uint64_t frameStart;
-uint64_t frameTime;
-
 int main(int argc, char* args[]) {
    game = gameCreate("Drop and Swap", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
-   if (!game) {
-      printf("Failed to create game...\n");
-      return -1;
-   }
+   if (!game) { return -1; }
 
    WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
    WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
@@ -30,7 +21,7 @@ int main(int argc, char* args[]) {
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
 
    while (gameRunning(game)) {
-      frameStart = game->kt.getTime();
+      game->kt.frameStart = game->kt.getTime();
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
       imguiStartFrame(game);
@@ -42,22 +33,8 @@ int main(int argc, char* args[]) {
       }
       imguiRender(game);  //draw the board, cursor, and other things
 
-      frameTime = game->kt.getTime() - frameStart;
-      if (frameDelay >= frameTime) {  //Check if we have to wait to get the proper frames per second
-         int leftover = (frameDelay - frameTime) / 1000;
-         if (game->players > 1) {
-            gameGiveIdleToGGPO(game, leftover - 1);  //Give some time to GGPO
+      gameFrameDelay(game);  //Wait so we get a steady frame rate
 
-            //Check if we STILL have time leftover
-            frameTime = game->kt.getTime() - frameStart;  
-            if (frameDelay >= frameTime) {  
-               leftover = (frameDelay - frameTime) / 1000;
-               sdlSleep(leftover);  //Sleep away the afternoon
-            }
-         }
-         else { 
-            sdlSleep(leftover); }
-      }
    }
 
    gameDestroy(game);
