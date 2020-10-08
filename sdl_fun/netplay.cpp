@@ -343,19 +343,19 @@ const char* ggpoShowStatus(Game* game, int playerIndex) {
    const char* out = "";
    if (game->net) {
       switch (game->net->connections[playerIndex].state) {
-      case 0:
+      case Connecting:
          out = "Connecting";
          break;
-      case 1:
+      case Synchronizing:
          out = "Synchronizing";
          break;
-      case 2:
+      case Running:
          out = "Running";
          break;
-      case 3:
+      case Disconnected:
          out = "Disconnected";
          break;
-      case 4:
+      case Disconnecting:
          out = "Disconnecting";
          break;
       default:

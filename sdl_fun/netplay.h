@@ -9,10 +9,10 @@
 #include <string>
 
 enum PlayerConnectState {
-   Connecting = 0,
+   Disconnected = 0,
+   Connecting,
    Synchronizing,
    Running,
-   Disconnected,
    Disconnecting,
 };
 

@@ -51,6 +51,11 @@ static void HelpMarker(const char* desc)
    }
 }
 
+//For green helper text
+static void helpfulText(const char* input) {
+   ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), input);
+}
+
 //Main menu UI
 void mainUI(Game* game) {
 
@@ -145,6 +150,7 @@ static void _drawBoardTexture(Game* game, int index) {
       ImGui::PopStyleVar();
 }
 
+//The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
    float width = ImGui::GetWindowContentRegionWidth();
@@ -284,6 +290,15 @@ void boardUI(Game* game) {
    }
 }
 
+//Add a red colored button that is the width fo the window (section break)
+static void _addSection(const char* name) {
+   float width = ImGui::GetWindowContentRegionWidth();
+   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
+   ImGui::NewLine();
+   ImGui::Button(name, ImVec2{ width, 0 });
+   ImGui::PopStyleColor();
+}
+
 //Helper function to provide hotkeys or buttons
 static void _explainControls(Game* game, int controls) {
    //todo make it configurable later
@@ -364,7 +379,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
          }
       }
       if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
-      ImGui::SliderScalar("AI Frames Before Action", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+      ImGui::SliderScalar("AI Frame Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
    }
 
    ImGui::End();
@@ -433,43 +448,54 @@ void onePlayerOptions(Game* game) {
 //Show the connection window for GGPO... only for 2 players
 void ggpoSessionUI(Game* game, bool* p_open) {
 
-   if (!ImGui::Begin("Host Setup", p_open)) {
+   if (!ImGui::Begin("Connection Setup", p_open)) {
       ImGui::End();
       return;
    }
 
    ImGui::PushFont(game->fonts[13]);
-   //Debug turn on sync test
    if (game->debug == true) {
-      ImGui::Checkbox("DEBUG: sync test", &game->syncTest);
+      ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
+
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
-      ImGui::SameLine(); HelpMarker("This turns on the AI for the game.");
-      ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
-      ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
-      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+      ImGui::SameLine(); HelpMarker("Let the AI control your cursor in this game.");
    }
 
-   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
+   ImGui::NewLine();
+
+   _addSection("Connection Options");
+
+   ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
+   ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
 
    ImGui::NewLine();
+   helpfulText("These options have to be the same for all players or bad things will happen...");
+   ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+   ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
 
    static int seed = 0;
    ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
    game->seed = seed;
    ImGui::SameLine(); HelpMarker("Both Players must agree on the seed before the match starts.");
+
+   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
+
    ImGui::NewLine();
 
    static unsigned short participants = game->players;
    int pMin = 2;
    int pMax = GAME_MAX_PLAYERS;
 
+   _addSection("Player Setup");
+   helpfulText("Select the number of people (players/spectators) who will take part in the match. The host must be a player.");
+   ImGui::NewLine();
+
+   ImGui::Text("Player Info Table");
+
    ImGui::PushItemWidth(120);
    ImGui::SliderScalar("Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
-   ImGui::SameLine(); HelpMarker("Select the number of people (players/spectators) who will take part in the match.\n The host must be a player.");
    ImGui::SameLine();
-
    if (ImGui::Button("Load From File")) {
       FILE* in;
       int err = fopen_s(&in, "saves/ggpo_session_setup.csv", "r");
@@ -531,10 +557,9 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       }
       participants = 2;
    }
-
+   ImGui::NewLine();
 
    ImGui::PopItemWidth();
-   ImGui::NewLine();
 
    ImGui::PushID("Player Info Set");
    for (int i = 0; i < participants; i++) {
@@ -662,9 +687,10 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
 
       ImGui::Text("Player %d Connection Info", i + 1);
-      ImGui::Text("%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+      ImGui::Text("%.2f kilobytes/sec sent", stats.network.kbps_sent);
+      ImGui::Text("Send queue length: %d", stats.network.send_queue_len);
+      ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
       ImGui::Text("Ping: %d ", stats.network.ping);
-      //ImGui::Text("Frames: %.1f ", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
       ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
