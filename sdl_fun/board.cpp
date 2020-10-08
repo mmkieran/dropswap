@@ -3,14 +3,6 @@
 #include "board.h"
 #include <list>
 
-//These are all in milliseconds
-//#define GRACEPERIOD 1000     //Bonus pause time when your board reaches the top before you die
-//#define FALL_DELAY 100       //The pause before a tile falls after swapping
-//#define REMOVE_CLEARS 2000   //Time it takes to change a cleared tile to empty
-//#define ENTER_SILVERS 30000  //Time before silvers start appearing
-//#define START_TIMER 2000     //Time before the board starts moving and you can swap on startup
-//#define LANDTIME 1000        //Pause board movement when garbage lands
-
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
 //This functions processes the type of pause to figure out the length of the pause
@@ -199,7 +191,7 @@ void boardUpdate(Board* board) {
    }
 
    boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
-   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
    if (board->game->players >= 2) {

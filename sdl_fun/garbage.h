@@ -21,7 +21,7 @@ struct Garbage {
    uint64_t deployTime = 0;
 
    bool falling = true;
-   int totalFall = 0;
+   double totalFall = 0;
    bool metal = false;
 };
 //@@End Serialize
@@ -43,7 +43,7 @@ Garbage* garbageDestroy(Garbage* garbage);
 void garbageCheckClear(Board* board, Tile* tile);
 //void garbageClear(Board* board, std::map <int, Garbage*> cleared);
 
-void garbageFall(Board* board, float velocity);
+void garbageFall(Board* board, double velocity);
 
 void garbageDraw(Board* board);
 

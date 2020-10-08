@@ -321,21 +321,20 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
 }
 
 //Checks the bottom layer of the garbage to see if it can fall
-void garbageFall(Board* board, float velocity) {
+void garbageFall(Board* board, double velocity) {
 
    for (auto&& pair : board->pile->garbage) {  //iterating a map gives std::pair (use first and second)
       Garbage* garbage = pair.second;
       if (garbage == nullptr) { continue; }
       if (garbage->deployed == true) {
 
-         float drop = velocity;
-         bool landing = false;
+         double drop = velocity;
 
          assert(garbage->start != nullptr);
          int row = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
-         float potentialDrop = 0;
+         double potentialDrop = 0;
          for (int i = col; i < garbage->width + col; i++) {  //Find out if the bottom layer can fall
             Tile* tile = boardGetTile(board, row, i);
 
@@ -349,17 +348,18 @@ void garbageFall(Board* board, float velocity) {
             //Figure out how far each tile in the garbage could fall
             potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight); 
 
-            if (potentialDrop <= 0) {  //Probably swapped a tile into it as it fell?
+            if (potentialDrop <= 0) {  
+               drop = 0;
                garbage->falling = false;
                break;
             }
-            else if (potentialDrop <= drop) {  //It can fall a little bit further
+            else if (potentialDrop < drop) {  //It can fall a little bit further
                drop = potentialDrop;
             }
          }
 
          //If the bottom layer can fall, adjust the ypos with the max drop
-         if (garbage->falling != false && drop > 0) {
+         if (drop > 0) {
             garbage->falling = true;
             garbage->totalFall += drop;
 
@@ -369,21 +369,20 @@ void garbageFall(Board* board, float velocity) {
                   tile->ypos += drop;
                }
             }
-         }
 
-         if (drop < velocity) { 
-            landing = true; 
+            if (drop + 0.00001 < velocity) {  //Landing
+               if (garbage->totalFall > board->tileHeight - 0.00001) {
+                  board->game->soundToggles[sound_crashland] = true; 
+                  boardPauseTime(board, pause_crashland);
 
-         }
-
-         if (drop > 0 && landing == true) {
-            boardPauseTime(board, pause_crashland);
-            if (drop > 0.1f) { board->game->soundToggles[sound_crashland] = true; }
-
-            VisualEvent event;
-            event.effect = visual_shake;
-            event.end = board->game->timer + SHAKETIME;
-            board->visualEvents.push_back(event);
+                  VisualEvent event;
+                  event.effect = visual_shake;
+                  event.end = board->game->timer + SHAKETIME;
+                  board->visualEvents.push_back(event);
+               }
+               garbage->totalFall = 0;
+               garbage->falling = false;
+            }
          }
       }
    }

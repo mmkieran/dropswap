@@ -339,6 +339,7 @@ void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
       writeStream(stream, garbage->deployed);
       writeStream(stream, garbage->deployTime);
       writeStream(stream, garbage->falling);
+      writeStream(stream, garbage->totalFall);
       writeStream(stream, garbage->metal);
    }
 }
@@ -361,6 +362,7 @@ void _garbageDeserialize(Byte* &start, Board* board) {
       readStream(start, garbage->deployed);
       readStream(start, garbage->deployTime);
       readStream(start, garbage->falling);
+      readStream(start, garbage->totalFall);
       readStream(start, garbage->metal);
 
       board->pile->garbage[garbage->ID] = garbage;
