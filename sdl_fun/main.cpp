@@ -47,8 +47,10 @@ int main(int argc, char* args[]) {
          int leftover = (frameDelay - frameTime) / 1000;
          if (game->players > 1) {
             gameGiveIdleToGGPO(game, leftover - 1);  //Give some time to GGPO
+
+            //Check if we STILL have time leftover
             frameTime = game->kt.getTime() - frameStart;  
-            if (frameDelay >= frameTime) {  //Check if we have time leftover
+            if (frameDelay >= frameTime) {  
                leftover = (frameDelay - frameTime) / 1000;
                sdlSleep(leftover);  //Sleep away the afternoon
             }
