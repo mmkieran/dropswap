@@ -33,7 +33,17 @@ int main(int argc, char* args[]) {
       }
       imguiRender(game);  //draw the board, cursor, and other things
 
-      gameFrameDelay(game);  //Wait so we get a steady frame rate
+      game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
+      if (game->kt.frameDelay >= game->kt.frameTime) {  
+         int leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
+         if (game->players > 1) {
+            gameGiveIdleToGGPO(game, leftover - 2);  //Give some time to GGPO, but leave some for vsync
+         }
+      }
+
+      sdlSwapWindow(game);  //Try putting this at the end so vsync doesn't take all the time
+
+      //gameFrameDelay(game);  //Wait so we get a steady frame rate
 
    }
 

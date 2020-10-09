@@ -74,6 +74,10 @@ void sdlSleep(int delay) {
    SDL_Delay(delay);  //milliseconds
 }
 
+void sdlSwapWindow(Game* game) {
+   SDL_GL_SwapWindow(game->sdl->window);
+}
+
 //Give extra frame time to GGPO so it can do it's thing
 void gameGiveIdleToGGPO(Game* game, int time) {
    if (game->net && game->net->ggpo && time > 0) {
@@ -114,7 +118,7 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   SDL_GL_SetSwapInterval(0); // I owe Sean so much for this tip... DO NOT Enable vsync... it eats up all the frame time
+   SDL_GL_SetSwapInterval(1); // I owe Sean so much for this tip... DO NOT Enable vsync... it eats up all the frame time
 
    return true;
 }
@@ -365,7 +369,6 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->sdl->window);
 
 }
 

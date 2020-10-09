@@ -139,3 +139,4 @@ void gameEndMatch(Game* game);
 void gameFrameDelay(Game* game);
 
 void gameAI(Game* game, int player);
+void sdlSwapWindow(Game* game);
