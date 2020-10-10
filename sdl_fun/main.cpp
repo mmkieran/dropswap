@@ -10,6 +10,11 @@
 
 Game *game = nullptr;
 
+//Frame variables
+uint64_t now = 0;
+uint64_t next = 0;
+const int delay = 1000000 / 60;  //microseconds
+
 int main(int argc, char* args[]) {
    game = gameCreate("Drop and Swap", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
    if (!game) { return -1; }
@@ -21,7 +26,8 @@ int main(int argc, char* args[]) {
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
 
    while (gameRunning(game)) {
-      game->kt.frameStart = game->kt.getTime();
+
+      gameFrameDelay(game, next);
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
       imguiStartFrame(game);
@@ -31,20 +37,10 @@ int main(int argc, char* args[]) {
          if (game->players > 1) { gameRunFrame(); }
          else if (game->players == 1) { gameSinglePlayer(game); }
       }
-      imguiRender(game);  //draw the board, cursor, and other things
-
-      game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
-      if (game->kt.frameDelay >= game->kt.frameTime) {  
-         int leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
-         if (game->players > 1) {
-            gameGiveIdleToGGPO(game, leftover - 2);  //Give some time to GGPO, but leave some for vsync
-         }
-      }
-
-      sdlSwapWindow(game);  //Try putting this at the end so vsync doesn't take all the time
-
-      //gameFrameDelay(game);  //Wait so we get a steady frame rate
-
+      imguiRender(game);  //draw the board, cursor, and other things 
+      
+      now = game->kt.getTime();
+      next = now + delay;
    }
 
    gameDestroy(game);

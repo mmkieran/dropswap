@@ -214,8 +214,10 @@ static bool upnpCleanup(int port) {
 
    //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
 
-   FreeUPNPUrls(&upnp_urls);
-   freeUPNPDevlist(upnp_devices);
+   if (upnp_devices) { 
+      FreeUPNPUrls(&upnp_urls);
+      freeUPNPDevlist(upnp_devices); 
+   }
    return error;
 }
 
@@ -378,10 +380,6 @@ int ggpoDisconnectPlayer(int player) {
 //Disconnect players and recreate game->net
 void ggpoEndSession(Game* game) {
    if (game->net) {
-      for (int i = 0; i < game->players; i++) {
-         ggpoDisconnectPlayer(i + 1);
-
-      }
       ggpoClose(game->net->ggpo);
       delete game->net;
       game->net = new NetPlay;

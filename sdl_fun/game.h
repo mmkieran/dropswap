@@ -39,9 +39,6 @@ uint64_t sdlGetCounter();
 void sdlSleep(int delay);
 
 struct KeepTime {
-   uint64_t frameStart;
-   uint64_t frameTime;
-   const int frameDelay = 1000000 / 60;  //microseconds
 
    uint64_t gameStart;
    uint64_t timeFreq;
@@ -68,6 +65,7 @@ struct GameTimings {
 struct Game {
 
    GameWindow* sdl = nullptr;
+   int vsync;
    float windowWidth;
    float windowHeight;
 
@@ -136,7 +134,6 @@ void imguiRender(Game* game);
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
 
-void gameFrameDelay(Game* game);
+void gameFrameDelay(Game* game, uint64_t next);
 
 void gameAI(Game* game, int player);
-void sdlSwapWindow(Game* game);

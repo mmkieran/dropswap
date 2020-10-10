@@ -41,7 +41,6 @@ struct NetPlay {
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
-   bool host = false;
    int hostConnNum = -1;
    int myConnNum = -1;
    int frameDelay[3] = { 2, 1, 10 };

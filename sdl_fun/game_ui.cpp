@@ -632,8 +632,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       }
    }
 
-   static bool readySent = false;
-
    int ready = true;
    for (int i = 0; i < participants; i++) {
       if (game->net->connections[i].state == Running) {

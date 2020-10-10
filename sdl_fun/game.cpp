@@ -74,10 +74,6 @@ void sdlSleep(int delay) {
    SDL_Delay(delay);  //milliseconds
 }
 
-void sdlSwapWindow(Game* game) {
-   SDL_GL_SwapWindow(game->sdl->window);
-}
-
 //Give extra frame time to GGPO so it can do it's thing
 void gameGiveIdleToGGPO(Game* game, int time) {
    if (game->net && game->net->ggpo && time > 0) {
@@ -86,24 +82,20 @@ void gameGiveIdleToGGPO(Game* game, int time) {
 }
 
 //Calculate how long we have to wait to get a steady frame rate
-void gameFrameDelay(Game* game) {
-   game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
-   if (game->kt.frameDelay >= game->kt.frameTime) {  //Check if we have to wait to get the proper frames per second
-      int leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
-      if (game->players > 1) {
-         gameGiveIdleToGGPO(game, leftover - 1);  //Give some time to GGPO
+void gameFrameDelay(Game* game, uint64_t next) {
+   uint64_t now = game->kt.getTime();
 
-         //Check if we STILL have time leftover
-         game->kt.frameTime = game->kt.getTime() - game->kt.frameStart;
-         if (game->kt.frameDelay >= game->kt.frameTime) {
-            leftover = (game->kt.frameDelay - game->kt.frameTime) / 1000;
-            sdlSleep(leftover);  //Sleep away the afternoon
+   int diff = (next - now) / 1000;
+   if (game->vsync != 0) {  //We need to control frame rate if vsync fails
+      if (now < next) {
+         if (game->players > 1) {
+            gameGiveIdleToGGPO(game, diff - 2);  //Give some time to GGPO, but leave some for vsync
          }
+         else { sdlSleep(diff - 2); }
       }
-      else {
-         sdlSleep(leftover);
-      }
+      while (now < next) { now = game->kt.getTime(); }
    }
+   else if (game->players > 1) { gameGiveIdleToGGPO(game, diff / 2); }
 }
 
 //Create the SDL Window for the game
@@ -118,7 +110,8 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   SDL_GL_SetSwapInterval(1); // I owe Sean so much for this tip... DO NOT Enable vsync... it eats up all the frame time
+   game->vsync = SDL_GL_SetSwapInterval(1); // Gotta be careful about frame timing with vsync... thanks Sean!
+   //game->vsync = -1;  //debug no vsync
 
    return true;
 }
@@ -369,7 +362,7 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+   SDL_GL_SwapWindow(game->sdl->window);
 }
 
 //Jokulhaups
