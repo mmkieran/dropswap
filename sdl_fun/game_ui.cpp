@@ -193,7 +193,7 @@ void boardUI(Game* game) {
 
       ImGui::Text("Frame Count: %d", game->frameCount);
       if (game->timer > 0) {
-         ImGui::Text("FPS: %0.1f", game->kt.fps);
+         ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps) );
       }
 
       static int bustee = 0;

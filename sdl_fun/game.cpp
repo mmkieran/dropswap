@@ -84,17 +84,22 @@ void gameGiveIdleToGGPO(Game* game, int time) {
 //Calculate how long we have to wait to get a steady frame rate
 void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
 
-   int diff = end - start;
-   if (game->kt.delay > diff) {
-      if (game->players > 1) {
-         gameGiveIdleToGGPO(game, diff/1000 - 2);  //Give some time to GGPO, but leave some for vsync
+   uint64_t frameTime = end - start;
+   uint64_t leftover = 0;
+
+   if (game->kt.delay > frameTime) {
+      leftover = (game->kt.delay - frameTime) / 1000 - 2;
+      if (leftover > 0) {
+         if (game->players > 1) {
+            gameGiveIdleToGGPO(game, leftover);  //Give some time to GGPO, but leave to wait out frame
+         }
+         else { sdlSleep(leftover); }
       }
-      else { sdlSleep(diff/1000 - 2); }
    }
    if (game->vsync != 0) {  //We need to control frame rate if vsync fails
-      diff = game->kt.getTime() - start;
-      while (game->kt.delay > diff) { 
-         diff = game->kt.getTime() - start;
+      uint64_t newTime = game->kt.getTime() - start;
+      while (game->kt.delay > newTime) { 
+         newTime = game->kt.getTime() - start;
       }
    }
    game->kt.fps = (game->kt.getTime() - start) / 1000.0; 
@@ -112,7 +117,7 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   game->vsync = SDL_GL_SetSwapInterval(0); // Gotta be careful about frame timing with vsync... thanks Sean!
+   //game->vsync = SDL_GL_SetSwapInterval(1); // Gotta be careful about frame timing with vsync... thanks Sean!
    game->vsync = -1;  //debug no vsync
 
    return true;
