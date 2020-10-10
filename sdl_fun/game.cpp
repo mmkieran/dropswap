@@ -89,7 +89,7 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
 
    if (game->kt.delay > frameTime) {
       leftover = (game->kt.delay - frameTime) / 1000 - 2;
-      if (leftover > 0) {
+      if (leftover > 0 && leftover < 15) {
          if (game->players > 1) {
             gameGiveIdleToGGPO(game, leftover);  //Give some time to GGPO, but leave to wait out frame
          }
@@ -102,7 +102,12 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
          newTime = game->kt.getTime() - start;
       }
    }
+   else { gameSwapWindow(game); }
    game->kt.fps = (game->kt.getTime() - start) / 1000.0; 
+}
+
+void gameSwapWindow(Game* game) {
+   SDL_GL_SwapWindow(game->sdl->window);
 }
 
 //Create the SDL Window for the game
@@ -117,10 +122,20 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   //game->vsync = SDL_GL_SetSwapInterval(1); // Gotta be careful about frame timing with vsync... thanks Sean!
-   game->vsync = -1;  //debug no vsync
+   game->vsync = SDL_GL_SetSwapInterval(1); // Gotta be careful about frame timing with vsync... thanks Sean!
+   //game->vsync = -1;  //debug no vsync
 
    return true;
+}
+
+void sdlSetVsync(Game* game, bool toggle) {
+   if (toggle) {
+      game->vsync = SDL_GL_SetSwapInterval(1);
+   }
+   else {
+      SDL_GL_SetSwapInterval(0);
+      game->vsync = -1;
+   }
 }
 
 //Create the game object and all that entails
@@ -369,7 +384,7 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   SDL_GL_SwapWindow(game->sdl->window);
+   if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
 //Jokulhaups

@@ -365,6 +365,11 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::SliderScalar("Enter Silvers", ImGuiDataType_U32, &game->timings.enterSilver[0], &game->timings.enterSilver[1], &game->timings.enterSilver[2]);
    }
 
+   static bool vsync = false;
+   ImGui::Checkbox("Vsync", &vsync);
+   if (vsync == true && game->vsync == -1) { sdlSetVsync(game, true); }
+   if (vsync == false && game->vsync == 0) { sdlSetVsync(game, false); }
+
    ImGui::Checkbox("Show Debug Options", &game->debug);
 
    if (game->debug == true) {

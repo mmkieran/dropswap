@@ -139,3 +139,6 @@ void gameEndMatch(Game* game);
 void gameDelayFrame(Game* game, uint64_t end, uint64_t start);
 
 void gameAI(Game* game, int player);
+
+void gameSwapWindow(Game* game);
+void sdlSetVsync(Game* game, bool toggle);
