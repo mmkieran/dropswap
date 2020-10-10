@@ -11,9 +11,7 @@
 Game *game = nullptr;
 
 //Frame variables
-uint64_t now = 0;
-uint64_t next = 0;
-const int delay = 1000000 / 60;  //microseconds
+uint64_t end = 0;
 
 int main(int argc, char* args[]) {
    game = gameCreate("Drop and Swap", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
@@ -27,7 +25,6 @@ int main(int argc, char* args[]) {
 
    while (gameRunning(game)) {
       uint64_t start = game->kt.getTime();
-      gameDelayFrame(game, next, start);
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
       imguiStartFrame(game);
@@ -39,9 +36,8 @@ int main(int argc, char* args[]) {
       }
       imguiRender(game);  //imgui windows, the board, cursor, and other things 
       
-      now = game->kt.getTime();
-      if (game->playing) { game->kt.fps = (now - start) / 1000.0; } //For calculating the FPS
-      next = now + delay;
+      end = game->kt.getTime();
+      gameDelayFrame(game, end, start);
    }
 
    gameDestroy(game);

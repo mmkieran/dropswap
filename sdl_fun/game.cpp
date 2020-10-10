@@ -82,20 +82,22 @@ void gameGiveIdleToGGPO(Game* game, int time) {
 }
 
 //Calculate how long we have to wait to get a steady frame rate
-void gameDelayFrame(Game* game, uint64_t next, uint64_t now) {
-   //uint64_t now = game->kt.getTime();
+void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
 
-   int diff = (next - now) / 1000;
-   if (now < next) {
+   int diff = end - start;
+   if (game->kt.delay > diff) {
       if (game->players > 1) {
-         gameGiveIdleToGGPO(game, diff/2);  //Give some time to GGPO, but leave some for vsync
+         gameGiveIdleToGGPO(game, diff/1000 - 2);  //Give some time to GGPO, but leave some for vsync
       }
-      else { sdlSleep(diff/2); }
+      else { sdlSleep(diff/1000 - 2); }
    }
-   if (game->vsync != 0 && next > 0) {  //We need to control frame rate if vsync fails
-      while (now < next - 3000) { 
-         now = game->kt.getTime(); }
+   if (game->vsync != 0) {  //We need to control frame rate if vsync fails
+      diff = game->kt.getTime() - start;
+      while (game->kt.delay > diff) { 
+         diff = game->kt.getTime() - start;
+      }
    }
+   game->kt.fps = (game->kt.getTime() - start) / 1000.0; 
 }
 
 //Create the SDL Window for the game

@@ -43,6 +43,7 @@ struct KeepTime {
    uint64_t gameStart = 0;
    uint64_t timeFreq = 0;
    double fps = 0;
+   const int delay = 1000000 / 60;  //microseconds
 
    uint64_t getTime() {
       uint64_t current = sdlGetCounter();
@@ -135,6 +136,6 @@ void imguiRender(Game* game);
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
 
-void gameDelayFrame(Game* game, uint64_t next, uint64_t now);
+void gameDelayFrame(Game* game, uint64_t end, uint64_t start);
 
 void gameAI(Game* game, int player);
