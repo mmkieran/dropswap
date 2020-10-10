@@ -191,8 +191,9 @@ void boardUI(Game* game) {
 
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
-      if (game->debug && game->players > 1) {
-         ImGui::Text("Frame Count: %d", game->frameCount);
+      ImGui::Text("Frame Count: %d", game->frameCount);
+      if (game->timer > 0) {
+         ImGui::Text("FPS: %0.1f", game->kt.fps);
       }
 
       static int bustee = 0;

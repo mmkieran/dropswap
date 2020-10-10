@@ -26,8 +26,8 @@ int main(int argc, char* args[]) {
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
 
    while (gameRunning(game)) {
-
-      gameFrameDelay(game, next);
+      uint64_t start = game->kt.getTime();
+      gameDelayFrame(game, next, start);
 
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
       imguiStartFrame(game);
@@ -37,9 +37,10 @@ int main(int argc, char* args[]) {
          if (game->players > 1) { gameRunFrame(); }
          else if (game->players == 1) { gameSinglePlayer(game); }
       }
-      imguiRender(game);  //draw the board, cursor, and other things 
+      imguiRender(game);  //imgui windows, the board, cursor, and other things 
       
       now = game->kt.getTime();
+      if (game->playing) { game->kt.fps = (now - start) / 1000.0; } //For calculating the FPS
       next = now + delay;
    }
 

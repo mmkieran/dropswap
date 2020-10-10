@@ -40,8 +40,9 @@ void sdlSleep(int delay);
 
 struct KeepTime {
 
-   uint64_t gameStart;
-   uint64_t timeFreq;
+   uint64_t gameStart = 0;
+   uint64_t timeFreq = 0;
+   double fps = 0;
 
    uint64_t getTime() {
       uint64_t current = sdlGetCounter();
@@ -54,7 +55,7 @@ struct GameTimings {
    //Value, min and max
    int gracePeriod[3] = { 1000, 0, 5000 };     //Bonus pause time when your board reaches the top before you die
    int fallDelay[3] = { 100, 0, 1000 };        //The pause before a tile falls after swapping
-   int removeClear[3] = { 2000, 2000, 5000 };  //Time it takes to change a cleared tile to empty
+   int removeClear[3] = { 1800, 500, 5000 };  //Time it takes to change a cleared tile to empty
    int enterSilver[3] = { 30000, 0, 120000 };  //Time before silvers start appearing
    int countIn[3] = { 2000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
    int landPause[3] = { 1000, 0, 5000 };       //Pause board movement when garbage lands
@@ -134,6 +135,6 @@ void imguiRender(Game* game);
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
 
-void gameFrameDelay(Game* game, uint64_t next);
+void gameDelayFrame(Game* game, uint64_t next, uint64_t now);
 
 void gameAI(Game* game, int player);
