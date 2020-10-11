@@ -296,7 +296,10 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
       }
    }
-   if (result == GGPO_OK) { game->net->messages.push_back("Added player slots"); }
+   if (result == GGPO_OK) { 
+      game->net->messages.push_back("Added player slots"); 
+      game->players = participants - spectators;
+   }
 }
 
 //Updates the game, notifies GGPO and advances the frame

@@ -84,14 +84,7 @@ void mainUI(Game* game) {
       ImGui::NewLine();
 
       static bool showGGPOSession = false;
-      if (ImGui::Button("Two Player", ImVec2{ width, 0 })) {
-         game->players = 2;
-         showGGPOSession = true;
-      }
-      ImGui::NewLine();
-
-      if (ImGui::Button("Four Player", ImVec2{ width, 0 })) {
-         game->players = 4;
+      if (ImGui::Button("Multiplayer", ImVec2{ width, 0 })) {
          showGGPOSession = true;
       }
       ImGui::NewLine();
