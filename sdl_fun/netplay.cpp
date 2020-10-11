@@ -241,7 +241,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    for (int i = 0; i < participants; i++) {
       if (connects[i].host == true) { hostNumber = i; }  //Who is hosting
       if (connects[i].me == true) { myNumber = i; }  //who am i? who am i?
-      if (connects[i].playerType == GGPO_PLAYERTYPE_SPECTATOR) { spectators++; }
+      if (connects[i].playerType == 1) { spectators++; }
    }
 
    game->net->myConnNum = myNumber;
@@ -254,7 +254,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       char name[] = "DropAndSwap";
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
    }
-   else if (connects[myNumber].playerType == GGPO_PLAYERTYPE_SPECTATOR){  //Spectating a GGPO Session
+   else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
       return;  //And we're done
    }
@@ -270,12 +270,14 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
 
    for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
-      if (hostNumber != myNumber && connects[i].playerType == GGPO_PLAYERTYPE_SPECTATOR) { continue; }  //Host takes care of spectators
-      if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
+      if (hostNumber != myNumber && connects[i].playerType == 1) { continue; }  //Host takes care of spectators
+      if (connects[i].playerType != 1) {  //Spectators don't have input size or player number
          game->net->players[i].size = sizeof(GGPOPlayer);
          game->net->players[i].player_num = i + 1;
       }
-      game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
+      if (connects[i].me == true && connects[i].playerType == 0) { game->net->players[i].type = GGPO_PLAYERTYPE_LOCAL; } //I'm a local player
+      else if (connects[i].playerType == 1) { game->net->players[i].type = GGPO_PLAYERTYPE_SPECTATOR; } //I'm a spectator
+      else if (connects[i].playerType == 0) { game->net->players[i].type = GGPO_PLAYERTYPE_REMOTE; }
 
       if (i != myNumber) {  //Everybody else is remote
          strcpy(game->net->players[i].u.remote.ip_address, connects[i].ipAddress);

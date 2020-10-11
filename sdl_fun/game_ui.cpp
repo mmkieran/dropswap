@@ -559,7 +559,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          hostSetup[i].me = false;
          hostSetup[i].host = false;
          hostSetup[i].playerType = 0;
-         hostSetup[i].localPort = 7001;
+         hostSetup[i].localPort = 7001 + i;
       }
       participants = 2;
    }
@@ -590,7 +590,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          }
       }
       ImGui::SameLine();
-      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Local\0Remote\0Spectator\0");
+      ImGui::Combo("Player Type", &hostSetup[i].playerType, "Player\0Spectator\0");
       ImGui::SameLine();
       ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
       ImGui::SameLine();
