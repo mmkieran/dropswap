@@ -209,6 +209,10 @@ void gameHandleEvents(Game* game) {
             if (game->players == 1 && game->ai == true) { gameEndMatch(game); }
             else { game->paused = true; }
          }
+         if (game->players == 1) {  //Only save state in one player games
+            if (event.key.keysym.sym == SDLK_F1) { gameSaveState(game, "saves/game_state.dat"); }
+            else if (event.key.keysym.sym == SDLK_F2) { gameLoadState(game, "saves/game_state.dat"); }
+         }
       }
 
       if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added
