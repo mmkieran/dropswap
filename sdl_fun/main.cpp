@@ -4,7 +4,7 @@
 #include <SDL.h>
 
 //#include <Windows.h>  //For win socks 
-#include <winsock.h>  //For win socks 
+#include <winsock2.h>  //For win socks 
 
 #include "game.h"
 
