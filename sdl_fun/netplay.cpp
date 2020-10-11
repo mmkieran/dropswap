@@ -381,7 +381,14 @@ int ggpoDisconnectPlayer(int player) {
 void ggpoEndSession(Game* game) {
    if (game->net) {
       ggpoClose(game->net->ggpo);
+      int frameDelay = game->net->frameDelay[0];
+      int disconnectTime = game->net->disconnectTime[0];
+      bool useUPNP = game->net->useUPNP;
       delete game->net;
+
       game->net = new NetPlay;
+      game->net->useUPNP = useUPNP;
+      game->net->frameDelay[0] = frameDelay;
+      game->net->disconnectTime[0] = disconnectTime;
    }
 }
