@@ -273,7 +273,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       if (hostNumber != myNumber && connects[i].playerType == GGPO_PLAYERTYPE_SPECTATOR) { continue; }  //Host takes care of spectators
       if (connects[i].playerType != GGPO_PLAYERTYPE_SPECTATOR) {  //Spectators don't have input size or player number
          game->net->players[i].size = sizeof(GGPOPlayer);
-         game->net->players[i].player_num = connects[i].player;
+         game->net->players[i].player_num = i + 1;
       }
       game->net->players[i].type = (GGPOPlayerType)connects[i].playerType;
 
