@@ -103,7 +103,7 @@ struct Game {
 
    bool paused = false;
 
-   bool debug = true;
+   bool debug = false;
    bool syncTest = false;  //For GGPO Sync test
    int frameCount = 0;
    std::vector <unsigned char> save;  //todo debug find a better place for this later
