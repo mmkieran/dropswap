@@ -398,14 +398,14 @@ void ggpoEndSession(Game* game) {
    }
 }
 
-#include <winsock2.h>  //For win socks 
+#include <winsock2.h>  //For windows sockets 
+int PORT = 7001;
+int sockfd, connfd, len;
+
+sockaddr_in server, client = { 0 };
 
 //Use TCP to transfer information from host to peers
-void start() {
-   int PORT = 7001;
-   int sockfd, connfd, len;
-
-   sockaddr_in server, client = { 0 };
+void tcpStart(bool listening = false) {
 
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -422,18 +422,20 @@ void start() {
       printf("socket binding failed...");
    }
 
-   //start listening
-   if (listen(sockfd, 5) != 0) {
-      printf("Listen failed...");
+   if (listening == true) {
+      if (listen(sockfd, 5) != 0) {
+         printf("Listen failed...");
+      }
+
+      //Accept the data packet from client
+      len = sizeof(client);
+      connfd = accept(sockfd, (sockaddr*)&client, &len);
+      if (connfd < 0) { printf("socket accept failed..."); }
    }
-
-   //Accept the data packet from client
-   len = sizeof(client);
-   connfd = accept(sockfd, (sockaddr*)&client, &len);
-   if (connfd < 0) { printf("socket accept failed..."); }
-
-
-   closesocket(sockfd);
 }
 
+void tcpClose() {
+   closesocket(sockfd);
+   //WSACleanup();
+}
 //https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
