@@ -256,6 +256,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
    else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
+      game->players = participants - spectators;
       return;  //And we're done
    }
    else {  //Start a regular GGPO Session
@@ -268,12 +269,13 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
-
+   int pNum = 1;
    for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
       if (hostNumber != myNumber && connects[i].playerType == 1) { continue; }  //Host takes care of spectators
       if (connects[i].playerType != 1) {  //Spectators don't have input size or player number
          game->net->players[i].size = sizeof(GGPOPlayer);
-         game->net->players[i].player_num = i + 1;
+         game->net->players[i].player_num = pNum;
+         pNum++;
       }
       if (connects[i].me == true && connects[i].playerType == 0) { game->net->players[i].type = GGPO_PLAYERTYPE_LOCAL; } //I'm a local player
       else if (connects[i].playerType == 1) { game->net->players[i].type = GGPO_PLAYERTYPE_SPECTATOR; } //I'm a spectator
