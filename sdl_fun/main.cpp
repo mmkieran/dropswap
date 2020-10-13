@@ -18,7 +18,12 @@ int main(int argc, char* args[]) {
    if (!game) { return -1; }
 
    WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
-   WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
+   int wsaResult = WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
+
+   if (wsaResult != NO_ERROR) {
+      printf("WSAStartup failed: %d\n", wsaResult);
+      return -1;
+   }
 
    game->kt.gameStart = SDL_GetPerformanceCounter(); 
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds

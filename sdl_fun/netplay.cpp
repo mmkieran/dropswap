@@ -400,11 +400,34 @@ void ggpoEndSession(Game* game) {
    }
 }
 
+/*
+After UPNP is successful...
+
+Host
+Server sends a message to each player using IP and Port (socket) - threaded?
+Packet contains the saved game state plus frame delay, etc.
+Server listens for response
+When all responses are in, it starts ggpo session
+Start game
+
+Client
+Each client sits listening for server
+When they receive the game state and it loads successfully... if not do manual
+They send a ready message back and start ggpo session
+Start game
+
+*/
+
 #include <winsock2.h>  //For windows sockets 
 int PORT = 7001;
 int sockfd, connfd, len;
 
 sockaddr_in server, client = { 0 };
+
+#define BUFFERLEN 8192
+
+char recvBuffer[BUFFERLEN];
+int bufferLen = BUFFERLEN;
 
 //Use TCP to transfer information from host to peers
 void tcpStart(bool listening = false) {
@@ -434,6 +457,19 @@ void tcpStart(bool listening = false) {
       connfd = accept(sockfd, (sockaddr*)&client, &len);
       if (connfd < 0) { printf("socket accept failed..."); }
    }
+}
+
+void sendMsg(SOCKET socket, const char* buffer, int len) {
+   int result = send(socket, buffer, len, 0);
+   if (result == SOCKET_ERROR) { ; }  //Failed to send
+}
+
+void recMsg(SOCKET socket) {
+   //Do this in a while loop until all data received
+   //Use a length prefix at the start of the data (size of vector) 
+   int result = recv(socket, recvBuffer, bufferLen, 0);
+   if (result == 0) { ; } //Connection closed
+   if (result > 0) { ; }  //We got something
 }
 
 void tcpClose() {
