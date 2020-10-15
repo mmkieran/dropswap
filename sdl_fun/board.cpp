@@ -106,7 +106,7 @@ Board* boardCreate(Game* game) {
 
 		   boardStartRandom(board);
 
-         board->mesh = meshCreate();
+         board->mesh = meshCreate();  //Everything is draw with this
 
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
@@ -134,7 +134,6 @@ Board* boardDestroy(Board* board) {
       for (int row = 0; row < board->wBuffer; row++) {
          for (int col = 0; col < board->w; col++) {
             Tile* tile = boardGetTile(board, row, col);
-            tile->mesh = meshDestroy(tile->mesh);
          }
       }
       board->pile = garbagePileDestroy(board->pile);
@@ -222,9 +221,8 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (meshGetTexture(tile->mesh) == Texture_empty) {  
-            continue; 
-         }
+         if (tile->type == tile_empty) { continue; }
+
          if (tile->effect == visual_swapl || tile->effect == visual_swapr) {
             if (tile->effectTime <= board->game->timer) {
                tile->effect = visual_none;
@@ -278,14 +276,12 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
 
 //Helper with logic for swap
 static void _swapTiles(Tile* tile1, Tile* tile2) {
-
    Tile tmp = *tile2;
 
    tile2->type = tile1->type;
-   tile2->mesh = tile1->mesh;
-
+   tile2->texture = tile1->texture;
    tile1->type = tmp.type;
-   tile1->mesh = tmp.mesh;
+   tile1->texture = tmp.texture;
 }
 
 //Swap two tiles on the board horizontally
@@ -560,8 +556,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
          garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
-         meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
+         tileSetTexture(board, m);
          m->clearTime = clearTime;
          m->falling = false;
          if (fallCombo && m->chain == true) {
@@ -715,10 +711,7 @@ void boardRemoveClears(Board* board) {
             }
 
             else if (tile->clearTime + board->game->timings.removeClear[0] <= current) {  //Regular tile clearing
-               tile->type = tile_empty;
-               tile->chain = false;
-               meshSetTexture(board->game, tile->mesh, Texture_empty);
-               tile->clearTime = 0;
+               tileInit(board, tile, row, col, tile_empty);
 
                //flag blocks above the clear as potentially part of a chain
                int r = row - 1;
@@ -800,16 +793,16 @@ int boardFillTiles(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < board->startH + (board->endH - board->startH) / 2) {
-            tileInit(board, tile, row, col, tile_empty, true);
+            tileInit(board, tile, row, col, tile_empty);
             continue;
          }
          
          TileType type = _tileGenType(board, tile);
          if (col % 2 == 0) {
-            tileInit(board, tile, row - board->startH - 3, col, type, true);
+            tileInit(board, tile, row - board->startH - 3, col, type);
          }
          else {
-            tileInit(board, tile, row - board->startH - 2, col, type, true);
+            tileInit(board, tile, row - board->startH - 2, col, type);
          }
       }
    }
@@ -838,7 +831,6 @@ void boardAssignSlot(Board* board, bool buffer = false) {
 
       Tile* current = boardGetTile(board, row, col);
       assert(current->type == tile_empty);  //This is a position conflict... bad
-      t.mesh = current->mesh;
       *current = t;
       tileSetTexture(board, current);
 

@@ -58,7 +58,7 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 
 void cursorDraw(Board* board, Cursor* cursor) {
 
-   animationDraw(board, cursor->animation, board->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
+   animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
 
    meshDraw(board, cursor->texture, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
 }

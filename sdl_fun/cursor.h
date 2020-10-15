@@ -4,6 +4,7 @@ typedef struct Board Board;
 typedef struct Mesh Mesh;
 typedef struct Animation Animation;
 typedef struct UserInput UserInput;
+typedef struct Texture Texture;
 
 
 //@@Start Serialize

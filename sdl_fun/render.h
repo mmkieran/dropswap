@@ -112,7 +112,7 @@ void textureDestroy(Texture* texture);
 
 Texture* textureLoadFromFile(const char* filename);
 int meshGetTextureHandle(Mesh* mesh);
-void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH);
+void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
@@ -121,7 +121,7 @@ TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
-void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH);
+void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH);
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);

@@ -451,19 +451,19 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
+void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH) {
 
    int currentFrame = (board->game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 
    if (animation->animated == true) {
-      textureTransform(board->game, mesh, src.x, src.y, size.x, size.y);
+      textureTransform(board->game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
    meshDraw(board, animation->texture, destX, destY, destW, destH);
 
-   textureTransform(board->game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
+   textureTransform(board->game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }
 
 //Delete an Animation and free the memory
@@ -475,12 +475,12 @@ Animation* animationDestroy(Animation* animation) {
 }
 
 //This is for changing where the texture is sampled from the original image
-void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
+void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH) {
 
-   Mat4x4 projection = textureOriginToWorld(game, mesh->texture->w, mesh->texture->h);
-   Mat4x4 device = worldToTextureCoords(game, mesh->texture->w, mesh->texture->h);
+   Mat4x4 projection = textureOriginToWorld(game, texture->w, texture->h);
+   Mat4x4 device = worldToTextureCoords(game, texture->w, texture->h);
 
-   Vec2 scale = { (float)sourceW / mesh->texture->w, (float)sourceH / mesh->texture->h };
+   Vec2 scale = { (float)sourceW / texture->w, (float)sourceH / texture->h };
    Vec2 dest = { sourceX, sourceY };
 
    Mat4x4 transform = transformMatrix(dest, 0.0f, scale);

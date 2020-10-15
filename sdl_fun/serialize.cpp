@@ -429,7 +429,6 @@ int gameLoad(Game* game, unsigned char*& start) {
                for (int col = 0; col < board->w; col++) {
                   Tile* tile = boardGetTile(board, row, col);
                   //deserialize tiles
-                  tile->mesh = meshCreate();
                   tile->garbage = nullptr;
                   _tileDeserialize(start, board, tile);
                   tileSetTexture(board, tile);
