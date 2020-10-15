@@ -10,6 +10,8 @@ typedef struct UserInput UserInput;
 struct Cursor {
    int index = 0;
 
+   Texture* texture;
+
    double x;
    double y;
 

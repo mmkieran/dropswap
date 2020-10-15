@@ -14,9 +14,11 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
    cursor->w = board->game->tWidth * 2;
 
    cursor->animation = animationCreate(7, 200, 64 + 1, 0, 64, 32, true);  //this is specific to the texture sheet
+   cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor);
 
-   if (index == 2) { cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor2); }
-   else { cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor1); }
+   //For player cursor label
+   if (index == 2) { cursor->texture = resourcesGetTexture(board->game->resources, Texture_cursor2); }
+   else { cursor->texture = resourcesGetTexture(board->game->resources, Texture_cursor1); }
 
    return cursor;
 }
@@ -56,9 +58,9 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 
 void cursorDraw(Board* board, Cursor* cursor) {
 
-   animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
+   animationDraw(board, cursor->animation, board->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 
-   meshDraw(board, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
+   meshDraw(board, cursor->texture, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
