@@ -253,6 +253,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
+      game->players = 2;
    }
    else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
