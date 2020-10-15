@@ -256,6 +256,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
    else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
+      game->players = participants - spectators;
       return;  //And we're done
    }
    else {  //Start a regular GGPO Session
@@ -268,12 +269,13 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
-
+   int pNum = 1;
    for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
       if (hostNumber != myNumber && connects[i].playerType == 1) { continue; }  //Host takes care of spectators
       if (connects[i].playerType != 1) {  //Spectators don't have input size or player number
          game->net->players[i].size = sizeof(GGPOPlayer);
-         game->net->players[i].player_num = i + 1;
+         game->net->players[i].player_num = pNum;
+         pNum++;
       }
       if (connects[i].me == true && connects[i].playerType == 0) { game->net->players[i].type = GGPO_PLAYERTYPE_LOCAL; } //I'm a local player
       else if (connects[i].playerType == 1) { game->net->players[i].type = GGPO_PLAYERTYPE_SPECTATOR; } //I'm a spectator
@@ -398,11 +400,34 @@ void ggpoEndSession(Game* game) {
    }
 }
 
+/*
+After UPNP is successful...
+
+Host
+Server sends a message to each player using IP and Port (socket) - threaded?
+Packet contains the saved game state plus frame delay, etc.
+Server listens for response
+When all responses are in, it starts ggpo session
+Start game
+
+Client
+Each client sits listening for server
+When they receive the game state and it loads successfully... if not do manual
+They send a ready message back and start ggpo session
+Start game
+
+*/
+
 #include <winsock2.h>  //For windows sockets 
 int PORT = 7001;
 int sockfd, connfd, len;
 
 sockaddr_in server, client = { 0 };
+
+#define BUFFERLEN 8192
+
+char recvBuffer[BUFFERLEN];
+int bufferLen = BUFFERLEN;
 
 //Use TCP to transfer information from host to peers
 void tcpServer(int port) {
@@ -445,6 +470,19 @@ void tcpClient(int port, const char* ip = "127.0.0.1") {
    if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
       printf("Socket creation failed.");
    }
+}
+
+void sendMsg(SOCKET socket, const char* buffer, int len) {
+   int result = send(socket, buffer, len, 0);
+   if (result == SOCKET_ERROR) { ; }  //Failed to send
+}
+
+void recMsg(SOCKET socket) {
+   //Do this in a while loop until all data received
+   //Use a length prefix at the start of the data (size of vector) 
+   int result = recv(socket, recvBuffer, bufferLen, 0);
+   if (result == 0) { ; } //Connection closed
+   if (result > 0) { ; }  //We got something
 }
 
 void tcpClose() {
