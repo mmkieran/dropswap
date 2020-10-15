@@ -15,6 +15,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
 
    cursor->animation = animationCreate(7, 200, 64 + 1, 0, 64, 32, true);  //this is specific to the texture sheet
    cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor);
+   textureChangeInterp(cursor->animation->texture, true);
 
    //For player cursor label
    if (index == 2) { cursor->texture = resourcesGetTexture(board->game->resources, Texture_cursor2); }

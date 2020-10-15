@@ -252,47 +252,18 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    return texture;
 }
 
-void textureChangeInterp(Mesh* mesh, bool nearest = false) {
+void textureChangeInterp(Texture* texture, bool nearest = false) {
 
    int flag = GL_LINEAR;
    if (nearest){ flag = GL_NEAREST; }
 
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);  //and in the darkness bind it
+   glBindTexture(GL_TEXTURE_2D, texture->handle);  //and in the darkness bind it
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  //textures repeat on S axis
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  //Repeat on T axis
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, flag);  //Linear interpolation instead of nearest pixel when magnify (blurs)
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, flag);  //same for shrink
-
-   glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
-}
-
-void textureAttach(Mesh* mesh) {
-   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
-}
-
-void textureParams(Texture* texture, TextureWrap wrap) {
-   if (!texture->handle) {return; }
-
-   GLint wrapType;
-
-   if (wrap == mirror) {
-      wrapType = GL_MIRRORED_REPEAT;
-   }
-   else {
-      wrapType = GL_REPEAT;
-   }
-
-   glBindTexture(GL_TEXTURE_2D, texture->handle);  //and in the darkness bind it
-
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType);  //textures repeat on S axis
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType);  //Repeat on T axis
-
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  //Linear interpolation instead of nearest pixel when magnify (blurs)
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  //same for shrink
 
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 }
@@ -489,21 +460,6 @@ void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY
    Mat4x4 mat = multiplyMatrix(device, intermediate);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
-}
-
-TextureEnum meshGetTexture(Mesh* mesh) {
-   if (mesh->texture) { return mesh->type; }
-   else { return Texture_empty; }
-}
-
-int meshGetTextureHandle(Mesh* mesh) {
-   if (mesh && mesh->texture) { return mesh->texture->handle; }
-   else { return -1; }
-}
-
-void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture) {
-   mesh->texture = resourcesGetTexture(game->resources, texture);
-   mesh->type = texture;
 }
 
 Mesh* meshDestroy(Mesh* mesh) {

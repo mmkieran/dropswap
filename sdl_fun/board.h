@@ -10,15 +10,6 @@
 
 #define SWAPTIME 80  //Visual delay when swapping tiles
 
-enum BoardPauseType {
-   pause_combo = 0,
-   pause_chain,
-   pause_clear,
-   pause_crashland,
-   pause_garbageclear,
-   pause_danger
-};
-
 struct Tile;
 struct Cursor;
 
@@ -107,6 +98,6 @@ void boardLoadRandom(Board* board);
 
 bool aiFindVertMatch(Board* board);
 bool aiFindHorizMatch(Board* board);
-void aiGetSteps(Board* board);
+void aiGetSteps(Board* board, int player);
 void aiDoStep(Board* board);
 void boardAI(Board* board, int player);

@@ -4,11 +4,6 @@
 
 #include <imgui/GL/gl3w/gl3w.h>
 
-enum TextureWrap {
-   repeat,
-   mirror,
-};
-
 enum ShaderStage {
    fragment_shader,
    vertex_shader
@@ -105,20 +100,14 @@ Mat4x4 worldToTextureCoords(Game* game, float width, float height);
 Mat4x4 textureOriginToWorld(Game* game, float width, float height);
 
 Texture* textureCreate(unsigned char* image, int width, int height);
-void textureAttach(Mesh* mesh);
-void textureChangeInterp(Mesh* mesh, bool nearest);
-void textureParams(Texture* texture, TextureWrap wrap);
-void textureDestroy(Texture* texture);
-
 Texture* textureLoadFromFile(const char* filename);
-int meshGetTextureHandle(Mesh* mesh);
+void textureChangeInterp(Texture* texture, bool nearest);
 void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH);
+void textureDestroy(Texture* texture);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
 void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
-TextureEnum meshGetTexture(Mesh* mesh);
-void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
 void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH);

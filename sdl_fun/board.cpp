@@ -5,6 +5,15 @@
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
+enum BoardPauseType {
+   pause_combo = 0,
+   pause_chain,
+   pause_clear,
+   pause_crashland,
+   pause_garbageclear,
+   pause_danger
+};
+
 //This functions processes the type of pause to figure out the length of the pause
 void boardPauseTime(Board* board, BoardPauseType type, int size) {
    int currentPause = board->pauseLength;
