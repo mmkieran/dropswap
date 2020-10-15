@@ -19,7 +19,6 @@ GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
    pile = new GarbagePile;
    if (pile) {
-      pile->mesh = meshCreate();
       return pile;
    }
    return nullptr;
@@ -33,13 +32,12 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
             garbageDestroy(pair.second);
          }
       }
-      if (pile->mesh) { meshDestroy(pile->mesh); }
       delete pile;
    }
    return nullptr;
 }
 
-//Allocate memory for a piece of garbage and create a mesh... for serializing
+//Allocate memory for a piece of garbage... for serializing
 Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
 

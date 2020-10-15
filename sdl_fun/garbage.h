@@ -6,7 +6,6 @@
 
 typedef struct Board Board;
 typedef struct Tile Tile;
-typedef struct Mesh Mesh;
 
 //@@Start Serialize
 struct Garbage {
@@ -29,7 +28,6 @@ struct Garbage {
 struct GarbagePile {
    std::map <int, Garbage*> garbage;
    int nextID = 0;
-   Mesh* mesh = nullptr;
 };
 
 GarbagePile* garbagePileCreate();
