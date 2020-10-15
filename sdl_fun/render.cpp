@@ -365,6 +365,7 @@ Mesh* meshCreate() {
    return mesh;
 };
 
+//This makes the mesh darker (for disabled tiles)
 static void meshEffectDarken(Board* board, VisualEffect effect) {
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
 
@@ -376,6 +377,7 @@ static void meshEffectDarken(Board* board, VisualEffect effect) {
    shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
 }
 
+//These are special effects like smooth tile swapping and shake on landing
 static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
 
    Mat4x4 mat = identityMatrix();
@@ -411,16 +413,13 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
+//Texture a mesh, transform it to the correct position, and draw it
 void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
    
-   //if (effect == visual_landing) {
-   //   scale.y *= 0.95f;
-   //   dest.y = dest.y + (board->tileHeight * (1 - 0.95f) );
-   //}
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    
@@ -434,6 +433,8 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
+//Create an Animation setup for a texture sheet
+//delay is the delay between frames, stride is the distance to the next frame in the sheet, rowStart is if there are stacks of images
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated) {
    Animation* animation = new Animation;
 
@@ -449,6 +450,7 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
    return animation;
 }
 
+//Sample a texture sheet and draw the correct frame of the animation using the time
 void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
 
    int currentFrame = (board->game->timer / animation->delay) % animation->frames;
@@ -464,6 +466,7 @@ void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, 
    textureTransform(board->game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
 }
 
+//Delete an Animation and free the memory
 Animation* animationDestroy(Animation* animation) {
    if (animation) {
       delete animation;
@@ -471,8 +474,8 @@ Animation* animationDestroy(Animation* animation) {
    return nullptr;
 }
 
+//This is for changing where the texture is sampled from the original image
 void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
-   //This is for changing where the texture is sampled from the original image
 
    Mat4x4 projection = textureOriginToWorld(game, mesh->texture->w, mesh->texture->h);
    Mat4x4 device = worldToTextureCoords(game, mesh->texture->w, mesh->texture->h);

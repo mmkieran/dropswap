@@ -231,15 +231,6 @@ void boardRender(Game* game, Board* board) {
             }
             tileDraw(board, tile, tile->effect, tile->effectTime);
          }
-
-         //else if (tile->effect == visual_landing) {
-         //   if (tile->effectTime <= board->game->timer) {
-         //      tile->effect = visual_none;
-         //      tile->effectTime = 0;
-         //   }
-         //   tileDraw(board, tile);
-         //   tileDraw(board, tile, tile->effect, tile->effectTime);
-         //}
          else { tileDraw(board, tile); }
       }
    }
@@ -248,6 +239,10 @@ void boardRender(Game* game, Board* board) {
    }
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
+}
+
+void boardVisualEvents(Board* board) {
+
 }
 
 //Calculates the row based on the pointer difference in the array
