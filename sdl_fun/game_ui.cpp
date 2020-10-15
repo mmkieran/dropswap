@@ -8,8 +8,9 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-
 #include <thread>
+
+std::vector <std::string> ui_messages;
 
 const char* credits = R"(
 A special thanks goes out to:

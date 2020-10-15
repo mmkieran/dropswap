@@ -405,7 +405,7 @@ int sockfd, connfd, len;
 sockaddr_in server, client = { 0 };
 
 //Use TCP to transfer information from host to peers
-void tcpStart(bool listening = false) {
+void tcpServer(int port) {
 
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -415,22 +415,35 @@ void tcpStart(bool listening = false) {
    server.sin_family = AF_INET;
    //server.sin_addr.s_addr = inet_addr("127.0.0.1");
    server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
-   server.sin_port = htons(PORT);
+   server.sin_port = htons(port);
 
    //bind socket
    if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
       printf("socket binding failed...");
    }
 
-   if (listening == true) {
-      if (listen(sockfd, 5) != 0) {
-         printf("Listen failed...");
-      }
+   if (listen(sockfd, 5) != 0) {
+      printf("Listen failed...");
+   }
 
-      //Accept the data packet from client
-      len = sizeof(client);
-      connfd = accept(sockfd, (sockaddr*)&client, &len);
-      if (connfd < 0) { printf("socket accept failed..."); }
+   //Accept the data packet from client
+   len = sizeof(client);
+   connfd = accept(sockfd, (sockaddr*)&client, &len);
+   if (connfd < 0) { printf("socket accept failed..."); }
+}
+
+void tcpClient(int port, const char* ip = "127.0.0.1") {
+   //create socket and verify
+   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockfd == -1) { printf("Socket creation failed."); }
+
+   //assign IP and Port
+   server.sin_family = AF_INET;
+   server.sin_addr.s_addr = inet_addr(ip);
+   server.sin_port = htons(port);
+
+   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+      printf("Socket creation failed.");
    }
 }
 
