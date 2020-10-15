@@ -49,6 +49,8 @@ struct Board {
    std::vector <Cursor*> cursors;
    Game* game = nullptr;
 
+   Mesh* mesh = nullptr;
+
    std::vector <VisualEvent> visualEvents;
    BoardStats boardStats;
 

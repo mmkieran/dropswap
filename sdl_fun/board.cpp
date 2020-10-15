@@ -106,18 +106,18 @@ Board* boardCreate(Game* game) {
 
 		   boardStartRandom(board);
 
+         board->mesh = meshCreate();
+
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          if (game->players <= 2) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY);
-            cursor->index = 1;
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, 1);
             board->cursors.push_back(cursor);
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) );
-               cursor->index = i + 1;
+               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), i + 1);
                board->cursors.push_back(cursor);
             }
          }
@@ -142,6 +142,7 @@ Board* boardDestroy(Board* board) {
          cursorDestroy(cursor);
       }
       free(board->tiles);
+      board->mesh = meshDestroy(board->mesh);
       delete board;
    }
    return nullptr;

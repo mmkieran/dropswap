@@ -13,7 +13,6 @@ struct Cursor {
    double x;
    double y;
 
-   Mesh* mesh;
    Animation* animation;
 
    int h;
@@ -28,7 +27,7 @@ enum MoveEnum {
    move_left
 };
 
-Cursor* cursorCreate(Board* board, float xpos, float ypos);
+Cursor* cursorCreate(Board* board, float xpos, float ypos, int index);
 Cursor* cursorDestroy(Cursor* cursor);
 
 void cursorSetX(Cursor* cursor, float x);
