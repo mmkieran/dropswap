@@ -13,6 +13,15 @@
 struct Tile;
 struct Cursor;
 
+enum BoardPauseType {
+   pause_combo = 0,
+   pause_chain,
+   pause_clear,
+   pause_crashland,
+   pause_garbageclear,
+   pause_danger
+};
+
 struct BoardStats {
    std::map <int, int> chainCounts;
    std::map <int, int> comboCounts;
@@ -42,7 +51,7 @@ struct Board {
 
    Mesh* mesh = nullptr;
 
-   std::vector <VisualEvent> visualEvents;
+   std::map <VisualEffect, VisualEvent> visualEvents;
    BoardStats boardStats;
 
    float level = 1;
@@ -77,6 +86,8 @@ Tile* boardGetTile(Board* board, int row, int col);
 
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
+void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x = 0, double y = 0);
+void boardRemoveVisuals(Board* board);
 
 void boardMoveUp(Board* board, float height);
 void boardSwap(Board* board, Cursor* cursor);

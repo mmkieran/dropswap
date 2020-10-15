@@ -5,15 +5,6 @@
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
-enum BoardPauseType {
-   pause_combo = 0,
-   pause_chain,
-   pause_clear,
-   pause_crashland,
-   pause_garbageclear,
-   pause_danger
-};
-
 //This functions processes the type of pause to figure out the length of the pause
 void boardPauseTime(Board* board, BoardPauseType type, int size) {
    int currentPause = board->pauseLength;
@@ -222,6 +213,8 @@ void boardUpdate(Board* board) {
    else if (board->game->players == 1) {
       cursorUpdate(board, board->cursors[0], board->game->p1Input);
    }
+
+   boardRemoveVisuals(board);
 }
 
 //Draw all objects on the board
@@ -249,8 +242,20 @@ void boardRender(Game* game, Board* board) {
    //garbageDraw(board);
 }
 
-void boardVisualEvents(Board* board) {
+void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x, double y) {
+   board->visualEvents[effect].active = true;
+   board->visualEvents[effect].end = board->game->timer + duration;
+   board->visualEvents[effect].pos.x = x;
+   board->visualEvents[effect].pos.y = y;
+}
 
+void boardRemoveVisuals(Board* board) {
+   for (auto&& pair : board->visualEvents) {
+      VisualEvent e = pair.second;
+      if (e.end <= board->game->timer) {
+         pair.second.active = false;
+      }
+   }
 }
 
 //Calculates the row based on the pointer difference in the array
@@ -548,12 +553,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       board->game->soundToggles[sound_clear] = true; 
 
       //first try to render arbitrary text over the board
-      VisualEvent event;
-      event.effect = visual_clear;
-      event.end = board->game->timer + board->game->timings.removeClear[0] /2;
-      event.pos.x = uniqueMatches[0]->xpos + board->tileWidth;
-      event.pos.y = uniqueMatches[0]->ypos + board->tileHeight;
-      board->visualEvents.push_back(event);
+      int duration = board->game->timings.removeClear[0] / 2;
+      boardEnableVisual(board, visual_clear, duration, uniqueMatches[0]->xpos + board->tileWidth, uniqueMatches[0]->ypos + board->tileHeight);
 
       if (board->level < 10) {  
          board->level += (float) uniqueMatches.size() / LEVEL_UP;  //The more you clear, the faster you go
@@ -699,6 +700,11 @@ void boardRemoveClears(Board* board) {
                board->game->soundToggles[sound_anxiety] = true;
                board->boardStats.dangeresque += 1;  //Board Stats
             }
+         }
+
+         if (tile->effect != visual_none && tile->effectTime <= current) {  //Remove visual effects from tile
+            tile->effect = visual_none;
+            tile->effectTime = 0;
          }
 
          if (tile->status != status_normal && tile->statusTime <= current) {  //Remove special temporary tile statuses

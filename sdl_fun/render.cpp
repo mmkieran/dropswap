@@ -366,15 +366,7 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
    }
 
    //Tremble on garbage landing
-   VisualEffect effect2 = visual_none;
-   for (int i = 0; i < board->visualEvents.size(); i++) {
-      VisualEvent e = board->visualEvents[i];
-      if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
-      else if (e.effect == visual_shake && e.end > board->game->timer) {
-         effect2 = visual_shake;
-      }
-   }
-   if (effect2 == visual_shake) { 
+   if (board->visualEvents[visual_shake].active == true) { 
       move.y += sin(board->game->timer); 
       moved = true;
    }

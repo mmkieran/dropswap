@@ -43,8 +43,8 @@ void tileSetTexture(Board* board, Tile* tile) {
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
    tile->type = type;
    tile->status = status_normal;
-   //tile->effect = visual_none;  //We don't need to save this because it only happens during render
-   //tile->effectTime = 0;
+   tile->effect = visual_none;  //We don't need to save this because it only happens during render
+   tile->effectTime = 0;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;
 

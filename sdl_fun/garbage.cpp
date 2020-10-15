@@ -373,10 +373,7 @@ void garbageFall(Board* board, double velocity) {
                   board->game->soundToggles[sound_crashland] = true; 
                   boardPauseTime(board, pause_crashland);
 
-                  VisualEvent event;
-                  event.effect = visual_shake;
-                  event.end = board->game->timer + SHAKETIME;
-                  board->visualEvents.push_back(event);
+                  boardEnableVisual(board, visual_shake, SHAKETIME);
                }
                garbage->totalFall = 0;
                garbage->falling = false;

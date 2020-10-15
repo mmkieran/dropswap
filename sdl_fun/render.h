@@ -62,6 +62,7 @@ enum VisualEffect {
 };
 
 struct VisualEvent {
+   bool active = false;
    VisualEffect effect = visual_none;
    uint64_t end = 0;
    Vec2 pos;
