@@ -81,7 +81,6 @@ void tileUpdate(Board* board, Tile* tile) {
 }
 
 void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
-   textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
    if (meshGetTexture(tile->mesh) != Texture_empty) {
       if (tile->status == status_disable || tileGetRow(board, tile) == board->wBuffer - 1) {
          effect = visual_dark;
