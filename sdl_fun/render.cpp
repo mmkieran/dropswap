@@ -414,7 +414,7 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
 }
 
 //Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
+void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
@@ -426,10 +426,10 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    meshEffectDarken(board, effect);
    meshEffectDisplace(board, effect, effectTime);
 
-   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
+   glBindBuffer(GL_ARRAY_BUFFER, board->mesh->vbo);
+   glBindTexture(GL_TEXTURE_2D, texture->handle);
    
-   glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
+   glDrawArrays(GL_TRIANGLES, 0, board->mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
@@ -461,7 +461,7 @@ void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, 
       textureTransform(board->game, mesh, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(board, mesh, destX, destY, destW, destH);
+   meshDraw(board, animation->texture, destX, destY, destW, destH);
 
    textureTransform(board->game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
 }

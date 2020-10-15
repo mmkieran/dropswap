@@ -116,7 +116,7 @@ void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int 
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
+void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
 TextureEnum meshGetTexture(Mesh* mesh);
 void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture);
 

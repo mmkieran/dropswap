@@ -58,7 +58,7 @@ void cursorDraw(Board* board, Cursor* cursor) {
 
    animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
 
-   meshDraw(board, cursor->mesh, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
+   meshDraw(board, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
