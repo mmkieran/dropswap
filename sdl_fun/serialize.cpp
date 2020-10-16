@@ -427,6 +427,40 @@ std::vector <Byte> gameSave(Game* game) {
    return stream;
 }
 
+int gameCallbackLoad(Game* game, unsigned char*& start) {
+
+   //deserialize game
+   _gameDeserialize(start, game);
+
+   for (auto&& board : game->boards) {
+      //deserialize board
+      if (board) {
+
+         _boardDeserialize(start, board);
+         boardLoadRandom(board);  //Return random generator to saved state using discard
+
+         garbagePileEmpty(board->pile);  //Clear the garbage
+         //deserialize garbage
+         _garbageDeserialize(start, board);
+
+         for (int row = 0; row < board->wBuffer; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               //deserialize tiles
+               tile->garbage = nullptr;
+               _tileDeserialize(start, board, tile);
+               tileSetTexture(board, tile);
+            }
+         }
+
+         //deserialize cursor
+         _cursorDeserialize(start, board);
+      }
+   }
+   return 0;
+}
+
+
 int gameLoad(Game* game, unsigned char*& start) {
 
    //destroy the boards

@@ -31,6 +31,7 @@ struct GarbagePile {
 };
 
 GarbagePile* garbagePileCreate();
+void garbagePileEmpty(GarbagePile* pile);
 GarbagePile* garbagePileDestroy(GarbagePile* pile);
 
 Garbage* garbageCreateEmpty(Board* board);

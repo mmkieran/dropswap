@@ -24,6 +24,18 @@ GarbagePile* garbagePileCreate() {
    return nullptr;
 }
 
+void garbagePileEmpty(GarbagePile* pile) {
+   if (pile) {
+      for (auto&& pair : pile->garbage) {
+         if (pair.second) {
+            garbageDestroy(pair.second);
+         }
+      }
+      pile->nextID = 0;
+      pile->garbage.clear();
+   }
+}
+
 //Frees the memory for a Garbage Pile
 GarbagePile* garbagePileDestroy(GarbagePile* pile) {
    if (pile) {

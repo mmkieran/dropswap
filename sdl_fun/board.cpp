@@ -12,7 +12,7 @@ void boardPauseTime(Board* board, BoardPauseType type, int size) {
 
    switch (type) {
    case pause_combo:
-      time = min( (size - 2) * 1000 + board->game->timings.removeClear[0], 5000);  //max pause of 6s
+      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 5000);  //max pause of 6s
       if (time > currentPause) { board->pauseLength = time;}
       break;
    case pause_chain:
