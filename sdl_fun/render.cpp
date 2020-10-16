@@ -252,47 +252,18 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    return texture;
 }
 
-void textureChangeInterp(Mesh* mesh, bool nearest = false) {
+void textureChangeInterp(Texture* texture, bool nearest = false) {
 
    int flag = GL_LINEAR;
    if (nearest){ flag = GL_NEAREST; }
 
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);  //and in the darkness bind it
+   glBindTexture(GL_TEXTURE_2D, texture->handle);  //and in the darkness bind it
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  //textures repeat on S axis
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  //Repeat on T axis
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, flag);  //Linear interpolation instead of nearest pixel when magnify (blurs)
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, flag);  //same for shrink
-
-   glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
-}
-
-void textureAttach(Mesh* mesh) {
-   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
-}
-
-void textureParams(Texture* texture, TextureWrap wrap) {
-   if (!texture->handle) {return; }
-
-   GLint wrapType;
-
-   if (wrap == mirror) {
-      wrapType = GL_MIRRORED_REPEAT;
-   }
-   else {
-      wrapType = GL_REPEAT;
-   }
-
-   glBindTexture(GL_TEXTURE_2D, texture->handle);  //and in the darkness bind it
-
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType);  //textures repeat on S axis
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType);  //Repeat on T axis
-
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  //Linear interpolation instead of nearest pixel when magnify (blurs)
-   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  //same for shrink
 
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 }
@@ -395,15 +366,7 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
    }
 
    //Tremble on garbage landing
-   VisualEffect effect2 = visual_none;
-   for (int i = 0; i < board->visualEvents.size(); i++) {
-      VisualEvent e = board->visualEvents[i];
-      if (e.end <= board->game->timer) { board->visualEvents.erase(board->visualEvents.begin() + i); }
-      else if (e.effect == visual_shake && e.end > board->game->timer) {
-         effect2 = visual_shake;
-      }
-   }
-   if (effect2 == visual_shake) { 
+   if (board->visualEvents[visual_shake].active == true) { 
       move.y += sin(board->game->timer); 
       moved = true;
    }
@@ -414,7 +377,7 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
 }
 
 //Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
+void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
@@ -426,10 +389,10 @@ void meshDraw(Board* board, Mesh* mesh, float destX, float destY, int destW, int
    meshEffectDarken(board, effect);
    meshEffectDisplace(board, effect, effectTime);
 
-   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-   glBindTexture(GL_TEXTURE_2D, mesh->texture->handle);
+   glBindBuffer(GL_ARRAY_BUFFER, board->mesh->vbo);
+   glBindTexture(GL_TEXTURE_2D, texture->handle);
    
-   glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
+   glDrawArrays(GL_TRIANGLES, 0, board->mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
@@ -451,19 +414,19 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Board* board, Animation* animation, Mesh* mesh, float destX, float destY, int destW, int destH) {
+void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH) {
 
    int currentFrame = (board->game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 
    if (animation->animated == true) {
-      textureTransform(board->game, mesh, src.x, src.y, size.x, size.y);
+      textureTransform(board->game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(board, mesh, destX, destY, destW, destH);
+   meshDraw(board, animation->texture, destX, destY, destW, destH);
 
-   textureTransform(board->game, mesh, 0, 0, mesh->texture->w, mesh->texture->h);  //set the texture transform back
+   textureTransform(board->game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }
 
 //Delete an Animation and free the memory
@@ -475,12 +438,12 @@ Animation* animationDestroy(Animation* animation) {
 }
 
 //This is for changing where the texture is sampled from the original image
-void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int sourceW, int sourceH) {
+void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH) {
 
-   Mat4x4 projection = textureOriginToWorld(game, mesh->texture->w, mesh->texture->h);
-   Mat4x4 device = worldToTextureCoords(game, mesh->texture->w, mesh->texture->h);
+   Mat4x4 projection = textureOriginToWorld(game, texture->w, texture->h);
+   Mat4x4 device = worldToTextureCoords(game, texture->w, texture->h);
 
-   Vec2 scale = { (float)sourceW / mesh->texture->w, (float)sourceH / mesh->texture->h };
+   Vec2 scale = { (float)sourceW / texture->w, (float)sourceH / texture->h };
    Vec2 dest = { sourceX, sourceY };
 
    Mat4x4 transform = transformMatrix(dest, 0.0f, scale);
@@ -489,21 +452,6 @@ void textureTransform(Game* game, Mesh* mesh, float sourceX, float sourceY, int 
    Mat4x4 mat = multiplyMatrix(device, intermediate);
 
    shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
-}
-
-TextureEnum meshGetTexture(Mesh* mesh) {
-   if (mesh->texture) { return mesh->type; }
-   else { return Texture_empty; }
-}
-
-int meshGetTextureHandle(Mesh* mesh) {
-   if (mesh && mesh->texture) { return mesh->texture->handle; }
-   else { return -1; }
-}
-
-void meshSetTexture(Game* game, Mesh* mesh, TextureEnum texture) {
-   mesh->texture = resourcesGetTexture(game->resources, texture);
-   mesh->type = texture;
 }
 
 Mesh* meshDestroy(Mesh* mesh) {

@@ -10,6 +10,9 @@
 
 #define SWAPTIME 80  //Visual delay when swapping tiles
 
+struct Tile;
+struct Cursor;
+
 enum BoardPauseType {
    pause_combo = 0,
    pause_chain,
@@ -18,9 +21,6 @@ enum BoardPauseType {
    pause_garbageclear,
    pause_danger
 };
-
-struct Tile;
-struct Cursor;
 
 struct BoardStats {
    std::map <int, int> chainCounts;
@@ -49,7 +49,9 @@ struct Board {
    std::vector <Cursor*> cursors;
    Game* game = nullptr;
 
-   std::vector <VisualEvent> visualEvents;
+   Mesh* mesh = nullptr;
+
+   std::map <VisualEffect, VisualEvent> visualEvents;
    BoardStats boardStats;
 
    float level = 1;
@@ -84,6 +86,8 @@ Tile* boardGetTile(Board* board, int row, int col);
 
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
+void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x = 0, double y = 0);
+void boardRemoveVisuals(Board* board);
 
 void boardMoveUp(Board* board, float height);
 void boardSwap(Board* board, Cursor* cursor);
@@ -105,6 +109,6 @@ void boardLoadRandom(Board* board);
 
 bool aiFindVertMatch(Board* board);
 bool aiFindHorizMatch(Board* board);
-void aiGetSteps(Board* board);
+void aiGetSteps(Board* board, int player);
 void aiDoStep(Board* board);
 void boardAI(Board* board, int player);

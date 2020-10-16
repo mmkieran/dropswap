@@ -37,7 +37,7 @@ struct Tile {
 
    TileStatus status;
 
-   Mesh* mesh;
+   Texture* texture;
 
    bool falling;
    uint64_t clearTime;
@@ -53,7 +53,6 @@ struct Tile {
 //@@End Serialize
 
 void tileSetTexture(Board* board, Tile* tile);
-void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime = false);
+void tileInit(Board* board, Tile* tile, int row, int col, TileType type);
 
-void tileUpdate(Board* board, Tile* tile);
 void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none, int effectTime = 0);

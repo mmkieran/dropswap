@@ -76,6 +76,31 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->seed);
 }
 
+void _boardVisualSerialize(std::vector <Byte>& stream, Board* board) {
+   int count = board->visualEvents.size();
+   writeStream(stream, count);
+
+   for (auto&& pair : board->visualEvents) {
+      int type = (int)pair.first;
+      writeStream(stream, type);
+      writeStream(stream, pair.second.active);
+      writeStream(stream, pair.second.end);
+      writeStream(stream, pair.second.pos);
+   }
+}
+
+void _boardVisualDeserialize(Byte*& start, Board* board) {
+   int count = 0;
+   readStream(start, count);
+   for (int i = 0; i < count; i++) {
+      int type;
+      readStream(start, type);
+      VisualEffect effect = (VisualEffect)type;
+      readStream(start, board->visualEvents[effect].active);
+      readStream(start, board->visualEvents[effect].end);
+      readStream(start, board->visualEvents[effect].pos);
+   }
+}
 
 void _boardStatsSerialize(std::vector <Byte>& stream, Board* board) {
 
@@ -159,6 +184,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->seed);
    writeStream(stream, board->randomCalls);
    _boardStatsSerialize(stream, board);
+   _boardVisualSerialize(stream, board);
 }
 
 void _boardDeserialize(Byte* &start, Board* board) {
@@ -187,6 +213,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->seed);
    readStream(start, board->randomCalls);
    _boardStatsDeserialize(start, board);
+   _boardVisualDeserialize(start, board);
 }
 
 //Below are special deserializers for Tile enums
@@ -224,22 +251,22 @@ void _deserializeTileStatus(Byte* &start, Tile* tile) {
    else { tile->status = status_normal; }
 }
 
-//void _serializeVisualEffect(std::vector <Byte>& stream, Tile* tile) {
-//   int effect = 0;
-//   if (tile->effect) {
-//      effect = (int)tile->effect;
-//   }
-//   writeStream(stream, effect);
-//}
-//
-//void _deserializeVisualEffect(Byte*& start, Tile* tile) {
-//   int effect;
-//   readStream(start, effect);
-//   if (effect >= 0 && effect < visual_COUNT) {
-//      tile->effect = (VisualEffect)effect;
-//   }
-//   else { tile->effect = visual_none; }
-//}
+void _serializeVisualEffect(std::vector <Byte>& stream, Tile* tile) {
+   int effect = 0;
+   if (tile->effect) {
+      effect = (int)tile->effect;
+   }
+   writeStream(stream, effect);
+}
+
+void _deserializeVisualEffect(Byte*& start, Tile* tile) {
+   int effect;
+   readStream(start, effect);
+   if (effect >= 0 && effect < visual_COUNT) {
+      tile->effect = (VisualEffect)effect;
+   }
+   else { tile->effect = visual_none; }
+}
 
 //Special serializers for Garbage
 void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
@@ -263,8 +290,8 @@ void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
 void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
-   //_serializeVisualEffect(stream, tile);
-   //writeStream(stream, tile->effectTime);
+   _serializeVisualEffect(stream, tile);
+   writeStream(stream, tile->effectTime);
    writeStream(stream, tile->xpos);
    writeStream(stream, tile->ypos);
    //   Mesh* mesh;
@@ -280,8 +307,8 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
 void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
-   //_deserializeVisualEffect(start, tile);
-   //readStream(start, tile->effectTime);
+   _deserializeVisualEffect(start, tile);
+   readStream(start, tile->effectTime);
    readStream(start, tile->xpos);
    readStream(start, tile->ypos);
    //   Mesh* mesh;
@@ -400,6 +427,40 @@ std::vector <Byte> gameSave(Game* game) {
    return stream;
 }
 
+int gameCallbackLoad(Game* game, unsigned char*& start) {
+
+   //deserialize game
+   _gameDeserialize(start, game);
+
+   for (auto&& board : game->boards) {
+      //deserialize board
+      if (board) {
+
+         _boardDeserialize(start, board);
+         boardLoadRandom(board);  //Return random generator to saved state using discard
+
+         garbagePileEmpty(board->pile);  //Clear the garbage
+         //deserialize garbage
+         _garbageDeserialize(start, board);
+
+         for (int row = 0; row < board->wBuffer; row++) {
+            for (int col = 0; col < board->w; col++) {
+               Tile* tile = boardGetTile(board, row, col);
+               //deserialize tiles
+               tile->garbage = nullptr;
+               _tileDeserialize(start, board, tile);
+               tileSetTexture(board, tile);
+            }
+         }
+
+         //deserialize cursor
+         _cursorDeserialize(start, board);
+      }
+   }
+   return 0;
+}
+
+
 int gameLoad(Game* game, unsigned char*& start) {
 
    //destroy the boards
@@ -429,7 +490,6 @@ int gameLoad(Game* game, unsigned char*& start) {
                for (int col = 0; col < board->w; col++) {
                   Tile* tile = boardGetTile(board, row, col);
                   //deserialize tiles
-                  tile->mesh = meshCreate();
                   tile->garbage = nullptr;
                   _tileDeserialize(start, board, tile);
                   tileSetTexture(board, tile);

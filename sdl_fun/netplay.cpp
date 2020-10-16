@@ -107,7 +107,7 @@ bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
 
    if (len > 0) {
       unsigned char* start = buffer;
-      gameLoad(game, start);
+      gameCallbackLoad(game, start);
 
       return true;
    }

@@ -123,18 +123,16 @@ static void _drawBoardTexture(Game* game, int index) {
       }
 
       Board* board = game->boards[index];
-      for (int i = 0; i < board->visualEvents.size(); i++) {
-         VisualEvent e = board->visualEvents[i];
-         if (e.effect == visual_clear && e.end > game->timer) {
-            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
-               ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
-               ImGui::SetNextWindowBgAlpha(0.7f);
-               ImGui::OpenPopup("Chain counter");
-               if (ImGui::BeginPopup("Chain counter")) {
-                  if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
-                  else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
-                  ImGui::EndPopup();
-               }
+      if (board->visualEvents[visual_clear].active == true) {
+         VisualEvent e = board->visualEvents[visual_clear];
+         if (board->chain > 1 || board->boardStats.lastCombo > 3) {
+            ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
+            ImGui::SetNextWindowBgAlpha(0.7f);
+            ImGui::OpenPopup("Chain counter");
+            if (ImGui::BeginPopup("Chain counter")) {
+               if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
+               else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
+               ImGui::EndPopup();
             }
          }
       }
