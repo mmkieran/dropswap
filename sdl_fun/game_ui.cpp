@@ -391,7 +391,7 @@ void onePlayerOptions(Game* game) {
 
    if (game->debug == true) {
       ImGui::Checkbox("Turn On AI", &game->ai);
-      ImGui::SliderScalar("AI Frames Before Action", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
 
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {
@@ -456,9 +456,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (game->debug == true) {
       ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
-
-      ImGui::Checkbox("I AM A ROBOT", &game->ai);
-      ImGui::SameLine(); HelpMarker("Let the AI control your cursor in this game.");
    }
 
    helpfulText("The seed is used to generate a random board. It must be the same for both players.");
@@ -472,6 +469,8 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (ImGui::CollapsingHeader("Board Setup")) {
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
+      ImGui::Checkbox("I AM A ROBOT", &game->ai);
+      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
       ImGui::NewLine();
    }
 
