@@ -226,17 +226,18 @@ void boardUI(Game* game) {
       //Game over popup
       if (popupStatus(Popup_GameOver) == true) {
          ImGui::OpenPopup("Game Over");
-         if (ImGui::BeginPopupModal("Game Over"), NULL, ImGuiWindowFlags_AlwaysAutoResize) {
-            ImGui::Text("Player %d lost or something...", bustee);
-            ImGui::NewLine();
-            _gameResults(game);
-            if (ImGui::Button("Accept Defeat")) {
-               gameEndMatch(game);
-               ImGui::CloseCurrentPopup();
-               popupDisable(Popup_GameOver);
-            }
-            ImGui::EndPopup();
+         popupDisable(Popup_GameOver);
+      }
+
+      if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
+         ImGui::Text("Player %d lost or something...", bustee);
+         ImGui::NewLine();
+         _gameResults(game);
+         if (ImGui::Button("Accept Defeat")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
          }
+         ImGui::EndPopup();
       }
 
       //Disconnect popup
