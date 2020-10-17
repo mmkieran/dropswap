@@ -19,22 +19,37 @@ Sean Hunter
 ...
 )";
 
-std::map <PopupType, bool> popups = {
-   {Popup_GameOver, false},
-   {Popup_Disconnect, false},
-   {Popup_Waiting, false},
+//Struct to contain information about the popup
+struct popupInfo {
+   bool isOpen = false;  //Is it currently open
+   bool triggered = false;  //Signal that the popup should be opened
+   int other = 0;  //Random other info
 };
 
+std::map <PopupType, popupInfo> popups;  //Map to hold popups by type
+
+//External API to trigger popup
 void popupEnable(PopupType popup) {
-   popups[popup] = true;
+   popups[popup].triggered = true;
 }
 
+//Should we OpenPopup with ImGui
+bool popupOpen(PopupType popup) {
+   if (popups[popup].isOpen == false && popups[popup].triggered == true) {
+      return true;
+   }
+   else { return false; }
+}
+
+//Is the popup open now?
 bool popupStatus(PopupType popup) {
-   return popups[popup];
+   return popups[popup].isOpen;
 }
 
+//Turn it off so it can be triggered again
 void popupDisable(PopupType popup) {
-   popups[popup] = false;
+   popups[popup].triggered = false;
+   popups[popup].isOpen = false;
 }
 
 //Tooltip helper text
@@ -224,11 +239,7 @@ void boardUI(Game* game) {
       ImGui::PopFont();
 
       //Game over popup
-      if (popupStatus(Popup_GameOver) == true) {
-         ImGui::OpenPopup("Game Over");
-         popupDisable(Popup_GameOver);
-      }
-
+      if (popupOpen(Popup_GameOver) == true) { ImGui::OpenPopup("Game Over"); }
       if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
          ImGui::Text("Player %d lost or something...", bustee);
          ImGui::NewLine();
@@ -236,35 +247,34 @@ void boardUI(Game* game) {
          if (ImGui::Button("Accept Defeat")) {
             gameEndMatch(game);
             ImGui::CloseCurrentPopup();
+            popupDisable(Popup_GameOver);
          }
          ImGui::EndPopup();
       }
 
       //Disconnect popup
-      if (popupStatus(Popup_Disconnect) == true && popupStatus(Popup_GameOver) == false) {
+      if (popupOpen(Popup_Disconnect) == true) { ImGui::OpenPopup("Player Disconnecting"); }
+      if (ImGui::BeginPopupModal("Player Disconnecting")) {
          ImGui::SetNextWindowSize({ 200, 200 });
-         ImGui::OpenPopup("Player Disconnecting");
-         if (ImGui::BeginPopupModal("Player Disconnecting")) {
-            game->paused = true;
-            int currentTime = game->kt.getTime();
-            for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-               PlayerConnectionInfo connect = game->net->connections[i];
-               if (connect.state == Disconnecting) {
-                  float delta = (currentTime - connect.disconnect_start) / 1000;
-                  ImGui::Text("Player %d", connect.handle); 
-                  ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
-               }
-               if (connect.state == Disconnected) {
-                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
-               }
+         game->paused = true;
+         int currentTime = game->kt.getTime();
+         for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
+            PlayerConnectionInfo connect = game->net->connections[i];
+            if (connect.state == Disconnecting) {
+               float delta = (currentTime - connect.disconnect_start) / 1000;
+               ImGui::Text("Player %d", connect.handle); 
+               ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
             }
-            if (ImGui::Button("Bail out")) {
-               gameEndMatch(game);
-               ImGui::CloseCurrentPopup();
-               popupDisable(Popup_Disconnect);
+            if (connect.state == Disconnected) {
+               ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
             }
-            ImGui::EndPopup();
          }
+         if (ImGui::Button("Bail out")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
+            popupDisable(Popup_Disconnect);
+         }
+         ImGui::EndPopup();
       }
 
       //if (popupStatus(Popup_Waiting) == true) {
