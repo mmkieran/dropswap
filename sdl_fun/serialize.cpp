@@ -131,6 +131,8 @@ void _boardStatsSerialize(std::vector <Byte>& stream, Board* board) {
 }
 
 void _boardStatsDeserialize(Byte*& start, Board* board) {
+   board->boardStats.chainCounts.clear();
+   board->boardStats.comboCounts.clear();
 
    readStream(start, board->boardStats.apm);
    readStream(start, board->boardStats.lastChain);
@@ -435,7 +437,6 @@ int gameCallbackLoad(Game* game, unsigned char*& start) {
    for (auto&& board : game->boards) {
       //deserialize board
       if (board) {
-
          _boardDeserialize(start, board);
          boardLoadRandom(board);  //Return random generator to saved state using discard
 
