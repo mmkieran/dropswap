@@ -170,8 +170,11 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        //popupEnable(Popup_Disconnect);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       popupEnable(Popup_Waiting);
-       sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
+       int maxFrames = 8;
+       int ahead = info->u.timesync.frames_ahead;
+       //popupEnable(Popup_Waiting, ahead);
+       if (ahead > 0 && ahead < maxFrames) { sdlSleep(1000 * info->u.timesync.frames_ahead / 60); }
+       //else { sdlSleep(1000 * maxFrames / 60); }
        break;
    }
    return true;

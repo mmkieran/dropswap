@@ -29,8 +29,9 @@ struct popupInfo {
 std::map <PopupType, popupInfo> popups;  //Map to hold popups by type
 
 //External API to trigger popup
-void popupEnable(PopupType popup) {
+void popupEnable(PopupType popup, int other) {
    popups[popup].triggered = true;
+   popups[popup].other = other;
 }
 
 //Should we OpenPopup with ImGui
@@ -239,7 +240,10 @@ void boardUI(Game* game) {
       ImGui::PopFont();
 
       //Game over popup
-      if (popupOpen(Popup_GameOver) == true) { ImGui::OpenPopup("Game Over"); }
+      if (popupOpen(Popup_GameOver) == true) { 
+         ImGui::OpenPopup("Game Over"); 
+         popups[Popup_GameOver].isOpen = true;
+      }
       if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
          ImGui::Text("Player %d lost or something...", bustee);
          ImGui::NewLine();
@@ -253,7 +257,10 @@ void boardUI(Game* game) {
       }
 
       //Disconnect popup
-      if (popupOpen(Popup_Disconnect) == true) { ImGui::OpenPopup("Player Disconnecting"); }
+      if (popupOpen(Popup_Disconnect) == true) { 
+         ImGui::OpenPopup("Player Disconnecting"); 
+         popups[Popup_Disconnect].isOpen = true;
+      }
       if (ImGui::BeginPopupModal("Player Disconnecting")) {
          ImGui::SetNextWindowSize({ 200, 200 });
          game->paused = true;
@@ -277,16 +284,28 @@ void boardUI(Game* game) {
          ImGui::EndPopup();
       }
 
-      //if (popupStatus(Popup_Waiting) == true) {
-      //   ImGui::OpenPopup("Waiting for Player to Catch Up");
-      //   if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
-      //      if (ImGui::Button("Quit")) {
-      //         gameEndMatch(game);
-      //         ImGui::CloseCurrentPopup();
-      //         popupDisable(Popup_Waiting);
-      //      }
-      //      ImGui::EndPopup();
+      //static int fCount = 0;
+      //if (popupOpen(Popup_Waiting) == true) { 
+      //   ImGui::OpenPopup("Waiting for Player to Catch Up"); 
+      //   popups[Popup_Waiting].isOpen = true;
+      //   fCount = popups[Popup_Waiting].other;
+      //   game->paused = true;
+      //}
+      //if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
+      //   if (fCount == 0) {
+      //      ImGui::CloseCurrentPopup();
+      //      popupDisable(Popup_Waiting);
+      //      game->paused = false;
       //   }
+      //   if (ImGui::Button("Quit")) {
+      //      gameEndMatch(game);
+      //      ImGui::CloseCurrentPopup();
+      //      popupDisable(Popup_Waiting);
+      //      game->paused = false;
+      //      fCount = 0;
+      //   }
+      //   fCount--;
+      //   ImGui::EndPopup();
       //}
 
       ImGui::End();
