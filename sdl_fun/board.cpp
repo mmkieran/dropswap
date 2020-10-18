@@ -117,7 +117,8 @@ Board* boardCreate(Game* game) {
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), i + 1);
+               int index = i + 1 + board->team;
+               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), index);
                board->cursors.push_back(cursor);
             }
          }

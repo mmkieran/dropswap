@@ -26,6 +26,8 @@ enum TextureEnum {
    Texture_metal,
    Texture_cursor1,
    Texture_cursor2,
+   Texture_cursor3,
+   Texture_cursor4,
    Texture_COUNT  //this one is used to get the count of all the textures
 };
 
