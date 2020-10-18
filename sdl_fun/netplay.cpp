@@ -163,18 +163,17 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
    case GGPO_EVENTCODE_CONNECTION_RESUMED:
        SetConnectState(info->u.connection_resumed.player, Running);
        popupDisable(Popup_Disconnect);
-       game->paused = false;
+       game->net->timeSync = 0;
        break;
    case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
        SetConnectState(info->u.disconnected.player, Disconnected);
-       //popupEnable(Popup_Disconnect);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       int maxFrames = 8;
+       int maxFrames = 10;  //Max prediction frames is 8, so 10 sounds ok, I guess
        int ahead = info->u.timesync.frames_ahead;
-       //popupEnable(Popup_Waiting, ahead);
-       if (ahead > 0 && ahead < maxFrames) { sdlSleep(1000 * info->u.timesync.frames_ahead / 60); }
-       //else { sdlSleep(1000 * maxFrames / 60); }
+       if (ahead > 0 && ahead < maxFrames) { game->net->timeSync = ahead; }
+       //popupEnable(Popup_Waiting, ahead);  //This window is usually too fast to see
+       //if (ahead > 0 && ahead < maxFrames) {sdlSleep(1000 * info->u.timesync.frames_ahead / 60)};
        break;
    }
    return true;
@@ -313,13 +312,17 @@ void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->players; i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
    }
-   gameUpdate(game); 
+   gameUpdate(game);
    ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
 //Used to synchronize inputs in GGPO and advance the frame
 void gameRunFrame() {
    if (game->playing == false) { return; }
+   if (game->net->timeSync > 0) {  //We're too many frames ahead
+      game->net->timeSync--;
+      return;
+   }
    if (game->net && game->net->ggpo) {
 
       GGPOErrorCode result = GGPO_OK;

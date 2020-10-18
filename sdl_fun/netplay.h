@@ -46,6 +46,7 @@ struct NetPlay {
    int disconnectTime[3] = { 10000, 0, 30000 };
    std::vector <std::string> messages;
    bool useUPNP = true;
+   int timeSync = 0;
 };
 
 int fletcher32_checksum(short* data, size_t len);

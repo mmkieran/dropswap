@@ -199,6 +199,7 @@ void boardUI(Game* game) {
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
       ImGui::Text("Frame Count: %d", game->frameCount);
+      if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
       if (game->timer > 0) {
          ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps) );
       }
@@ -245,6 +246,7 @@ void boardUI(Game* game) {
          popups[Popup_GameOver].isOpen = true;
       }
       if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
+         if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
          ImGui::Text("Player %d lost or something...", bustee);
          ImGui::NewLine();
          _gameResults(game);
@@ -262,24 +264,27 @@ void boardUI(Game* game) {
          popups[Popup_Disconnect].isOpen = true;
       }
       if (ImGui::BeginPopupModal("Player Disconnecting")) {
-         ImGui::SetNextWindowSize({ 200, 200 });
-         game->paused = true;
-         int currentTime = game->kt.getTime();
-         for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-            PlayerConnectionInfo connect = game->net->connections[i];
-            if (connect.state == Disconnecting) {
-               float delta = (currentTime - connect.disconnect_start) / 1000;
-               ImGui::Text("Player %d", connect.handle); 
-               ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
+         if (popups[Popup_Disconnect].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         else {
+            if (game->net->timeSync == 0) { game->net->timeSync = 10; }
+            ImGui::SetNextWindowSize({ 200, 200 });
+            int currentTime = game->kt.getTime();
+            for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
+               PlayerConnectionInfo connect = game->net->connections[i];
+               if (connect.state == Disconnecting) {
+                  float delta = (currentTime - connect.disconnect_start) / 1000;
+                  ImGui::Text("Player %d", connect.handle);
+                  ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
+               }
+               if (connect.state == Disconnected) {
+                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
+               }
             }
-            if (connect.state == Disconnected) {
-               ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
+            if (ImGui::Button("Bail out")) {
+               gameEndMatch(game);
+               ImGui::CloseCurrentPopup();
+               popupDisable(Popup_Disconnect);
             }
-         }
-         if (ImGui::Button("Bail out")) {
-            gameEndMatch(game);
-            ImGui::CloseCurrentPopup();
-            popupDisable(Popup_Disconnect);
          }
          ImGui::EndPopup();
       }

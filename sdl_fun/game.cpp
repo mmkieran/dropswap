@@ -211,7 +211,7 @@ void gameHandleEvents(Game* game) {
       }
       if (event.type == SDL_KEYDOWN) {
          if (event.key.keysym.sym == SDLK_ESCAPE) { 
-            if (game->players == 1 && game->ai == true) { gameEndMatch(game); }
+            if (game->paused == true) { game->paused = false; }
             else { game->paused = true; }
          }
          if (game->players == 1) {  //Only save state in one player games
