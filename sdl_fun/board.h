@@ -76,7 +76,7 @@ struct Board {
 };
 //@@End Serialize
 
-Board* boardCreate(Game* game);
+Board* boardCreate(Game* game, int team);
 Board* boardDestroy(Board* board);
 
 int boardFillTiles(Board* board);

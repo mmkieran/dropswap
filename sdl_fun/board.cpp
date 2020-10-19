@@ -85,12 +85,13 @@ void boardLoadRandom(Board* board) {
 }
 
 //Create a fresh board and return a pointer
-Board* boardCreate(Game* game) {
+Board* boardCreate(Game* game, int team) {
    Board* board = new Board;
    if (board) {
       Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
       if (tiles) {
          board->game = game;
+         board->team = team;
 
          board->tiles = tiles;
 
@@ -112,12 +113,13 @@ Board* boardCreate(Game* game) {
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          if (game->players <= 2) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, 1);
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, 0);
             board->cursors.push_back(cursor);
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               int index = i + 1 + board->team;
+               int index = i;
+               if (board->team > 1) { index = i + board->team; }
                Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), index);
                board->cursors.push_back(cursor);
             }

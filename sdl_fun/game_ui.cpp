@@ -263,7 +263,7 @@ void boardUI(Game* game) {
          ImGui::OpenPopup("Player Disconnecting"); 
          popups[Popup_Disconnect].isOpen = true;
       }
-      if (ImGui::BeginPopupModal("Player Disconnecting")) {
+      if (ImGui::BeginPopupModal("Player Disconnecting", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
          if (popups[Popup_Disconnect].isOpen == false) { ImGui::CloseCurrentPopup(); }
          else {
             if (game->net->timeSync == 0) { game->net->timeSync = 10; }

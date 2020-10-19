@@ -478,7 +478,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    for (int i = 0; i < players; i++) {
       Board* board = nullptr;
       if (game->playing) {
-         board = boardCreate(game);
+         board = boardCreate(game, i + 1);
          //deserialize board
          if (board) {
             _boardDeserialize(start, board);

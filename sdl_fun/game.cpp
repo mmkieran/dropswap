@@ -287,9 +287,8 @@ void gameStartMatch(Game* game) {
    int players = game->players;
    if (players > 2) { players = 2; }
    for (int i = 0; i < players; i++) {
-      Board* board = boardCreate(game);
+      Board* board = boardCreate(game, i + 1);
       if (board) {
-         board->team = i + 1;  
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
