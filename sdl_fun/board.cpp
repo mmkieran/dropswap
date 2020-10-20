@@ -113,7 +113,7 @@ Board* boardCreate(Game* game, int team) {
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          if (game->players <= 2) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, 0);
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, board->team - 1);
             board->cursors.push_back(cursor);
          }
          else if (game->players > 2) {

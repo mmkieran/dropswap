@@ -6,7 +6,7 @@
 Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
 
    Cursor* cursor = new Cursor;
-
+   cursor->index = index;
    cursor->x = xpos;
    cursor->y = ypos;
 
@@ -57,11 +57,22 @@ int cursorGetCol(Board* board, Cursor* cursor) {
    return (int)cursor->x / board->tileWidth;
 }
 
+//Draw the cursor on the board with a tag for the player number
 void cursorDraw(Board* board, Cursor* cursor) {
 
    animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
 
-   meshDraw(board, cursor->texture, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
+   //Draw the cursor tag in the correct position
+   double xOffset, yOffset;
+   if (cursor->index + 1 % 2 == 0) {
+      xOffset = cursor->x + cursor->w + board->tileWidth / 6;
+      yOffset = cursor->y + cursor->h + board->tileHeight / 6;
+   }
+   else {
+      xOffset = cursor->x - board->tileWidth / 6;
+      yOffset = cursor->y - board->tileHeight / 6;
+   }
+   meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {

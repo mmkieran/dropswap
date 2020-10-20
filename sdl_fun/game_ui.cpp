@@ -160,11 +160,11 @@ static void _drawBoardTexture(Game* game, int index) {
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-   float width = ImGui::GetWindowContentRegionWidth();
+   ImGui::BeginChild("Results Columns", { 400, 500 });
+   ImGui::Columns(game->boards.size());
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->team);
-      ImGui::BeginChild(playerName, ImVec2{ width / game->players - (game->players * 4), 300 }, true);
       ImGui::Text("Player: %d", board->team);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -179,11 +179,10 @@ static void _gameResults(Game* game) {
       for (auto&& combo : board->boardStats.comboCounts) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
-      ImGui::NewLine();
-      ImGui::EndChild();
-      if (board->team == 1 && game->players > 1) { ImGui::SameLine(); }
+      ImGui::NextColumn();
    }
    ImGui::PopStyleVar();
+   ImGui::EndChild();
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -247,9 +246,11 @@ void boardUI(Game* game) {
       }
       if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         ImGui::PushFont(game->fonts[20]);
          ImGui::Text("Player %d lost or something...", bustee);
          ImGui::NewLine();
          _gameResults(game);
+         ImGui::PopFont();
          if (ImGui::Button("Accept Defeat")) {
             gameEndMatch(game);
             ImGui::CloseCurrentPopup();
@@ -267,7 +268,6 @@ void boardUI(Game* game) {
          if (popups[Popup_Disconnect].isOpen == false) { ImGui::CloseCurrentPopup(); }
          else {
             if (game->net->timeSync == 0) { game->net->timeSync = 10; }
-            ImGui::SetNextWindowSize({ 200, 200 });
             int currentTime = game->kt.getTime();
             for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
                PlayerConnectionInfo connect = game->net->connections[i];
