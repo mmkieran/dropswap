@@ -62,3 +62,5 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
+
+void debugTCPConn();

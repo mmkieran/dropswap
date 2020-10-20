@@ -426,6 +426,11 @@ Start game
 */
 
 #include <winsock2.h>  //For windows sockets 
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 int PORT = 7001;
 int sockfd, connfd, len;
 
@@ -437,7 +442,7 @@ char recvBuffer[BUFFERLEN];
 int bufferLen = BUFFERLEN;
 
 //Use TCP to transfer information from host to peers
-void tcpServer(int port) {
+char* tcpServer(int port) {
 
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -451,23 +456,27 @@ void tcpServer(int port) {
 
    //bind socket
    if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      printf("socket binding failed...");
+      return "socket binding failed...";
    }
 
    if (listen(sockfd, 5) != 0) {
-      printf("Listen failed...");
+      return "Listen failed...";
    }
 
    //Accept the data packet from client
    len = sizeof(client);
    connfd = accept(sockfd, (sockaddr*)&client, &len);
-   if (connfd < 0) { printf("socket accept failed..."); }
+   if (connfd < 0) { return "socket accept failed..."; }
+
+   closesocket(sockfd);  //Done listening on this socket
+
+   return "Started Listening...";
 }
 
-void tcpClient(int port, const char* ip = "127.0.0.1") {
+char* tcpClient(int port, const char* ip = "127.0.0.1") {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { printf("Socket creation failed."); }
+   if (sockfd == -1) { return "Socket creation failed."; }
 
    //assign IP and Port
    server.sin_family = AF_INET;
@@ -475,25 +484,91 @@ void tcpClient(int port, const char* ip = "127.0.0.1") {
    server.sin_port = htons(port);
 
    if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      printf("Socket creation failed.");
+      return "Socket creation failed.";
    }
+
+   return "Connected to server socket";
 }
 
-void sendMsg(SOCKET socket, const char* buffer, int len) {
+bool sendMsg(SOCKET socket, const char* buffer, int len) {
    int result = send(socket, buffer, len, 0);
-   if (result == SOCKET_ERROR) { ; }  //Failed to send
+   if (result != SOCKET_ERROR) { return true; }  //Failed to send
+   return false;
 }
 
-void recMsg(SOCKET socket) {
+bool recMsg(SOCKET socket) {
    //Do this in a while loop until all data received
    //Use a length prefix at the start of the data (size of vector) 
    int result = recv(socket, recvBuffer, bufferLen, 0);
-   if (result == 0) { ; } //Connection closed
-   if (result > 0) { ; }  //We got something
+   if (result <= 0) { return false ; } 
+   if (result > 0) { return true; }  //We got something
 }
 
 void tcpClose() {
    closesocket(sockfd);
+   closesocket(connfd);
    //WSACleanup();
 }
 //https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+
+void debugTCPConn() {
+   if (!ImGui::Begin("TCP Test")) {
+      ImGui::PopFont();
+      ImGui::End();
+      return;
+   }
+
+   static char myMessage[32] = "Howdy";
+   static char myMessage2[32] = "Hello";
+   static bool isServer = false;
+   int bounds[3] = { 7001, 7000, 7008 };
+   ImGui::SliderScalar("Port Number", ImGuiDataType_U32, &bounds[0], &bounds[1], &bounds[2]);
+
+   static char listen[60];
+   if (ImGui::Button("Listen")) {
+      strcpy(listen, tcpServer(7002) );
+      isServer = true;
+   }
+   ImGui::Text(listen);
+
+   static char connResult[60];
+   if (ImGui::Button("Connect")) {
+      strcpy(listen, tcpClient(7002) );
+   }
+   ImGui::Text(connResult);
+
+   static bool startUPNP = false;
+   if (ImGui::Button("Start UPNP")) {
+      startUPNP = upnpStartup(sessionPort);
+   }
+   if (startUPNP == true) { ImGui::Text("Started UPNP"); }
+
+   static bool sendResult = false;
+   if (ImGui::Button("Send")) {
+      if (isServer == true) {
+         sendResult = sendMsg(connfd, myMessage, 5);
+      }
+      else if (isServer == false) {
+         sendResult = sendMsg(sockfd, myMessage2, 5);
+      }
+   }
+   if (sendResult == true) { ImGui::Text("Sent successfully"); }
+
+   static bool recResult = false;
+   if (ImGui::Button("Receive")) {
+      if (isServer == true) {
+         recResult = recMsg(connfd);
+      }
+      if (isServer == false) {
+         recResult = recMsg(sockfd);
+      }
+   }
+   if (recResult == false) { ImGui::Text("Failed to receive anything"); }
+   ImGui::Text(recvBuffer);
+
+   if (ImGui::Button("Close")) {
+      tcpClose();
+   }
+
+   ImGui::End();
+}

@@ -401,6 +401,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
+         debugTCPConn();
+
          static bool showDemo = false;
          if (showDemo == false) {
             if (ImGui::Button("Show ImGui Demo")) {
