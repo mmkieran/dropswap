@@ -19,10 +19,21 @@ GarbagePile* garbagePileCreate() {
    GarbagePile* pile = nullptr;
    pile = new GarbagePile;
    if (pile) {
-      pile->mesh = meshCreate();
       return pile;
    }
    return nullptr;
+}
+
+void garbagePileEmpty(GarbagePile* pile) {
+   if (pile) {
+      for (auto&& pair : pile->garbage) {
+         if (pair.second) {
+            garbageDestroy(pair.second);
+         }
+      }
+      pile->nextID = 0;
+      pile->garbage.clear();
+   }
 }
 
 //Frees the memory for a Garbage Pile
@@ -33,13 +44,12 @@ GarbagePile* garbagePileDestroy(GarbagePile* pile) {
             garbageDestroy(pair.second);
          }
       }
-      if (pile->mesh) { meshDestroy(pile->mesh); }
       delete pile;
    }
    return nullptr;
 }
 
-//Allocate memory for a piece of garbage and create a mesh... for serializing
+//Allocate memory for a piece of garbage... for serializing
 Garbage* garbageCreateEmpty(Board* board) {
    Garbage* garbage = new Garbage;
 
@@ -375,10 +385,7 @@ void garbageFall(Board* board, double velocity) {
                   board->game->soundToggles[sound_crashland] = true; 
                   boardPauseTime(board, pause_crashland);
 
-                  VisualEvent event;
-                  event.effect = visual_shake;
-                  event.end = board->game->timer + SHAKETIME;
-                  board->visualEvents.push_back(event);
+                  boardEnableVisual(board, visual_shake, SHAKETIME);
                }
                garbage->totalFall = 0;
                garbage->falling = false;

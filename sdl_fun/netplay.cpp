@@ -107,7 +107,7 @@ bool __cdecl ds_load_game_callback(unsigned char* buffer, int len) {
 
    if (len > 0) {
       unsigned char* start = buffer;
-      gameLoad(game, start);
+      gameCallbackLoad(game, start);
 
       return true;
    }
@@ -163,15 +163,17 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
    case GGPO_EVENTCODE_CONNECTION_RESUMED:
        SetConnectState(info->u.connection_resumed.player, Running);
        popupDisable(Popup_Disconnect);
-       game->paused = false;
+       game->net->timeSync = 0;
        break;
    case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
        SetConnectState(info->u.disconnected.player, Disconnected);
-       //popupEnable(Popup_Disconnect);
        break;
    case GGPO_EVENTCODE_TIMESYNC:
-       //popupEnable(Popup_Waiting);
-       sdlSleep(1000 * info->u.timesync.frames_ahead / 60);
+       int maxFrames = 10;  //Max prediction frames is 8, so 10 sounds ok, I guess
+       int ahead = info->u.timesync.frames_ahead;
+       if (ahead > 0 && ahead < maxFrames) { game->net->timeSync = ahead; }
+       //popupEnable(Popup_Waiting, ahead);  //This window is usually too fast to see
+       //if (ahead > 0 && ahead < maxFrames) {sdlSleep(1000 * info->u.timesync.frames_ahead / 60)};
        break;
    }
    return true;
@@ -253,6 +255,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
+      game->players = 2;
    }
    else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
@@ -309,13 +312,17 @@ void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->players; i++) {  //Check for pauses
       gameCheckPause(game, game->inputs[i]);
    }
-   gameUpdate(game); 
+   gameUpdate(game);
    ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
 }
 
 //Used to synchronize inputs in GGPO and advance the frame
 void gameRunFrame() {
    if (game->playing == false) { return; }
+   if (game->net->timeSync > 0) {  //We're too many frames ahead
+      game->net->timeSync--;
+      return;
+   }
    if (game->net && game->net->ggpo) {
 
       GGPOErrorCode result = GGPO_OK;

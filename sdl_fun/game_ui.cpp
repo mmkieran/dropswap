@@ -20,22 +20,38 @@ Sean Hunter
 ...
 )";
 
-std::map <PopupType, bool> popups = {
-   {Popup_GameOver, false},
-   {Popup_Disconnect, false},
-   {Popup_Waiting, false},
+//Struct to contain information about the popup
+struct popupInfo {
+   bool isOpen = false;  //Is it currently open
+   bool triggered = false;  //Signal that the popup should be opened
+   int other = 0;  //Random other info
 };
 
-void popupEnable(PopupType popup) {
-   popups[popup] = true;
+std::map <PopupType, popupInfo> popups;  //Map to hold popups by type
+
+//External API to trigger popup
+void popupEnable(PopupType popup, int other) {
+   popups[popup].triggered = true;
+   popups[popup].other = other;
 }
 
+//Should we OpenPopup with ImGui
+bool popupOpen(PopupType popup) {
+   if (popups[popup].isOpen == false && popups[popup].triggered == true) {
+      return true;
+   }
+   else { return false; }
+}
+
+//Is the popup open now?
 bool popupStatus(PopupType popup) {
-   return popups[popup];
+   return popups[popup].isOpen;
 }
 
+//Turn it off so it can be triggered again
 void popupDisable(PopupType popup) {
-   popups[popup] = false;
+   popups[popup].triggered = false;
+   popups[popup].isOpen = false;
 }
 
 //Tooltip helper text
@@ -124,18 +140,16 @@ static void _drawBoardTexture(Game* game, int index) {
       }
 
       Board* board = game->boards[index];
-      for (int i = 0; i < board->visualEvents.size(); i++) {
-         VisualEvent e = board->visualEvents[i];
-         if (e.effect == visual_clear && e.end > game->timer) {
-            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
-               ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
-               ImGui::SetNextWindowBgAlpha(0.7f);
-               ImGui::OpenPopup("Chain counter");
-               if (ImGui::BeginPopup("Chain counter")) {
-                  if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
-                  else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
-                  ImGui::EndPopup();
-               }
+      if (board->visualEvents[visual_clear].active == true) {
+         VisualEvent e = board->visualEvents[visual_clear];
+         if (board->chain > 1 || board->boardStats.lastCombo > 3) {
+            ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
+            ImGui::SetNextWindowBgAlpha(0.7f);
+            ImGui::OpenPopup("Chain counter");
+            if (ImGui::BeginPopup("Chain counter")) {
+               if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
+               else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
+               ImGui::EndPopup();
             }
          }
       }
@@ -147,11 +161,11 @@ static void _drawBoardTexture(Game* game, int index) {
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-   float width = ImGui::GetWindowContentRegionWidth();
+   ImGui::BeginChild("Results Columns", { 400, 500 });
+   ImGui::Columns(game->boards.size());
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->team);
-      ImGui::BeginChild(playerName, ImVec2{ width / game->players - (game->players * 4), 300 }, true);
       ImGui::Text("Player: %d", board->team);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -166,11 +180,10 @@ static void _gameResults(Game* game) {
       for (auto&& combo : board->boardStats.comboCounts) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
-      ImGui::NewLine();
-      ImGui::EndChild();
-      if (board->team == 1 && game->players > 1) { ImGui::SameLine(); }
+      ImGui::NextColumn();
    }
    ImGui::PopStyleVar();
+   ImGui::EndChild();
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -186,6 +199,7 @@ void boardUI(Game* game) {
       ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
 
       ImGui::Text("Frame Count: %d", game->frameCount);
+      if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
       if (game->timer > 0) {
          ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps) );
       }
@@ -227,33 +241,40 @@ void boardUI(Game* game) {
       ImGui::PopFont();
 
       //Game over popup
-      if (popupStatus(Popup_GameOver) == true) {
-         ImGui::OpenPopup("Game Over");
-         if (ImGui::BeginPopupModal("Game Over"), NULL, ImGuiWindowFlags_AlwaysAutoResize) {
-            ImGui::Text("Player %d lost or something...", bustee);
-            ImGui::NewLine();
-            _gameResults(game);
-            if (ImGui::Button("Accept Defeat")) {
-               gameEndMatch(game);
-               ImGui::CloseCurrentPopup();
-               popupDisable(Popup_GameOver);
-            }
-            ImGui::EndPopup();
+      if (popupOpen(Popup_GameOver) == true) { 
+         ImGui::OpenPopup("Game Over"); 
+         popups[Popup_GameOver].isOpen = true;
+      }
+      if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
+         if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         ImGui::PushFont(game->fonts[20]);
+         ImGui::Text("Player %d lost or something...", bustee);
+         ImGui::NewLine();
+         _gameResults(game);
+         ImGui::PopFont();
+         if (ImGui::Button("Accept Defeat")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
+            popupDisable(Popup_GameOver);
          }
+         ImGui::EndPopup();
       }
 
       //Disconnect popup
-      if (popupStatus(Popup_Disconnect) == true && popupStatus(Popup_GameOver) == false) {
-         ImGui::SetNextWindowSize({ 200, 200 });
-         ImGui::OpenPopup("Player Disconnecting");
-         if (ImGui::BeginPopupModal("Player Disconnecting")) {
-            game->paused = true;
+      if (popupOpen(Popup_Disconnect) == true) { 
+         ImGui::OpenPopup("Player Disconnecting"); 
+         popups[Popup_Disconnect].isOpen = true;
+      }
+      if (ImGui::BeginPopupModal("Player Disconnecting", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
+         if (popups[Popup_Disconnect].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         else {
+            if (game->net->timeSync == 0) { game->net->timeSync = 10; }
             int currentTime = game->kt.getTime();
             for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
                PlayerConnectionInfo connect = game->net->connections[i];
                if (connect.state == Disconnecting) {
                   float delta = (currentTime - connect.disconnect_start) / 1000;
-                  ImGui::Text("Player %d", connect.handle); 
+                  ImGui::Text("Player %d", connect.handle);
                   ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
                }
                if (connect.state == Disconnected) {
@@ -265,20 +286,32 @@ void boardUI(Game* game) {
                ImGui::CloseCurrentPopup();
                popupDisable(Popup_Disconnect);
             }
-            ImGui::EndPopup();
          }
+         ImGui::EndPopup();
       }
 
-      //if (popupStatus(Popup_Waiting) == true) {
-      //   ImGui::OpenPopup("Waiting for Player to Catch Up");
-      //   if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
-      //      if (ImGui::Button("Quit")) {
-      //         gameEndMatch(game);
-      //         ImGui::CloseCurrentPopup();
-      //         popupDisable(Popup_Waiting);
-      //      }
-      //      ImGui::EndPopup();
+      //static int fCount = 0;
+      //if (popupOpen(Popup_Waiting) == true) { 
+      //   ImGui::OpenPopup("Waiting for Player to Catch Up"); 
+      //   popups[Popup_Waiting].isOpen = true;
+      //   fCount = popups[Popup_Waiting].other;
+      //   game->paused = true;
+      //}
+      //if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
+      //   if (fCount == 0) {
+      //      ImGui::CloseCurrentPopup();
+      //      popupDisable(Popup_Waiting);
+      //      game->paused = false;
       //   }
+      //   if (ImGui::Button("Quit")) {
+      //      gameEndMatch(game);
+      //      ImGui::CloseCurrentPopup();
+      //      popupDisable(Popup_Waiting);
+      //      game->paused = false;
+      //      fCount = 0;
+      //   }
+      //   fCount--;
+      //   ImGui::EndPopup();
       //}
 
       ImGui::End();
@@ -394,7 +427,7 @@ void onePlayerOptions(Game* game) {
 
    if (game->debug == true) {
       ImGui::Checkbox("Turn On AI", &game->ai);
-      ImGui::SliderScalar("AI Frames Before Action", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
 
       if (ImGui::Button("Clear Board")) {
          if (game->playing == true) {
@@ -459,9 +492,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (game->debug == true) {
       ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
-
-      ImGui::Checkbox("I AM A ROBOT", &game->ai);
-      ImGui::SameLine(); HelpMarker("Let the AI control your cursor in this game.");
    }
 
    helpfulText("The seed is used to generate a random board. It must be the same for both players.");
@@ -475,6 +505,8 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (ImGui::CollapsingHeader("Board Setup")) {
       ImGui::InputInt("Board Width", &game->bWidth);
       ImGui::InputInt("Board Height", &game->bHeight);
+      ImGui::Checkbox("I AM A ROBOT", &game->ai);
+      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
       ImGui::NewLine();
    }
 

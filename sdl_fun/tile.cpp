@@ -1,69 +1,52 @@
-#include <stdlib.h>
 
 #include "tile.h"
 #include "resources.h"
-#include "render.h"
-#include "garbage.h"
 
+//Map the tile type to the texture for the renderer
+std::map <TileType, TextureEnum> typeMap = {
+   {tile_empty     , Texture_empty},
+   {tile_circle    , Texture_circle},
+   {tile_diamond   , Texture_diamond},
+   {tile_utriangle , Texture_utriangle},
+   {tile_dtriangle , Texture_dtriangle},
+   {tile_star      , Texture_star},
+   {tile_heart     , Texture_heart},
+   {tile_silver    , Texture_silver},
+   {tile_cleared   , Texture_cleared},
+
+};
+
+//Gets the correct texture for the tile based on its type
 void tileSetTexture(Board* board, Tile* tile) {
-   //hard code this for now
-   Garbage* garbage = nullptr;
-   switch (tile->type) {
-   case tile_empty:
-      meshSetTexture(board->game, tile->mesh, Texture_empty);
-      break;
-   case tile_circle:
-      meshSetTexture(board->game, tile->mesh, Texture_circle);
-      break;
-   case tile_diamond:
-      meshSetTexture(board->game, tile->mesh, Texture_diamond);
-      break;
-   case tile_utriangle:
-      meshSetTexture(board->game, tile->mesh, Texture_utriangle);
-      break;
-   case tile_dtriangle:
-      meshSetTexture(board->game, tile->mesh, Texture_dtriangle);
-      break;
-   case tile_star:
-      meshSetTexture(board->game, tile->mesh, Texture_star);
-      break;
-   case tile_heart:
-      meshSetTexture(board->game, tile->mesh, Texture_heart);
-      break;
-   case tile_silver:
-      meshSetTexture(board->game, tile->mesh, Texture_silver);
-      break;
-   case tile_cleared:
-      meshSetTexture(board->game, tile->mesh, Texture_cleared);
-      break;
-   case tile_garbage:
+   TextureEnum type = typeMap[tile->type];
+
+   //Special garbage case for metals... yuck
+   if (tile->type == tile_garbage) {
       if (tile->idGarbage >= 0) {
-         garbage = garbageGet(board->pile, tile->idGarbage);
+         Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
          if (garbage && garbage->metal == true) {
-            meshSetTexture(board->game, tile->mesh, Texture_metal);
+            tile->texture = resourcesGetTexture(board->game->resources, Texture_metal);
          }
-         else { meshSetTexture(board->game, tile->mesh, Texture_g); }
+         else { tile->texture = resourcesGetTexture(board->game->resources, Texture_g); }
       }
       else {
-         meshSetTexture(board->game, tile->mesh, Texture_g);
+         tile->texture = resourcesGetTexture(board->game->resources, Texture_g);
       }
-      break;
-   default:
-      meshSetTexture(board->game, tile->mesh, Texture_empty);
+   }
+
+   //Everything else
+   else {
+      tile->texture = resourcesGetTexture(board->game->resources, type);
    }
 }
 
-void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool firstTime) {
+void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
    tile->type = type;
    tile->status = status_normal;
-   //tile->effect = visual_none;  //We don't need to save this because it only happens during render
-   //tile->effectTime = 0;
+   tile->effect = visual_none;  //We don't need to save this because it only happens during render
+   tile->effectTime = 0;
    tile->xpos = col * board->tileWidth;
    tile->ypos = (row - board->startH) * board->tileHeight;
-
-   if (firstTime == true) {
-      tile->mesh = meshCreate();
-   }
 
    tile->idGarbage = -1;
    tile->garbage = nullptr;
@@ -76,16 +59,11 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type, bool fi
    tile->chain = false;
 }
 
-void tileUpdate(Board* board, Tile* tile) {
-   //todo put something here
-}
-
 void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
-   textureTransform(board->game, tile->mesh, 0, 0, 32, 32);
-   if (meshGetTexture(tile->mesh) != Texture_empty) {
+   if (tile->type != tile_empty) {
       if (tile->status == status_disable || tileGetRow(board, tile) == board->wBuffer - 1) {
          effect = visual_dark;
       }
-      meshDraw(board, tile->mesh, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
+      meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
    }
 }

@@ -85,12 +85,13 @@ void boardLoadRandom(Board* board) {
 }
 
 //Create a fresh board and return a pointer
-Board* boardCreate(Game* game) {
+Board* boardCreate(Game* game, int team) {
    Board* board = new Board;
    if (board) {
       Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
       if (tiles) {
          board->game = game;
+         board->team = team;
 
          board->tiles = tiles;
 
@@ -106,18 +107,20 @@ Board* boardCreate(Game* game) {
 
 		   boardStartRandom(board);
 
+         board->mesh = meshCreate();  //Everything is draw with this
+
          //Set the cursor to midway on the board
          float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
          float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
          if (game->players <= 2) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY);
-            cursor->index = 1;
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, board->team - 1);
             board->cursors.push_back(cursor);
          }
          else if (game->players > 2) {
             for (int i = 0; i < 2; i++) {
-               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight) );
-               cursor->index = i + 1;
+               int index = i;
+               if (board->team > 1) { index = i + board->team; }
+               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), index);
                board->cursors.push_back(cursor);
             }
          }
@@ -134,7 +137,6 @@ Board* boardDestroy(Board* board) {
       for (int row = 0; row < board->wBuffer; row++) {
          for (int col = 0; col < board->w; col++) {
             Tile* tile = boardGetTile(board, row, col);
-            tile->mesh = meshDestroy(tile->mesh);
          }
       }
       board->pile = garbagePileDestroy(board->pile);
@@ -142,6 +144,7 @@ Board* boardDestroy(Board* board) {
          cursorDestroy(cursor);
       }
       free(board->tiles);
+      board->mesh = meshDestroy(board->mesh);
       delete board;
    }
    return nullptr;
@@ -213,6 +216,8 @@ void boardUpdate(Board* board) {
    else if (board->game->players == 1) {
       cursorUpdate(board, board->cursors[0], board->game->p1Input);
    }
+
+   boardRemoveVisuals(board);
 }
 
 //Draw all objects on the board
@@ -221,9 +226,8 @@ void boardRender(Game* game, Board* board) {
    for (int row = board->startH; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (meshGetTexture(tile->mesh) == Texture_empty) {  
-            continue; 
-         }
+         if (tile->type == tile_empty) { continue; }
+
          if (tile->effect == visual_swapl || tile->effect == visual_swapr) {
             if (tile->effectTime <= board->game->timer) {
                tile->effect = visual_none;
@@ -231,15 +235,6 @@ void boardRender(Game* game, Board* board) {
             }
             tileDraw(board, tile, tile->effect, tile->effectTime);
          }
-
-         //else if (tile->effect == visual_landing) {
-         //   if (tile->effectTime <= board->game->timer) {
-         //      tile->effect = visual_none;
-         //      tile->effectTime = 0;
-         //   }
-         //   tileDraw(board, tile);
-         //   tileDraw(board, tile, tile->effect, tile->effectTime);
-         //}
          else { tileDraw(board, tile); }
       }
    }
@@ -248,6 +243,22 @@ void boardRender(Game* game, Board* board) {
    }
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
+}
+
+void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x, double y) {
+   board->visualEvents[effect].active = true;
+   board->visualEvents[effect].end = board->game->timer + duration;
+   board->visualEvents[effect].pos.x = x;
+   board->visualEvents[effect].pos.y = y;
+}
+
+void boardRemoveVisuals(Board* board) {
+   for (auto&& pair : board->visualEvents) {
+      VisualEvent e = pair.second;
+      if (e.end <= board->game->timer) {
+         pair.second.active = false;
+      }
+   }
 }
 
 //Calculates the row based on the pointer difference in the array
@@ -282,14 +293,12 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
 
 //Helper with logic for swap
 static void _swapTiles(Tile* tile1, Tile* tile2) {
-
    Tile tmp = *tile2;
 
    tile2->type = tile1->type;
-   tile2->mesh = tile1->mesh;
-
+   tile2->texture = tile1->texture;
    tile1->type = tmp.type;
-   tile1->mesh = tmp.mesh;
+   tile1->texture = tmp.texture;
 }
 
 //Swap two tiles on the board horizontally
@@ -547,12 +556,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       board->game->soundToggles[sound_clear] = true; 
 
       //first try to render arbitrary text over the board
-      VisualEvent event;
-      event.effect = visual_clear;
-      event.end = board->game->timer + board->game->timings.removeClear[0] /2;
-      event.pos.x = uniqueMatches[0]->xpos + board->tileWidth;
-      event.pos.y = uniqueMatches[0]->ypos + board->tileHeight;
-      board->visualEvents.push_back(event);
+      int duration = board->game->timings.removeClear[0] / 2;
+      boardEnableVisual(board, visual_clear, duration, uniqueMatches[0]->xpos + board->tileWidth, uniqueMatches[0]->ypos + board->tileHeight);
 
       if (board->level < 10) {  
          board->level += (float) uniqueMatches.size() / LEVEL_UP;  //The more you clear, the faster you go
@@ -564,8 +569,8 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
          garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
-         meshSetTexture(board->game, m->mesh, Texture_cleared);
          m->type = tile_cleared;
+         tileSetTexture(board, m);
          m->clearTime = clearTime;
          m->falling = false;
          if (fallCombo && m->chain == true) {
@@ -700,6 +705,11 @@ void boardRemoveClears(Board* board) {
             }
          }
 
+         if (tile->effect != visual_none && tile->effectTime <= current) {  //Remove visual effects from tile
+            tile->effect = visual_none;
+            tile->effectTime = 0;
+         }
+
          if (tile->status != status_normal && tile->statusTime <= current) {  //Remove special temporary tile statuses
             tile->status = status_normal;
             tile->statusTime = 0;
@@ -719,10 +729,7 @@ void boardRemoveClears(Board* board) {
             }
 
             else if (tile->clearTime + board->game->timings.removeClear[0] <= current) {  //Regular tile clearing
-               tile->type = tile_empty;
-               tile->chain = false;
-               meshSetTexture(board->game, tile->mesh, Texture_empty);
-               tile->clearTime = 0;
+               tileInit(board, tile, row, col, tile_empty);
 
                //flag blocks above the clear as potentially part of a chain
                int r = row - 1;
@@ -804,16 +811,16 @@ int boardFillTiles(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (row < board->startH + (board->endH - board->startH) / 2) {
-            tileInit(board, tile, row, col, tile_empty, true);
+            tileInit(board, tile, row, col, tile_empty);
             continue;
          }
          
          TileType type = _tileGenType(board, tile);
          if (col % 2 == 0) {
-            tileInit(board, tile, row - board->startH - 3, col, type, true);
+            tileInit(board, tile, row - board->startH - 3, col, type);
          }
          else {
-            tileInit(board, tile, row - board->startH - 2, col, type, true);
+            tileInit(board, tile, row - board->startH - 2, col, type);
          }
       }
    }
@@ -842,7 +849,6 @@ void boardAssignSlot(Board* board, bool buffer = false) {
 
       Tile* current = boardGetTile(board, row, col);
       assert(current->type == tile_empty);  //This is a position conflict... bad
-      t.mesh = current->mesh;
       *current = t;
       tileSetTexture(board, current);
 

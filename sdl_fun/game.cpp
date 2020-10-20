@@ -211,7 +211,7 @@ void gameHandleEvents(Game* game) {
       }
       if (event.type == SDL_KEYDOWN) {
          if (event.key.keysym.sym == SDLK_ESCAPE) { 
-            if (game->players == 1 && game->ai == true) { gameEndMatch(game); }
+            if (game->paused == true) { game->paused = false; }
             else { game->paused = true; }
          }
          if (game->players == 1) {  //Only save state in one player games
@@ -287,9 +287,8 @@ void gameStartMatch(Game* game) {
    int players = game->players;
    if (players > 2) { players = 2; }
    for (int i = 0; i < players; i++) {
-      Board* board = boardCreate(game);
+      Board* board = boardCreate(game, i + 1);
       if (board) {
-         board->team = i + 1;  
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);

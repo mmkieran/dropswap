@@ -4,16 +4,18 @@ typedef struct Board Board;
 typedef struct Mesh Mesh;
 typedef struct Animation Animation;
 typedef struct UserInput UserInput;
+typedef struct Texture Texture;
 
 
 //@@Start Serialize
 struct Cursor {
    int index = 0;
 
+   Texture* texture;
+
    double x;
    double y;
 
-   Mesh* mesh;
    Animation* animation;
 
    int h;
@@ -28,7 +30,7 @@ enum MoveEnum {
    move_left
 };
 
-Cursor* cursorCreate(Board* board, float xpos, float ypos);
+Cursor* cursorCreate(Board* board, float xpos, float ypos, int index);
 Cursor* cursorDestroy(Cursor* cursor);
 
 void cursorSetX(Cursor* cursor, float x);

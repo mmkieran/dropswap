@@ -3,28 +3,29 @@
 #include "board.h"
 #include "render.h"
 
-Cursor* cursorCreate(Board* board, float xpos, float ypos) {
+Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
 
    Cursor* cursor = new Cursor;
-
+   cursor->index = index;
    cursor->x = xpos;
    cursor->y = ypos;
-
-   cursor->mesh = meshCreate();
-   meshSetTexture(board->game, cursor->mesh, Texture_cursor);
-   textureChangeInterp(cursor->mesh, true);  //Changes Linear interpolation of the texture to Nearest
 
    cursor->h = board->game->tHeight;
    cursor->w = board->game->tWidth * 2;
 
    cursor->animation = animationCreate(7, 200, 64 + 1, 0, 64, 32, true);  //this is specific to the texture sheet
+   cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor);
+   textureChangeInterp(cursor->animation->texture, true);
+
+   //For player cursor label
+   TextureEnum cursorList[4] = { Texture_cursor1 , Texture_cursor2 , Texture_cursor3, Texture_cursor4 };
+   cursor->texture = resourcesGetTexture(board->game->resources, cursorList[index]);
 
    return cursor;
 }
 
 Cursor* cursorDestroy(Cursor* cursor) {
    if (cursor) {
-      cursor->mesh = meshDestroy(cursor->mesh);
       cursor->animation = animationDestroy(cursor->animation);
       delete cursor;
    }
@@ -56,14 +57,22 @@ int cursorGetCol(Board* board, Cursor* cursor) {
    return (int)cursor->x / board->tileWidth;
 }
 
+//Draw the cursor on the board with a tag for the player number
 void cursorDraw(Board* board, Cursor* cursor) {
 
-   animationDraw(board, cursor->animation, cursor->mesh, cursor->x, cursor->y, cursor->w, cursor->h);
-   //todo this is kinda a hacky way to display the tag for the cursor... should generalize meshDraw for any object/particle
-   if (cursor->index == 2) { meshSetTexture(board->game, cursor->mesh, Texture_cursor2); }
-   else { meshSetTexture(board->game, cursor->mesh, Texture_cursor1); }
-   meshDraw(board, cursor->mesh, cursor->x - board->tileWidth/6, cursor->y - board->tileHeight /6, board->tileWidth/4, board->tileHeight/4);
-   meshSetTexture(board->game, cursor->mesh, Texture_cursor);
+   animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
+
+   //Draw the cursor tag in the correct position
+   double xOffset, yOffset;
+   if (cursor->index + 1 % 2 == 0) {
+      xOffset = cursor->x + cursor->w + board->tileWidth / 6;
+      yOffset = cursor->y + cursor->h + board->tileHeight / 6;
+   }
+   else {
+      xOffset = cursor->x - board->tileWidth / 6;
+      yOffset = cursor->y - board->tileHeight / 6;
+   }
+   meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
