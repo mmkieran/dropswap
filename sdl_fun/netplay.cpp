@@ -570,5 +570,10 @@ void debugTCPConn() {
       tcpClose();
    }
 
+   ImGui::Text(inet_ntoa(client.sin_addr));
+   ImGui::Text(inet_ntoa(server.sin_addr));
+   ImGui::Text("%d", ntohs(client.sin_port) );
+   ImGui::Text("%d", ntohs(server.sin_port) );
+
    ImGui::End();
 }
