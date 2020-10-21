@@ -444,6 +444,19 @@ sockaddr_in server, client = { 0 };
 char recvBuffer[BUFFERLEN];
 int bufferLen = BUFFERLEN;
 
+enum SocketStatus {
+   sock_accept,
+   sock_sent,
+   sock_receive,
+};
+
+struct SocketInfo {
+   SOCKET sock;
+   sockaddr_in client;
+   char recBuff[BUFFERLEN];
+   SocketStatus status;
+};
+
 char* tcpClientConnect(int port, const char* ip = "127.0.0.1") {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
