@@ -428,12 +428,9 @@ Start game
 #include <winsock2.h>  //For windows sockets 
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 int sockfd, connfd, len;
 
-std::map <int, SOCKET> sockets;
 int people = 1;
 int connections = 0;
 
@@ -447,17 +444,20 @@ int bufferLen = BUFFERLEN;
 std::vector <Byte> testGameSend;
 
 enum SocketStatus {
+   sock_none = 0,
    sock_accept,
    sock_sent,
    sock_receive,
 };
 
 struct SocketInfo {
-   SOCKET sock;
-   sockaddr_in client;
+   SOCKET sock = { 0 };
+   sockaddr_in address = { 0 };
    char recBuff[BUFFERLEN];
-   SocketStatus status;
+   SocketStatus status = sock_none;
 };
+
+std::map <int, SocketInfo> sockets;
 
 //Use TCP to transfer information from host to peers
 char* tcpServer(int port) {
@@ -550,7 +550,6 @@ void tcpClose() {
 
 void debugTCPConn() {
    if (!ImGui::Begin("TCP Test")) {
-      ImGui::PopFont();
       ImGui::End();
       return;
    }
@@ -633,12 +632,14 @@ void debugTCPConn() {
    ImGui::End();
 }
 
+std::vector <std::string> sockMess;
+
 ///////////
 //Creates a socket for listening on the host machine
-char* tcpHostListen(int port) {
+bool tcpHostListen(int port) {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { printf("Socket creation failed."); }
+   if (sockfd == -1) { sockMess.push_back("Socket creation failed."); }
 
    //assign IP and Port
    server.sin_family = AF_INET;
@@ -647,25 +648,27 @@ char* tcpHostListen(int port) {
 
    //bind socket
    if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      return "socket binding failed...";
+      sockMess.push_back("socket binding failed...");
+      return false;
    }
 
    //start listening on socket
    if (listen(sockfd, 5) != 0) {
-      return "Listen failed...";
+      sockMess.push_back("Listen failed...");
+      return false;
    }
 
-   return "Started Listening...";
+   return true;
 }
 
 //Accepts connections until we have all the players
 char* tcpHostAccept() {
    if (connections < people) {
-      len = sizeof(client);
-      connfd = accept(sockfd, (sockaddr*)&client, &len);
+      len = sizeof(sockets[connections].address);
+      sockets[connections].sock = accept(sockfd, (sockaddr*)&sockets[connections].address, &len);
       if (connfd < 0) { return "socket accept failed..."; }
       connections++;
-      sockets[connections] = connfd;
+      sockets[connections].sock = connfd;
    }
 }
 
@@ -674,7 +677,41 @@ void tcpHostSend() {
    bool sent = false;  //Need to keep track of send/receive status
    if (connections == people && sent == false) {
       for (int i = 0; i < connections; i++) {
-         sendMsg(sockets[i], buffer, sizeof(buffer));
+         sendMsg(sockets[i].sock, buffer, sizeof(buffer));
       }
    }
+}
+
+
+///NEW UI
+void debugExchange() {
+   if (!ImGui::Begin("TCP Exchange")) {
+      ImGui::End();
+      return;
+   }
+
+   static bool listening = false;
+
+   static bool isServer = false;
+   ImGui::Checkbox("Sever", &isServer);
+   static char ipAddress[20] = "127.0.0.1";
+   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
+   static int port[3] = { 7001, 7000, 7008 };
+   ImGui::SliderScalar("Port Number", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
+
+   if (ImGui::Button("Connect to Players")) {
+      isServer = true;
+   }
+   if (isServer == true && listening == false) {
+      if (tcpHostListen(port[0]) == true) { listening = true; }
+   }
+   if (isServer == true && listening == true) {
+      tcpHostAccept();
+   }
+   if (isServer == true && connections == people) {
+      //Send message with ip, port, and game settings
+      //Set sent to true
+   }
+
+   ImGui::End();
 }
