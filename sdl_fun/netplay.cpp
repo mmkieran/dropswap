@@ -468,7 +468,6 @@ char* tcpServer(int port) {
 
    //assign IP and Port
    server.sin_family = AF_INET;
-   //server.sin_addr.s_addr = inet_addr("127.0.0.1");
    server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    server.sin_port = htons(port);
 
@@ -559,19 +558,22 @@ void debugTCPConn() {
    static char myMessage[32] = "Howdy";
    static char myMessage2[32] = "Hello";
    static bool isServer = false;
-   int bounds[3] = { 7001, 7000, 7008 };
+
+   static char ipAddress[20] = "127.0.0.1";
+   ImGui::InputText("Client IP", ipAddress, IM_ARRAYSIZE(ipAddress));
+   static int bounds[3] = { 7001, 7000, 7008 };
    ImGui::SliderScalar("Port Number", ImGuiDataType_U32, &bounds[0], &bounds[1], &bounds[2]);
 
    static char listen[60];
    if (ImGui::Button("Listen")) {
-      strcpy(listen, tcpServer(7002) );
+      strcpy(listen, tcpServer(bounds[0]) );
       isServer = true;
    }
    ImGui::Text(listen);
 
    static char connResult[60];
    if (ImGui::Button("Connect")) {
-      strcpy(listen, tcpClient(7002) );
+      strcpy(listen, tcpClient(bounds[0], ipAddress) );
    }
    ImGui::Text(connResult);
 
