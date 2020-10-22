@@ -444,6 +444,8 @@ sockaddr_in server, client = { 0 };
 char recvBuffer[BUFFERLEN];
 int bufferLen = BUFFERLEN;
 
+std::vector <Byte> testGameSend;
+
 enum SocketStatus {
    sock_accept,
    sock_sent,
@@ -456,6 +458,71 @@ struct SocketInfo {
    char recBuff[BUFFERLEN];
    SocketStatus status;
 };
+
+//Use TCP to transfer information from host to peers
+char* tcpServer(int port) {
+
+   //create socket and verify
+   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockfd == -1) { printf("Socket creation failed."); }
+
+   //assign IP and Port
+   server.sin_family = AF_INET;
+   //server.sin_addr.s_addr = inet_addr("127.0.0.1");
+   server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
+   server.sin_port = htons(port);
+
+   //bind socket
+   if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+      return "socket binding failed...";
+   }
+
+   if (listen(sockfd, 5) != 0) {
+      return "Listen failed...";
+   }
+
+   return "Started Listening...";
+}
+
+char* tcpAccept() {
+   //Accept the data packet from client
+   len = sizeof(client);
+   connfd = accept(sockfd, (sockaddr*)&client, &len);
+   if (connfd < 0) { return "socket accept failed..."; }
+   return "Accepted socket";
+}
+
+char* tcpClient(int port, const char* ip = "127.0.0.1") {
+   //create socket and verify
+   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockfd == -1) { return "Socket creation failed."; }
+
+   //assign IP and Port
+   server.sin_family = AF_INET;
+   server.sin_addr.s_addr = inet_addr(ip);
+   server.sin_port = htons(port);
+
+   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+      return "Socket creation failed.";
+   }
+
+   return "Connected to server socket";
+}
+
+bool sendMsg(SOCKET socket, const char* buffer, int len) {
+   int result = send(socket, buffer, len, 0);
+   if (result != SOCKET_ERROR) { return true; }  //Failed to send
+   return false;
+}
+
+bool recMsg(SOCKET socket) {
+   //Do this in a while loop until all data received
+   //Use a length prefix at the start of the data (size of vector) 
+   int result = recv(socket, recvBuffer, bufferLen, 0);
+   if (result <= 0) { return false; }
+   if (result > 0) { return true; }  //We got something
+}
+
 
 char* tcpClientConnect(int port, const char* ip = "127.0.0.1") {
    //create socket and verify
@@ -476,69 +543,10 @@ char* tcpClientConnect(int port, const char* ip = "127.0.0.1") {
    return "Connected to server socket";
 }
 
-bool tcpSendMsg(SOCKET socket, const char* buffer, int len) {
-   int result = send(socket, buffer, len, 0);
-   if (result != SOCKET_ERROR) { return true; }  //Failed to send
-   return false;
-}
-
-bool recMsg(SOCKET socket) {
-   //Do this in a while loop until all data received
-   //Use a length prefix at the start of the data (size of vector) 
-   int result = recv(socket, recvBuffer, bufferLen, 0);
-   if (result <= 0) { return false ; } 
-   if (result > 0) { return true; }  //We got something
-}
-
 void tcpClose() {
    closesocket(sockfd);
    closesocket(connfd);
    //WSACleanup();
-}
-
-//Creates a socket for listening on the host machine
-char* tcpHostListen(int port) {
-   //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { printf("Socket creation failed."); }
-
-   //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
-   server.sin_port = htons(port);
-
-   //bind socket
-   if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      return "socket binding failed...";
-   }
-
-   //start listening on socket
-   if (listen(sockfd, 5) != 0) {
-      return "Listen failed...";
-   }
-
-   return "Started Listening...";
-}
-
-//Accepts connections until we have all the players
-char* tcpHostAccept() {
-   if (connections < people) {  
-      len = sizeof(client);
-      connfd = accept(sockfd, (sockaddr*)&client, &len);
-      if (connfd < 0) { return "socket accept failed..."; }
-      connections++;
-      sockets[connections] = connfd;
-   }
-}
-
-void tcpHostSend() {
-   char* buffer = "Howdy";  //Use serialize here to send game info
-   bool sent = false;  //Need to keep track of send/receive status
-   if (connections == people && sent == false) {
-      for (int i = 0; i < connections; i++) {
-         tcpSendMsg(sockets[i], buffer, sizeof(buffer));
-      }
-   }
 }
 
 void debugTCPConn() {
@@ -567,6 +575,16 @@ void debugTCPConn() {
    }
    ImGui::Text(connResult);
 
+   if (ImGui::Button("Save Game")) {
+      testGameSend = gameSave(game);
+   }
+
+   static char acceptResult[60];
+   if (ImGui::Button("Accept")) {
+      strcpy(listen, tcpAccept());
+   }
+   ImGui::Text(acceptResult);
+
    static bool startUPNP = false;
    if (ImGui::Button("Start UPNP")) {
       startUPNP = upnpStartup(sessionPort);
@@ -574,15 +592,20 @@ void debugTCPConn() {
    if (startUPNP == true) { ImGui::Text("Started UPNP"); }
 
    static bool sendResult = false;
-   if (ImGui::Button("Send")) {
+   if (ImGui::Button("Send Game Data")) {
       if (isServer == true) {
-         sendResult = sendMsg(connfd, myMessage, 5);
+         sendResult = sendMsg(connfd, (char*)testGameSend.data(), testGameSend.size());
       }
       else if (isServer == false) {
          sendResult = sendMsg(sockfd, myMessage2, 5);
       }
    }
    if (sendResult == true) { ImGui::Text("Sent successfully"); }
+
+   if (ImGui::Button("Load Game Data")) {
+      unsigned char* gData = (unsigned char*)recvBuffer;
+      gameLoad(game, gData);
+   }
 
    static bool recResult = false;
    if (ImGui::Button("Receive")) {
@@ -606,4 +629,50 @@ void debugTCPConn() {
    ImGui::Text("%d", ntohs(server.sin_port) );
 
    ImGui::End();
+}
+
+///////////
+//Creates a socket for listening on the host machine
+char* tcpHostListen(int port) {
+   //create socket and verify
+   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockfd == -1) { printf("Socket creation failed."); }
+
+   //assign IP and Port
+   server.sin_family = AF_INET;
+   server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
+   server.sin_port = htons(port);
+
+   //bind socket
+   if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+      return "socket binding failed...";
+   }
+
+   //start listening on socket
+   if (listen(sockfd, 5) != 0) {
+      return "Listen failed...";
+   }
+
+   return "Started Listening...";
+}
+
+//Accepts connections until we have all the players
+char* tcpHostAccept() {
+   if (connections < people) {
+      len = sizeof(client);
+      connfd = accept(sockfd, (sockaddr*)&client, &len);
+      if (connfd < 0) { return "socket accept failed..."; }
+      connections++;
+      sockets[connections] = connfd;
+   }
+}
+
+void tcpHostSend() {
+   char* buffer = "Howdy";  //Use serialize here to send game info
+   bool sent = false;  //Need to keep track of send/receive status
+   if (connections == people && sent == false) {
+      for (int i = 0; i < connections; i++) {
+         sendMsg(sockets[i], buffer, sizeof(buffer));
+      }
+   }
 }
