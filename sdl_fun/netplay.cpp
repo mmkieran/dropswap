@@ -645,8 +645,8 @@ char* tcpHostAccept() {
    len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockfd, (sockaddr*)&sockets[connections].address, &len);
    if (conn < 0) { return "socket accept failed..."; }
-   connections++;
    sockets[connections].sock = conn;
+   connections++;
 }
 
 bool tcpClientConnect(int port, const char* ip) {
@@ -666,6 +666,19 @@ bool tcpClientConnect(int port, const char* ip) {
       return false;
    }
    return true;
+}
+
+void tcpCleanup() {
+   closesocket(sockfd);
+   closesocket(connfd);
+   for (auto&& sock : sockets) {
+      closesocket(sock.second.sock);
+   }
+   sockets.clear();
+   server, client = { 0 };
+   connections = 0;
+   sockMess.clear();
+   //WSACleanup();
 }
 
 enum ServerStatus {
@@ -695,6 +708,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    switch (status) {
    case server_none:
       break;
+
    case server_started:
       if (tcpHostListen(port) == true) { newStatus = server_listen; }
       break;
@@ -709,11 +723,11 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
 
    case server_ready:
       for (int i = 0; i < connections; i++) {
-         if (sockets[connections].status != sock_sent) {
-            if (sendMsg(sockets[connections].sock, (char*)testGameSend.data(), testGameSend.size()) == false) {
+         if (sockets[i].status != sock_sent) {
+            if (sendMsg(sockets[i].sock, (char*)testGameSend.data(), testGameSend.size()) == false) {
                done = false;
-               sockets[connections].status = sock_sent;
             }
+            else { sockets[i].status = sock_sent; }
          }
       }
       if (done == true) { newStatus = server_done; }
@@ -729,6 +743,9 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
 ClientStatus _clientLoop(int port, const char* ip, ClientStatus status) {
    ClientStatus newStatus = status;
    switch (status) {
+   case client_none:
+      break;
+
    case client_started:
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
@@ -750,6 +767,12 @@ void debugExchange() {
    if (!ImGui::Begin("TCP Exchange")) {
       ImGui::End();
       return;
+   }
+
+   if (ImGui::Button("Start Again")) {
+      serverStatus = server_none;
+      clientStatus = client_none;
+      tcpCleanup();
    }
 
    static bool isServer = false;
