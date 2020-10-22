@@ -521,26 +521,6 @@ bool recMsg(SOCKET socket) {
    if (result > 0) { return true; }  //We got something
 }
 
-
-char* tcpClientConnect(int port, const char* ip = "127.0.0.1") {
-   //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { return "Socket creation failed."; }
-
-   //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = inet_addr(ip);
-   server.sin_port = htons(port);
-
-   //Here we need to start UPNP
-
-   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      return "Socket creation failed.";
-   }
-
-   return "Connected to server socket";
-}
-
 void tcpClose() {
    closesocket(sockfd);
    closesocket(connfd);
@@ -669,15 +649,24 @@ char* tcpHostAccept() {
    sockets[connections].sock = conn;
 }
 
-//void tcpHostSend() {
-//   char* buffer = "Howdy";  //Use serialize here to send game info
-//   bool sent = false;  //Need to keep track of send/receive status
-//   if (connections == people && sent == false) {
-//      for (int i = 0; i < connections; i++) {
-//         sendMsg(sockets[i].sock, buffer, sizeof(buffer));
-//      }
-//   }
-//}
+bool tcpClientConnect(int port, const char* ip) {
+   //create socket and verify
+   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockfd == -1) { return "Socket creation failed."; }
+
+   //assign IP and Port
+   server.sin_family = AF_INET;
+   server.sin_addr.s_addr = inet_addr(ip);
+   server.sin_port = htons(port);
+
+   //Here we need to start UPNP
+
+   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+      sockMess.push_back("Socket creation failed.");
+      return false;
+   }
+   return true;
+}
 
 enum ServerStatus {
    server_none = 0,
@@ -689,10 +678,20 @@ enum ServerStatus {
    server_done,
 };
 
+enum ClientStatus {
+   client_none = 0,
+   client_started,
+   client_connected,
+   client_received,
+   client_loaded,
+};
+
 ServerStatus serverStatus = server_none;
+ClientStatus clientStatus = client_none;
 
 ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    ServerStatus newStatus = status;
+   bool done = true;
    switch (status) {
    case server_none:
       break;
@@ -700,16 +699,15 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
       if (tcpHostListen(port) == true) { newStatus = server_listen; }
       break;
 
-   case server_listen :
-      tcpHostAccept();
+   case server_listen:
       if (connections == people) { 
          testGameSend = gameSave(game);
          newStatus = server_ready; 
       }
+      else if (connections < people) { tcpHostAccept(); }
       break;
 
    case server_ready:
-      bool done = true;
       for (int i = 0; i < connections; i++) {
          if (sockets[connections].status != sock_sent) {
             if (sendMsg(sockets[connections].sock, (char*)testGameSend.data(), testGameSend.size()) == false) {
@@ -728,6 +726,25 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    return newStatus;
 }
 
+ClientStatus _clientLoop(int port, const char* ip, ClientStatus status) {
+   ClientStatus newStatus = status;
+   switch (status) {
+   case client_started:
+      if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
+      break;
+   case client_connected:
+      if (recMsg(sockfd) == true) { newStatus = client_received; }
+      break;
+   case client_received:
+      //Validate size and load
+      break;
+   case client_loaded:
+      //We're done
+      break;
+   }
+   return newStatus;
+}
+
 ///NEW UI
 void debugExchange() {
    if (!ImGui::Begin("TCP Exchange")) {
@@ -738,17 +755,34 @@ void debugExchange() {
    static bool isServer = false;
    ImGui::Checkbox("Sever", &isServer);
    static char ipAddress[20] = "127.0.0.1";
-   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    static int port[3] = { 7001, 7000, 7008 };
    static int people[3] = { 1, 1, 3 };
    ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
-   ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
-
-   if (ImGui::Button("Connect to Players")) {
-      serverStatus = server_started;
-   }
+   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
+      ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+   }
+
+   if (isServer == true) {
+      if (ImGui::Button("Connect to Players")) {
+         serverStatus = server_started;
+      }
       serverStatus = _serverLoop(port[0], people[0], serverStatus);
+      ImGui::Text("Server Status: %d", serverStatus);
+   }
+   else if (isServer == false) {
+      if (ImGui::Button("Connect to Host")) {
+         clientStatus = client_started;
+      }
+      clientStatus = _clientLoop(port[0], ipAddress, clientStatus);
+      ImGui::Text("Client Status: %d", clientStatus);
+
+      if (clientStatus == client_received) {
+         if (ImGui::Button("Load Game Data")) {
+            unsigned char* gData = (unsigned char*)recvBuffer;
+            gameLoad(game, gData);
+         }
+      }
    }
 
    ImGui::End();

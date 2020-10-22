@@ -64,3 +64,4 @@ int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
 
 void debugTCPConn();
+void debugExchange();
