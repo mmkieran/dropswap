@@ -441,6 +441,7 @@ char recvBuffer[BUFFERLEN];
 int bufferLen = BUFFERLEN;
 
 std::vector <Byte> testGameSend;
+std::vector <std::string> sockMess;
 
 enum SocketStatus {
    sock_none = 0,
@@ -457,55 +458,6 @@ struct SocketInfo {
 };
 
 std::map <int, SocketInfo> sockets;
-
-//Use TCP to transfer information from host to peers
-char* tcpServer(int port) {
-
-   //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { printf("Socket creation failed."); }
-
-   //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
-   server.sin_port = htons(port);
-
-   //bind socket
-   if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      return "socket binding failed...";
-   }
-
-   if (listen(sockfd, 5) != 0) {
-      return "Listen failed...";
-   }
-
-   return "Started Listening...";
-}
-
-char* tcpAccept() {
-   //Accept the data packet from client
-   len = sizeof(client);
-   connfd = accept(sockfd, (sockaddr*)&client, &len);
-   if (connfd < 0) { return "socket accept failed..."; }
-   return "Accepted socket";
-}
-
-char* tcpClient(int port, const char* ip = "127.0.0.1") {
-   //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { return "Socket creation failed."; }
-
-   //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = inet_addr(ip);
-   server.sin_port = htons(port);
-
-   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
-      return "Socket creation failed.";
-   }
-
-   return "Connected to server socket";
-}
 
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
    int result = send(socket, buffer, len, 0);
@@ -527,94 +479,6 @@ void tcpClose() {
    //WSACleanup();
 }
 
-void debugTCPConn() {
-   if (!ImGui::Begin("TCP Test")) {
-      ImGui::End();
-      return;
-   }
-
-   static char myMessage[32] = "Howdy";
-   static char myMessage2[32] = "Hello";
-   static bool isServer = false;
-
-   static char ipAddress[20] = "127.0.0.1";
-   ImGui::InputText("Client IP", ipAddress, IM_ARRAYSIZE(ipAddress));
-   static int bounds[3] = { 7001, 7000, 7008 };
-   ImGui::SliderScalar("Port Number", ImGuiDataType_U32, &bounds[0], &bounds[1], &bounds[2]);
-
-   static char listen[60];
-   if (ImGui::Button("Listen")) {
-      strcpy(listen, tcpServer(bounds[0]) );
-      isServer = true;
-   }
-   ImGui::Text(listen);
-
-   static char connResult[60];
-   if (ImGui::Button("Connect")) {
-      strcpy(listen, tcpClient(bounds[0], ipAddress) );
-   }
-   ImGui::Text(connResult);
-
-   if (ImGui::Button("Save Game")) {
-      testGameSend = gameSave(game);
-   }
-
-   static char acceptResult[60];
-   if (ImGui::Button("Accept")) {
-      strcpy(listen, tcpAccept());
-   }
-   ImGui::Text(acceptResult);
-
-   static bool startUPNP = false;
-   if (ImGui::Button("Start UPNP")) {
-      startUPNP = upnpStartup(sessionPort);
-   }
-   if (startUPNP == true) { ImGui::Text("Started UPNP"); }
-
-   static bool sendResult = false;
-   if (ImGui::Button("Send Game Data")) {
-      if (isServer == true) {
-         sendResult = sendMsg(connfd, (char*)testGameSend.data(), testGameSend.size());
-      }
-      else if (isServer == false) {
-         sendResult = sendMsg(sockfd, myMessage2, 5);
-      }
-   }
-   if (sendResult == true) { ImGui::Text("Sent successfully"); }
-
-   if (ImGui::Button("Load Game Data")) {
-      unsigned char* gData = (unsigned char*)recvBuffer;
-      gameLoad(game, gData);
-   }
-
-   static bool recResult = false;
-   if (ImGui::Button("Receive")) {
-      if (isServer == true) {
-         recResult = recMsg(connfd);
-      }
-      if (isServer == false) {
-         recResult = recMsg(sockfd);
-      }
-   }
-   if (recResult == false) { ImGui::Text("Failed to receive anything"); }
-   ImGui::Text(recvBuffer);
-
-   if (ImGui::Button("Close")) {
-      tcpClose();
-   }
-
-   ImGui::Text(inet_ntoa(client.sin_addr));
-   ImGui::Text(inet_ntoa(server.sin_addr));
-   ImGui::Text("%d", ntohs(client.sin_port) );
-   ImGui::Text("%d", ntohs(server.sin_port) );
-
-   ImGui::End();
-}
-
-std::vector <std::string> sockMess;
-
-///////////
-//Creates a socket for listening on the host machine
 bool tcpHostListen(int port) {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -764,7 +628,6 @@ ClientStatus _clientLoop(int port, const char* ip, ClientStatus status) {
    return newStatus;
 }
 
-///NEW UI
 void debugExchange() {
    if (!ImGui::Begin("TCP Exchange")) {
       ImGui::End();
