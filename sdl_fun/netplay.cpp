@@ -1,6 +1,7 @@
 
 #include "netplay.h"
 
+#include <time.h>
 #include <string>
 
 //Port Forwarding magic
@@ -559,6 +560,7 @@ enum ClientStatus {
    client_none = 0,
    client_started,
    client_connected,
+   client_send,
    client_received,
    client_loaded,
 };
@@ -616,7 +618,11 @@ ClientStatus _clientLoop(int port, const char* ip, ClientStatus status) {
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
+      //if (sendMsg(sockfd, ) == true) { newStatus = client_send; }
+      break;
+   case client_send:
       if (recMsg(sockfd) == true) { newStatus = client_received; }
+      //Validate size and load
       break;
    case client_received:
       //Validate size and load
@@ -646,6 +652,8 @@ void debugExchange() {
    static int port[3] = { 7001, 7000, 7008 };
    static int people[3] = { 1, 1, 3 };
    ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
+   static char pName[20] = "Your Name...";
+   ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
       ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
