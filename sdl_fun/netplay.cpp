@@ -715,6 +715,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
 
    case server_listen:
       if (connections == people) { 
+         //Write host info here
          testGameSend = gameSave(game);
          newStatus = server_ready; 
       }
@@ -724,6 +725,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    case server_ready:
       for (int i = 0; i < connections; i++) {
          if (sockets[i].status != sock_sent) {
+            //Send port numbers, ips, player number, game info
             if (sendMsg(sockets[i].sock, (char*)testGameSend.data(), testGameSend.size()) == false) {
                done = false;
             }
@@ -805,6 +807,13 @@ void debugExchange() {
             unsigned char* gData = (unsigned char*)recvBuffer;
             gameLoad(game, gData);
          }
+      }
+   }
+
+   if (isServer == true) {
+      for (auto&& sock : sockets) {
+         ImGui::Text(inet_ntoa(sock.second.address.sin_addr));
+         ImGui::Text("%d", ntohs(sock.second.address.sin_port));
       }
    }
 

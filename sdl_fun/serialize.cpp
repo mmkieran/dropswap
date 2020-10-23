@@ -557,3 +557,8 @@ int gameLoadState(Game* game, const char* path) {
    fclose(in);
    return 1;
 }
+
+//Function to create the Session Info to send to players
+void writeHostInfo(Game* game, std::vector <Byte>& stream) {
+   writeStream(stream, game->ai);
+}
