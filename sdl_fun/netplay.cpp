@@ -446,12 +446,13 @@ std::vector <std::string> sockMess;
 
 enum SocketStatus {
    sock_none = 0,
-   sock_accept,
+   sock_accepted,
    sock_sent,
-   sock_receive,
+   sock_received,
 };
 
 struct SocketInfo {
+   char name[20];
    SOCKET sock = { 0 };
    sockaddr_in address = { 0 };
    char recBuff[BUFFERLEN];
@@ -460,16 +461,16 @@ struct SocketInfo {
 
 std::map <int, SocketInfo> sockets;
 
+//Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
    int result = send(socket, buffer, len, 0);
    if (result != SOCKET_ERROR) { return true; }  //Failed to send
    return false;
 }
 
-bool recMsg(SOCKET socket) {
-   //Do this in a while loop until all data received
-   //Use a length prefix at the start of the data (size of vector) 
-   int result = recv(socket, recvBuffer, bufferLen, 0);
+//Receive a message of a known length over the socket
+bool recMsg(SOCKET socket, char* buffer, int len) {
+   int result = recv(socket, buffer, len, 0);
    if (result <= 0) { return false; }
    if (result > 0) { return true; }  //We got something
 }
@@ -480,6 +481,7 @@ void tcpClose() {
    //WSACleanup();
 }
 
+//Create a start listening on a socket
 bool tcpHostListen(int port) {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -505,7 +507,7 @@ bool tcpHostListen(int port) {
    return true;
 }
 
-//Accepts connections until we have all the players
+//Accepts connections on the listening socket until we have all the players
 char* tcpHostAccept() {
    len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockfd, (sockaddr*)&sockets[connections].address, &len);
@@ -514,6 +516,7 @@ char* tcpHostAccept() {
    connections++;
 }
 
+//Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
    //create socket and verify
    sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -549,10 +552,10 @@ void tcpCleanup() {
 enum ServerStatus {
    server_none = 0,
    server_started,
-   server_listen,
+   server_listening,
    server_accept,
-   server_ready,
-   server_sent,
+   server_receive,
+   server_send,
    server_done,
 };
 
@@ -560,7 +563,7 @@ enum ClientStatus {
    client_none = 0,
    client_started,
    client_connected,
-   client_send,
+   client_sent,
    client_received,
    client_loaded,
 };
@@ -572,23 +575,33 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    ServerStatus newStatus = status;
    bool done = true;
    switch (status) {
-   case server_none:
-      break;
-
    case server_started:
-      if (tcpHostListen(port) == true) { newStatus = server_listen; }
+      if (tcpHostListen(port) == true) { newStatus = server_listening; }
       break;
 
-   case server_listen:
+   case server_listening:
       if (connections == people) { 
          //Write host info here
          testGameSend = gameSave(game);
-         newStatus = server_ready; 
+         newStatus = server_receive;
       }
       else if (connections < people) { tcpHostAccept(); }
       break;
 
-   case server_ready:
+   case server_receive:
+      for (int i = 0; i < connections; i++) {
+         if (sockets[i].status != sock_received) {
+            if (recMsg(sockets[i].sock, sockets[i].recBuff, bufferLen) == false) { done = false; }
+            else {
+               sockets[i].status = sock_received;
+               strcpy(sockets[i].name, sockets[i].recBuff);
+            }
+         }
+      }
+      if (done == true) { newStatus = server_send; }
+      break;
+
+   case server_send:
       for (int i = 0; i < connections; i++) {
          if (sockets[i].status != sock_sent) {
             //Send port numbers, ips, player number, game info
@@ -608,21 +621,17 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    return newStatus;
 }
 
-ClientStatus _clientLoop(int port, const char* ip, ClientStatus status) {
+ClientStatus _clientLoop(int port, const char* ip, ClientStatus status, const char* name) {
    ClientStatus newStatus = status;
    switch (status) {
-   case client_none:
-      break;
-
    case client_started:
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
-      //if (sendMsg(sockfd, ) == true) { newStatus = client_send; }
+      if (sendMsg(sockfd, name, IM_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
       break;
-   case client_send:
-      if (recMsg(sockfd) == true) { newStatus = client_received; }
-      //Validate size and load
+   case client_sent:
+      if (recMsg(sockfd, recvBuffer, bufferLen) == true) { newStatus = client_received; }
       break;
    case client_received:
       //Validate size and load
@@ -645,6 +654,18 @@ void debugExchange() {
       clientStatus = client_none;
       tcpCleanup();
    }
+
+   static char* nameList[4] = {"aaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbb", "cccccccccccccccccccc", "dddddddddddddddddddd"};
+   static int currItem = 0;
+   if (ImGui::Button("Get Names")) {
+      if (serverStatus > server_receive) {
+         for (int i = 0; i < connections; i++) {
+            strncpy(nameList[i], sockets[i].name, 20);
+         }
+      }
+   }
+
+   ImGui::Combo("Name List", &currItem, nameList, IM_ARRAYSIZE(nameList));
 
    static bool isServer = false;
    ImGui::Checkbox("Sever", &isServer);
@@ -670,7 +691,7 @@ void debugExchange() {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
       }
-      clientStatus = _clientLoop(port[0], ipAddress, clientStatus);
+      clientStatus = _clientLoop(port[0], ipAddress, clientStatus, pName);
       ImGui::Text("Client Status: %d", clientStatus);
 
       if (clientStatus == client_received) {
