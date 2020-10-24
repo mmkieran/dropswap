@@ -574,6 +574,10 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
    return newStatus;
 }
 
+SocketInfo getSocket(int index) {
+   return sockets[index];
+}
+
 void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);

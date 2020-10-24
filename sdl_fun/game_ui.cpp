@@ -767,7 +767,7 @@ void multiplayer(Game* game) {
    ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
-      ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+      ImGui::SliderScalar("Players", ImGuiDataType_U32, &game->players, &people[1], &people[2]);
    }
 
    ImGui::NewLine();
@@ -776,25 +776,35 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
       }
-      serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
+      serverStatus = tcpServerLoop(7000, game->players - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
 
       if (serverStatus == server_waiting) {
-         helpfulText("Connected to Player... Setup Game");
-         if (ImGui::Button("Send Game Info")) {
-            serverStatus = server_send;
-         }
+         helpfulText("Connected... Now setup a game");
 
          ImGui::PushID("Player Info Set");
-         for (int i = 0; i < people[0]; i++) {
+         for (int i = 0; i < game->players; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
             ImGui::PushItemWidth(80);
-
-            //todo make player table here
+            SocketInfo sock = getSocket(i - 1);
+            if (i == 0) { ImGui::Text(pName); }
+            else { ImGui::Text(sock.name); }
+            ImGui::SameLine();
+            int minPNum = 1;
+            ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &game->players);
+            ImGui::SameLine();
+            ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+            ImGui::SameLine();
+            ImGui::Text(inet_ntoa(sock.address.sin_addr) );
 
             ImGui::PopID();
          }
          ImGui::PopID();
+      }
+
+      if (ImGui::Button("Send Game Info")) {
+         serverStatus = server_send;
+         //Serialize the host info and game settings and send here
       }
    }
    else if (isServer == false) {
@@ -808,10 +818,11 @@ void multiplayer(Game* game) {
          if (ImGui::Button("Load Game Data")) {
             readGameData();
          }
+         //Show player table here
       }
    }
 
-   if (ImGui::Button("Start Again")) {  //Debug Cleanup all the socket shit
+   if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
       serverStatus = server_none;
       clientStatus = client_none;
       tcpCleanup(7000);

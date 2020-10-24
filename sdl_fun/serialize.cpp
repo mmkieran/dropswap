@@ -560,9 +560,7 @@ int gameLoadState(Game* game, const char* path) {
 //Function to create the Session Info to send to players
 void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
    //Send port numbers, ips, player number, game info
-   writeStream(stream, game->ai);
-   //SessionInfo hostSession[4] = { 0 };
    for (int i = 0; i < game->players; i++) {
-
+      writeStream(stream, game->ai);
    }
 }

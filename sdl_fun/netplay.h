@@ -36,6 +36,8 @@ struct SessionInfo {
    int localPort = 7001;
    int playerType = 0;
    char ipAddress[32] = "127.0.0.1";
+   int pNum = 1;
+   int team = 0;
 };
 
 struct NetPlay {
@@ -106,3 +108,4 @@ ServerStatus tcpServerLoop(int port, int people, ServerStatus status);
 
 void readGameData();
 void tcpCleanup(int port);
+SocketInfo getSocket(int index);
