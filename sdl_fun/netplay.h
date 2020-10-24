@@ -7,6 +7,9 @@
 #include "game_ui.h"
 
 #include <string>
+#include <winsock2.h>  //For windows sockets 
+
+#define BUFFERLEN 8192
 
 enum PlayerConnectState {
    Disconnected = 0,
@@ -39,6 +42,7 @@ struct NetPlay {
    GGPOSession* ggpo = nullptr;
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
+   SessionInfo hostSetup[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
    int hostConnNum = -1;
    int myConnNum = -1;
@@ -56,6 +60,7 @@ enum ServerStatus {
    server_accept,
    server_receive,
    server_send,
+   server_waiting,
    server_done,
 };
 
@@ -68,7 +73,19 @@ enum ClientStatus {
    client_loaded,
 };
 
+enum SocketStatus {
+   sock_none = 0,
+   sock_sent,
+   sock_received,
+};
 
+struct SocketInfo {
+   char name[20];
+   SOCKET sock = { 0 };
+   sockaddr_in address = { 0 };
+   char recBuff[BUFFERLEN];
+   SocketStatus status = sock_none;
+};
 
 int fletcher32_checksum(short* data, size_t len);
 int ggpoCheckSum(Game* game);

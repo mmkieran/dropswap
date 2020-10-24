@@ -9,6 +9,8 @@
 #include "miniupnp/upnpcommands.h"
 #include "miniupnp/upnperrors.h"
 
+#define DS_ARRAYSIZE(_ARR)          ( (int)(sizeof(_ARR) / sizeof(*_ARR)) )
+
 //UPNP Devices we discovered
 UPNPDev* upnp_devices = 0;
 
@@ -408,31 +410,10 @@ void ggpoEndSession(Game* game) {
    }
 }
 
-
-#include <winsock2.h>  //For windows sockets 
-
-#include "imgui/imgui.h"
-#define BUFFERLEN 8192
-
 int connections = 0;  //How many accepted connections do we have
 
 std::vector <Byte> matchInfo;
 std::vector <std::string> sockMess;
-
-enum SocketStatus {
-   sock_none = 0,
-   sock_sent,
-   sock_received,
-};
-
-struct SocketInfo {
-   char name[20];
-   SOCKET sock = { 0 };
-   sockaddr_in address = { 0 };
-   char recBuff[BUFFERLEN];
-   SocketStatus status = sock_none;
-};
-
 std::map <int, SocketInfo> sockets;
 
 //Send a message of a given size over the socket
@@ -543,7 +524,10 @@ ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
             }
          }
       }
-      if (done == true) { newStatus = server_send; }
+      if (done == true) { newStatus = server_waiting; }
+      break;
+
+   case server_waiting:
       break;
 
    case server_send:
@@ -575,7 +559,7 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
-      if (sendMsg(sockets[-1].sock, name, IM_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
+      if (sendMsg(sockets[-1].sock, name, DS_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
       break;
    case client_sent:
       if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { newStatus = client_received; }
@@ -593,71 +577,4 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
 void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);
-}
-
-//todo debug remove this later
-ServerStatus serverStatus = server_none;
-ClientStatus clientStatus = client_none;
-void debugExchange() {
-   if (!ImGui::Begin("TCP Exchange")) {
-      ImGui::End();
-      return;
-   }
-
-   //Hard coding this to port 7000 for now
-   //static int port[3] = { 7001, 7000, 7008 };
-   //ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
-
-   static bool isServer = false;
-   static char ipAddress[20] = "127.0.0.1";
-   static int people[3] = { 1, 1, 3 };
-   static char pName[20] = "Your Name...";
-
-   ImGui::Checkbox("Host a Game", &isServer);
-   ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
-   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
-   if (isServer == true) {
-      ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
-   }
-
-   ImGui::NewLine();
-
-   if (isServer == true) {
-      if (ImGui::Button("Connect to Players")) {
-         serverStatus = server_started;
-      }
-      serverStatus = tcpServerLoop(7000, people[0], serverStatus);
-      ImGui::Text("Server Status: %d", serverStatus);
-   }
-   else if (isServer == false) {
-      if (ImGui::Button("Connect to Host")) {
-         clientStatus = client_started;
-      }
-      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, pName);
-      ImGui::Text("Client Status: %d", clientStatus);
-
-      if (clientStatus == client_received) {
-         if (ImGui::Button("Load Game Data")) {
-            unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
-            gameLoad(game, gData);
-         }
-      }
-   }
-
-   if (ImGui::Button("Start Again")) {  //Debug Cleanup all the socket shit
-      serverStatus = server_none;
-      clientStatus = client_none;
-      tcpCleanup(7000);
-   }
-
-   //Mainly for debug until I add player table
-   if (isServer == true) {
-      for (auto&& sock : sockets) {
-         ImGui::Text(sock.second.name);
-         ImGui::Text(inet_ntoa(sock.second.address.sin_addr));
-         ImGui::Text("%d", ntohs(sock.second.address.sin_port));
-      }
-   }
-
-   ImGui::End();
 }

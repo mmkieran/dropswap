@@ -760,7 +760,7 @@ void multiplayer(Game* game) {
 
    static bool isServer = false;
    static char ipAddress[20] = "127.0.0.1";
-   static int people[3] = { 1, 1, 3 };
+   static int people[3] = { 2, 2, 4 };
    static char pName[20] = "Your Name...";
 
    ImGui::Checkbox("Host a Game", &isServer);
@@ -776,8 +776,26 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
       }
-      serverStatus = tcpServerLoop(7000, people[0], serverStatus);
+      serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
+
+      if (serverStatus == server_waiting) {
+         helpfulText("Connected to Player... Setup Game");
+         if (ImGui::Button("Send Game Info")) {
+            serverStatus = server_send;
+         }
+
+         ImGui::PushID("Player Info Set");
+         for (int i = 0; i < people[0]; i++) {
+            ImGui::PushID(i);  //So widgets don't name collide
+            ImGui::PushItemWidth(80);
+
+            //todo make player table here
+
+            ImGui::PopID();
+         }
+         ImGui::PopID();
+      }
    }
    else if (isServer == false) {
       if (ImGui::Button("Connect to Host")) {
