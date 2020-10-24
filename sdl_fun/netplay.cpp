@@ -412,24 +412,15 @@ void ggpoEndSession(Game* game) {
 #include <winsock2.h>  //For windows sockets 
 
 #include "imgui/imgui.h"
-
-int sockfd, connfd, len;
+#define BUFFERLEN 8192
 
 int connections = 0;  //How many accepted connections do we have
 
-sockaddr_in server, client = { 0 };
-
-#define BUFFERLEN 8192
-
-char recvBuffer[BUFFERLEN];
-int bufferLen = BUFFERLEN;
-
-std::vector <Byte> testGameSend;
+std::vector <Byte> matchInfo;
 std::vector <std::string> sockMess;
 
 enum SocketStatus {
    sock_none = 0,
-   sock_accepted,
    sock_sent,
    sock_received,
 };
@@ -458,31 +449,25 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
    if (result > 0) { return true; }  //We got something
 }
 
-void tcpClose() {
-   closesocket(sockfd);
-   closesocket(connfd);
-   //WSACleanup();
-}
-
 //Create a start listening on a socket
 bool tcpHostListen(int port) {
    //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { sockMess.push_back("Socket creation failed."); }
+   sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockets[-1].sock == -1) { sockMess.push_back("Socket creation failed."); }
 
    //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
-   server.sin_port = htons(port);
+   sockets[-1].address.sin_family = AF_INET;
+   sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
+   sockets[-1].address.sin_port = htons(port);
 
    //bind socket
-   if (bind(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+   if (bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address)) != 0) {
       sockMess.push_back("socket binding failed...");
       return false;
    }
 
    //start listening on socket
-   if (listen(sockfd, 5) != 0) {
+   if (listen(sockets[-1].sock, 5) != 0) {
       sockMess.push_back("Listen failed...");
       return false;
    }
@@ -490,10 +475,10 @@ bool tcpHostListen(int port) {
    return true;
 }
 
-//Accepts connections on the listening socket until we have all the players
+//Accepts connections on the listening socket and adds the info to the list of sockets
 char* tcpHostAccept() {
-   len = sizeof(sockets[connections].address);
-   SOCKET conn = accept(sockfd, (sockaddr*)&sockets[connections].address, &len);
+   int len = sizeof(sockets[connections].address);
+   SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
    if (conn < 0) { return "socket accept failed..."; }
    sockets[connections].sock = conn;
    connections++;
@@ -502,17 +487,17 @@ char* tcpHostAccept() {
 //Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
    //create socket and verify
-   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockfd == -1) { return "Socket creation failed."; }
+   sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
+   if (sockets[-1].sock == -1) { return "Socket creation failed."; }
 
    //assign IP and Port
-   server.sin_family = AF_INET;
-   server.sin_addr.s_addr = inet_addr(ip);
-   server.sin_port = htons(port);
+   sockets[-1].address.sin_family = AF_INET;
+   sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
+   sockets[-1].address.sin_port = htons(port);
 
    if (upnpStartup(sessionPort) == false) { sockMess.push_back("UPNP failed..."); };
 
-   if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
+   if (connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address)) != 0) {
       sockMess.push_back("Socket creation failed.");
       return false;
    }
@@ -520,13 +505,10 @@ bool tcpClientConnect(int port, const char* ip) {
 }
 
 void tcpCleanup(int port) {
-   closesocket(sockfd);
-   closesocket(connfd);
    for (auto&& sock : sockets) {
       closesocket(sock.second.sock);
    }
    sockets.clear();
-   server, client = { 0 };
    connections = 0;
    sockMess.clear();
 
@@ -534,29 +516,7 @@ void tcpCleanup(int port) {
    //WSACleanup();
 }
 
-enum ServerStatus {
-   server_none = 0,
-   server_started,
-   server_listening,
-   server_accept,
-   server_receive,
-   server_send,
-   server_done,
-};
-
-enum ClientStatus {
-   client_none = 0,
-   client_started,
-   client_connected,
-   client_sent,
-   client_received,
-   client_loaded,
-};
-
-ServerStatus serverStatus = server_none;
-ClientStatus clientStatus = client_none;
-
-ServerStatus _serverLoop(int port, int people, ServerStatus status) {
+ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
    ServerStatus newStatus = status;
    bool done = true;
    switch (status) {
@@ -567,7 +527,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    case server_listening:
       if (connections == people) { 
          //Write host info here
-         testGameSend = gameSave(game);
+         matchInfo = gameSave(game);
          newStatus = server_receive;
       }
       else if (connections < people) { tcpHostAccept(); }
@@ -576,7 +536,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    case server_receive:
       for (int i = 0; i < connections; i++) {
          if (sockets[i].status != sock_received) {
-            if (recMsg(sockets[i].sock, sockets[i].recBuff, bufferLen) == false) { done = false; }
+            if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
             else {
                sockets[i].status = sock_received;
                strcpy(sockets[i].name, sockets[i].recBuff);
@@ -590,7 +550,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
       for (int i = 0; i < connections; i++) {
          if (sockets[i].status != sock_sent) {
             //Send port numbers, ips, player number, game info
-            if (sendMsg(sockets[i].sock, (char*)testGameSend.data(), testGameSend.size()) == false) {
+            if (sendMsg(sockets[i].sock, (char*)matchInfo.data(), matchInfo.size()) == false) {
                done = false;
             }
             else { sockets[i].status = sock_sent; }
@@ -606,7 +566,7 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
    return newStatus;
 }
 
-ClientStatus _clientLoop(int port, const char* ip, ClientStatus status, const char* name) {
+ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const char* name) {
    ClientStatus newStatus = status;
    static bool upnp = false;
    switch (status) {
@@ -615,10 +575,10 @@ ClientStatus _clientLoop(int port, const char* ip, ClientStatus status, const ch
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
-      if (sendMsg(sockfd, name, IM_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
+      if (sendMsg(sockets[-1].sock, name, IM_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
       break;
    case client_sent:
-      if (recMsg(sockfd, recvBuffer, bufferLen) == true) { newStatus = client_received; }
+      if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { newStatus = client_received; }
       break;
    case client_received:
       //Validate size and load
@@ -630,19 +590,30 @@ ClientStatus _clientLoop(int port, const char* ip, ClientStatus status, const ch
    return newStatus;
 }
 
+void readGameData() {
+   unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
+   gameLoad(game, gData);
+}
+
+//todo debug remove this later
+ServerStatus serverStatus = server_none;
+ClientStatus clientStatus = client_none;
 void debugExchange() {
    if (!ImGui::Begin("TCP Exchange")) {
       ImGui::End();
       return;
    }
 
+   //Hard coding this to port 7000 for now
+   //static int port[3] = { 7001, 7000, 7008 };
+   //ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
+
    static bool isServer = false;
-   ImGui::Checkbox("Sever", &isServer);
    static char ipAddress[20] = "127.0.0.1";
-   static int port[3] = { 7001, 7000, 7008 };
    static int people[3] = { 1, 1, 3 };
-   ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
    static char pName[20] = "Your Name...";
+
+   ImGui::Checkbox("Host a Game", &isServer);
    ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
@@ -655,30 +626,31 @@ void debugExchange() {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
       }
-      serverStatus = _serverLoop(port[0], people[0], serverStatus);
+      serverStatus = tcpServerLoop(7000, people[0], serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
    }
    else if (isServer == false) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
       }
-      clientStatus = _clientLoop(port[0], ipAddress, clientStatus, pName);
+      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, pName);
       ImGui::Text("Client Status: %d", clientStatus);
 
       if (clientStatus == client_received) {
          if (ImGui::Button("Load Game Data")) {
-            unsigned char* gData = (unsigned char*)recvBuffer;
+            unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
             gameLoad(game, gData);
          }
       }
    }
 
-   if (ImGui::Button("Start Again")) {
+   if (ImGui::Button("Start Again")) {  //Debug Cleanup all the socket shit
       serverStatus = server_none;
       clientStatus = client_none;
-      tcpCleanup(port[0]);
+      tcpCleanup(7000);
    }
 
+   //Mainly for debug until I add player table
    if (isServer == true) {
       for (auto&& sock : sockets) {
          ImGui::Text(sock.second.name);

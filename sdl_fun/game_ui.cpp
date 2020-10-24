@@ -401,8 +401,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
-         //debugTCPConn();
-         debugExchange();
+         multiplayer(game);
 
          static bool showDemo = false;
          if (showDemo == false) {
@@ -741,6 +740,63 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ImGui::Text("Ping: %d ", stats.network.ping);
       ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
       ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+   }
+
+   ImGui::End();
+}
+
+void multiplayer(Game* game) {
+   if (!ImGui::Begin("TCP Exchange")) {
+      ImGui::End();
+      return;
+   }
+
+   static ServerStatus serverStatus = server_none;
+   static ClientStatus clientStatus = client_none;
+
+   //Hard coding this to port 7000 for now
+   //static int port[3] = { 7001, 7000, 7008 };
+   //ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
+
+   static bool isServer = false;
+   static char ipAddress[20] = "127.0.0.1";
+   static int people[3] = { 1, 1, 3 };
+   static char pName[20] = "Your Name...";
+
+   ImGui::Checkbox("Host a Game", &isServer);
+   ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
+   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
+   if (isServer == true) {
+      ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+   }
+
+   ImGui::NewLine();
+
+   if (isServer == true) {
+      if (ImGui::Button("Connect to Players")) {
+         serverStatus = server_started;
+      }
+      serverStatus = tcpServerLoop(7000, people[0], serverStatus);
+      ImGui::Text("Server Status: %d", serverStatus);
+   }
+   else if (isServer == false) {
+      if (ImGui::Button("Connect to Host")) {
+         clientStatus = client_started;
+      }
+      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, pName);
+      ImGui::Text("Client Status: %d", clientStatus);
+
+      if (clientStatus == client_received) {
+         if (ImGui::Button("Load Game Data")) {
+            readGameData();
+         }
+      }
+   }
+
+   if (ImGui::Button("Start Again")) {  //Debug Cleanup all the socket shit
+      serverStatus = server_none;
+      clientStatus = client_none;
+      tcpCleanup(7000);
    }
 
    ImGui::End();

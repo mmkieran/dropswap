@@ -49,6 +49,27 @@ struct NetPlay {
    int timeSync = 0;
 };
 
+enum ServerStatus {
+   server_none = 0,
+   server_started,
+   server_listening,
+   server_accept,
+   server_receive,
+   server_send,
+   server_done,
+};
+
+enum ClientStatus {
+   client_none = 0,
+   client_started,
+   client_connected,
+   client_sent,
+   client_received,
+   client_loaded,
+};
+
+
+
 int fletcher32_checksum(short* data, size_t len);
 int ggpoCheckSum(Game* game);
 
@@ -63,4 +84,8 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
 
-void debugExchange();
+ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const char* name);
+ServerStatus tcpServerLoop(int port, int people, ServerStatus status);
+
+void readGameData();
+void tcpCleanup(int port);
