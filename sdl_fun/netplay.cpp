@@ -408,23 +408,6 @@ void ggpoEndSession(Game* game) {
    }
 }
 
-/*
-After UPNP is successful...
-
-Host
-Server sends a message to each player using IP and Port (socket) - threaded?
-Packet contains the saved game state plus frame delay, etc.
-Server listens for response
-When all responses are in, it starts ggpo session
-Start game
-
-Client
-Each client sits listening for server
-When they receive the game state and it loads successfully... if not do manual
-They send a ready message back and start ggpo session
-Start game
-
-*/
 
 #include <winsock2.h>  //For windows sockets 
 
@@ -527,7 +510,7 @@ bool tcpClientConnect(int port, const char* ip) {
    server.sin_addr.s_addr = inet_addr(ip);
    server.sin_port = htons(port);
 
-   //Here we need to start UPNP
+   if (upnpStartup(sessionPort) == false) { sockMess.push_back("UPNP failed..."); };
 
    if (connect(sockfd, (sockaddr*)&server, sizeof(server)) != 0) {
       sockMess.push_back("Socket creation failed.");
@@ -536,7 +519,7 @@ bool tcpClientConnect(int port, const char* ip) {
    return true;
 }
 
-void tcpCleanup() {
+void tcpCleanup(int port) {
    closesocket(sockfd);
    closesocket(connfd);
    for (auto&& sock : sockets) {
@@ -546,6 +529,8 @@ void tcpCleanup() {
    server, client = { 0 };
    connections = 0;
    sockMess.clear();
+
+   upnpCleanup(port);
    //WSACleanup();
 }
 
@@ -623,8 +608,10 @@ ServerStatus _serverLoop(int port, int people, ServerStatus status) {
 
 ClientStatus _clientLoop(int port, const char* ip, ClientStatus status, const char* name) {
    ClientStatus newStatus = status;
+   static bool upnp = false;
    switch (status) {
    case client_started:
+      if (upnp == false) { upnp = upnpStartup(port); }
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
@@ -649,24 +636,6 @@ void debugExchange() {
       return;
    }
 
-   if (ImGui::Button("Start Again")) {
-      serverStatus = server_none;
-      clientStatus = client_none;
-      tcpCleanup();
-   }
-
-   static char* nameList[4] = {"aaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbb", "cccccccccccccccccccc", "dddddddddddddddddddd"};
-   static int currItem = 0;
-   if (ImGui::Button("Get Names")) {
-      if (serverStatus > server_receive) {
-         for (int i = 0; i < connections; i++) {
-            strncpy(nameList[i], sockets[i].name, 20);
-         }
-      }
-   }
-
-   ImGui::Combo("Name List", &currItem, nameList, IM_ARRAYSIZE(nameList));
-
    static bool isServer = false;
    ImGui::Checkbox("Sever", &isServer);
    static char ipAddress[20] = "127.0.0.1";
@@ -679,6 +648,8 @@ void debugExchange() {
    if (isServer == true) {
       ImGui::SliderScalar("Other Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
    }
+
+   ImGui::NewLine();
 
    if (isServer == true) {
       if (ImGui::Button("Connect to Players")) {
@@ -702,8 +673,15 @@ void debugExchange() {
       }
    }
 
+   if (ImGui::Button("Start Again")) {
+      serverStatus = server_none;
+      clientStatus = client_none;
+      tcpCleanup(port[0]);
+   }
+
    if (isServer == true) {
       for (auto&& sock : sockets) {
+         ImGui::Text(sock.second.name);
          ImGui::Text(inet_ntoa(sock.second.address.sin_addr));
          ImGui::Text("%d", ntohs(sock.second.address.sin_port));
       }
