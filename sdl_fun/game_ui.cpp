@@ -767,7 +767,7 @@ void multiplayer(Game* game) {
    ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
-      ImGui::SliderScalar("Players", ImGuiDataType_U32, &game->players, &people[1], &people[2]);
+      ImGui::SliderScalar("Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
    }
 
    ImGui::NewLine();
@@ -776,14 +776,14 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
       }
-      serverStatus = tcpServerLoop(7000, game->players - 1, serverStatus);
+      serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
 
       if (serverStatus == server_waiting) {
          helpfulText("Connected... Now setup a game");
 
          ImGui::PushID("Player Info Set");
-         for (int i = 0; i < game->players; i++) {
+         for (int i = 0; i < people[0]; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
             ImGui::PushItemWidth(80);
             SocketInfo sock = getSocket(i - 1);
@@ -791,9 +791,10 @@ void multiplayer(Game* game) {
             else { ImGui::Text(sock.name); }
             ImGui::SameLine();
             int minPNum = 1;
-            ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &game->players);
+            ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
             ImGui::SameLine();
             ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+            ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
             ImGui::SameLine();
             ImGui::Text(inet_ntoa(sock.address.sin_addr) );
 
@@ -804,6 +805,20 @@ void multiplayer(Game* game) {
 
       if (ImGui::Button("Send Game Info")) {
          serverStatus = server_send;
+         game->players = people[0];
+         for (int i = 0; i < game->players; i++) {
+            SocketInfo sock = getSocket(i - 1);
+            if (i == 0) { 
+               strcpy(game->net->hostSetup[i].name, pName); 
+               game->net->hostSetup[i].host = true;
+            }
+            else { 
+               strcpy(game->net->hostSetup[i].name, sock.name); 
+               game->net->hostSetup[i].host = false;
+            }
+            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr) );
+            game->net->hostSetup[i].localPort = 7001 + i;
+         }
          //Serialize the host info and game settings and send here
       }
    }

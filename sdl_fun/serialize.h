@@ -1,4 +1,5 @@
 #include "game.h"
+#include "netplay.h"
 
 typedef struct Board Board;
 typedef struct Tile Tile;
