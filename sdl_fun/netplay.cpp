@@ -558,7 +558,7 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
       if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
       break;
    case client_connected:
-      if (sendMsg(sockets[-1].sock, name, DS_ARRAYSIZE(name)) == true) { newStatus = client_sent; }
+      if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { newStatus = client_sent; }  //20 is the size of pName
       break;
    case client_sent:
       if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { newStatus = client_received; }

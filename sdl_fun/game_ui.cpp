@@ -736,10 +736,10 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ImGui::Text("Player %d Connection Info", i + 1);
       ImGui::Text("%.2f kilobytes/sec sent", stats.network.kbps_sent);
       ImGui::Text("Send queue length: %d", stats.network.send_queue_len);
-      ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
-      ImGui::Text("Ping: %d ", stats.network.ping);
-      ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
-      ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
+ImGui::Text("Ping: %d ", stats.network.ping);
+ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
 
    ImGui::End();
@@ -797,7 +797,7 @@ void multiplayer(Game* game) {
             ImGui::SameLine();
             ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
             ImGui::SameLine();
-            ImGui::Text(inet_ntoa(sock.address.sin_addr) );
+            ImGui::Text(inet_ntoa(sock.address.sin_addr));
 
             ImGui::PopID();
          }
@@ -806,17 +806,18 @@ void multiplayer(Game* game) {
 
       if (ImGui::Button("Send Game Info")) {
          game->players = people[0];
+         game->seed = time(0);
          for (int i = 0; i < game->players; i++) {
             SocketInfo sock = getSocket(i - 1);
-            if (i == 0) { 
-               strcpy(game->net->hostSetup[i].name, pName); 
+            if (i == 0) {
+               strcpy(game->net->hostSetup[i].name, pName);
                game->net->hostSetup[i].host = true;
             }
-            else { 
-               strcpy(game->net->hostSetup[i].name, sock.name); 
+            else {
+               strcpy(game->net->hostSetup[i].name, sock.name);
                game->net->hostSetup[i].host = false;
             }
-            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr) );
+            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
             game->net->hostSetup[i].localPort = 7001 + i;
          }
          serverStatus = server_send;
@@ -834,19 +835,25 @@ void multiplayer(Game* game) {
          if (ImGui::Button("Load Game Data")) {
             readGameData();
             loadedGameData = true;
+            for (int i = 0; i < game->players; i++) {
+               if (strcmp(game->net->hostSetup[i].name, pName) == 0) {
+                  game->net->hostSetup[i].me = true;
+               }
+            }
          }
          if (loadedGameData == true) {
-            ImGui::BeginChild("Game Info");
+            //ImGui::BeginChild("Game Info");
             ImGui::Columns(game->players);
             for (int i = 0; i < game->players; i++) {
                ImGui::Text(game->net->hostSetup[i].name);
                ImGui::Text(game->net->hostSetup[i].ipAddress);
                ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+               ImGui::Text("Me: %d", game->net->hostSetup[i].me);
                ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
                ImGui::Text("Team: %d", game->net->hostSetup[i].team);
                ImGui::NextColumn();
             }
-            ImGui::EndChild();
+            //ImGui::EndChild();
          }
       }
    }
