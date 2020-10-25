@@ -507,8 +507,6 @@ ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
 
    case server_listening:
       if (connections == people) { 
-         //Write host info here
-         matchInfo = gameSave(game);
          newStatus = server_receive;
       }
       else if (connections < people) { tcpHostAccept(); }
@@ -533,7 +531,8 @@ ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
    case server_send:
       for (int i = 0; i < connections; i++) {
          if (sockets[i].status != sock_sent) {
-            //Send port numbers, ips, player number, game info
+            matchInfo = gameSave(game);  //Serialize the game settings
+            serializeGameSetup(game, matchInfo);  //Serialize the host setup
             if (sendMsg(sockets[i].sock, (char*)matchInfo.data(), matchInfo.size()) == false) {
                done = false;
             }
@@ -581,4 +580,5 @@ SocketInfo getSocket(int index) {
 void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);
+   deserializeGameSetup(game, gData);
 }

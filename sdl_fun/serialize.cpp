@@ -557,10 +557,25 @@ int gameLoadState(Game* game, const char* path) {
    return 1;
 }
 
-//Function to create the Session Info to send to players
+//Serialize hostSetup (port numbers, ips, player number, game info) so we can send it over tcp
 void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
-   //Send port numbers, ips, player number, game info
    for (int i = 0; i < game->players; i++) {
-      writeStream(stream, game->net->hostSetup[i].ipAddress);
+      writeStream(stream, game->net->hostSetup[i].host);
+      writeStream(stream, game->net->hostSetup[i].localPort);
+      writeStream(stream, game->net->hostSetup[i].playerType);
+      writeStream(stream, game->net->hostSetup[i].name);
+      writeStream(stream, game->net->hostSetup[i].pNum);
+      writeStream(stream, game->net->hostSetup[i].team);
+   }
+}
+
+void deserializeGameSetup(Game* game, Byte*& start) {
+   for (int i = 0; i < game->players; i++) {
+      readStream(start, game->net->hostSetup[i].host);
+      readStream(start, game->net->hostSetup[i].localPort);
+      readStream(start, game->net->hostSetup[i].playerType);
+      readStream(start, game->net->hostSetup[i].name);
+      readStream(start, game->net->hostSetup[i].pNum);
+      readStream(start, game->net->hostSetup[i].team);
    }
 }

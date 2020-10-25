@@ -794,6 +794,7 @@ void multiplayer(Game* game) {
             ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
             ImGui::SameLine();
             ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+            ImGui::SameLine();
             ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
             ImGui::SameLine();
             ImGui::Text(inet_ntoa(sock.address.sin_addr) );
@@ -804,7 +805,6 @@ void multiplayer(Game* game) {
       }
 
       if (ImGui::Button("Send Game Info")) {
-         serverStatus = server_send;
          game->players = people[0];
          for (int i = 0; i < game->players; i++) {
             SocketInfo sock = getSocket(i - 1);
@@ -819,7 +819,7 @@ void multiplayer(Game* game) {
             strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr) );
             game->net->hostSetup[i].localPort = 7001 + i;
          }
-         //Serialize the host info and game settings and send here
+         serverStatus = server_send;
       }
    }
    else if (isServer == false) {
@@ -829,14 +829,29 @@ void multiplayer(Game* game) {
       clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, pName);
       ImGui::Text("Client Status: %d", clientStatus);
 
+      static bool loadedGameData = false;
       if (clientStatus == client_received) {
          if (ImGui::Button("Load Game Data")) {
             readGameData();
+            loadedGameData = true;
          }
-         //Show player table here
+         if (loadedGameData == true) {
+            ImGui::BeginChild("Game Info");
+            ImGui::Columns(game->players);
+            for (int i = 0; i < game->players; i++) {
+               ImGui::Text(game->net->hostSetup[i].name);
+               ImGui::Text(game->net->hostSetup[i].ipAddress);
+               ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+               ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+               ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+               ImGui::NextColumn();
+            }
+            ImGui::EndChild();
+         }
       }
    }
 
+   ImGui::Separator();
    if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
       serverStatus = server_none;
       clientStatus = client_none;
