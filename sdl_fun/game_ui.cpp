@@ -885,6 +885,9 @@ void multiplayer(Game* game) {
          std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
          ggpoSessionThread.detach();
          //ggpoCreateSession(game, hostSetup, participants);
+         serverStatus = server_none;
+         clientStatus = client_none;
+         tcpCleanup(7000);
       }
    }
 
@@ -900,6 +903,10 @@ void multiplayer(Game* game) {
          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
          ImGui::NewLine();
       }
+   }
+
+   if (ImGui::Button("Start Game")) {
+      gameStartMatch(game);
    }
 
    ImGui::End();
