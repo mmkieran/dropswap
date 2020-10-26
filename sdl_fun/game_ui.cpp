@@ -7,6 +7,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_internal.h"
 
 #include <thread>
 
@@ -161,8 +162,8 @@ static void _drawBoardTexture(Game* game, int index) {
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-   ImGui::BeginChild("Results Columns", { 400, 500 });
-   ImGui::Columns(game->boards.size());
+   //ImGui::BeginChild("Results Columns", { 400, 500 });
+   ImGui::Columns(max (2, game->boards.size()) );
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->team);
@@ -182,8 +183,10 @@ static void _gameResults(Game* game) {
       }
       ImGui::NextColumn();
    }
+   ImGui::EndColumns();
    ImGui::PopStyleVar();
-   ImGui::EndChild();
+   ImGui::Separator();
+   //ImGui::EndChild();
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -852,8 +855,8 @@ void multiplayer(Game* game) {
                ImGui::Text("Me: %d", game->net->hostSetup[i].me);
                ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
                ImGui::Text("Team: %d", game->net->hostSetup[i].team);
-               ImGui::NextColumn();
             }
+            ImGui::EndColumns();
             //ImGui::EndChild();
          }
       }
