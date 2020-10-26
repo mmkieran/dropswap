@@ -736,10 +736,10 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
       ImGui::Text("Player %d Connection Info", i + 1);
       ImGui::Text("%.2f kilobytes/sec sent", stats.network.kbps_sent);
       ImGui::Text("Send queue length: %d", stats.network.send_queue_len);
-ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
-ImGui::Text("Ping: %d ", stats.network.ping);
-ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
-ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+      ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
+      ImGui::Text("Ping: %d ", stats.network.ping);
+      ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+      ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
    }
 
    ImGui::End();
@@ -812,6 +812,7 @@ void multiplayer(Game* game) {
             if (i == 0) {
                strcpy(game->net->hostSetup[i].name, pName);
                game->net->hostSetup[i].host = true;
+               game->net->hostSetup[i].me = true;
             }
             else {
                strcpy(game->net->hostSetup[i].name, sock.name);
@@ -863,6 +864,42 @@ void multiplayer(Game* game) {
       serverStatus = server_none;
       clientStatus = client_none;
       tcpCleanup(7000);
+   }
+
+   static bool manualPorts = false;
+
+   if (ImGui::CollapsingHeader("Connection Options")) {
+      ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
+      ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
+      ImGui::Checkbox("Manual Ports", &manualPorts);
+
+      ImGui::NewLine();
+      helpfulText("These options have to be the same for all players or bad things will happen...");
+      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+      ImGui::NewLine();
+   }
+
+   if (game->net->ggpo == nullptr) {
+      if (ImGui::Button("Open Connection")) {
+         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+         ggpoSessionThread.detach();
+         //ggpoCreateSession(game, hostSetup, participants);
+      }
+   }
+
+   if (game->net && game->net->ggpo) {
+      if (ImGui::Button("Close Connection")) {
+         ggpoEndSession(game);
+      }
+      if (game->net && game->net->connections[game->net->myConnNum].state != Running) {
+         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
+         ImGui::NewLine();
+      }
+      else if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
+         ImGui::NewLine();
+      }
    }
 
    ImGui::End();
