@@ -427,7 +427,7 @@ bool sendMsg(SOCKET socket, const char* buffer, int len) {
 //Receive a message of a known length over the socket
 bool recMsg(SOCKET socket, char* buffer, int len) {
    int result = recv(socket, buffer, len, 0);
-   if (result <= 0) { return false; }
+   if (result <= 0) { return false; }  //No message or error
    if (result > 0) { return true; }  //We got something
 }
 
@@ -437,13 +437,16 @@ bool tcpHostListen(int port) {
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { sockMess.push_back("Socket creation failed."); }
 
+   //ioctlsocket(sockets[-1].sock, FIONBIO, &mode);  //Make socket non-blocking
+
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
    //bind socket
-   if (bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address)) != 0) {
+   int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
+   if (bindResult != 0) {
       sockMess.push_back("socket binding failed...");
       return false;
    }
@@ -461,7 +464,10 @@ bool tcpHostListen(int port) {
 char* tcpHostAccept() {
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
-   if (conn < 0) { return "socket accept failed..."; }
+   if (conn == INVALID_SOCKET) { 
+      if (WSAGetLastError() == WSAEWOULDBLOCK) { return "Nothing to accept..."; }
+      else { return "socket accept failed..."; }
+   }
    sockets[connections].sock = conn;
    connections++;
 }
@@ -472,6 +478,8 @@ bool tcpClientConnect(int port, const char* ip) {
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
 
+   //ioctlsocket(sockets[-1].sock, FIONBIO, &mode);  //Make socket non-blocking
+
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
@@ -479,10 +487,15 @@ bool tcpClientConnect(int port, const char* ip) {
 
    if (upnpStartup(sessionPort) == false) { sockMess.push_back("UPNP failed..."); };
 
-   if (connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address)) != 0) {
-      sockMess.push_back("Socket creation failed.");
+   int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
+   if (result != 0) {
+      sockMess.push_back("Socket connection failed.");
       return false;
    }
+   //else if (result == WSAEWOULDBLOCK) { //Would have blocked the application
+   //   sockMess.push_back("Connecting would have blocked...");
+   //   return false;
+   //}
    return true;
 }
 
