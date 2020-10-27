@@ -766,6 +766,24 @@ void multiplayer(Game* game) {
    static int people[3] = { 2, 2, 4 };
 
    ImGui::Checkbox("Host a Game", &isServer);
+
+   if (isServer == true) {
+      ImGui::NewLine();
+
+      if (ImGui::CollapsingHeader("Board Setup")) {
+         ImGui::InputInt("Board Width", &game->bWidth);
+         ImGui::InputInt("Board Height", &game->bHeight);
+         ImGui::NewLine();
+      }
+
+      if (ImGui::CollapsingHeader("GGPO Options")) { //todo send this with game info
+         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+         ImGui::NewLine();
+      }
+   }
+
+   ImGui::NewLine();
    ImGui::InputText("Player Name", game->pName, IM_ARRAYSIZE(game->pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
@@ -773,12 +791,18 @@ void multiplayer(Game* game) {
    }
 
    ImGui::NewLine();
-
    if (isServer == true) {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
-
       }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
+         serverStatus = server_none;
+         clientStatus = client_none;
+         tcpCleanup(7000);
+      }
+
       serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
 
@@ -831,6 +855,14 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
       }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
+         serverStatus = server_none;
+         clientStatus = client_none;
+         tcpCleanup(7000);
+      }
+
       clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
       ImGui::Text("Client Status: %d", clientStatus);
 
@@ -845,30 +877,12 @@ void multiplayer(Game* game) {
             ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
             ImGui::Text("Team: %d", game->net->hostSetup[i].team);
             ImGui::EndChild();
-            ImGui::SameLine();
+            if (i + 1 != game->players) { ImGui::SameLine(); }
          }
       }
    }
 
-   if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
-      serverStatus = server_none;
-      clientStatus = client_none;
-      tcpCleanup(7000);
-   }
-
-   static bool manualPorts = false;
-
-   if (ImGui::CollapsingHeader("Connection Options")) {
-      ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
-      ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
-      ImGui::Checkbox("Manual Ports", &manualPorts);
-
-      ImGui::NewLine();
-      helpfulText("These options have to be the same for all players or bad things will happen...");
-      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-      ImGui::NewLine();
-   }
+   ImGui::Separator();
 
    if (game->net->ggpo == nullptr) {
       if (ImGui::Button("Open Connection")) {
