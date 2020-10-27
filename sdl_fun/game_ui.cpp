@@ -162,11 +162,11 @@ static void _drawBoardTexture(Game* game, int index) {
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-   //ImGui::BeginChild("Results Columns", { 400, 500 });
-   ImGui::Columns(max (2, game->boards.size()) );
+   float width = ImGui::GetContentRegionAvailWidth();
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->team);
+      ImGui::BeginChild(playerName, { width / game->boards.size(), 500 });
       ImGui::Text("Player: %d", board->team);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -181,12 +181,11 @@ static void _gameResults(Game* game) {
       for (auto&& combo : board->boardStats.comboCounts) {
          ImGui::Text("%d Combos: %d", combo.first, board->boardStats.comboCounts[combo.first]);
       }
-      ImGui::NextColumn();
+      ImGui::EndChild();
+      ImGui::SameLine();
    }
-   ImGui::EndColumns();
    ImGui::PopStyleVar();
-   ImGui::Separator();
-   //ImGui::EndChild();
+   ImGui::NewLine();
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -248,7 +247,8 @@ void boardUI(Game* game) {
          ImGui::OpenPopup("Game Over"); 
          popups[Popup_GameOver].isOpen = true;
       }
-      if (ImGui::BeginPopupModal("Game Over", NULL, ImGuiWindowFlags_AlwaysAutoResize) ) {
+      if (ImGui::BeginPopupModal("Game Over") ) {
+         ImGui::SetNextWindowSize({ 600, 500 });
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
          ImGui::PushFont(game->fonts[20]);
          ImGui::Text("Player %d lost or something...", bustee);

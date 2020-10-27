@@ -410,6 +410,7 @@ void ggpoEndSession(Game* game) {
    }
 }
 
+u_long mode = 1;  //enables non-block socket
 int connections = 0;  //How many accepted connections do we have
 
 std::vector <Byte> matchInfo;
