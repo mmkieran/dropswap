@@ -553,6 +553,18 @@ ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
             else { sockets[i].status = sock_sent; }
          }
       }
+      if (done == true) { newStatus = server_ready; }
+      break;
+
+   case server_ready:
+      for (int i = 0; i < connections; i++) {
+         if (sockets[i].status != sock_ready) {
+            if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
+            else {
+               sockets[i].status = sock_ready;
+            }
+         }
+      }
       if (done == true) { newStatus = server_done; }
       break;
 
@@ -586,7 +598,7 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
       }
       break;
    case client_loaded:
-      //We're done
+      if (sendMsg(sockets[-1].sock, "R", 1) == true) { newStatus = client_done; }  //We are ready to play
       break;
    }
    return newStatus;

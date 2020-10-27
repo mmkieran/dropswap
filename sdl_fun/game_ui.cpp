@@ -784,19 +784,21 @@ void multiplayer(Game* game) {
    }
 
    ImGui::NewLine();
-   ImGui::InputText("Player Name", game->pName, IM_ARRAYSIZE(game->pName));
+   ImGui::InputText("Your Name", game->pName, IM_ARRAYSIZE(game->pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
-      ImGui::SliderScalar("Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+      ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
    }
 
    ImGui::NewLine();
    if (isServer == true) {
-      if (ImGui::Button("Connect to Players")) {
-         serverStatus = server_started;
+      if (serverStatus == server_none) {
+         if (ImGui::Button("Find Players")) {
+            serverStatus = server_started;
+         }
+         ImGui::SameLine();
       }
 
-      ImGui::SameLine();
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
          serverStatus = server_none;
          clientStatus = client_none;
@@ -806,17 +808,17 @@ void multiplayer(Game* game) {
       serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
 
-      if (serverStatus == server_waiting) {
-         helpfulText("Connected... Now setup a game");
-
+      if (serverStatus >= server_waiting) {
          ImGui::PushID("Player Info Set");
          for (int i = 0; i < people[0]; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
             ImGui::PushItemWidth(100);
             SocketInfo sock = getSocket(i - 1);
+            //float x = ImGui::GetCursorPosX();
             if (i == 0) { ImGui::Text(game->pName); }
             else { ImGui::Text(sock.name); }
             ImGui::SameLine();
+            ImGui::SetCursorPosX(224);
             int minPNum = 1;
             ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
             ImGui::SameLine();
@@ -831,7 +833,7 @@ void multiplayer(Game* game) {
          ImGui::PopID();
       }
 
-      if (ImGui::Button("Send Game Info")) {
+      if (ImGui::Button("Start Game")) {
          game->players = people[0];
          game->seed = time(0);
          for (int i = 0; i < game->players; i++) {
@@ -850,6 +852,16 @@ void multiplayer(Game* game) {
          }
          serverStatus = server_send;
       }
+
+      if (serverStatus == server_done) {
+         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+         ggpoSessionThread.detach();
+
+         serverStatus = server_none;
+         clientStatus = client_none;
+         tcpCleanup(7000);
+         gameStartMatch(game);
+      }
    }
    else if (isServer == false) {
       if (ImGui::Button("Connect to Host")) {
@@ -860,13 +872,12 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
          serverStatus = server_none;
          clientStatus = client_none;
-         tcpCleanup(7000);
+         //tcpCleanup(7000);
       }
 
       clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
-      ImGui::Text("Client Status: %d", clientStatus);
 
-      if (clientStatus == client_received) {
+      if (clientStatus >= client_received) {
          float width = ImGui::GetContentRegionAvailWidth();
          for (int i = 0; i < game->players; i++) {
             ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 0 });
@@ -879,39 +890,20 @@ void multiplayer(Game* game) {
             ImGui::EndChild();
             if (i + 1 != game->players) { ImGui::SameLine(); }
          }
+
+         if (ImGui::Button("Start Game")) {
+            clientStatus = client_loaded;
+            std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+            ggpoSessionThread.detach();
+
+         }
       }
-   }
-
-   ImGui::Separator();
-
-   if (game->net->ggpo == nullptr) {
-      if (ImGui::Button("Open Connection")) {
-         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-         ggpoSessionThread.detach();
-         //ggpoCreateSession(game, hostSetup, participants);
+      if (clientStatus == client_done) {
          serverStatus = server_none;
          clientStatus = client_none;
-         tcpCleanup(7000);
+         //tcpCleanup(7000);
+         gameStartMatch(game);
       }
    }
-
-   if (game->net && game->net->ggpo) {
-      if (ImGui::Button("Close Connection")) {
-         ggpoEndSession(game);
-      }
-      if (game->net && game->net->connections[game->net->myConnNum].state != Running) {
-         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
-         ImGui::NewLine();
-      }
-      else if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
-         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
-         ImGui::NewLine();
-      }
-   }
-
-   if (ImGui::Button("Start Game")) {
-      gameStartMatch(game);
-   }
-
    ImGui::End();
 }

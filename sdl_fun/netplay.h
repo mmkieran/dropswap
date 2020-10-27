@@ -64,6 +64,7 @@ enum ServerStatus {
    server_receive,
    server_send,
    server_waiting,
+   server_ready,
    server_done,
 };
 
@@ -74,12 +75,14 @@ enum ClientStatus {
    client_sent,
    client_received,
    client_loaded,
+   client_done,
 };
 
 enum SocketStatus {
    sock_none = 0,
    sock_sent,
    sock_received,
+   sock_ready,
 };
 
 struct SocketInfo {
