@@ -72,6 +72,7 @@ struct Game {
    float windowHeight;
 
    std::vector <FBO*> fbos;
+   char pName[20] = "Player Name";
 
    NetPlay* net;
 

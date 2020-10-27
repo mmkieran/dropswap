@@ -578,7 +578,12 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
       if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { newStatus = client_received; }
       break;
    case client_received:
-      //Validate size and load
+      readGameData();
+      for (int i = 0; i < game->players; i++) {
+         if (strcmp(game->net->hostSetup[i].name, game->pName) == 0) {
+            game->net->hostSetup[i].me = true;
+         }
+      }
       break;
    case client_loaded:
       //We're done

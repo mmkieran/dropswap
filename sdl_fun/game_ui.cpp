@@ -764,10 +764,9 @@ void multiplayer(Game* game) {
    static bool isServer = false;
    static char ipAddress[20] = "127.0.0.1";
    static int people[3] = { 2, 2, 4 };
-   static char pName[20] = "Your Name...";
 
    ImGui::Checkbox("Host a Game", &isServer);
-   ImGui::InputText("Player Name", pName, IM_ARRAYSIZE(pName));
+   ImGui::InputText("Player Name", game->pName, IM_ARRAYSIZE(game->pName));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
       ImGui::SliderScalar("Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
@@ -778,6 +777,7 @@ void multiplayer(Game* game) {
    if (isServer == true) {
       if (ImGui::Button("Connect to Players")) {
          serverStatus = server_started;
+
       }
       serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       ImGui::Text("Server Status: %d", serverStatus);
@@ -788,9 +788,9 @@ void multiplayer(Game* game) {
          ImGui::PushID("Player Info Set");
          for (int i = 0; i < people[0]; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
-            ImGui::PushItemWidth(80);
+            ImGui::PushItemWidth(100);
             SocketInfo sock = getSocket(i - 1);
-            if (i == 0) { ImGui::Text(pName); }
+            if (i == 0) { ImGui::Text(game->pName); }
             else { ImGui::Text(sock.name); }
             ImGui::SameLine();
             int minPNum = 1;
@@ -813,7 +813,7 @@ void multiplayer(Game* game) {
          for (int i = 0; i < game->players; i++) {
             SocketInfo sock = getSocket(i - 1);
             if (i == 0) {
-               strcpy(game->net->hostSetup[i].name, pName);
+               strcpy(game->net->hostSetup[i].name, game->pName);
                game->net->hostSetup[i].host = true;
                game->net->hostSetup[i].me = true;
             }
@@ -831,39 +831,25 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
       }
-      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, pName);
+      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
       ImGui::Text("Client Status: %d", clientStatus);
 
-      static bool loadedGameData = false;
       if (clientStatus == client_received) {
-         if (ImGui::Button("Load Game Data")) {
-            readGameData();
-            loadedGameData = true;
-            for (int i = 0; i < game->players; i++) {
-               if (strcmp(game->net->hostSetup[i].name, pName) == 0) {
-                  game->net->hostSetup[i].me = true;
-               }
-            }
-         }
-         if (loadedGameData == true) {
-            //ImGui::BeginChild("Game Info");
-            ImGui::Columns(game->players);
-            for (int i = 0; i < game->players; i++) {
-               ImGui::Text(game->net->hostSetup[i].name);
-               ImGui::Text(game->net->hostSetup[i].ipAddress);
-               ImGui::Text("Host: %d", game->net->hostSetup[i].host);
-               ImGui::Text("Me: %d", game->net->hostSetup[i].me);
-               ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
-               ImGui::Text("Team: %d", game->net->hostSetup[i].team);
-               ImGui::NextColumn();
-            }
-            ImGui::EndColumns();
-            //ImGui::EndChild();
+         float width = ImGui::GetContentRegionAvailWidth();
+         for (int i = 0; i < game->players; i++) {
+            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 0 });
+            ImGui::Text(game->net->hostSetup[i].name);
+            ImGui::Text(game->net->hostSetup[i].ipAddress);
+            ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+            ImGui::Text("Me: %d", game->net->hostSetup[i].me);
+            ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+            ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+            ImGui::EndChild();
+            ImGui::SameLine();
          }
       }
    }
 
-   ImGui::Separator();
    if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
       serverStatus = server_none;
       clientStatus = client_none;
