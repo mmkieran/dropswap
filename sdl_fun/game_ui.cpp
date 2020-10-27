@@ -855,6 +855,7 @@ void multiplayer(Game* game) {
                ImGui::Text("Me: %d", game->net->hostSetup[i].me);
                ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
                ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+               ImGui::NextColumn();
             }
             ImGui::EndColumns();
             //ImGui::EndChild();
