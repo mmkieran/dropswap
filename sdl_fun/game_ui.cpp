@@ -404,7 +404,18 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
-         multiplayer(game);
+         static bool showSocket = false;
+         if (showSocket == false) {
+            if (ImGui::Button("Show Socket Demo")) {
+               showSocket = true;
+            }
+         }
+         else {
+            if (ImGui::Button("Hide Socket Demo")) {
+               showSocket = false;
+            }
+         }
+         if (showSocket == true) { multiplayer(game, &showSocket); }
 
          static bool showDemo = false;
          if (showDemo == false) {
@@ -748,8 +759,8 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void multiplayer(Game* game) {
-   if (!ImGui::Begin("TCP Exchange")) {
+void multiplayer(Game* game, bool* p_open) {
+   if (!ImGui::Begin("TCP Exchange", p_open)) {
       ImGui::End();
       return;
    }
@@ -806,7 +817,6 @@ void multiplayer(Game* game) {
       }
 
       serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
-      ImGui::Text("Server Status: %d", serverStatus);
 
       if (serverStatus >= server_waiting) {
          ImGui::PushID("Player Info Set");
@@ -831,26 +841,26 @@ void multiplayer(Game* game) {
             ImGui::PopID();
          }
          ImGui::PopID();
-      }
 
-      if (ImGui::Button("Start Game")) {
-         game->players = people[0];
-         game->seed = time(0);
-         for (int i = 0; i < game->players; i++) {
-            SocketInfo sock = getSocket(i - 1);
-            if (i == 0) {
-               strcpy(game->net->hostSetup[i].name, game->pName);
-               game->net->hostSetup[i].host = true;
-               game->net->hostSetup[i].me = true;
+         if (ImGui::Button("Start Game")) {
+            game->players = people[0];
+            game->seed = time(0);
+            for (int i = 0; i < game->players; i++) {
+               SocketInfo sock = getSocket(i - 1);
+               if (i == 0) {
+                  strcpy(game->net->hostSetup[i].name, game->pName);
+                  game->net->hostSetup[i].host = true;
+                  game->net->hostSetup[i].me = true;
+               }
+               else {
+                  strcpy(game->net->hostSetup[i].name, sock.name);
+                  game->net->hostSetup[i].host = false;
+               }
+               strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
+               game->net->hostSetup[i].localPort = 7001 + i;
             }
-            else {
-               strcpy(game->net->hostSetup[i].name, sock.name);
-               game->net->hostSetup[i].host = false;
-            }
-            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
-            game->net->hostSetup[i].localPort = 7001 + i;
+            serverStatus = server_send;
          }
-         serverStatus = server_send;
       }
 
       if (serverStatus == server_done) {
@@ -859,8 +869,7 @@ void multiplayer(Game* game) {
 
          serverStatus = server_none;
          clientStatus = client_none;
-         tcpCleanup(7000);
-         gameStartMatch(game);
+         upnpDeletePort(7000);
       }
    }
    else if (isServer == false) {
@@ -872,7 +881,7 @@ void multiplayer(Game* game) {
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
          serverStatus = server_none;
          clientStatus = client_none;
-         //tcpCleanup(7000);
+         tcpCleanup(7000);
       }
 
       clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
@@ -880,7 +889,7 @@ void multiplayer(Game* game) {
       if (clientStatus >= client_received) {
          float width = ImGui::GetContentRegionAvailWidth();
          for (int i = 0; i < game->players; i++) {
-            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 0 });
+            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, NULL });
             ImGui::Text(game->net->hostSetup[i].name);
             ImGui::Text(game->net->hostSetup[i].ipAddress);
             ImGui::Text("Host: %d", game->net->hostSetup[i].host);
@@ -895,15 +904,18 @@ void multiplayer(Game* game) {
             clientStatus = client_loaded;
             std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
             ggpoSessionThread.detach();
-
          }
       }
       if (clientStatus == client_done) {
          serverStatus = server_none;
          clientStatus = client_none;
-         //tcpCleanup(7000);
-         gameStartMatch(game);
+         upnpDeletePort(7000);
       }
    }
+
+   if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false) {
+      gameStartMatch(game);
+   }
+
    ImGui::End();
 }

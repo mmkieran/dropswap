@@ -26,4 +26,4 @@ void popupEnable(PopupType popup, int other = 0);
 bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
 
-void multiplayer(Game* game);
+void multiplayer(Game* game, bool* p_open);

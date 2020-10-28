@@ -365,7 +365,6 @@ void gameRender(Game* game) {
          i++;
       }
       rendererDisableFBO();
-      //debugCursor(game);
    }
 }
 

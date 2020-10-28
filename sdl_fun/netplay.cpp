@@ -9,8 +9,6 @@
 #include "miniupnp/upnpcommands.h"
 #include "miniupnp/upnperrors.h"
 
-#define DS_ARRAYSIZE(_ARR)          ( (int)(sizeof(_ARR) / sizeof(*_ARR)) )
-
 //UPNP Devices we discovered
 UPNPDev* upnp_devices = 0;
 
@@ -210,6 +208,28 @@ static bool upnpStartup(int port) {
    return false;
 }
 
+int upnpAddPort(int port) {
+   int error;
+   char upnpPort[32];
+   sprintf(upnpPort, "%d", port);
+   error = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, upnpPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
+   if (!error) {
+      game->net->messages.push_back("Port Mapping Complete");
+      return true;
+   }
+}
+
+int upnpDeletePort(int port) {
+   char upnpPort[32];
+   sprintf(upnpPort, "%d", port);
+
+   int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
+
+   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
+
+   return 1;
+}
+
 //Deletes local port mapping and free resources for UPNP devices/urls
 static bool upnpCleanup(int port) {
    char upnpPort[32];
@@ -253,7 +273,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
-   if (game->net->useUPNP) { bool upnpSuccess = upnpStartup(sessionPort); }
+   if (game->net->useUPNP) { int upnpSuccess = upnpAddPort(sessionPort); }
 
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
@@ -474,6 +494,7 @@ char* tcpHostAccept() {
 
 //Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
+   bool static upnp = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
@@ -485,7 +506,7 @@ bool tcpClientConnect(int port, const char* ip) {
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (upnpStartup(sessionPort) == false) { sockMess.push_back("UPNP failed..."); };
+   if (upnp == false) { upnp = upnpStartup(port); }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (result != 0) {
@@ -507,7 +528,7 @@ void tcpCleanup(int port) {
    connections = 0;
    sockMess.clear();
 
-   upnpCleanup(port);
+   upnpDeletePort(port);
    //WSACleanup();
 }
 

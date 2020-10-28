@@ -111,5 +111,10 @@ ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const 
 ServerStatus tcpServerLoop(int port, int people, ServerStatus status);
 
 void readGameData();
+
 void tcpCleanup(int port);
+
+int upnpAddPort(int port);
+int upnpDeletePort(int port);
+
 SocketInfo getSocket(int index);
