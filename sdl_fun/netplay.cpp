@@ -545,6 +545,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
       switch (status) {
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
+         connections = 0;
          break;
 
       case server_listening:

@@ -761,7 +761,8 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
 
 ServerStatus serverStatus = server_none;
 ClientStatus clientStatus = client_none;
-
+std::thread serverThread;
+std::thread clientThread;
 
 
 void multiplayer(Game* game, bool* p_open) {
@@ -808,10 +809,12 @@ void multiplayer(Game* game, bool* p_open) {
    if (isServer == true) {
       if (serverStatus == server_none) {
          if (ImGui::Button("Find Players")) {
-            serverStatus = server_started;
-            std::thread serverThread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
-            serverThread.detach();
-            connectStats = true;
+            if (serverStatus == server_none) {
+               serverStatus = server_started;
+               serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
+               serverThread.detach();
+               connectStats = true;
+            }
          }
          ImGui::SameLine();
       }
@@ -880,10 +883,12 @@ void multiplayer(Game* game, bool* p_open) {
    }
    else if (isServer == false) {
       if (ImGui::Button("Connect to Host")) {
-         clientStatus = client_started;
-         std::thread clientThread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
-         clientThread.detach();
-         connectStats = true;
+         if (clientStatus == client_none) {
+            clientStatus = client_started;
+            clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
+            clientThread.detach();
+            connectStats = true;
+         }
       }
 
       ImGui::SameLine();
