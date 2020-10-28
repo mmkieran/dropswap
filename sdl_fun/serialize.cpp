@@ -566,6 +566,17 @@ void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
       writeStream(stream, game->net->hostSetup[i].name);
       writeStream(stream, game->net->hostSetup[i].pNum);
       writeStream(stream, game->net->hostSetup[i].team);
+
+      writeStream(stream, game->net->frameDelay[0]);
+      writeStream(stream, game->net->disconnectTime[0]);
+
+      writeStream(stream, game->timings.gracePeriod[0]);
+      writeStream(stream, game->timings.fallDelay[0]);
+      writeStream(stream, game->timings.removeClear[0]);
+      writeStream(stream, game->timings.enterSilver[0]);
+      writeStream(stream, game->timings.countIn[0]);
+      writeStream(stream, game->timings.landPause[0]);
+      writeStream(stream, game->timings.deployTime[0]);
    }
 }
 
@@ -577,5 +588,16 @@ void deserializeGameSetup(Game* game, Byte*& start) {
       readStream(start, game->net->hostSetup[i].name);
       readStream(start, game->net->hostSetup[i].pNum);
       readStream(start, game->net->hostSetup[i].team);
+
+      readStream(start, game->net->frameDelay[0]);
+      readStream(start, game->net->disconnectTime[0]);
+
+      readStream(start, game->timings.gracePeriod[0]);
+      readStream(start, game->timings.fallDelay[0]);
+      readStream(start, game->timings.removeClear[0]);
+      readStream(start, game->timings.enterSilver[0]);
+      readStream(start, game->timings.countIn[0]);
+      readStream(start, game->timings.landPause[0]);
+      readStream(start, game->timings.deployTime[0]);
    }
 }
