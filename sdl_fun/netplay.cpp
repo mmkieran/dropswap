@@ -532,97 +532,97 @@ void tcpCleanup(int port) {
    //WSACleanup();
 }
 
-ServerStatus tcpServerLoop(int port, int people, ServerStatus status) {
-   ServerStatus newStatus = status;
-   bool done = true;
-   switch (status) {
-   case server_started:
-      if (tcpHostListen(port) == true) { newStatus = server_listening; }
-      break;
+void tcpServerLoop(int port, int people, ServerStatus &status) {
+   while (status != server_done) {
+      bool done = true;
+      switch (status) {
+      case server_started:
+         if (tcpHostListen(port) == true) { status = server_listening; }
+         break;
 
-   case server_listening:
-      if (connections == people) { 
-         newStatus = server_receive;
-      }
-      else if (connections < people) { tcpHostAccept(); }
-      break;
+      case server_listening:
+         if (connections == people) {
+            status = server_receive;
+         }
+         else if (connections < people) { tcpHostAccept(); }
+         break;
 
-   case server_receive:
-      for (int i = 0; i < connections; i++) {
-         if (sockets[i].status != sock_received) {
-            if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
-            else {
-               sockets[i].status = sock_received;
-               strcpy(sockets[i].name, sockets[i].recBuff);
+      case server_receive:
+         for (int i = 0; i < connections; i++) {
+            if (sockets[i].status != sock_received) {
+               if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
+               else {
+                  sockets[i].status = sock_received;
+                  strcpy(sockets[i].name, sockets[i].recBuff);
+               }
             }
          }
-      }
-      if (done == true) { newStatus = server_waiting; }
-      break;
+         if (done == true) { status = server_waiting; }
+         break;
 
-   case server_waiting:
-      break;
+      case server_waiting:
+         break;
 
-   case server_send:
-      for (int i = 0; i < connections; i++) {
-         if (sockets[i].status != sock_sent) {
-            matchInfo = gameSave(game);  //Serialize the game settings
-            serializeGameSetup(game, matchInfo);  //Serialize the host setup
-            if (sendMsg(sockets[i].sock, (char*)matchInfo.data(), matchInfo.size()) == false) {
-               done = false;
-            }
-            else { sockets[i].status = sock_sent; }
-         }
-      }
-      if (done == true) { newStatus = server_ready; }
-      break;
-
-   case server_ready:
-      for (int i = 0; i < connections; i++) {
-         if (sockets[i].status != sock_ready) {
-            if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
-            else {
-               sockets[i].status = sock_ready;
+      case server_send:
+         for (int i = 0; i < connections; i++) {
+            if (sockets[i].status != sock_sent) {
+               matchInfo = gameSave(game);  //Serialize the game settings
+               serializeGameSetup(game, matchInfo);  //Serialize the host setup
+               if (sendMsg(sockets[i].sock, (char*)matchInfo.data(), matchInfo.size()) == false) {
+                  done = false;
+               }
+               else { sockets[i].status = sock_sent; }
             }
          }
-      }
-      if (done == true) { newStatus = server_done; }
-      break;
+         if (done == true) { status = server_ready; }
+         break;
 
-   case server_done:
-      //Write something here
-      break;
+      case server_ready:
+         for (int i = 0; i < connections; i++) {
+            if (sockets[i].status != sock_ready) {
+               if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
+               else {
+                  sockets[i].status = sock_ready;
+               }
+            }
+         }
+         if (done == true) { status = server_done; }
+         break;
+
+      case server_done:
+         //Write something here
+         break;
+      }
    }
-   return newStatus;
 }
 
-ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const char* name) {
-   ClientStatus newStatus = status;
-   static bool upnp = false;
-   switch (status) {
-   case client_started:
-      if (upnp == false) { upnp = upnpStartup(port); }
-      if (tcpClientConnect(port, ip) == true) { newStatus = client_connected; }
-      break;
-   case client_connected:
-      if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { newStatus = client_sent; }  //20 is the size of pName
-      break;
-   case client_sent:
-      if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { newStatus = client_received; }
-      break;
-   case client_received:
-      readGameData();
-      for (int i = 0; i < game->players; i++) {
-         if (strcmp(game->net->hostSetup[i].name, game->pName) == 0) {
-            game->net->hostSetup[i].me = true;
+void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name) {
+   while (status != client_done) {
+      static bool upnp = false;
+      switch (status) {
+      case client_started:
+         if (upnp == false) { upnp = upnpStartup(port); }
+         if (tcpClientConnect(port, ip) == true) { status = client_connected; }
+         break;
+      case client_connected:
+         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //20 is the size of pName
+         break;
+      case client_sent:
+         if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { status = client_received; }
+         break;
+      case client_received:
+         readGameData();
+         for (int i = 0; i < game->players; i++) {
+            if (strcmp(game->net->hostSetup[i].name, game->pName) == 0) {
+               game->net->hostSetup[i].me = true;
+            }
          }
+         break;
+      case client_loaded:
+         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_done; }  //We are ready to play
+         break;
       }
-      break;
-   case client_loaded:
-      if (sendMsg(sockets[-1].sock, "R", 1) == true) { newStatus = client_done; }  //We are ready to play
-      break;
    }
-   return newStatus;
 }
 
 SocketInfo getSocket(int index) {

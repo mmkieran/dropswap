@@ -806,6 +806,8 @@ void multiplayer(Game* game, bool* p_open) {
       if (serverStatus == server_none) {
          if (ImGui::Button("Find Players")) {
             serverStatus = server_started;
+            std::thread serverThread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
+            serverThread.detach();
          }
          ImGui::SameLine();
       }
@@ -816,8 +818,7 @@ void multiplayer(Game* game, bool* p_open) {
          tcpCleanup(7000);
       }
 
-      serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
-
+      //serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       if (serverStatus >= server_waiting) {
          ImGui::PushID("Player Info Set");
          for (int i = 0; i < people[0]; i++) {
@@ -875,6 +876,8 @@ void multiplayer(Game* game, bool* p_open) {
    else if (isServer == false) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
+         std::thread clientThread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
+         clientThread.detach();
       }
 
       ImGui::SameLine();
@@ -884,8 +887,7 @@ void multiplayer(Game* game, bool* p_open) {
          tcpCleanup(7000);
       }
 
-      clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
-
+      //clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
       if (clientStatus >= client_received) {
          float width = ImGui::GetContentRegionAvailWidth();
          for (int i = 0; i < game->players; i++) {

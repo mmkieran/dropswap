@@ -107,8 +107,8 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
 
-ClientStatus tcpClientLoop(int port, const char* ip, ClientStatus status, const char* name);
-ServerStatus tcpServerLoop(int port, int people, ServerStatus status);
+void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name);
+void tcpServerLoop(int port, int people, ServerStatus &status);
 
 void readGameData();
 
