@@ -572,6 +572,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
          break;
 
       case server_waiting:
+         sdlSleep(10); //Sleep instead of going really fast
          break;
 
       case server_send:
@@ -602,10 +603,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
          }
          if (done == true) { status = server_done; }
          break;
-
-      case server_done:
-         //Write something here
-         break;
       }
    }
 }
@@ -633,9 +630,10 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
          status = client_waiting;
          break;
       case client_waiting:
+         sdlSleep(10);  //Sleep a bit while we wait
          break;
       case client_loaded:
-         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_done; }  //We are ready to play
+         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_waiting; }  //We are ready to play
          break;
       }
    }
