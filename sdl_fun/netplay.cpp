@@ -453,11 +453,14 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 
 //Create a start listening on a socket
 bool tcpHostListen(int port) {
+   bool static upnp = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { sockMess.push_back("Socket creation failed."); }
 
    //ioctlsocket(sockets[-1].sock, FIONBIO, &mode);  //Make socket non-blocking
+
+   if (upnp == false) { upnp = upnpStartup(port); }
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -477,6 +480,7 @@ bool tcpHostListen(int port) {
       return false;
    }
 
+   upnp = false;
    return true;
 }
 
@@ -517,6 +521,7 @@ bool tcpClientConnect(int port, const char* ip) {
    //   sockMess.push_back("Connecting would have blocked...");
    //   return false;
    //}
+   upnp = false;
    return true;
 }
 
@@ -598,10 +603,8 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
 
 void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name) {
    while (status != client_done) {
-      static bool upnp = false;
       switch (status) {
       case client_started:
-         if (upnp == false) { upnp = upnpStartup(port); }
          if (tcpClientConnect(port, ip) == true) { status = client_connected; }
          break;
       case client_connected:

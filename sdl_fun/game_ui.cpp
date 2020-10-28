@@ -773,6 +773,7 @@ void multiplayer(Game* game, bool* p_open) {
    //ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
 
    static bool isServer = false;
+   static bool connectStats = false;
    static char ipAddress[20] = "127.0.0.1";
    static int people[3] = { 2, 2, 4 };
 
@@ -808,6 +809,7 @@ void multiplayer(Game* game, bool* p_open) {
             serverStatus = server_started;
             std::thread serverThread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
             serverThread.detach();
+            connectStats = true;
          }
          ImGui::SameLine();
       }
@@ -871,6 +873,7 @@ void multiplayer(Game* game, bool* p_open) {
          serverStatus = server_none;
          clientStatus = client_none;
          upnpDeletePort(7000);
+         connectStats = false;
       }
    }
    else if (isServer == false) {
@@ -878,6 +881,7 @@ void multiplayer(Game* game, bool* p_open) {
          clientStatus = client_started;
          std::thread clientThread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
          clientThread.detach();
+         connectStats = true;
       }
 
       ImGui::SameLine();
@@ -912,8 +916,11 @@ void multiplayer(Game* game, bool* p_open) {
          serverStatus = server_none;
          clientStatus = client_none;
          upnpDeletePort(7000);
+         connectStats = false;
       }
    }
+
+   if (connectStats) { connectStatusUI(game, &connectStats); }
 
    if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false) {
       gameStartMatch(game);
