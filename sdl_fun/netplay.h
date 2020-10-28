@@ -74,6 +74,7 @@ enum ClientStatus {
    client_connected,
    client_sent,
    client_received,
+   client_waiting,
    client_loaded,
    client_done,
 };

@@ -759,14 +759,16 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
+ServerStatus serverStatus = server_none;
+ClientStatus clientStatus = client_none;
+
+
+
 void multiplayer(Game* game, bool* p_open) {
    if (!ImGui::Begin("TCP Exchange", p_open)) {
       ImGui::End();
       return;
    }
-
-   static ServerStatus serverStatus = server_none;
-   static ClientStatus clientStatus = client_none;
 
    //Hard coding this to port 7000 for now
    //static int port[3] = { 7001, 7000, 7008 };
@@ -927,4 +929,9 @@ void multiplayer(Game* game, bool* p_open) {
    }
 
    ImGui::End();
+}
+
+void cleanupServerState() {
+   serverStatus = server_none;
+   clientStatus = client_none;
 }

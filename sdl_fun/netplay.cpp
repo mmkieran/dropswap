@@ -481,6 +481,7 @@ bool tcpHostListen(int port) {
    }
 
    upnp = false;
+   game->net->messages.push_back("Started listening for player connections");
    return true;
 }
 
@@ -522,6 +523,7 @@ bool tcpClientConnect(int port, const char* ip) {
    //   return false;
    //}
    upnp = false;
+   game->net->messages.push_back("Connected to host");
    return true;
 }
 
@@ -562,7 +564,10 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
                }
             }
          }
-         if (done == true) { status = server_waiting; }
+         if (done == true) { 
+            status = server_waiting; 
+            game->net->messages.push_back("All players connected");
+         }
          break;
 
       case server_waiting:
@@ -579,7 +584,10 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
                else { sockets[i].status = sock_sent; }
             }
          }
-         if (done == true) { status = server_ready; }
+         if (done == true) { 
+            status = server_ready; 
+            game->net->messages.push_back("Game info sent. Waiting for responses.");
+         }
          break;
 
       case server_ready:
@@ -620,6 +628,10 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
                game->net->hostSetup[i].me = true;
             }
          }
+         game->net->messages.push_back("Game data received and loaded. Hit Start when ready.");
+         status = client_waiting;
+         break;
+      case client_waiting:
          break;
       case client_loaded:
          if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_done; }  //We are ready to play

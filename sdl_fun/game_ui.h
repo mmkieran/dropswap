@@ -27,3 +27,4 @@ bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
 
 void multiplayer(Game* game, bool* p_open);
+void cleanupServerState();
