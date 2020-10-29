@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include <SDL.h>
 
-//#include <Windows.h>  //For win socks 
-#include <winsock2.h>  //For win socks 
-
 #include "game.h"
 
 Game *game = nullptr;
@@ -16,14 +13,6 @@ uint64_t end = 0;
 int main(int argc, char* args[]) {
    game = gameCreate("Drop and Swap", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1216, 896, false);
    if (!game) { return -1; }
-
-   WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
-   int wsaResult = WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
-
-   if (wsaResult != NO_ERROR) {
-      printf("WSAStartup failed: %d\n", wsaResult);
-      return -1;
-   }
 
    game->kt.gameStart = SDL_GetPerformanceCounter(); 
    game->kt.timeFreq = SDL_GetPerformanceFrequency();  //used to convert the performance counter ticks to seconds
@@ -44,9 +33,7 @@ int main(int argc, char* args[]) {
       end = game->kt.getTime();
       gameDelayFrame(game, end, start);
    }
-
    gameDestroy(game);
-   WSACleanup();  //Cleanup the socket stuff
 
    return 0;
 }

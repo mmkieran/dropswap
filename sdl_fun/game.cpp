@@ -170,6 +170,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    }
    else {printf("Initialized gl3w...\n"); }
 
+   winsockStart();
+   game->net->upnp = upnpStartup();
+
    //Load game resources
    game->resources = initResources();
 
@@ -195,6 +198,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    controllerGetAll();  //Find any attached controllers
    soundsInit();  //Initialize SoLoud components
+
+
 
    return game;
 }
@@ -396,11 +401,11 @@ void imguiRender(Game* game) {
 
 //Jokulhaups
 void gameDestroy(Game* game) {
-
    for (auto&& board : game->boards) {
       if (board) { boardDestroy(board); }
    }
 
+   tcpStateCleanup();
    if (game->net && game->net->ggpo) {
       ggpoClose(game->net->ggpo);
       game->net->ggpo = nullptr;
@@ -427,6 +432,8 @@ void gameDestroy(Game* game) {
    SDL_Quit();
    delete game->net;
    delete game;
+
+   winsockCleanup();
 
    printf("Cleanup successful.\n");
 }

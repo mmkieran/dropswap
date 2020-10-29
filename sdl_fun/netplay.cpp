@@ -186,25 +186,29 @@ bool __cdecl ds_log_game_state_callback(char* filename, unsigned char* buffer, i
    return true;
 }
 
+bool winsockStart() {
+   WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
+   int wsaResult = WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
+
+   if (wsaResult != NO_ERROR) {
+      printf("WSAStartup failed: %d\n", wsaResult);
+      return true;
+   }
+   return false;
+}
+
+void winsockCleanup() {
+   WSACleanup();  //Cleanup the socket stuff
+}
+
 //Discover if the local gateway device can use UPNP and port-forward the local port
-static bool upnpStartup(int port) {
+bool upnpStartup() {
    int error, status;
    upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
    if (error == 0) {
       status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
-      //   if (status == 1) { printf("Found a valid IGD: %s", upnp_urls.controlURL); }
-      if (status == 1) {
-         game->net->messages.push_back("Discovered a device that can use UPNP"); 
-         char upnpPort[32];
-         sprintf(upnpPort, "%d", port);
-         error = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, upnpPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
-         if (!error) {
-            game->net->messages.push_back("Port Mapping Complete"); 
-            return true;
-         }
-      }
+      if (status == 1) { return true; }
    }
-   game->net->messages.push_back("Failed to complete port mapping");
    return false;
 }
 
@@ -214,7 +218,7 @@ int upnpAddPort(int port) {
    sprintf(upnpPort, "%d", port);
    error = UPNP_AddPortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, upnpPort, aLanAddr, "Drop and Swap", "UDP", 0, "0");
    if (!error) {
-      game->net->messages.push_back("Port Mapping Complete");
+      game->net->messages.push_back("Port mapping complete");
       return true;
    }
 }
@@ -273,7 +277,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
-   if (game->net->useUPNP) { int upnpSuccess = upnpAddPort(sessionPort); }
+   int upnpSuccess = upnpAddPort(sessionPort); 
 
    if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
@@ -374,7 +378,7 @@ void ggpoClose(GGPOSession* ggpo) {
    if (ggpo) {
       ggpo_close_session(ggpo);
    }
-   if (game->net->useUPNP) { upnpCleanup(sessionPort); }
+   if (game->net->upnp) { upnpCleanup(sessionPort); }
 }
 
 //Display the connection status based on the PlayerConnectState Enum
@@ -420,22 +424,18 @@ void ggpoEndSession(Game* game) {
       ggpoClose(game->net->ggpo);
       int frameDelay = game->net->frameDelay[0];
       int disconnectTime = game->net->disconnectTime[0];
-      bool useUPNP = game->net->useUPNP;
       delete game->net;
 
       game->net = new NetPlay;
-      game->net->useUPNP = useUPNP;
       game->net->frameDelay[0] = frameDelay;
       game->net->disconnectTime[0] = disconnectTime;
    }
 }
 
-u_long mode = 1;  //enables non-block socket
+////Globals used by TCP sockets
 int connections = 0;  //How many accepted connections do we have
-
-std::vector <Byte> matchInfo;
-std::vector <std::string> sockMess;
-std::map <int, SocketInfo> sockets;
+std::vector <Byte> matchInfo;  //Transfer game data
+std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
 
 //Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
@@ -453,34 +453,30 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 
 //Create a start listening on a socket
 bool tcpHostListen(int port) {
-   bool static upnp = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockets[-1].sock == -1) { sockMess.push_back("Socket creation failed."); }
-
-   //ioctlsocket(sockets[-1].sock, FIONBIO, &mode);  //Make socket non-blocking
-
-   if (upnp == false) { upnp = upnpStartup(port); }
+   if (sockets[-1].sock == -1) { game->net->messages.push_back("Socket creation failed."); }
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
+   if (game->net->upnp == true) { upnpAddPort(port); }
+
    //bind socket
    int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (bindResult != 0) {
-      sockMess.push_back("socket binding failed...");
+      game->net->messages.push_back("socket binding failed...");
       return false;
    }
 
    //start listening on socket
    if (listen(sockets[-1].sock, 5) != 0) {
-      sockMess.push_back("Listen failed...");
+      game->net->messages.push_back("Listen failed...");
       return false;
    }
 
-   upnp = false;
    game->net->messages.push_back("Started listening for player connections");
    return true;
 }
@@ -499,30 +495,23 @@ char* tcpHostAccept() {
 
 //Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
-   bool static upnp = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
-
-   //ioctlsocket(sockets[-1].sock, FIONBIO, &mode);  //Make socket non-blocking
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (upnp == false) { upnp = upnpStartup(port); }
+   if (game->net->upnp == true) { upnpAddPort(port); }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (result != 0) {
-      sockMess.push_back("Socket connection failed.");
+      game->net->messages.push_back("Socket connection failed.");
       return false;
    }
-   //else if (result == WSAEWOULDBLOCK) { //Would have blocked the application
-   //   sockMess.push_back("Connecting would have blocked...");
-   //   return false;
-   //}
-   upnp = false;
+
    game->net->messages.push_back("Connected to host");
    return true;
 }
@@ -533,16 +522,18 @@ void tcpCleanup(int port) {
    }
    sockets.clear();
    connections = 0;
-   sockMess.clear();
+   game->net->messages.clear();
 
    upnpDeletePort(port);
-   //WSACleanup();
 }
 
 void tcpServerLoop(int port, int people, ServerStatus &status) {
    while (status != server_done) {
       bool done = true;
       switch (status) {
+      case server_none:
+         tcpCleanup(7000);
+         return;
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
          connections = 0;
@@ -562,6 +553,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
                else {
                   sockets[i].status = sock_received;
                   strcpy(sockets[i].name, sockets[i].recBuff);
+                  game->net->messages.push_back("Player connected");
                }
             }
          }
@@ -588,7 +580,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
          }
          if (done == true) { 
             status = server_ready; 
-            game->net->messages.push_back("Game info sent. Waiting for responses.");
+            game->net->messages.push_back("Waiting for player ready signals");
          }
          break;
 
@@ -610,8 +602,14 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
 void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name) {
    while (status != client_done) {
       switch (status) {
+      case client_none:
+         tcpCleanup(7000);
+         return;
       case client_started:
-         if (tcpClientConnect(port, ip) == true) { status = client_connected; }
+         if (tcpClientConnect(port, ip) == true) { 
+            status = client_connected; 
+            game->net->messages.push_back("Waiting for host ready signal");
+         }
          break;
       case client_connected:
          if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //20 is the size of pName
@@ -626,14 +624,15 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
                game->net->hostSetup[i].me = true;
             }
          }
-         game->net->messages.push_back("Game data received and loaded. Hit Start when ready.");
+         game->net->messages.push_back("Game data received and loaded.");
+         game->net->messages.push_back("Hit Start when ready.");
          status = client_waiting;
          break;
       case client_waiting:
          sdlSleep(10);  //Sleep a bit while we wait
          break;
       case client_loaded:
-         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_waiting; }  //We are ready to play
+         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_done; }  //We are ready to play
          break;
       }
    }

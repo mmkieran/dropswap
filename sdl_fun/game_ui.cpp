@@ -101,14 +101,15 @@ void mainUI(Game* game) {
       }
       ImGui::NewLine();
 
-      static bool showGGPOSession = false;
+      static bool showMultiPlayer = false;
       if (ImGui::Button("Multiplayer", ImVec2{ width, 0 })) {
-         showGGPOSession = true;
+         showMultiPlayer = true;
       }
+      if (game->net->upnp == false) { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "UPNP failed to start..."); }
       ImGui::NewLine();
 
-      if (showGGPOSession && game->playing == false) {
-         ggpoSessionUI(game, &showGGPOSession);
+      if (showMultiPlayer && game->playing == false) {
+         multiplayerUI(game, &showMultiPlayer);
       }
    }
 
@@ -415,7 +416,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
                showSocket = false;
             }
          }
-         if (showSocket == true) { multiplayer(game, &showSocket); }
+         if (showSocket == true) { multiplayerUI(game, &showSocket); }
 
          static bool showDemo = false;
          if (showDemo == false) {
@@ -529,7 +530,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    static bool manualPorts = false;
 
    if (ImGui::CollapsingHeader("Connection Options") ) {
-      ImGui::Checkbox("Use UPNP connection", &game->net->useUPNP);
+      ImGui::Checkbox("Use UPNP connection", &game->net->upnp);
       ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
       ImGui::Checkbox("Manual Ports", &manualPorts);
 
@@ -765,15 +766,13 @@ std::thread serverThread;
 std::thread clientThread;
 
 
-void multiplayer(Game* game, bool* p_open) {
-   if (!ImGui::Begin("TCP Exchange", p_open)) {
+void multiplayerUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Connection Setup", p_open)) {
       ImGui::End();
       return;
    }
 
    //Hard coding this to port 7000 for now
-   //static int port[3] = { 7001, 7000, 7008 };
-   //ImGui::SliderScalar("Your Port", ImGuiDataType_U32, &port[0], &port[1], &port[2]);
 
    static bool isServer = false;
    static bool connectStats = false;
@@ -806,11 +805,14 @@ void multiplayer(Game* game, bool* p_open) {
    }
 
    ImGui::NewLine();
+
+   //This code is for the server
    if (isServer == true) {
       if (serverStatus == server_none) {
          if (ImGui::Button("Find Players")) {
             if (serverStatus == server_none) {
                serverStatus = server_started;
+               //This is the thread for the server loop
                serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
                serverThread.detach();
                connectStats = true;
@@ -819,20 +821,18 @@ void multiplayer(Game* game, bool* p_open) {
          ImGui::SameLine();
       }
 
-      if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
+      if (ImGui::Button("Reset Connection")) {  
          serverStatus = server_none;
-         clientStatus = client_none;
-         tcpCleanup(7000);
+         connectStats = false;
       }
 
-      //serverStatus = tcpServerLoop(7000, people[0] - 1, serverStatus);
       if (serverStatus >= server_waiting) {
+         //This is the player information table
          ImGui::PushID("Player Info Set");
          for (int i = 0; i < people[0]; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
             ImGui::PushItemWidth(100);
             SocketInfo sock = getSocket(i - 1);
-            //float x = ImGui::GetCursorPosX();
             if (i == 0) { ImGui::Text(game->pName); }
             else { ImGui::Text(sock.name); }
             ImGui::SameLine();
@@ -872,12 +872,12 @@ void multiplayer(Game* game, bool* p_open) {
       }
 
       if (serverStatus == server_done) {
+         //This is the thread that start GGPO and creates a UPNP port mapping
          std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
          ggpoSessionThread.detach();
 
+         tcpCleanup(7000);  //Manually cleanup because server loop has already stopped
          serverStatus = server_none;
-         clientStatus = client_none;
-         upnpDeletePort(7000);
          connectStats = false;
       }
    }
@@ -885,6 +885,7 @@ void multiplayer(Game* game, bool* p_open) {
       if (ImGui::Button("Connect to Host")) {
          if (clientStatus == client_none) {
             clientStatus = client_started;
+            //This is the client loop thread
             clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
             clientThread.detach();
             connectStats = true;
@@ -893,16 +894,15 @@ void multiplayer(Game* game, bool* p_open) {
 
       ImGui::SameLine();
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
-         serverStatus = server_none;
          clientStatus = client_none;
-         tcpCleanup(7000);
+         connectStats = false;
       }
 
-      //clientStatus = tcpClientLoop(7000, ipAddress, clientStatus, game->pName);
+      //This displays the game information once it is received
       if (clientStatus >= client_received) {
          float width = ImGui::GetContentRegionAvailWidth();
          for (int i = 0; i < game->players; i++) {
-            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, NULL });
+            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 300 });
             ImGui::Text(game->net->hostSetup[i].name);
             ImGui::Text(game->net->hostSetup[i].ipAddress);
             ImGui::Text("Host: %d", game->net->hostSetup[i].host);
@@ -920,15 +920,14 @@ void multiplayer(Game* game, bool* p_open) {
          }
       }
       if (clientStatus == client_done) {
-         serverStatus = server_none;
          clientStatus = client_none;
-         upnpDeletePort(7000);
          connectStats = false;
       }
    }
 
    if (connectStats) { connectStatusUI(game, &connectStats); }
 
+   //If GGPO is running then start the game!
    if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false) {
       gameStartMatch(game);
    }
@@ -936,7 +935,7 @@ void multiplayer(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void cleanupServerState() {
+void tcpStateCleanup() {
    serverStatus = server_none;
    clientStatus = client_none;
 }

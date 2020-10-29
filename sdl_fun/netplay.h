@@ -52,7 +52,7 @@ struct NetPlay {
    int frameDelay[3] = { 2, 1, 10 };
    int disconnectTime[3] = { 10000, 0, 30000 };
    std::vector <std::string> messages;
-   bool useUPNP = true;
+   bool upnp = false;
    int timeSync = 0;
 };
 
@@ -108,14 +108,14 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
 
+bool winsockStart();
+void winsockCleanup();
 void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name);
 void tcpServerLoop(int port, int people, ServerStatus &status);
-
-void readGameData();
-
 void tcpCleanup(int port);
+void readGameData();
+SocketInfo getSocket(int index);
 
+bool upnpStartup();
 int upnpAddPort(int port);
 int upnpDeletePort(int port);
-
-SocketInfo getSocket(int index);
