@@ -811,7 +811,7 @@ void multiplayerUI(Game* game, bool* p_open) {
 
    //This code is for the server
    if (isServer == true) {
-      if (serverStatus == server_none) {
+      if (serverRunning == false) {
          if (ImGui::Button("Find Players")) {
             serverStatus = server_started;
             //This is the thread for the server loop
@@ -876,14 +876,12 @@ void multiplayerUI(Game* game, bool* p_open) {
          //This is the thread that start GGPO and creates a UPNP port mapping
          std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
          ggpoSessionThread.detach();
-
-         tcpCleanup(7000);  //Manually cleanup because server loop has already stopped
          serverStatus = server_none;
          connectStats = false;
       }
    }
    else if (isServer == false) {
-      if (clientStatus == client_none) {
+      if (clientRunning == false) {
          if (ImGui::Button("Connect to Host")) {
             clientStatus = client_started;
             //This is the client loop thread
@@ -891,9 +889,9 @@ void multiplayerUI(Game* game, bool* p_open) {
             clientThread.detach();
             connectStats = true;
          }
+         ImGui::SameLine();
       }
 
-      ImGui::SameLine();
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
          clientStatus = client_none;
          connectStats = false;

@@ -3,6 +3,8 @@
 
 #include <time.h>
 #include <string>
+#include <thread>
+#include <chrono>
 
 //Port Forwarding magic
 #include "miniupnp/miniupnpc.h"
@@ -493,11 +495,11 @@ bool tcpHostListen(int port) {
 }
 
 //Accepts connections on the listening socket and adds the info to the list of sockets
-char* tcpHostAccept() {
+void tcpHostAccept() {
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
    if (conn == INVALID_SOCKET) { 
-      return "socket accept failed...";
+      return;
    }
    sockets[connections].sock = conn;
    connections++;
@@ -550,7 +552,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
       switch (status) {
       case server_none:
          running = false;
-         return;
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
          connections = 0;
@@ -560,6 +561,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          if (connections == people) {
             status = server_receive;
          }
+         //todo add polling here to see if we can accept things?
          else if (connections < people) { tcpHostAccept(); }
          break;
 
@@ -581,7 +583,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          break;
 
       case server_waiting:
-         sdlSleep(10); //Sleep instead of going really fast
+         std::this_thread::sleep_for(std::chrono::milliseconds(10)); //Sleep instead of going really fast
          break;
 
       case server_send:
@@ -622,11 +624,10 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
 
 void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name, bool& running) {
    running = true;
-   while (status != client_done) {
+   while (running == true) {
       switch (status) {
       case client_none:
          running = false;
-         return;
       case client_started:
          if (tcpClientConnect(port, ip) == true) { 
             status = client_connected; 
@@ -651,10 +652,13 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
          status = client_waiting;
          break;
       case client_waiting:
-         sdlSleep(10);  //Sleep a bit while we wait
+         std::this_thread::sleep_for(std::chrono::milliseconds(10)); //Sleep instead of going really fast
          break;
       case client_loaded:
-         if (sendMsg(sockets[-1].sock, "R", 1) == true) { status = client_done; }  //We are ready to play
+         if (sendMsg(sockets[-1].sock, "R", 1) == true) { //We are ready to play
+            status = client_done; 
+            running = false;
+         }  
          break;
       }
    }
