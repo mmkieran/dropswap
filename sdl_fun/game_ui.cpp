@@ -105,7 +105,6 @@ void mainUI(Game* game) {
       if (ImGui::Button("Multiplayer", ImVec2{ width, 0 })) {
          showMultiPlayer = true;
       }
-      if (game->net->upnp == false) { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "UPNP failed to start..."); }
       ImGui::NewLine();
 
       if (showMultiPlayer && game->playing == false) {
@@ -164,10 +163,12 @@ static void _drawBoardTexture(Game* game, int index) {
 static void _gameResults(Game* game) {
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
    float width = ImGui::GetContentRegionAvailWidth();
+   ImVec2 wSize = ImGui::GetWindowSize();
+   float cursorY = ImGui::GetCursorPosY();
    for (auto&& board : game->boards) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", board->team);
-      ImGui::BeginChild(playerName, { width / game->boards.size(), 500 });
+      ImGui::BeginChild(playerName, { width / game->boards.size(), (wSize.y - cursorY) * 0.9f });
       ImGui::Text("Player: %d", board->team);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -245,11 +246,11 @@ void boardUI(Game* game) {
 
       //Game over popup
       if (popupOpen(Popup_GameOver) == true) { 
+         ImGui::SetNextWindowSize({ 600, 500 });
          ImGui::OpenPopup("Game Over"); 
          popups[Popup_GameOver].isOpen = true;
       }
       if (ImGui::BeginPopupModal("Game Over") ) {
-         ImGui::SetNextWindowSize({ 600, 500 });
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
          ImGui::PushFont(game->fonts[20]);
          ImGui::Text("Player %d lost or something...", bustee);
@@ -810,13 +811,11 @@ void multiplayerUI(Game* game, bool* p_open) {
    if (isServer == true) {
       if (serverStatus == server_none) {
          if (ImGui::Button("Find Players")) {
-            if (serverStatus == server_none) {
-               serverStatus = server_started;
-               //This is the thread for the server loop
-               serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
-               serverThread.detach();
-               connectStats = true;
-            }
+            serverStatus = server_started;
+            //This is the thread for the server loop
+            serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
+            serverThread.detach();
+            connectStats = true;
          }
          ImGui::SameLine();
       }
@@ -882,8 +881,8 @@ void multiplayerUI(Game* game, bool* p_open) {
       }
    }
    else if (isServer == false) {
-      if (ImGui::Button("Connect to Host")) {
-         if (clientStatus == client_none) {
+      if (clientStatus == client_none) {
+         if (ImGui::Button("Connect to Host")) {
             clientStatus = client_started;
             //This is the client loop thread
             clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
@@ -902,7 +901,7 @@ void multiplayerUI(Game* game, bool* p_open) {
       if (clientStatus >= client_received) {
          float width = ImGui::GetContentRegionAvailWidth();
          for (int i = 0; i < game->players; i++) {
-            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 300 });
+            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 200 });
             ImGui::Text(game->net->hostSetup[i].name);
             ImGui::Text(game->net->hostSetup[i].ipAddress);
             ImGui::Text("Host: %d", game->net->hostSetup[i].host);
@@ -915,6 +914,7 @@ void multiplayerUI(Game* game, bool* p_open) {
 
          if (ImGui::Button("Start Game")) {
             clientStatus = client_loaded;
+            //This is the thread that start GGPO and creates a UPNP port mapping
             std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
             ggpoSessionThread.detach();
          }

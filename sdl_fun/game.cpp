@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
+#include <thread>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -171,7 +172,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    else {printf("Initialized gl3w...\n"); }
 
    winsockStart();
-   game->net->upnp = upnpStartup();
+   std::thread upnpThread(upnpStartup, game);
+   upnpThread.detach();
 
    //Load game resources
    game->resources = initResources();

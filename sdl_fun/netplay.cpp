@@ -202,14 +202,17 @@ void winsockCleanup() {
 }
 
 //Discover if the local gateway device can use UPNP and port-forward the local port
-bool upnpStartup() {
+void upnpStartup(Game* game) {
    int error, status;
    upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
    if (error == 0) {
       status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
-      if (status == 1) { return true; }
+      if (status == 1) { 
+         game->net->upnp = true;
+         return; 
+      }
    }
-   return false;
+   game->net->upnp = false;
 }
 
 int upnpAddPort(int port) {
@@ -453,6 +456,7 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 
 //Create a start listening on a socket
 bool tcpHostListen(int port) {
+   static bool portAdded = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { game->net->messages.push_back("Socket creation failed."); }
@@ -462,7 +466,10 @@ bool tcpHostListen(int port) {
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true) { upnpAddPort(port); }
+   if (game->net->upnp == true && portAdded == false) { 
+      upnpAddPort(port); 
+      portAdded = true;
+   }
 
    //bind socket
    int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
@@ -478,6 +485,7 @@ bool tcpHostListen(int port) {
    }
 
    game->net->messages.push_back("Started listening for player connections");
+   portAdded = false;
    return true;
 }
 
@@ -486,8 +494,7 @@ char* tcpHostAccept() {
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
    if (conn == INVALID_SOCKET) { 
-      if (WSAGetLastError() == WSAEWOULDBLOCK) { return "Nothing to accept..."; }
-      else { return "socket accept failed..."; }
+      return "socket accept failed...";
    }
    sockets[connections].sock = conn;
    connections++;
@@ -495,6 +502,7 @@ char* tcpHostAccept() {
 
 //Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
+   static bool portAdded = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
@@ -504,15 +512,19 @@ bool tcpClientConnect(int port, const char* ip) {
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true) { upnpAddPort(port); }
+   if (game->net->upnp == true && portAdded == false) { 
+      upnpAddPort(port); 
+      portAdded = true;
+   }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (result != 0) {
-      game->net->messages.push_back("Socket connection failed.");
+      //game->net->messages.push_back("Socket connection failed.");
       return false;
    }
 
    game->net->messages.push_back("Connected to host");
+   portAdded = false;
    return true;
 }
 

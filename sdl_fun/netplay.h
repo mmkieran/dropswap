@@ -116,6 +116,6 @@ void tcpCleanup(int port);
 void readGameData();
 SocketInfo getSocket(int index);
 
-bool upnpStartup();
+void upnpStartup(Game* game);
 int upnpAddPort(int port);
 int upnpDeletePort(int port);
