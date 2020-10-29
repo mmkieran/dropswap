@@ -12,11 +12,12 @@
 //UPNP Devices we discovered
 UPNPDev* upnp_devices = 0;
 
-//Internet Gateway Device info
+////Internet Gateway Device globals
 UPNPUrls upnp_urls;
 IGDdatas upnp_data;
 char aLanAddr[64];
 int sessionPort = 7001;
+////
 
 extern Game* game;  //I dunno how I feel about this
 
@@ -435,10 +436,14 @@ void ggpoEndSession(Game* game) {
    }
 }
 
+
 ////Globals used by TCP sockets
 int connections = 0;  //How many accepted connections do we have
 std::vector <Byte> matchInfo;  //Transfer game data
 std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
+bool tcpPortAdded = false;
+int tcpPort = 7000;
+////
 
 //Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
@@ -456,7 +461,6 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 
 //Create a start listening on a socket
 bool tcpHostListen(int port) {
-   static bool portAdded = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { game->net->messages.push_back("Socket creation failed."); }
@@ -466,9 +470,9 @@ bool tcpHostListen(int port) {
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && portAdded == false) { 
-      upnpAddPort(port); 
-      portAdded = true;
+   if (game->net->upnp == true && tcpPortAdded == false) {
+      bool upnp = upnpAddPort(port); 
+      if (upnp) { tcpPortAdded = true; }
    }
 
    //bind socket
@@ -485,7 +489,6 @@ bool tcpHostListen(int port) {
    }
 
    game->net->messages.push_back("Started listening for player connections");
-   portAdded = false;
    return true;
 }
 
@@ -502,7 +505,6 @@ char* tcpHostAccept() {
 
 //Connect to a given port on the host
 bool tcpClientConnect(int port, const char* ip) {
-   static bool portAdded = false;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
@@ -512,9 +514,9 @@ bool tcpClientConnect(int port, const char* ip) {
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && portAdded == false) { 
-      upnpAddPort(port); 
-      portAdded = true;
+   if (game->net->upnp == true && tcpPortAdded == false) {
+      bool upnp = upnpAddPort(port);
+      if (upnp) { tcpPortAdded = true; }
    }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
@@ -524,7 +526,6 @@ bool tcpClientConnect(int port, const char* ip) {
    }
 
    game->net->messages.push_back("Connected to host");
-   portAdded = false;
    return true;
 }
 
@@ -536,15 +537,19 @@ void tcpCleanup(int port) {
    connections = 0;
    game->net->messages.clear();
 
-   upnpDeletePort(port);
+   if (tcpPortAdded == true) { 
+      upnpDeletePort(port); 
+      tcpPortAdded = false;
+   }
 }
 
-void tcpServerLoop(int port, int people, ServerStatus &status) {
-   while (status != server_done) {
+void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
+   running = true;
+   while (running == true) {
       bool done = true;
       switch (status) {
       case server_none:
-         tcpCleanup(7000);
+         running = false;
          return;
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
@@ -605,17 +610,22 @@ void tcpServerLoop(int port, int people, ServerStatus &status) {
                }
             }
          }
-         if (done == true) { status = server_done; }
+         if (done == true) { 
+            status = server_done; 
+            running = false;
+         }
          break;
       }
    }
+   tcpCleanup(tcpPort);
 }
 
-void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name) {
+void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name, bool& running) {
+   running = true;
    while (status != client_done) {
       switch (status) {
       case client_none:
-         tcpCleanup(7000);
+         running = false;
          return;
       case client_started:
          if (tcpClientConnect(port, ip) == true) { 
@@ -648,6 +658,7 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
          break;
       }
    }
+   tcpCleanup(tcpPort);
 }
 
 SocketInfo getSocket(int index) {

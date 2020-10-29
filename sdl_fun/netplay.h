@@ -110,8 +110,8 @@ void ggpoEndSession(Game* game);
 
 bool winsockStart();
 void winsockCleanup();
-void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name);
-void tcpServerLoop(int port, int people, ServerStatus &status);
+void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name, bool &running);
+void tcpServerLoop(int port, int people, ServerStatus& status, bool &running);
 void tcpCleanup(int port);
 void readGameData();
 SocketInfo getSocket(int index);

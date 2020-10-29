@@ -765,6 +765,8 @@ ServerStatus serverStatus = server_none;
 ClientStatus clientStatus = client_none;
 std::thread serverThread;
 std::thread clientThread;
+bool clientRunning = false;
+bool serverRunning = false;
 
 
 void multiplayerUI(Game* game, bool* p_open) {
@@ -813,7 +815,7 @@ void multiplayerUI(Game* game, bool* p_open) {
          if (ImGui::Button("Find Players")) {
             serverStatus = server_started;
             //This is the thread for the server loop
-            serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus));
+            serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus), std::ref(serverRunning));
             serverThread.detach();
             connectStats = true;
          }
@@ -885,7 +887,7 @@ void multiplayerUI(Game* game, bool* p_open) {
          if (ImGui::Button("Connect to Host")) {
             clientStatus = client_started;
             //This is the client loop thread
-            clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName);
+            clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName, std::ref(clientRunning));
             clientThread.detach();
             connectStats = true;
          }
