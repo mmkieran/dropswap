@@ -193,11 +193,11 @@ bool winsockStart() {
    WSADATA wd = { 0 };  //Initialize windows socket... Error 10093 means it wasn't started
    int wsaResult = WSAStartup(MAKEWORD(2, 2), &wd);  //This was a lot of trouble for 2 lines of code >.<
 
-   if (wsaResult != NO_ERROR) {
-      printf("WSAStartup failed: %d\n", wsaResult);
-      return true;
+   if (wsaResult != 0) {
+      game->net->messages.push_back("WSAStartup failed");
+      return false;
    }
-   return false;
+   return true;
 }
 
 void winsockCleanup() {
@@ -502,10 +502,11 @@ void tcpHostAccept() {
       return;
    }
    sockets[connections].sock = conn;
-   connections++;
-   int port = ntohs(sockets[connections].address.sin_port);
-   bool upnp = upnpAddPort(port);
+   unsigned short port = 0;
+   WSANtohs(sockets[connections].sock, sockets[connections].address.sin_port, &port);  //Convert network byte order to host byte order
+   bool upnp = upnpAddPort(port);  //Add port forwarding for this port
    if (upnp == true) { tcpPorts[port] = true; }
+   connections++;
 }
 
 //Connect to a given port on the host
@@ -549,6 +550,8 @@ void tcpCleanup() {
          tcpPort.second = false;
       }
    }
+   winsockCleanup();
+   game->winsockRunning = winsockStart();
 }
 
 void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {

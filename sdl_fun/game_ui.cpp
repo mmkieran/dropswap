@@ -894,8 +894,6 @@ void multiplayerUI(Game* game, bool* p_open) {
 
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
          tcpCleanup();
-         winsockCleanup();
-         game->winsockRunning = winsockStart();
          clientStatus = client_none;
          connectStats = false;
       }
@@ -915,11 +913,13 @@ void multiplayerUI(Game* game, bool* p_open) {
             if (i + 1 != game->players) { ImGui::SameLine(); }
          }
 
-         if (ImGui::Button("Start Game")) {
-            clientStatus = client_loaded;
-            //This is the thread that start GGPO and creates a UPNP port mapping
-            std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-            ggpoSessionThread.detach();
+         if (game->winsockRunning == true) {
+            if (ImGui::Button("Start Game")) {
+               clientStatus = client_loaded;
+               //This is the thread that start GGPO and creates a UPNP port mapping
+               std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+               ggpoSessionThread.detach();
+            }
          }
       }
       if (clientStatus == client_done) {
@@ -931,7 +931,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    if (connectStats) { connectStatusUI(game, &connectStats); }
 
    //If GGPO is running then start the game!
-   if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false) {
+   if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false && game->winsockRunning == true) {
       gameStartMatch(game);
    }
 
