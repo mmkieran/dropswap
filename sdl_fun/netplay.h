@@ -115,6 +115,7 @@ void tcpServerLoop(int port, int people, ServerStatus& status, bool &running);
 void tcpCleanup();
 void readGameData();
 SocketInfo getSocket(int index);
+void _connectionInfo();
 
 void upnpStartup(Game* game);
 int upnpAddPort(int port);

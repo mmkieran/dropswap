@@ -27,4 +27,4 @@ bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
 
 void multiplayerUI(Game* game, bool* p_open);
-void tcpStateCleanup();
+void debugConnections(Game* game, bool* p_open);

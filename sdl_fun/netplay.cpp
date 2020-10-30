@@ -6,6 +6,8 @@
 #include <thread>
 #include <chrono>
 
+#include "imgui/imgui.h"
+
 //Port Forwarding magic
 #include "miniupnp/miniupnpc.h"
 #include "miniupnp/upnpcommands.h"
@@ -628,7 +630,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          break;
       }
    }
-   tcpCleanup();
 }
 
 void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name, bool& running) {
@@ -669,9 +670,10 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
             running = false;
          }  
          break;
+      case client_done:
+         running = false;
       }
    }
-   tcpCleanup();
 }
 
 SocketInfo getSocket(int index) {
@@ -682,4 +684,23 @@ void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);
    deserializeGameSetup(game, gData);
+}
+
+void _connectionInfo() {
+
+   if (ImGui::CollapsingHeader("Socket Info")) {
+      for (auto&& sock : sockets) {
+         ImGui::Text("Socket Name: %s", sock.second.name);
+         ImGui::Text("Socket Address: %s", inet_ntoa(sock.second.address.sin_addr));
+         ImGui::Text("Socket Port %d", ntohs(sock.second.address.sin_port));
+      }
+   }
+
+   if (ImGui::CollapsingHeader("UPNP Ports")) {
+      for (auto&& tcpPort : tcpPorts) {
+         if (tcpPort.second == true) {
+            ImGui::Text("UPNP Port: %d", tcpPort.first);
+         }
+      }
+   }
 }

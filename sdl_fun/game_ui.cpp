@@ -7,7 +7,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include "imgui/imgui_internal.h"
 
 #include <thread>
 
@@ -768,12 +767,139 @@ std::thread clientThread;
 bool clientRunning = false;
 bool serverRunning = false;
 
+static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
+   //This code is for the server
+   if (serverRunning == false) {
+      if (ImGui::Button("Find Players")) {
+         serverStatus = server_started;
+         //This is the thread for the server loop
+         serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus), std::ref(serverRunning));
+         serverThread.detach();
+         connectStats = true;
+      }
+      ImGui::SameLine();
+   }
+
+   if (ImGui::Button("Reset Connection")) {
+      tcpCleanup();
+      serverStatus = server_none;
+      connectStats = false;
+   }
+
+   if (serverStatus >= server_waiting) {
+      //This is the player information table
+      ImGui::PushID("Player Info Set");
+      for (int i = 0; i < people[0]; i++) {
+         ImGui::PushID(i);  //So widgets don't name collide
+         ImGui::PushItemWidth(100);
+         SocketInfo sock = getSocket(i - 1);
+         if (i == 0) { ImGui::Text(game->pName); }
+         else { ImGui::Text(sock.name); }
+         ImGui::SameLine();
+         ImGui::SetCursorPosX(224);
+         int minPNum = 1;
+         ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
+         ImGui::SameLine();
+         ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+         ImGui::SameLine();
+         ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
+         ImGui::SameLine();
+         ImGui::Text(inet_ntoa(sock.address.sin_addr));
+
+         ImGui::PopID();
+      }
+      ImGui::PopID();
+
+      if (ImGui::Button("Start Game")) {
+         game->players = people[0];
+         game->seed = time(0);
+         for (int i = 0; i < game->players; i++) {
+            SocketInfo sock = getSocket(i - 1);
+            if (i == 0) {
+               strcpy(game->net->hostSetup[i].name, game->pName);
+               game->net->hostSetup[i].host = true;
+               game->net->hostSetup[i].me = true;
+            }
+            else {
+               strcpy(game->net->hostSetup[i].name, sock.name);
+               game->net->hostSetup[i].host = false;
+            }
+            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
+            game->net->hostSetup[i].localPort = 7001 + i;
+         }
+         serverStatus = server_send;
+      }
+   }
+
+   if (game->winsockRunning == true) {
+      if (serverStatus == server_done) {
+         //This is the thread that start GGPO and creates a UPNP port mapping
+         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+         ggpoSessionThread.detach();
+         serverStatus = server_none;
+         connectStats = false;
+      }
+   }
+}
+
+static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
+   if (clientRunning == false) {
+      if (ImGui::Button("Connect to Host")) {
+         clientStatus = client_started;
+         //This is the client loop thread
+         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName, std::ref(clientRunning));
+         clientThread.detach();
+         connectStats = true;
+      }
+      ImGui::SameLine();
+   }
+
+   if (ImGui::Button("Reset Connection")) {  //This just nukes everything
+      tcpCleanup();
+      clientStatus = client_none;
+      connectStats = false;
+   }
+
+   //This displays the game information once it is received
+   if (clientStatus >= client_received) {
+      float width = ImGui::GetContentRegionAvailWidth();
+      for (int i = 0; i < game->players; i++) {
+         ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 200 });
+         ImGui::Text(game->net->hostSetup[i].name);
+         ImGui::Text(game->net->hostSetup[i].ipAddress);
+         ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+         ImGui::Text("Me: %d", game->net->hostSetup[i].me);
+         ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+         ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+         ImGui::EndChild();
+         if (i + 1 != game->players) { ImGui::SameLine(); }
+      }
+      if (ImGui::Button("Start Game")) {
+         clientStatus = client_loaded;
+         //This is the thread that start GGPO and creates a UPNP port mapping
+         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
+         ggpoSessionThread.detach();
+      }
+   }
+   if (game->winsockRunning == true) {
+      if (clientStatus == client_done) {
+         clientStatus = client_none;
+         connectStats = false;
+      }
+   }
+}
 
 void multiplayerUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("Connection Setup", p_open)) {
       ImGui::End();
       return;
    }
+
+   static bool showDebugConn = false;
+   if (ImGui::Button("Show Conn State")) {
+      showDebugConn = true;
+   }
+   if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
 
    //Hard coding this to port 7000 for now
 
@@ -808,126 +934,13 @@ void multiplayerUI(Game* game, bool* p_open) {
    }
 
    ImGui::NewLine();
+   //If you're a server, use this loop
+   if (isServer == true) { _serverLoopUI(game, &people[0], connectStats); }
 
-   //This code is for the server
-   if (isServer == true) {
-      if (serverRunning == false) {
-         if (ImGui::Button("Find Players")) {
-            serverStatus = server_started;
-            //This is the thread for the server loop
-            serverThread = std::thread(tcpServerLoop, 7000, people[0] - 1, std::ref(serverStatus), std::ref(serverRunning));
-            serverThread.detach();
-            connectStats = true;
-         }
-         ImGui::SameLine();
-      }
+   //If you're a client, use this loop
+   else if (isServer == false) { _clientLoopUI(game, ipAddress, connectStats); }
 
-      if (ImGui::Button("Reset Connection")) {  
-         serverStatus = server_none;
-         connectStats = false;
-      }
-
-      if (serverStatus >= server_waiting) {
-         //This is the player information table
-         ImGui::PushID("Player Info Set");
-         for (int i = 0; i < people[0]; i++) {
-            ImGui::PushID(i);  //So widgets don't name collide
-            ImGui::PushItemWidth(100);
-            SocketInfo sock = getSocket(i - 1);
-            if (i == 0) { ImGui::Text(game->pName); }
-            else { ImGui::Text(sock.name); }
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(224);
-            int minPNum = 1;
-            ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
-            ImGui::SameLine();
-            ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
-            ImGui::SameLine();
-            ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
-            ImGui::SameLine();
-            ImGui::Text(inet_ntoa(sock.address.sin_addr));
-
-            ImGui::PopID();
-         }
-         ImGui::PopID();
-
-         if (ImGui::Button("Start Game")) {
-            game->players = people[0];
-            game->seed = time(0);
-            for (int i = 0; i < game->players; i++) {
-               SocketInfo sock = getSocket(i - 1);
-               if (i == 0) {
-                  strcpy(game->net->hostSetup[i].name, game->pName);
-                  game->net->hostSetup[i].host = true;
-                  game->net->hostSetup[i].me = true;
-               }
-               else {
-                  strcpy(game->net->hostSetup[i].name, sock.name);
-                  game->net->hostSetup[i].host = false;
-               }
-               strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
-               game->net->hostSetup[i].localPort = 7001 + i;
-            }
-            serverStatus = server_send;
-         }
-      }
-
-      if (serverStatus == server_done) {
-         //This is the thread that start GGPO and creates a UPNP port mapping
-         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-         ggpoSessionThread.detach();
-         serverStatus = server_none;
-         connectStats = false;
-      }
-   }
-   else if (isServer == false) {
-      if (clientRunning == false) {
-         if (ImGui::Button("Connect to Host")) {
-            clientStatus = client_started;
-            //This is the client loop thread
-            clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName, std::ref(clientRunning));
-            clientThread.detach();
-            connectStats = true;
-         }
-         ImGui::SameLine();
-      }
-
-      if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
-         tcpCleanup();
-         clientStatus = client_none;
-         connectStats = false;
-      }
-
-      //This displays the game information once it is received
-      if (clientStatus >= client_received) {
-         float width = ImGui::GetContentRegionAvailWidth();
-         for (int i = 0; i < game->players; i++) {
-            ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 200 });
-            ImGui::Text(game->net->hostSetup[i].name);
-            ImGui::Text(game->net->hostSetup[i].ipAddress);
-            ImGui::Text("Host: %d", game->net->hostSetup[i].host);
-            ImGui::Text("Me: %d", game->net->hostSetup[i].me);
-            ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
-            ImGui::Text("Team: %d", game->net->hostSetup[i].team);
-            ImGui::EndChild();
-            if (i + 1 != game->players) { ImGui::SameLine(); }
-         }
-
-         if (game->winsockRunning == true) {
-            if (ImGui::Button("Start Game")) {
-               clientStatus = client_loaded;
-               //This is the thread that start GGPO and creates a UPNP port mapping
-               std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-               ggpoSessionThread.detach();
-            }
-         }
-      }
-      if (clientStatus == client_done) {
-         clientStatus = client_none;
-         connectStats = false;
-      }
-   }
-
+   //Are we viewing the Connection Messages?
    if (connectStats) { connectStatusUI(game, &connectStats); }
 
    //If GGPO is running then start the game!
@@ -938,7 +951,20 @@ void multiplayerUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-void tcpStateCleanup() {
-   serverStatus = server_none;
-   clientStatus = client_none;
+void debugConnections(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Conn State", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::Text("Winsock running: %d", game->winsockRunning);
+   ImGui::Text("UPNP running: %d", game->net->upnp);
+   ImGui::Text("Server thread running: %d", serverRunning);
+   ImGui::Text("Server status: %d", serverStatus);
+   ImGui::Text("Client thread running: %d", clientRunning);
+   ImGui::Text("Client status: %d", clientStatus);
+
+   _connectionInfo();
+
+   ImGui::End();
 }
