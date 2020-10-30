@@ -13,15 +13,18 @@
 #include "miniupnp/upnpcommands.h"
 #include "miniupnp/upnperrors.h"
 
-//UPNP Devices we discovered
+//Globals used by UPNP
 UPNPDev* upnp_devices = 0;
-
-////Internet Gateway Device globals
 UPNPUrls upnp_urls;
 IGDdatas upnp_data;
 char aLanAddr[64];
 int sessionPort = 7001;
-////
+
+////Globals used by TCP sockets
+int connections = 0;  //How many accepted connections do we have
+std::vector <Byte> matchInfo;  //Vector to store saved game data
+std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
+std::map <int, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
 
 extern Game* game;  //I dunno how I feel about this
 
@@ -435,15 +438,6 @@ void ggpoEndSession(Game* game) {
    }
 }
 
-
-////Globals used by TCP sockets
-int connections = 0;  //How many accepted connections do we have
-std::vector <Byte> matchInfo;  //Transfer game data
-std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
-std::map <int, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
-int tcpPort = 7000;
-////
-
 //Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
    int result = send(socket, buffer, len, 0);
@@ -552,6 +546,7 @@ void tcpCleanup() {
 void tcpReset() {
    tcpCleanup();
    winsockCleanup();
+   if (game->net->ggpo != nullptr) { ggpoClose(game->net->ggpo); }
    game->winsockRunning = winsockStart();
 }
 
@@ -562,11 +557,11 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
       switch (status) {
       case server_none:
          running = false;
+         break;
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
          connections = 0;
          break;
-
       case server_listening:
          if (connections == people) {
             status = server_receive;
@@ -574,7 +569,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          //todo add polling here to see if we can accept things?
          else if (connections < people) { tcpHostAccept(); }
          break;
-
       case server_receive:
          for (int i = 0; i < connections; i++) {
             if (sockets[i].status != sock_received) {
@@ -591,11 +585,9 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
             game->net->messages.push_back("All players connected");
          }
          break;
-
       case server_waiting:
          std::this_thread::sleep_for(std::chrono::milliseconds(10)); //Sleep instead of going really fast
          break;
-
       case server_send:
          for (int i = 0; i < connections; i++) {
             if (sockets[i].status != sock_sent) {
@@ -612,7 +604,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
             game->net->messages.push_back("Waiting for player ready signals");
          }
          break;
-
       case server_ready:
          for (int i = 0; i < connections; i++) {
             if (sockets[i].status != sock_ready) {
@@ -637,6 +628,7 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
       switch (status) {
       case client_none:
          running = false;
+         break;
       case client_started:
          if (tcpClientConnect(port, ip) == true) { 
             status = client_connected; 
@@ -671,6 +663,7 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
          break;
       case client_done:
          running = false;
+         break;
       }
    }
 }

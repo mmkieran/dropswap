@@ -903,8 +903,6 @@ void multiplayerUI(Game* game, bool* p_open) {
    }
    if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
 
-   //Hard coding this to port 7000 for now
-
    static bool isServer = false;
    static bool connectStats = false;
    static char ipAddress[20] = "127.0.0.1";
