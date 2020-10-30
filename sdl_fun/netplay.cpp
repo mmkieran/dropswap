@@ -555,7 +555,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
    while (running == true) {
       bool done = true;
       switch (status) {
-      case server_none:
+      case server_none: 
          running = false;
          break;
       case server_started:
@@ -566,7 +566,6 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          if (connections == people) {
             status = server_receive;
          }
-         //todo add polling here to see if we can accept things?
          else if (connections < people) { tcpHostAccept(); }
          break;
       case server_receive:

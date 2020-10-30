@@ -57,25 +57,25 @@ struct NetPlay {
 };
 
 enum ServerStatus {
-   server_none = 0,
-   server_started,
-   server_listening,
+   server_none = 0,  //Not running
+   server_started,  //Start socket creation
+   server_listening,  //Listening for incoming connections
    server_accept,
    server_receive,
    server_send,
-   server_waiting,
+   server_waiting,  //Waiting for user to hit START
    server_ready,
-   server_done,
+   server_done,  //Game setup is complete... ready for GGPO
 };
 
 enum ClientStatus {
-   client_none = 0,
-   client_started,
-   client_connected,
+   client_none = 0,  //Not running
+   client_started,  //Start socket creation
+   client_connected,  //Connected to the host
    client_sent,
    client_received,
-   client_waiting,
-   client_loaded,
+   client_waiting,  //Waiting for input
+   client_loaded,  //Received game data and ready to play
    client_done,
 };
 
