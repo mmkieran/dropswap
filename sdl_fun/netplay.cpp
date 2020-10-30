@@ -443,7 +443,7 @@ void ggpoEndSession(Game* game) {
 int connections = 0;  //How many accepted connections do we have
 std::vector <Byte> matchInfo;  //Transfer game data
 std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
-bool tcpPortAdded = false;
+std::map <int, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
 int tcpPort = 7000;
 ////
 
@@ -472,9 +472,9 @@ bool tcpHostListen(int port) {
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && tcpPortAdded == false) {
+   if (game->net->upnp == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port); 
-      if (upnp) { tcpPortAdded = true; }
+      if (upnp) { tcpPorts[port] = true; }
    }
 
    //bind socket
@@ -503,6 +503,9 @@ void tcpHostAccept() {
    }
    sockets[connections].sock = conn;
    connections++;
+   int port = ntohs(sockets[connections].address.sin_port);
+   bool upnp = upnpAddPort(port);
+   if (upnp == true) { tcpPorts[port] = true; }
 }
 
 //Connect to a given port on the host
@@ -516,9 +519,9 @@ bool tcpClientConnect(int port, const char* ip) {
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && tcpPortAdded == false) {
+   if (game->net->upnp == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port);
-      if (upnp) { tcpPortAdded = true; }
+      if (upnp) { tcpPorts[port] = true; }
    }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
@@ -531,17 +534,20 @@ bool tcpClientConnect(int port, const char* ip) {
    return true;
 }
 
-void tcpCleanup(int port) {
+void tcpCleanup() {
    for (auto&& sock : sockets) {
+      //todo check for errors on close
       closesocket(sock.second.sock);
    }
    sockets.clear();
    connections = 0;
    game->net->messages.clear();
 
-   if (tcpPortAdded == true) { 
-      upnpDeletePort(port); 
-      tcpPortAdded = false;
+   for (auto&& tcpPort : tcpPorts) {
+      if (tcpPort.second == true) {
+         upnpDeletePort(tcpPort.first);
+         tcpPort.second = false;
+      }
    }
 }
 
@@ -619,7 +625,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
          break;
       }
    }
-   tcpCleanup(tcpPort);
+   tcpCleanup();
 }
 
 void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name, bool& running) {
@@ -662,7 +668,7 @@ void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* n
          break;
       }
    }
-   tcpCleanup(tcpPort);
+   tcpCleanup();
 }
 
 SocketInfo getSocket(int index) {

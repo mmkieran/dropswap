@@ -68,6 +68,7 @@ struct Game {
 
    GameWindow* sdl = nullptr;
    int vsync;
+   bool winsockRunning = false;
    float windowWidth;
    float windowHeight;
 

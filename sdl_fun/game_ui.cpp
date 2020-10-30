@@ -893,6 +893,9 @@ void multiplayerUI(Game* game, bool* p_open) {
       }
 
       if (ImGui::Button("Reset Connection")) {  //Debug Cleanup all the socket shit
+         tcpCleanup();
+         winsockCleanup();
+         game->winsockRunning = winsockStart();
          clientStatus = client_none;
          connectStats = false;
       }

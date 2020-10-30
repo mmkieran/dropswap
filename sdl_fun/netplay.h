@@ -112,7 +112,7 @@ bool winsockStart();
 void winsockCleanup();
 void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name, bool &running);
 void tcpServerLoop(int port, int people, ServerStatus& status, bool &running);
-void tcpCleanup(int port);
+void tcpCleanup();
 void readGameData();
 SocketInfo getSocket(int index);
 

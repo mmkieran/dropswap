@@ -171,7 +171,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    }
    else {printf("Initialized gl3w...\n"); }
 
-   winsockStart();
+   game->winsockRunning = winsockStart();
    std::thread upnpThread(upnpStartup, game);
    upnpThread.detach();
 
