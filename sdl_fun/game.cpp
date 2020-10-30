@@ -407,11 +407,11 @@ void gameDestroy(Game* game) {
       if (board) { boardDestroy(board); }
    }
 
-   tcpCleanup();
    if (game->net && game->net->ggpo) {
       ggpoClose(game->net->ggpo);
       game->net->ggpo = nullptr;
    }
+   upnpCleanup();
 
    destroyResources(game->resources);
 

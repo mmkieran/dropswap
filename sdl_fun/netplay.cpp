@@ -242,20 +242,12 @@ int upnpDeletePort(int port) {
    return 1;
 }
 
-//Deletes local port mapping and free resources for UPNP devices/urls
-static bool upnpCleanup(int port) {
-   char upnpPort[32];
-   sprintf(upnpPort, "%d", port);
-
-   int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
-
-   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
-
+//Free resources for UPNP devices/urls
+void upnpCleanup() {
    if (upnp_devices) { 
       FreeUPNPUrls(&upnp_urls);
       freeUPNPDevlist(upnp_devices); 
    }
-   return error;
 }
 
 //Create a GGPO session and add players/spectators 
@@ -386,7 +378,7 @@ void ggpoClose(GGPOSession* ggpo) {
    if (ggpo) {
       ggpo_close_session(ggpo);
    }
-   if (game->net->upnp) { upnpCleanup(sessionPort); }
+   if (game->net->upnp) { upnpDeletePort(sessionPort); }
 }
 
 //Display the connection status based on the PlayerConnectState Enum
@@ -432,11 +424,14 @@ void ggpoEndSession(Game* game) {
       ggpoClose(game->net->ggpo);
       int frameDelay = game->net->frameDelay[0];
       int disconnectTime = game->net->disconnectTime[0];
+      bool upnp = game->net->upnp;
       delete game->net;
 
+      //mayeb todo... I'm lazy and just delete and recreate it
       game->net = new NetPlay;
       game->net->frameDelay[0] = frameDelay;
       game->net->disconnectTime[0] = disconnectTime;
+      game->net->upnp = upnp;
    }
 }
 
@@ -552,6 +547,10 @@ void tcpCleanup() {
          tcpPort.second = false;
       }
    }
+}
+
+void tcpReset() {
+   tcpCleanup();
    winsockCleanup();
    game->winsockRunning = winsockStart();
 }
@@ -702,5 +701,9 @@ void _connectionInfo() {
             ImGui::Text("UPNP Port: %d", tcpPort.first);
          }
       }
+   }
+   if (game->net->ggpo != nullptr) {
+      ImGui::Text("GGPO is running");
+
    }
 }

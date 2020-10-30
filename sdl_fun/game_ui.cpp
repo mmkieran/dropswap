@@ -781,7 +781,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
    }
 
    if (ImGui::Button("Reset Connection")) {
-      tcpCleanup();
+      tcpReset();
       serverStatus = server_none;
       connectStats = false;
    }
@@ -833,6 +833,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
 
    if (game->winsockRunning == true) {
       if (serverStatus == server_done) {
+         tcpCleanup();
          //This is the thread that start GGPO and creates a UPNP port mapping
          std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
          ggpoSessionThread.detach();
@@ -855,7 +856,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
    }
 
    if (ImGui::Button("Reset Connection")) {  //This just nukes everything
-      tcpCleanup();
+      tcpReset();
       clientStatus = client_none;
       connectStats = false;
    }
@@ -883,6 +884,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
    }
    if (game->winsockRunning == true) {
       if (clientStatus == client_done) {
+         tcpCleanup();
          clientStatus = client_none;
          connectStats = false;
       }
