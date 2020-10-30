@@ -265,7 +265,7 @@ void boardUI(Game* game) {
       }
 
       //Disconnect popup
-      if (popupOpen(Popup_Disconnect) == true) { 
+      if (popupOpen(Popup_Disconnect) == true && popups[Popup_GameOver].isOpen == false) {
          ImGui::OpenPopup("Player Disconnecting"); 
          popups[Popup_Disconnect].isOpen = true;
       }
