@@ -465,30 +465,36 @@ void ggpoEndSession(Game* game) {
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
    static int lastResult = 0;
    int result = send(socket, buffer, len, 0);  //send returns the number of bytes sent
-   if (result != SOCKET_ERROR) { return true; }  //Failed to send
-   else if (result == SOCKET_ERROR && NETLOG == true) {
-      if (lastResult != result) {
-      fprintf(dsLog, "Failed to send message: %s\n", WSAGetLastError() ); 
-      lastResult = result;
+   if (result == SOCKET_ERROR) {
+      if (NETLOG == true && lastResult != result) {
+         fprintf(dsLog, "Failed to send message: %d\n", WSAGetLastError());
+         lastResult = result;
+      }
+      return false;
    }
-      lastResult = 0;
-   return false;
+   lastResult = 0;
+   return true;
 }
 
 //Receive a message of a known length over the socket
 bool recMsg(SOCKET socket, char* buffer, int len) {
-   static int lastResult = 0;
+   static int lastResult = 1;
    int result = recv(socket, buffer, len, 0);  //recv returns number of bytes received
    if (result > 0) { //We got something
-      lastResult = 0;
+      lastResult = 1;
       return true; 
    }  
    else if (result == 0 && result != lastResult) {
-      fprintf(dsLog, "Receive failed because connection was closed\n"); 
+      if (NETLOG == true && result != lastResult) {
+         //todo specially handle closed connection
+         fprintf(dsLog, "Failed to receive message: %d\n", WSAGetLastError());
+      }
       lastResult = result;
    }
-   else if (result == SOCKET_ERROR && NETLOG == true && result != lastError) { 
-      fprintf(dsLog, "Failed to receive message: %s\n", WSAGetLastError()); 
+   else if (result == SOCKET_ERROR) { 
+      if (NETLOG == true && result != lastResult) {
+         fprintf(dsLog, "Failed to receive message: %d\n", WSAGetLastError());
+      }
       lastResult = result;
    }
    return false;
@@ -496,17 +502,17 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 
 //Create a start listening on a socket
 bool tcpHostListen(u_short port) {
-   static int lastResult = 0;
    //create socket and verify
+   static int lastCreate = 0;
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == INVALID_SOCKET) { 
-      if (NETLOG == true && sockets[-1].sock != lastResult) {
-         fprintf(dsLog, "Host failed create socket: %s", WSAGetLastError()); 
-         lastResult = sockets[-1].sock;
+      if (NETLOG == true && sockets[-1].sock != lastCreate) {
+         fprintf(dsLog, "Host failed create socket: %d\n", WSAGetLastError()); 
+         lastCreate = sockets[-1].sock;
       }
       return false;
    }
-   lastResult = 0;
+   lastCreate = 0;
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -520,25 +526,28 @@ bool tcpHostListen(u_short port) {
    }
 
    //bind socket
-   int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
+   static int lastBind = 0;
+   int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address) );
    if (bindResult == SOCKET_ERROR) {
-      if (NETLOG == true && bindResult != lastResult) {
-         fprintf(dsLog, "Host failed to bind socket: %s", WSAGetLastError()); 
-         lastResult = bindResult;
+      if (NETLOG == true && bindResult != lastBind) {
+         fprintf(dsLog, "Host failed to bind socket: %d\n", WSAGetLastError()); 
+         lastBind = bindResult;
       }
       return false;
    }
-   lastResult = 0;
+   lastBind = 0;
 
    //start listening on socket
+   static int lastListen = 0;
    int listenResult = listen(sockets[-1].sock, 5);
    if (listenResult == SOCKET_ERROR) {
-      if (NETLOG == true && listenResult != lastResult) {
-         fprintf(dsLog, "Host failed to start listening: %s", WSAGetLastError()); 
-         lastError = listenResult;
+      if (NETLOG == true && listenResult != lastListen) {
+         fprintf(dsLog, "Host failed to start listening: %d\n", WSAGetLastError()); 
+         lastListen = listenResult;
       }
       return false;
    }
+   lastListen = 0;
 
    game->net->messages.push_back("Started listening for player connections");
    return true;
@@ -546,12 +555,14 @@ bool tcpHostListen(u_short port) {
 
 //Accepts connections on the listening socket and adds the info to the list of sockets
 void tcpHostAccept() {
+   static unsigned int lastResult = 0;
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
    if (conn == INVALID_SOCKET) { 
-      if (NETLOG == true && conn != lastError) { 
-         fprintf(dsLog, "Host failed to accept socket: %s", WSAGetLastError()); 
+      if (NETLOG == true && conn != lastResult) {
+         fprintf(dsLog, "Host failed to accept socket: %d\n", WSAGetLastError()); 
       }
+      lastResult = conn;
       return;
    }
    sockets[connections].sock = conn;
@@ -560,15 +571,22 @@ void tcpHostAccept() {
    bool upnp = upnpAddPort(port, "TCP");  //Add port forwarding for this port
    if (upnp == true) { tcpPorts[port] = true; }
    connections++;
+   lastResult = 0;
 }
 
 //Connect to a given port on the host
 bool tcpClientConnect(u_short port, const char* ip) {
    //create socket and verify
+   static int createResult = 0;
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == INVALID_SOCKET) {
-      if (NETLOG == true) { fprintf(dsLog, "Client failed to create socket: %s", WSAGetLastError()); }
+      if (NETLOG == true && createResult != sockets[-1].sock) { 
+         fprintf(dsLog, "Client failed to create socket: %d\n", WSAGetLastError()); 
+         createResult = sockets[-1].sock;
+      }
+      return false;
    }
+   createResult = 0;
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -580,11 +598,16 @@ bool tcpClientConnect(u_short port, const char* ip) {
       if (upnp) { tcpPorts[port] = true; }
    }
 
+   static int lastConnect = 0;
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (result == SOCKET_ERROR) {
-      if (NETLOG == true) { fprintf(dsLog, "Client connection failed: %s", WSAGetLastError()); }
+      if (NETLOG == true && lastConnect != result) { 
+         fprintf(dsLog, "Client connection failed: %d\n", WSAGetLastError() ); 
+         lastConnect = result;
+      }
       return false;
    }
+   lastConnect = 0;
 
    game->net->messages.push_back("Connected to host");
    return true;
