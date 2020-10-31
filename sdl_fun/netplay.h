@@ -94,6 +94,19 @@ struct SocketInfo {
    SocketStatus status = sock_none;
 };
 
+enum CommError {
+   error_sock_create = 0,
+   //server start
+   error_sock_bind,
+   error_sock_listen,
+   error_sock_accept,
+   //client start
+   error_sock_connect,
+   //connected
+   error_sock_send,
+   error_sock_receive,
+};
+
 int fletcher32_checksum(short* data, size_t len);
 int ggpoCheckSum(Game* game);
 
@@ -120,6 +133,6 @@ SocketInfo getSocket(int index);
 void _connectionInfo();
 
 void upnpStartup(Game* game);
-int upnpAddPort(u_short port);
-int upnpDeletePort(u_short port);
+int upnpAddPort(u_short port, const char* protocol = "UDP");
+int upnpDeletePort(u_short port, const char* protocol = "UDP");
 void upnpCleanup();
