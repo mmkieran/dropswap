@@ -819,6 +819,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
                strcpy(game->net->hostSetup[i].name, game->pName);
                game->net->hostSetup[i].host = true;
                game->net->hostSetup[i].me = true;
+               strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
             }
             else {
                strcpy(game->net->hostSetup[i].name, sock.name);
@@ -876,6 +877,11 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
          if (i + 1 != game->players) { ImGui::SameLine(); }
       }
       if (ImGui::Button("Start Game")) {
+         for (int i = 0; i < game->players; i++) {
+            if (i == 0) {
+               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);
+            }
+         }
          clientStatus = client_loaded;
          //This is the thread that start GGPO and creates a UPNP port mapping
          std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
