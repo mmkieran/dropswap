@@ -102,7 +102,6 @@ struct Game {
 
    int players = 1;
    bool playing = false;
-   char name[20];
 
    bool paused = false;
 
