@@ -646,7 +646,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
          ImGui::SameLine();
          if (manualPorts) {
-            ImGui::InputInt("Port", &hostSetup[i].localPort);
+            //ImGui::InputInt("Port", &hostSetup[i].localPort);
             ImGui::SameLine(); HelpMarker("Select a unique port number that you will use to send information to host.");
             ImGui::SameLine();
          }

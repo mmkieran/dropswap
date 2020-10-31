@@ -111,8 +111,8 @@ void ggpoEndSession(Game* game);
 bool winsockStart();
 void winsockCleanup();
 
-void tcpClientLoop(int port, const char* ip, ClientStatus& status, const char* name, bool &running);
-void tcpServerLoop(int port, int people, ServerStatus& status, bool &running);
+void tcpClientLoop(u_short port, const char* ip, ClientStatus& status, const char* name, bool &running);
+void tcpServerLoop(u_short port, int people, ServerStatus& status, bool &running);
 void tcpCleanup();
 void tcpReset();
 void readGameData();
@@ -120,6 +120,6 @@ SocketInfo getSocket(int index);
 void _connectionInfo();
 
 void upnpStartup(Game* game);
-int upnpAddPort(int port);
-int upnpDeletePort(int port);
+int upnpAddPort(u_short port);
+int upnpDeletePort(u_short port);
 void upnpCleanup();

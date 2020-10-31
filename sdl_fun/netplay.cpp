@@ -26,7 +26,19 @@ std::vector <Byte> matchInfo;  //Vector to store saved game data
 std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
 std::map <unsigned short, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
 
+#define NETLOG true
+FILE* dsLog;
+
 extern Game* game;  //I dunno how I feel about this
+
+//Debug log functions
+void openNetLog() {
+   int err = fopen_s(&dsLog, "dsNetLog.txt", "r");
+}
+
+void closeNetLog() {
+   fclose(dsLog);
+}
 
 int fletcher32_checksum(short* data, size_t len) {
    int sum1 = 0xffff, sum2 = 0xffff;
@@ -211,6 +223,7 @@ void winsockCleanup() {
 
 //Discover if the local gateway device can use UPNP and port-forward the local port
 void upnpStartup(Game* game) {
+   if (NETLOG == true) { openNetLog(); }
    int error, status;
    upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
    if (error == 0) {
@@ -219,7 +232,9 @@ void upnpStartup(Game* game) {
          game->net->upnp = true;
          return; 
       }
+      else if (NETLOG == true) { fprintf(dsLog, "Failed to find a valid IGD device: %d", status); }
    }
+   else if (NETLOG == true) { fprintf(dsLog, "UPNP discovery failed with error: %d", error); }
    game->net->upnp = false;
 }
 
@@ -232,6 +247,7 @@ int upnpAddPort(u_short port) {
       game->net->messages.push_back("Port mapping complete");
       return true;
    }
+   else if (NETLOG == true) { fprintf(dsLog, "Port %d mapping failed with error: %s", port, strupnperror(error)); }
 }
 
 int upnpDeletePort(u_short port) {
@@ -240,7 +256,7 @@ int upnpDeletePort(u_short port) {
 
    int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, "UDP", 0);
 
-   //if (error != 0) { printf("Failed to delete port: %s", strupnperror(error)); }
+   if (error != 0 && NETLOG == true) { fprintf(dsLog, "Failed to delete port %d: %s", port, strupnperror(error)); }
 
    return 1;
 }
@@ -251,6 +267,7 @@ void upnpCleanup() {
       FreeUPNPUrls(&upnp_urls);
       freeUPNPDevlist(upnp_devices); 
    }
+   if (NETLOG == true) { closeNetLog(); }
 }
 
 //Create a GGPO session and add players/spectators 
@@ -440,23 +457,28 @@ void ggpoEndSession(Game* game) {
 
 //Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
-   int result = send(socket, buffer, len, 0);
+   int result = send(socket, buffer, len, 0);  //send returns the number of bytes sent
    if (result != SOCKET_ERROR) { return true; }  //Failed to send
+   else if (result == SOCKET_ERROR && NETLOG == true) { fprintf(dsLog, "Failed to send message: %s", WSAGetLastError() ); }
    return false;
 }
 
 //Receive a message of a known length over the socket
 bool recMsg(SOCKET socket, char* buffer, int len) {
-   int result = recv(socket, buffer, len, 0);
-   if (result <= 0) { return false; }  //No message or error
+   int result = recv(socket, buffer, len, 0);  //recv returns number of bytes received
    if (result > 0) { return true; }  //We got something
+   else if (result == 0) { fprintf(dsLog, "Receive failed because connection was closed"); }
+   else if (result == SOCKET_ERROR && NETLOG == true) { fprintf(dsLog, "Failed to receive message: %s", WSAGetLastError()); }
+   return false;
 }
 
 //Create a start listening on a socket
 bool tcpHostListen(u_short port) {
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockets[-1].sock == -1) { game->net->messages.push_back("Socket creation failed."); }
+   if (sockets[-1].sock == INVALID_SOCKET) { 
+      if (NETLOG == true) { fprintf(dsLog, "Host failed create socket: %s", WSAGetLastError()); }
+   }
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -470,14 +492,14 @@ bool tcpHostListen(u_short port) {
 
    //bind socket
    int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
-   if (bindResult != 0) {
-      game->net->messages.push_back("socket binding failed...");
+   if (bindResult == SOCKET_ERROR) {
+      if (NETLOG == true) { fprintf(dsLog, "Host failed to bind socket: %s", WSAGetLastError()); }
       return false;
    }
 
    //start listening on socket
-   if (listen(sockets[-1].sock, 5) != 0) {
-      game->net->messages.push_back("Listen failed...");
+   if (listen(sockets[-1].sock, 5) == SOCKET_ERROR) {
+      if (NETLOG == true) { fprintf(dsLog, "Host failed to start listening: %s", WSAGetLastError()); }
       return false;
    }
 
@@ -490,6 +512,7 @@ void tcpHostAccept() {
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
    if (conn == INVALID_SOCKET) { 
+      if (NETLOG == true) { fprintf(dsLog, "Host failed to accept socket: %s", WSAGetLastError()); }
       return;
    }
    sockets[connections].sock = conn;
@@ -504,7 +527,9 @@ void tcpHostAccept() {
 bool tcpClientConnect(u_short port, const char* ip) {
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
-   if (sockets[-1].sock == -1) { return "Socket creation failed."; }
+   if (sockets[-1].sock == INVALID_SOCKET) {
+      if (NETLOG == true) { fprintf(dsLog, "Client failed to create socket: %s", WSAGetLastError()); }
+   }
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -517,8 +542,8 @@ bool tcpClientConnect(u_short port, const char* ip) {
    }
 
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
-   if (result != 0) {
-      //game->net->messages.push_back("Socket connection failed.");
+   if (result == SOCKET_ERROR) {
+      if (NETLOG == true) { fprintf(dsLog, "Client connection failed: %s", WSAGetLastError()); }
       return false;
    }
 
