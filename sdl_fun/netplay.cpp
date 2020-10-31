@@ -18,13 +18,13 @@ UPNPDev* upnp_devices = 0;
 UPNPUrls upnp_urls;
 IGDdatas upnp_data;
 char aLanAddr[64];
-int sessionPort = 7001;
+u_short sessionPort = 7001;
 
 ////Globals used by TCP sockets
 int connections = 0;  //How many accepted connections do we have
 std::vector <Byte> matchInfo;  //Vector to store saved game data
 std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
-std::map <int, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
+std::map <unsigned short, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
 
 extern Game* game;  //I dunno how I feel about this
 
@@ -223,7 +223,7 @@ void upnpStartup(Game* game) {
    game->net->upnp = false;
 }
 
-int upnpAddPort(int port) {
+int upnpAddPort(u_short port) {
    int error;
    char upnpPort[32];
    sprintf(upnpPort, "%d", port);
@@ -234,7 +234,7 @@ int upnpAddPort(int port) {
    }
 }
 
-int upnpDeletePort(int port) {
+int upnpDeletePort(u_short port) {
    char upnpPort[32];
    sprintf(upnpPort, "%d", port);
 
@@ -453,7 +453,7 @@ bool recMsg(SOCKET socket, char* buffer, int len) {
 }
 
 //Create a start listening on a socket
-bool tcpHostListen(int port) {
+bool tcpHostListen(u_short port) {
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { game->net->messages.push_back("Socket creation failed."); }
@@ -501,7 +501,7 @@ void tcpHostAccept() {
 }
 
 //Connect to a given port on the host
-bool tcpClientConnect(int port, const char* ip) {
+bool tcpClientConnect(u_short port, const char* ip) {
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == -1) { return "Socket creation failed."; }
@@ -550,7 +550,7 @@ void tcpReset() {
    game->winsockRunning = winsockStart();
 }
 
-void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
+void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running) {
    running = true;
    while (running == true) {
       bool done = true;
@@ -621,7 +621,7 @@ void tcpServerLoop(int port, int people, ServerStatus &status, bool& running) {
    }
 }
 
-void tcpClientLoop(int port, const char* ip, ClientStatus &status, const char* name, bool& running) {
+void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const char* name, bool& running) {
    running = true;
    while (running == true) {
       switch (status) {
@@ -683,7 +683,8 @@ void _connectionInfo() {
       for (auto&& sock : sockets) {
          ImGui::Text("Socket Name: %s", sock.second.name);
          ImGui::Text("Socket Address: %s", inet_ntoa(sock.second.address.sin_addr));
-         ImGui::Text("Socket Port %d", ntohs(sock.second.address.sin_port));
+         ImGui::Text("Socket Port: %d", ntohs(sock.second.address.sin_port));
+         ImGui::Text("Socket Port noRev: %d", sock.second.address.sin_port);
       }
    }
 

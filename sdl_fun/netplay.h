@@ -33,7 +33,7 @@ struct PlayerConnectionInfo {
 struct SessionInfo {
    bool host = false;
    bool me = false;
-   int localPort = 7001;
+   u_short localPort = 7001;
    int playerType = 0;
    char ipAddress[32] = "127.0.0.1";
    char name[20] = { 0 };
