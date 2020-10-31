@@ -201,7 +201,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    controllerGetAll();  //Find any attached controllers
    soundsInit();  //Initialize SoLoud components
 
-
+   resourcesGetName(game);
 
    return game;
 }

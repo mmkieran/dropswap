@@ -957,6 +957,7 @@ void debugConnections(Game* game, bool* p_open) {
       return;
    }
 
+   ImGui::Text("Player Name: %s", game->name);
    ImGui::Text("Winsock running: %d", game->winsockRunning);
    ImGui::Text("UPNP running: %d", game->net->upnp);
    ImGui::Text("Server thread running: %d", serverRunning);

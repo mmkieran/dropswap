@@ -18,3 +18,5 @@ Texture* resourcesGetTexture(Resources* resources, TextureEnum texture);
 SoLoud::Wav* resourcesGetSound(Resources* resources, SoundEffect sound);
 
 unsigned int resourcesGetShader(Game* game);
+
+void resourcesGetName(Game* game);

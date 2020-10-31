@@ -2,6 +2,7 @@
 #include "resources.h"
 
 #include <thread>
+#include <time.h>
 
 struct Resources {
    std::vector <Texture*> textures; 
@@ -104,4 +105,28 @@ SoLoud::Wav* resourcesGetSound(Resources* resources, SoundEffect sound) {
 
 unsigned int resourcesGetShader(Game* game) {
    return game->resources->shaderProgram;
+}
+
+void resourcesGetName(Game* game) {
+   FILE* in;
+   int err = fopen_s(&in, "assets/character_names.csv", "r");
+
+   if (err == 0) {
+      srand(time(0));
+      int target = rand() % 486;  
+      char* tok;
+      char buffer[2048];
+      int i = 0;
+
+      //fgets(buffer, 2048, in); // header
+      fgets(buffer, 2048, in); //First data line
+      while (!feof(in))
+      {
+         if (i == target) { strncpy(game->name, strtok(buffer, ",\n"), 20); } // Get a random name
+         i++;
+         fgets(buffer, 2048, in);
+      }
+      fclose(in);
+   }
+   else { printf("Failed to load file... Err: %d\n", err); }
 }
