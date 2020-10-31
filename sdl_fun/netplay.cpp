@@ -575,7 +575,7 @@ void tcpHostAccept() {
 }
 
 //Connect to a given port on the host
-bool tcpClientConnect(u_short port, const char* ip) {
+bool tcpClientStartup(u_short port, const char* ip) {
    //create socket and verify
    static int createResult = 0;
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -596,13 +596,21 @@ bool tcpClientConnect(u_short port, const char* ip) {
    if (game->net->upnp == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port, "TCP");
       if (upnp) { tcpPorts[port] = true; }
+      else {
+         game->net->messages.push_back("Failed to map ports during startup");
+         return false;
+      }
    }
+   return true;
+}
 
+//Connect to a given port on the host
+bool tcpClientConnect() {
    static int lastConnect = 0;
    int result = connect(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (result == SOCKET_ERROR) {
-      if (NETLOG == true && lastConnect != result) { 
-         fprintf(dsLog, "Client connection failed: %d\n", WSAGetLastError() ); 
+      if (NETLOG == true && lastConnect != result) {
+         fprintf(dsLog, "Client connection failed: %d\n", WSAGetLastError());
          lastConnect = result;
       }
       return false;
@@ -647,6 +655,12 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
          break;
       case server_started:
          if (tcpHostListen(port) == true) { status = server_listening; }
+         else {
+            status = server_none;
+            running = false;
+            tcpCleanup();
+            game->net->messages.push_back("Failed to start listening... see dsNetLog.txt");
+         }
          connections = 0;
          break;
       case server_listening:
@@ -716,7 +730,16 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          running = false;
          break;
       case client_started:
-         if (tcpClientConnect(port, ip) == true) { 
+         if (tcpClientStartup(port, ip) == true) { status = client_connecting; }
+         else {
+            status = client_none;
+            running = false;
+            tcpCleanup();
+            game->net->messages.push_back("Failed to start sockets... see dsNetLog.txt");
+         }
+         break;
+      case client_connecting:
+         if (tcpClientConnect() == true) { 
             status = client_connected; 
             game->net->messages.push_back("Waiting for host ready signal");
          }

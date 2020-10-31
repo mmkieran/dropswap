@@ -71,6 +71,7 @@ enum ServerStatus {
 enum ClientStatus {
    client_none = 0,  //Not running
    client_started,  //Start socket creation
+   client_connecting,  //Attempting connection
    client_connected,  //Connected to the host
    client_sent,
    client_received,
