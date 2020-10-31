@@ -29,7 +29,6 @@ std::map <unsigned short, bool> tcpPorts = { {7000, false}, {7001, false}, {7002
 #define NETLOG true
 FILE* dsLog;
 bool logOpen = false;
-CommError lastError;
 
 extern Game* game;  //I dunno how I feel about this
 
@@ -254,7 +253,7 @@ int upnpAddPort(u_short port, const char* protocol) {
       game->net->messages.push_back("Port mapping complete");
       return true;
    }
-   else if (NETLOG == true) { fprintf(dsLog, "Port %d mapping failed with error: %s\n", port, strupnperror(error)); }
+   else if (NETLOG == true) { fprintf(dsLog, "UPNP Port %d mapping failed with error: %s\n", port, strupnperror(error)); }
 }
 
 int upnpDeletePort(u_short port, const char* protocol) {
@@ -263,7 +262,7 @@ int upnpDeletePort(u_short port, const char* protocol) {
 
    int error = UPNP_DeletePortMapping(upnp_urls.controlURL, upnp_data.first.servicetype, upnpPort, protocol, 0);
 
-   if (error != 0 && NETLOG == true) { fprintf(dsLog, "Failed to delete port %d: %s\n", port, strupnperror(error)); }
+   if (error != 0 && NETLOG == true) { fprintf(dsLog, "UPNP failed to delete port %d: %s\n", port, strupnperror(error)); }
 
    return 1;
 }
@@ -464,42 +463,50 @@ void ggpoEndSession(Game* game) {
 
 //Send a message of a given size over the socket
 bool sendMsg(SOCKET socket, const char* buffer, int len) {
+   static int lastResult = 0;
    int result = send(socket, buffer, len, 0);  //send returns the number of bytes sent
    if (result != SOCKET_ERROR) { return true; }  //Failed to send
    else if (result == SOCKET_ERROR && NETLOG == true) {
-      CommError currError = error_sock_send;
-      if (lastError == currError) {
+      if (lastResult != result) {
       fprintf(dsLog, "Failed to send message: %s\n", WSAGetLastError() ); 
-      lastError = currError;
+      lastResult = result;
    }
+      lastResult = 0;
    return false;
 }
 
 //Receive a message of a known length over the socket
 bool recMsg(SOCKET socket, char* buffer, int len) {
+   static int lastResult = 0;
    int result = recv(socket, buffer, len, 0);  //recv returns number of bytes received
-   if (result > 0) { return true; }  //We got something
-   else if (result == 0 && result != lastError) {
+   if (result > 0) { //We got something
+      lastResult = 0;
+      return true; 
+   }  
+   else if (result == 0 && result != lastResult) {
       fprintf(dsLog, "Receive failed because connection was closed\n"); 
-      lastError = result;
+      lastResult = result;
    }
    else if (result == SOCKET_ERROR && NETLOG == true && result != lastError) { 
       fprintf(dsLog, "Failed to receive message: %s\n", WSAGetLastError()); 
-      lastError = result;
+      lastResult = result;
    }
    return false;
 }
 
 //Create a start listening on a socket
 bool tcpHostListen(u_short port) {
+   static int lastResult = 0;
    //create socket and verify
    sockets[-1].sock = socket(AF_INET, SOCK_STREAM, 0);
    if (sockets[-1].sock == INVALID_SOCKET) { 
-      if (NETLOG == true && sockets[-1].sock != lastError) {
+      if (NETLOG == true && sockets[-1].sock != lastResult) {
          fprintf(dsLog, "Host failed create socket: %s", WSAGetLastError()); 
-         lastError = sockets[-1].sock;
+         lastResult = sockets[-1].sock;
       }
+      return false;
    }
+   lastResult = 0;
 
    //assign IP and Port
    sockets[-1].address.sin_family = AF_INET;
@@ -509,22 +516,24 @@ bool tcpHostListen(u_short port) {
    if (game->net->upnp == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port, "TCP"); 
       if (upnp) { tcpPorts[port] = true; }
+      else { return false; }
    }
 
    //bind socket
    int bindResult = bind(sockets[-1].sock, (sockaddr*)&sockets[-1].address, sizeof(sockets[-1].address));
    if (bindResult == SOCKET_ERROR) {
-      if (NETLOG == true && bindResult != lastError) {
+      if (NETLOG == true && bindResult != lastResult) {
          fprintf(dsLog, "Host failed to bind socket: %s", WSAGetLastError()); 
-         lastError = bindResult;
+         lastResult = bindResult;
       }
       return false;
    }
+   lastResult = 0;
 
    //start listening on socket
    int listenResult = listen(sockets[-1].sock, 5);
    if (listenResult == SOCKET_ERROR) {
-      if (NETLOG == true && listenResult != lastError) {
+      if (NETLOG == true && listenResult != lastResult) {
          fprintf(dsLog, "Host failed to start listening: %s", WSAGetLastError()); 
          lastError = listenResult;
       }
