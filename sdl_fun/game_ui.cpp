@@ -131,6 +131,7 @@ static void _drawBoardTexture(Game* game, int index) {
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", index + 1);
       ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
+      ImVec2 csPos = ImGui::GetCursorScreenPos();
 
       //This is the secret sauce to render a texture in ImGui
       //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
@@ -147,8 +148,8 @@ static void _drawBoardTexture(Game* game, int index) {
             else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
             ImVec2 textSize = ImGui::CalcTextSize(clearText);
 
-            ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x, e.pos.y }, { e.pos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
-            ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
+            ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
+            ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
          }
       }
 
