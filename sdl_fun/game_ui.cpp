@@ -130,7 +130,6 @@ static void _drawBoardTexture(Game* game, int index) {
 
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", index + 1);
-      ImVec2 screenPos = ImGui::GetCursorScreenPos();
       ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
 
       //This is the secret sauce to render a texture in ImGui
@@ -143,14 +142,13 @@ static void _drawBoardTexture(Game* game, int index) {
       if (board->visualEvents[visual_clear].active == true) {
          VisualEvent e = board->visualEvents[visual_clear];
          if (board->chain > 1 || board->boardStats.lastCombo > 3) {
-            ImGui::SetNextWindowPos({ e.pos.x + screenPos.x, e.pos.y });
-            ImGui::SetNextWindowBgAlpha(0.7f);
-            ImGui::OpenPopup("Chain counter");
-            if (ImGui::BeginPopup("Chain counter")) {
-               if (board->chain > 1) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%d Chain", board->chain); }
-               else if (board->boardStats.lastCombo > 3) { ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "%d Combo", board->boardStats.lastCombo); }
-               ImGui::EndPopup();
-            }
+            char clearText[10];
+            if (board->chain > 1) { sprintf(clearText, "%d Chain", board->boardStats.lastChain); }
+            else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
+            ImVec2 textSize = ImGui::CalcTextSize(clearText);
+
+            ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x, e.pos.y }, { e.pos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
+            ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
          }
       }
 
