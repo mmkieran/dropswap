@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
+#include <thread>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -170,6 +171,10 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    }
    else {printf("Initialized gl3w...\n"); }
 
+   game->winsockRunning = winsockStart();
+   std::thread upnpThread(upnpStartup, game);
+   upnpThread.detach();
+
    //Load game resources
    game->resources = initResources();
 
@@ -195,6 +200,8 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    controllerGetAll();  //Find any attached controllers
    soundsInit();  //Initialize SoLoud components
+
+   resourcesGetName(game);
 
    return game;
 }
@@ -365,7 +372,6 @@ void gameRender(Game* game) {
          i++;
       }
       rendererDisableFBO();
-      //debugCursor(game);
    }
 }
 
@@ -397,7 +403,6 @@ void imguiRender(Game* game) {
 
 //Jokulhaups
 void gameDestroy(Game* game) {
-
    for (auto&& board : game->boards) {
       if (board) { boardDestroy(board); }
    }
@@ -406,6 +411,7 @@ void gameDestroy(Game* game) {
       ggpoClose(game->net->ggpo);
       game->net->ggpo = nullptr;
    }
+   upnpCleanup();
 
    destroyResources(game->resources);
 
@@ -428,6 +434,8 @@ void gameDestroy(Game* game) {
    SDL_Quit();
    delete game->net;
    delete game;
+
+   winsockCleanup();
 
    printf("Cleanup successful.\n");
 }

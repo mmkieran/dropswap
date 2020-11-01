@@ -7,6 +7,9 @@
 #include "game_ui.h"
 
 #include <string>
+#include <winsock2.h>  //For windows sockets 
+
+#define BUFFERLEN 8192
 
 enum PlayerConnectState {
    Disconnected = 0,
@@ -30,23 +33,79 @@ struct PlayerConnectionInfo {
 struct SessionInfo {
    bool host = false;
    bool me = false;
-   int localPort = 7001;
+   u_short localPort = 7001;
    int playerType = 0;
    char ipAddress[32] = "127.0.0.1";
+   char name[20] = { 0 };
+   int pNum = 1;
+   int team = 0;
 };
 
 struct NetPlay {
    GGPOSession* ggpo = nullptr;
    GGPOPlayer players[GAME_MAX_PLAYERS];
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
+   SessionInfo hostSetup[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
    int hostConnNum = -1;
    int myConnNum = -1;
    int frameDelay[3] = { 2, 1, 10 };
    int disconnectTime[3] = { 10000, 0, 30000 };
    std::vector <std::string> messages;
-   bool useUPNP = true;
+   bool upnp = false;
    int timeSync = 0;
+};
+
+enum ServerStatus {
+   server_none = 0,  //Not running
+   server_started,  //Start socket creation
+   server_listening,  //Listening for incoming connections
+   server_accept,
+   server_receive,
+   server_send,
+   server_waiting,  //Waiting for user to hit START
+   server_ready,
+   server_done,  //Game setup is complete... ready for GGPO
+};
+
+enum ClientStatus {
+   client_none = 0,  //Not running
+   client_started,  //Start socket creation
+   client_connecting,  //Attempting connection
+   client_connected,  //Connected to the host
+   client_sent,
+   client_received,
+   client_waiting,  //Waiting for input
+   client_loaded,  //Received game data and ready to play
+   client_done,
+};
+
+enum SocketStatus {
+   sock_none = 0,
+   sock_sent,
+   sock_received,
+   sock_ready,
+};
+
+struct SocketInfo {
+   char name[20];
+   SOCKET sock = { 0 };
+   sockaddr_in address = { 0 };
+   char recBuff[BUFFERLEN];
+   SocketStatus status = sock_none;
+};
+
+enum CommError {
+   error_sock_create = 0,
+   //server start
+   error_sock_bind,
+   error_sock_listen,
+   error_sock_accept,
+   //client start
+   error_sock_connect,
+   //connected
+   error_sock_send,
+   error_sock_receive,
 };
 
 int fletcher32_checksum(short* data, size_t len);
@@ -62,3 +121,19 @@ const char* ggpoShowStatus(Game* game, int playerIndex);
 
 int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
+
+bool winsockStart();
+void winsockCleanup();
+
+void tcpClientLoop(u_short port, const char* ip, ClientStatus& status, const char* name, bool &running);
+void tcpServerLoop(u_short port, int people, ServerStatus& status, bool &running);
+void tcpCleanup();
+void tcpReset();
+void readGameData();
+SocketInfo getSocket(int index);
+void _connectionInfo();
+
+void upnpStartup(Game* game);
+int upnpAddPort(u_short port, const char* protocol = "UDP");
+int upnpDeletePort(u_short port, const char* protocol = "UDP");
+void upnpCleanup();

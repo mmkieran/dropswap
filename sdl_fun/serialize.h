@@ -1,4 +1,5 @@
 #include "game.h"
+#include "netplay.h"
 
 typedef struct Board Board;
 typedef struct Tile Tile;
@@ -22,3 +23,6 @@ std::vector <Byte> gameSave(Game* game);
 
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
+
+void serializeGameSetup(Game* game, std::vector <Byte>& stream);
+void deserializeGameSetup(Game* game, Byte*& start);

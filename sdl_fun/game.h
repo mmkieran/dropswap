@@ -68,10 +68,12 @@ struct Game {
 
    GameWindow* sdl = nullptr;
    int vsync;
+   bool winsockRunning = false;
    float windowWidth;
    float windowHeight;
 
    std::vector <FBO*> fbos;
+   char pName[20] = "Player Name";
 
    NetPlay* net;
 
