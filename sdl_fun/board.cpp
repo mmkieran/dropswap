@@ -194,17 +194,17 @@ void boardUpdate(Board* board) {
    }
 
    boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
-   garbageFall(board, board->fallSpeed * (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * 2* (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
    if (board->game->players >= 2) {
-
+      //Fix sync test
       if (board->game->syncTest == false) {
          for (int i = 0; i < board->cursors.size(); i++) {
             int index = i;
             if (board->team == 2 && board->game->players > 2) { index += 2; }  //There are two cursors per board here
             else if (board->team == 2 && board->game->players == 2) { index += 1; }  //One cursor per board
-            cursorUpdate(board, board->cursors[i], board->game->inputs[index]);  //This has kinda become player...
+            cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);  //This has kinda become player...
          }
       }
       else if (board->game->syncTest == true) {
@@ -214,7 +214,7 @@ void boardUpdate(Board* board) {
       }
    }
    else if (board->game->players == 1) {
-      cursorUpdate(board, board->cursors[0], board->game->p1Input);
+      cursorUpdate(board, board->cursors[0], board->game->p.input);
    }
 
    boardRemoveVisuals(board);
@@ -1217,23 +1217,23 @@ void aiDoStep(Board* board) {
       aiLogic.matchSteps.pop_front();
       switch (step) {
       case cursor_left:
-         board->game->p1Input.left.p = true;
+         board->game->p.input.left.p = true;
          break;
       case cursor_right:
-         board->game->p1Input.right.p = true;
+         board->game->p.input.right.p = true;
          break;
       case cursor_up:
-         board->game->p1Input.up.p = true;
+         board->game->p.input.up.p = true;
          break;
       case cursor_down:
-         board->game->p1Input.down.p = true;
+         board->game->p.input.down.p = true;
          break;
       case cursor_swap:
-         board->game->p1Input.swap.p = true;
+         board->game->p.input.swap.p = true;
          break;
       }
    }
-   //board->game->p1Input = input;
+   //board->game->p.input = input;
 }
 
 void boardAI(Board* board, int player) {
@@ -1253,6 +1253,6 @@ void boardAI(Board* board, int player) {
    }
    //else {  //No steps so wipe out the inputs
    //   UserInput input = { 0 };
-   //   board->game->p1Input = input;
+   //   board->game->p.input = input;
    //}
 }

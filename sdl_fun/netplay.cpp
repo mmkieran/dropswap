@@ -122,7 +122,7 @@ bool __cdecl ds_advance_frame_callback(int) {
    int disconnect_flags;
 
    //Figure out the inputs and check for disconnects
-   ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
+   ggpo_synchronize_input(game->net->ggpo, (void*)game->net->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
 
    //Call function to advance frame
    gameAdvanceFrame(game);
@@ -363,7 +363,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 //Updates the game, notifies GGPO and advances the frame
 void gameAdvanceFrame(Game* game) {
    for (int i = 0; i < game->players; i++) {  //Check for pauses
-      gameCheckPause(game, game->inputs[i]);
+      gameCheckPause(game, game->net->inputs[i]);
    }
    gameUpdate(game);
    ggpo_advance_frame(game->net->ggpo);  //Tell GGPO we moved ahead a frame
@@ -387,11 +387,11 @@ void gameRunFrame() {
             if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
             else { gameAI(game, 0); }
          }
-         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p1Input, sizeof(UserInput));
+         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p.input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
-         result = ggpo_synchronize_input(game->net->ggpo, (void*)game->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
+         result = ggpo_synchronize_input(game->net->ggpo, (void*)game->net->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
             gameAdvanceFrame(game);  //Update the game 
          }
@@ -745,7 +745,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          }
          break;
       case client_connected:
-         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //20 is the size of pName
+         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //30 is the size of player name
          break;
       case client_sent:
          if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { status = client_received; }
@@ -753,7 +753,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
       case client_received:
          readGameData();
          for (int i = 0; i < game->players; i++) {
-            if (strcmp(game->net->hostSetup[i].name, game->pName) == 0) {
+            if (strcmp(game->net->hostSetup[i].name, game->p.name) == 0) {
                game->net->hostSetup[i].me = true;
             }
          }

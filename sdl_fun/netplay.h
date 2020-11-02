@@ -36,19 +36,23 @@ struct SessionInfo {
    u_short localPort = 7001;
    int playerType = 0;
    char ipAddress[32] = "127.0.0.1";
-   char name[20] = { 0 };
+   char name[30] = { 0 };
    int pNum = 1;
    int team = 0;
 };
 
 struct NetPlay {
    GGPOSession* ggpo = nullptr;
+
    GGPOPlayer players[GAME_MAX_PLAYERS];
-   PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
-   SessionInfo hostSetup[GAME_MAX_PLAYERS];
    GGPOPlayerHandle localPlayer = -1;
+
+   PlayerConnectionInfo connections[GAME_MAX_PLAYERS];
    int hostConnNum = -1;
    int myConnNum = -1;
+   UserInput inputs[GAME_MAX_PLAYERS];
+
+   SessionInfo hostSetup[GAME_MAX_PLAYERS];
    int frameDelay[3] = { 2, 1, 10 };
    int disconnectTime[3] = { 10000, 0, 30000 };
    std::vector <std::string> messages;
@@ -95,18 +99,19 @@ struct SocketInfo {
    SocketStatus status = sock_none;
 };
 
-enum CommError {
-   error_sock_create = 0,
-   //server start
-   error_sock_bind,
-   error_sock_listen,
-   error_sock_accept,
-   //client start
-   error_sock_connect,
-   //connected
-   error_sock_send,
-   error_sock_receive,
-};
+////Currently not used...
+//enum CommError {
+//   error_sock_create = 0,
+//   //server start
+//   error_sock_bind,
+//   error_sock_listen,
+//   error_sock_accept,
+//   //client start
+//   error_sock_connect,
+//   //connected
+//   error_sock_send,
+//   error_sock_receive,
+//};
 
 int fletcher32_checksum(short* data, size_t len);
 int ggpoCheckSum(Game* game);

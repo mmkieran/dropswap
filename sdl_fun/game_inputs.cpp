@@ -42,7 +42,7 @@ struct ControllerMap {
 std::map <int, Controller> controllers;  //Hash map for controllers
 KeyboardMap kmap; //Hard-coded map of the SDL hotkeys
 ControllerMap cMap;  //Hard-coded map of SDL controller buttons
-UserInput p1Input = { 0 };  //Global to hold user input
+UserInput userInput = { 0 };  //Global to hold user input
 
 Uint8 keyboardList[] = {
    kmap.hk_left,
@@ -69,15 +69,15 @@ SDL_GameControllerButton keyList[] = {
 };
 
 ButtonState* buttonList[] = {
-   &p1Input.left,
-   &p1Input.right,
-   &p1Input.up,
-   &p1Input.down,
-   &p1Input.nudge,
+   &userInput.left,
+   &userInput.right,
+   &userInput.up,
+   &userInput.down,
+   &userInput.nudge,
    //presses only
-   &p1Input.swap,
-   &p1Input.pause,
-   &p1Input.power
+   &userInput.swap,
+   &userInput.pause,
+   &userInput.power
 };
 
 bool resetList[8] = { true };
@@ -107,7 +107,7 @@ void processInputs(Game* game) {
    inputProcessKeyboard(game); 
    inputProcessController(game); 
    resetButtonStates(game);
-   game->p1Input = p1Input;
+   game->p.input = userInput;
 }
 
 void inputProcessKeyboard(Game* game) {

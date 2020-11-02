@@ -792,7 +792,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
          ImGui::PushID(i);  //So widgets don't name collide
          ImGui::PushItemWidth(100);
          SocketInfo sock = getSocket(i - 1);
-         if (i == 0) { ImGui::Text(game->pName); }
+         if (i == 0) { ImGui::Text(game->p.name); }
          else { ImGui::Text(sock.name); }
          ImGui::SameLine();
          ImGui::SetCursorPosX(224);
@@ -815,7 +815,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
          for (int i = 0; i < game->players; i++) {
             SocketInfo sock = getSocket(i - 1);
             if (i == 0) {
-               strcpy(game->net->hostSetup[i].name, game->pName);
+               strcpy(game->net->hostSetup[i].name, game->p.name);
                game->net->hostSetup[i].host = true;
                game->net->hostSetup[i].me = true;
                strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
@@ -848,7 +848,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
          //This is the client loop thread
-         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->pName, std::ref(clientRunning));
+         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->p.name, std::ref(clientRunning));
          clientThread.detach();
          connectStats = true;
       }
@@ -932,7 +932,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    }
 
    ImGui::NewLine();
-   ImGui::InputText("Your Name", game->pName, IM_ARRAYSIZE(game->pName));
+   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
       ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
