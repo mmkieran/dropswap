@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 /sdl_fun/assets/game_state.csv
 /sdl_fun/saves
+/sdl_fun/imgui.ini
