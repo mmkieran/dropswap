@@ -144,7 +144,7 @@ static void _drawBoardTexture(Game* game, int index) {
          VisualEvent e = board->visualEvents[visual_clear];
          if (board->chain > 1 || board->boardStats.lastCombo > 3) {
             char clearText[10];
-            if (board->chain > 1) { sprintf(clearText, "%d Chain", board->boardStats.lastChain); }
+            if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
             else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
             ImVec2 textSize = ImGui::CalcTextSize(clearText);
 
