@@ -23,13 +23,6 @@
 
 #define GAME_COUNTIN 2000
 
-struct GameWindow {
-   SDL_Window* window;
-   SDL_GLContext gl_context;
-
-   unsigned int VAO;
-};
-
 //Creates ImGui context
 void imguiSetup(Game* game) {
    // Setup Dear ImGui context
@@ -75,9 +68,9 @@ uint64_t sdlGetCounter() {
    return current;
 }
 
-//SDL function wrapper for delay
+//SDL function wrapper for delay in millseconds
 void sdlSleep(int delay) {
-   SDL_Delay(delay);  //milliseconds
+   SDL_Delay(delay);  
 }
 
 //Give extra frame time to GGPO so it can do it's thing
@@ -102,7 +95,7 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
          else { sdlSleep(leftover); }
       }
    }
-   if (game->vsync != 0) {  //We need to control frame rate if vsync fails
+   if (game->sdl->vsync != 0) {  //We need to control frame rate if vsync fails
       uint64_t newTime = game->kt.getTime() - start;
       while (game->kt.delay > newTime) { 
          newTime = game->kt.getTime() - start;
@@ -128,19 +121,18 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 
    game->sdl->gl_context = SDL_GL_CreateContext(game->sdl->window);
    SDL_GL_MakeCurrent(game->sdl->window, game->sdl->gl_context);
-   //game->vsync = SDL_GL_SetSwapInterval(1); // Gotta be careful about frame timing with vsync... thanks Sean!
-   game->vsync = -1;  //debug no vsync
 
    return true;
 }
 
+//Set the vertical sync for the monitor refresh rate on or off
 void sdlSetVsync(Game* game, bool toggle) {
    if (toggle) {
-      game->vsync = SDL_GL_SetSwapInterval(1);
+      game->sdl->vsync = SDL_GL_SetSwapInterval(1);
    }
    else {
       SDL_GL_SetSwapInterval(0);
-      game->vsync = -1;
+      game->sdl->vsync = -1;
    }
 }
 
@@ -398,7 +390,7 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
+   if (game->sdl->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
 //Jokulhaups

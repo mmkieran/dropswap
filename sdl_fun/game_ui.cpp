@@ -375,8 +375,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
       static bool vsync = false;
       ImGui::Checkbox("Vsync", &vsync);
-      if (vsync == true && game->vsync == -1) { sdlSetVsync(game, true); }
-      if (vsync == false && game->vsync == 0) { sdlSetVsync(game, false); }
+      if (vsync == true && game->sdl->vsync == -1) { sdlSetVsync(game, true); }
+      if (vsync == false && game->sdl->vsync == 0) { sdlSetVsync(game, false); }
 
    }
    
@@ -506,7 +506,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    ImGui::PushFont(game->fonts[13]);
    if (game->debug == true) {
-      ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
+      //ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
    }
 

@@ -15,8 +15,6 @@
 
 #define GAME_MAX_PLAYERS    4
 
-struct GameWindow;
-
 typedef struct Board Board;
 typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
@@ -50,6 +48,15 @@ struct KeepTime {
       uint64_t out = ((current - gameStart) * 1000000) / timeFreq;
       return out;
    }
+};
+
+//Handle for SDL window and OpenGL Context
+struct GameWindow {
+   SDL_Window* window;
+   SDL_GLContext gl_context;
+   int vsync = -1;                //Are we using vertical sync to match monitor refresh rate (-1 is no)
+
+   unsigned int VAO;              //Vertex Array Object...this actually belongs to rendering
 };
 
 //Used to control various timings in the game
@@ -88,7 +95,6 @@ struct GameSettings {
 
 //@@Start Serialize
 struct Game {
-   int vsync = -1;                             //Are we using vertical sync to match monitor refresh rate (-1 is no)
    bool winsockRunning = false;                //Is Windows Sockets running... required for GGPO and game transfer
    GameWindow* sdl = nullptr;                  //SDL Window pointer
    float windowWidth;                          //SDL Window width
