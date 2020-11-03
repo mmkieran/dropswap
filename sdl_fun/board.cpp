@@ -104,26 +104,8 @@ Board* boardCreate(Game* game, int team) {
          board->tileWidth = game->settings.tWidth;
 
          board->pile = garbagePileCreate();
-
 		   boardStartRandom(board);
-
          board->mesh = meshCreate();  //Everything is draw with this
-
-         //Set the cursor to midway on the board
-         float cursorX = (float)(game->settings.bWidth / 2 - 1) * game->settings.tWidth;
-         float cursorY = (float)(game->settings.bHeight / 2 + 1) * game->settings.tHeight;
-         if (game->players <= 2) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, board->team - 1);
-            board->cursors.push_back(cursor);
-         }
-         else if (game->players > 2) {
-            for (int i = 0; i < 2; i++) {
-               int index = i;
-               if (board->team > 1) { index = i + board->team; }
-               Cursor* cursor = cursorCreate(board, cursorX, cursorY + (i * board->tileHeight), index);
-               board->cursors.push_back(cursor);
-            }
-         }
 
          return board;
       }
@@ -193,8 +175,8 @@ void boardUpdate(Board* board) {
       board->bust = true;
    }
 
-   boardFall(board, board->fallSpeed * (board->tileHeight / 64.0f) + board->level / 3.0f);  //Normalized for tile size of 64
-   garbageFall(board, board->fallSpeed * 2* (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
+   boardFall(board, board->fallSpeed * (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
+   garbageFall(board, board->fallSpeed * 1.50 * (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
    if (board->game->players >= 2) {

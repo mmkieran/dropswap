@@ -325,13 +325,11 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    ggpo_set_disconnect_timeout(game->net->ggpo, game->net->disconnectTime[0]);  
    ggpo_set_disconnect_notify_start(game->net->ggpo, 1000);
 
-   int pNum = 1;
    for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
       if (hostNumber != myNumber && connects[i].playerType == 1) { continue; }  //Host takes care of spectators
       if (connects[i].playerType != 1) {  //Spectators don't have input size or player number
          game->net->players[i].size = sizeof(GGPOPlayer);
-         game->net->players[i].player_num = pNum;
-         pNum++;
+         game->net->players[i].player_num = connects[i].pNum;
       }
       if (connects[i].me == true && connects[i].playerType == 0) { game->net->players[i].type = GGPO_PLAYERTYPE_LOCAL; } //I'm a local player
       else if (connects[i].playerType == 1) { game->net->players[i].type = GGPO_PLAYERTYPE_SPECTATOR; } //I'm a spectator
@@ -568,8 +566,10 @@ void tcpHostAccept() {
    sockets[connections].sock = conn;
    unsigned short port = 0;
    WSANtohs(sockets[connections].sock, sockets[connections].address.sin_port, &port);  //Convert network byte order to host byte order
-   bool upnp = upnpAddPort(port, "TCP");  //Add port forwarding for this port
-   if (upnp == true) { tcpPorts[port] = true; }
+   if (game->net->upnp == true && tcpPorts[port] == false) {
+      bool upnp = upnpAddPort(port, "TCP");  //Add port forwarding for this port
+      if (upnp == true) { tcpPorts[port] = true; }
+   }
    connections++;
    lastResult = 0;
 }
@@ -621,7 +621,7 @@ bool tcpClientConnect() {
    return true;
 }
 
-void tcpCleanup() {
+void tcpCloseConnections() {
    for (auto&& sock : sockets) {
       //todo check for errors on close
       closesocket(sock.second.sock);
@@ -629,6 +629,10 @@ void tcpCleanup() {
    sockets.clear();
    connections = 0;
    game->net->messages.clear();
+}
+
+void tcpCleanup() {
+   tcpCloseConnections();
 
    for (auto&& tcpPort : tcpPorts) {
       if (tcpPort.second == true) {

@@ -300,12 +300,31 @@ void gameStartMatch(Game* game) {
          //game->settings.tHeight = game->settings.tWidth = 32;  //maybe
       }  
    }
+
    for (int i = 0; i < boardCount; i++) {
       Board* board = boardCreate(game, i + 1);
       if (board) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
+
+         //Create the cursor and assign to board
+         float cursorX = (float)(game->settings.bWidth / 2 - 1) * game->settings.tWidth;
+         float cursorY = (float)(game->settings.bHeight / 2 + 1) * game->settings.tHeight;
+         if (game->settings.mode == multi_shared) {
+            for (int i = 0; i < game->players; i++) {
+               if (game->net->hostSetup[i].team == i) {
+                  Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->net->hostSetup[i].pNum);
+                  board->cursors.push_back(cursor);
+               }
+            }
+         }
+         else {
+            int cIndex = i + 1;
+            if (game->settings.mode == multi_solo) { cIndex = game->net->hostSetup[i].pNum; }
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, cIndex);
+            board->cursors.push_back(cursor);
+         }
 
          game->boards.push_back(board);
 
@@ -418,6 +437,7 @@ void gameDestroy(Game* game) {
       ggpoClose(game->net->ggpo);
       game->net->ggpo = nullptr;
    }
+   tcpCleanup();
    upnpCleanup();
 
    destroyResources(game->resources);

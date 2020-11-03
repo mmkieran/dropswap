@@ -19,7 +19,7 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
 
    //For player cursor label
    TextureEnum cursorList[4] = { Texture_cursor1 , Texture_cursor2 , Texture_cursor3, Texture_cursor4 };
-   cursor->texture = resourcesGetTexture(board->game->resources, cursorList[index]);
+   cursor->texture = resourcesGetTexture(board->game->resources, cursorList[index - 1]);
 
    return cursor;
 }

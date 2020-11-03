@@ -136,6 +136,7 @@ void winsockCleanup();
 
 void tcpClientLoop(u_short port, const char* ip, ClientStatus& status, const char* name, bool &running);
 void tcpServerLoop(u_short port, int people, ServerStatus& status, bool &running);
+void tcpCloseConnections();
 void tcpCleanup();
 void tcpReset();
 void readGameData();
