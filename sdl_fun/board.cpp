@@ -183,7 +183,7 @@ void boardUpdate(Board* board) {
    else {board->paused = false; }
 
    if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
-      if (board->paused == false) {
+      if (board->paused == false && board->waitForClear == false) {
          boardMoveUp(board, board->moveSpeed/8.0f * (board->tileHeight / 64.0f) * board->level);  //Normalized for tile size of 64
          garbageDeploy(board);
       }
@@ -683,12 +683,14 @@ static TileType _tileGenType(Board* board, Tile* tile) {
 void boardRemoveClears(Board* board) {
    int current = board->game->timer;
    bool stillChaining = false;
+   bool stillClearedTiles = false;
    board->game->soundToggles[sound_anxiety] = false;
 
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty) { continue; }
+         if (tile->type == tile_cleared || tile->status == status_disable) { stillClearedTiles = true; }
 
          //todo Anxiety doesn't really belong here
          if (tileGetRow(board, tile) <= board->startH + 1 && tile->falling == false) { 
@@ -756,6 +758,8 @@ void boardRemoveClears(Board* board) {
    //else if (stillChaining == true && board->chain > 1) {
    //   if (board->pauseLength == 0) { board->pauseLength = 100; board->paused = true; }
    //}
+   if (stillClearedTiles == true) { board->waitForClear = true; }
+   else { board->waitForClear = false; }
    return;
 }
 

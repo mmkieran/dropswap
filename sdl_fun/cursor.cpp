@@ -150,13 +150,17 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       boardSwap(board, cursor);
    }
 
-   else if (input.nudge.p && board->paused == false) {
+   else if (input.nudge.p && board->waitForClear == false) {
       apm = true;  //Board Stats
       boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
+      board->paused = false;
+      board->pauseLength = 0;
    }
 
-   else if (input.nudge.h && board->paused == false) {
+   else if (input.nudge.h && board->waitForClear == false) {
       boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
+      board->paused = false;
+      board->pauseLength = 0;
    }
 
    if (apm == true) { board->boardStats.apm++; }
