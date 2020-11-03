@@ -305,7 +305,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
    int upnpSuccess = upnpAddPort(sessionPort, "UDP"); 
 
-   if (game->syncTest == true) {  //Set syncTest to true to do a single player sync test
+   if (game->net->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
       game->players = 2;
@@ -384,7 +384,7 @@ void gameRunFrame() {
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          processInputs(game); 
          if (game->ai == true) {        
-            if (game->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
+            if (game->net->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
             else { gameAI(game, 0); }
          }
          result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p.input, sizeof(UserInput));

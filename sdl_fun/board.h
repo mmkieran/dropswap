@@ -5,6 +5,7 @@
 #include "render.h"
 #include "tile.h"
 #include "cursor.h"
+#include "netplay.h"
 
 #include <random>
 

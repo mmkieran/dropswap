@@ -15,6 +15,8 @@
 
 #define GAME_MAX_PLAYERS    4
 
+struct GameWindow;
+
 typedef struct Board Board;
 typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
@@ -50,15 +52,6 @@ struct KeepTime {
    }
 };
 
-//Handle for SDL window and OpenGL Context
-struct GameWindow {
-   SDL_Window* window;
-   SDL_GLContext gl_context;
-   int vsync = -1;                //Are we using vertical sync to match monitor refresh rate (-1 is no)
-
-   unsigned int VAO;              //Vertex Array Object...this actually belongs to rendering
-};
-
 //Used to control various timings in the game
 struct GameTimings {
    //Order is Value, min and max
@@ -84,11 +77,18 @@ struct Player {
    UserInput input;
 };
 
+enum GameMode {
+   multi_solo,
+   multi_shared,
+};
+
 struct GameSettings {
    int bHeight = 12;
    int bWidth = 6;
    int tWidth = 64;
    int tHeight = 64;
+
+   GameMode mode = multi_solo;
 
    std::vector <unsigned char> save;
 };
@@ -99,6 +99,7 @@ struct Game {
    GameWindow* sdl = nullptr;                  //SDL Window pointer
    float windowWidth;                          //SDL Window width
    float windowHeight;                         //SDL Window height
+   int vsync = -1;                             //Instead of frame delay use vsync to match monitor refresh rate (-1 is no)
    std::vector <FBO*> fbos;                    //FBOs are used to draw the board to a texture
    NetPlay* net;                               //Used for multiplayer    
    std::map <int, ImFont*> fonts;              //ImGui fonts stored by their size in the map

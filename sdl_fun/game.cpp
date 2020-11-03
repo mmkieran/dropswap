@@ -23,6 +23,14 @@
 
 #define GAME_COUNTIN 2000
 
+//Handle for SDL window and OpenGL Context
+struct GameWindow {
+   SDL_Window* window;
+   SDL_GLContext gl_context;
+
+   unsigned int VAO;              //Vertex Array Object...this actually belongs to rendering
+};
+
 //Creates ImGui context
 void imguiSetup(Game* game) {
    // Setup Dear ImGui context
@@ -95,7 +103,7 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
          else { sdlSleep(leftover); }
       }
    }
-   if (game->sdl->vsync != 0) {  //We need to control frame rate if vsync fails
+   if (game->vsync != 0) {  //We need to control frame rate if vsync fails
       uint64_t newTime = game->kt.getTime() - start;
       while (game->kt.delay > newTime) { 
          newTime = game->kt.getTime() - start;
@@ -105,6 +113,7 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
    game->kt.fps = (game->kt.getTime() - start) / 1000.0; 
 }
 
+//This updates the SDL window with OpenGL rendering
 void gameSwapWindow(Game* game) {
    SDL_GL_SwapWindow(game->sdl->window);
 }
@@ -128,11 +137,11 @@ bool createGameWindow(Game* game, const char* title, int xpos, int ypos, int wid
 //Set the vertical sync for the monitor refresh rate on or off
 void sdlSetVsync(Game* game, bool toggle) {
    if (toggle) {
-      game->sdl->vsync = SDL_GL_SetSwapInterval(1);
+      game->vsync = SDL_GL_SetSwapInterval(1);
    }
    else {
       SDL_GL_SetSwapInterval(0);
-      game->sdl->vsync = -1;
+      game->vsync = -1;
    }
 }
 
@@ -264,6 +273,7 @@ void gameUpdate(Game* game) {
    game->timer = game->frameCount * (1000.0f / 60.0f);
 }
 
+//Process inputs and update game - single player
 void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
@@ -283,9 +293,14 @@ void gameStartMatch(Game* game) {
    }
    game->fbos.clear();
 
-   int players = game->players;
-   if (players > 2) { players = 2; }
-   for (int i = 0; i < players; i++) {
+   int boardCount = game->players;
+   if (game->players > 1) {
+      if (game->settings.mode == multi_shared) {  //Shared board
+         boardCount = 2; 
+         //game->settings.tHeight = game->settings.tWidth = 32;  //maybe
+      }  
+   }
+   for (int i = 0; i < boardCount; i++) {
       Board* board = boardCreate(game, i + 1);
       if (board) {
          board->pauseLength = GAME_COUNTIN;
@@ -390,7 +405,7 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-   if (game->sdl->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
+   if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
 //Jokulhaups

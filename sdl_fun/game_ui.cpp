@@ -12,6 +12,8 @@
 
 std::vector <std::string> ui_messages;
 
+void ggpoSessionUI(Game* game, bool* p_open);
+
 const char* credits = R"(
 A special thanks goes out to:
 Stephanie Anderson
@@ -375,8 +377,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
       static bool vsync = false;
       ImGui::Checkbox("Vsync", &vsync);
-      if (vsync == true && game->sdl->vsync == -1) { sdlSetVsync(game, true); }
-      if (vsync == false && game->sdl->vsync == 0) { sdlSetVsync(game, false); }
+      if (vsync == true && game->vsync == -1) { sdlSetVsync(game, true); }
+      if (vsync == false && game->vsync == 0) { sdlSetVsync(game, false); }
 
    }
    
@@ -404,18 +406,18 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
-         static bool showSocket = false;
-         if (showSocket == false) {
-            if (ImGui::Button("Show Socket Demo")) {
-               showSocket = true;
+         static bool showOldSession = false;
+         if (showOldSession == false) {
+            if (ImGui::Button("Show Old Session Window")) {
+               showOldSession = true;
             }
          }
          else {
-            if (ImGui::Button("Hide Socket Demo")) {
-               showSocket = false;
+            if (ImGui::Button("Hide Old Session Window")) {
+               showOldSession = false;
             }
          }
-         if (showSocket == true) { multiplayerUI(game, &showSocket); }
+         if (showOldSession == true) { ggpoSessionUI(game, &showOldSession); }
 
          static bool showDemo = false;
          if (showDemo == false) {
@@ -430,6 +432,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
          }
          if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
          ImGui::Checkbox("AI", &game->ai);
+         ImGui::Checkbox("Sync test", &game->net->syncTest);
       }
    }
 
@@ -506,7 +509,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    ImGui::PushFont(game->fonts[13]);
    if (game->debug == true) {
-      //ImGui::Checkbox("DEBUG: Sync test", &game->syncTest);
+      ImGui::Checkbox("DEBUG: Sync test", &game->net->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
    }
 
@@ -645,7 +648,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
          ImGui::SameLine();
          if (manualPorts) {
-            //ImGui::InputInt("Port", &hostSetup[i].localPort);
+            ImGui::DragScalar("Port", ImGuiDataType_U16, &hostSetup[i].localPort, 1.0);
             ImGui::SameLine(); HelpMarker("Select a unique port number that you will use to send information to host.");
             ImGui::SameLine();
          }

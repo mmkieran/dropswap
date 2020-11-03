@@ -199,7 +199,7 @@ void boardUpdate(Board* board) {
 
    if (board->game->players >= 2) {
       //Fix sync test
-      if (board->game->syncTest == false) {
+      if (board->game->net->syncTest == false) {
          for (int i = 0; i < board->cursors.size(); i++) {
             int index = i;
             if (board->team == 2 && board->game->players > 2) { index += 2; }  //There are two cursors per board here
@@ -207,9 +207,9 @@ void boardUpdate(Board* board) {
             cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);  //This has kinda become player...
          }
       }
-      else if (board->game->syncTest == true) {
+      else if (board->game->net->syncTest == true) {
          for (int i = 0; i < board->cursors.size(); i++) {
-            cursorUpdate(board, board->cursors[i], board->game->inputs[0]);
+            cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
          }
       }
    }
