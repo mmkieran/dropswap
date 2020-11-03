@@ -10,8 +10,8 @@ Cursor* cursorCreate(Board* board, float xpos, float ypos, int index) {
    cursor->x = xpos;
    cursor->y = ypos;
 
-   cursor->h = board->game->tHeight;
-   cursor->w = board->game->tWidth * 2;
+   cursor->h = board->game->settings.tHeight;
+   cursor->w = board->game->settings.tWidth * 2;
 
    cursor->animation = animationCreate(7, 200, 64 + 1, 0, 64, 32, true);  //this is specific to the texture sheet
    cursor->animation->texture = resourcesGetTexture(board->game->resources, Texture_cursor);

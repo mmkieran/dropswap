@@ -130,7 +130,7 @@ static void _drawBoardTexture(Game* game, int index) {
 
       char playerName[20] = "Player";
       sprintf(playerName, "Player %d", index + 1);
-      ImGui::BeginChild(playerName, ImVec2{ (float)game->tWidth * (game->bWidth), (float)game->tHeight * (game->bHeight) }, true, 0);
+      ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
       ImVec2 csPos = ImGui::GetCursorScreenPos();
 
       //This is the secret sauce to render a texture in ImGui
@@ -198,7 +198,7 @@ void boardUI(Game* game) {
       _drawBoardTexture(game, 0);
       ImGui::SameLine();
 
-      ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->tHeight * (game->bHeight) }, true, 0);
+      ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
 
       ImGui::Text("Frame Count: %d", game->frameCount);
       if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
@@ -369,9 +369,9 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
       static int tileSize = 0;
       ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
-      if (tileSize == 0) { game->tWidth = game->tHeight = 64; }
-      else  if (tileSize == 1) { game->tWidth = game->tHeight = 32; }
-      else { game->tWidth = game->tHeight = 16; }
+      if (tileSize == 0) { game->settings.tWidth = game->settings.tHeight = 64; }
+      else  if (tileSize == 1) { game->settings.tWidth = game->settings.tHeight = 32; }
+      else { game->settings.tWidth = game->settings.tHeight = 16; }
 
       static bool vsync = false;
       ImGui::Checkbox("Vsync", &vsync);
@@ -388,8 +388,8 @@ void gameSettingsUI(Game* game, bool* p_open) {
    }
 
    if (ImGui::CollapsingHeader("Game Settings") ) {
-      ImGui::InputInt("Board Width", &game->bWidth);
-      ImGui::InputInt("Board Height", &game->bHeight);
+      ImGui::InputInt("Board Width", &game->settings.bWidth);
+      ImGui::InputInt("Board Height", &game->settings.bHeight);
       ImGui::SliderScalar("AI Speed", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
       ImGui::SliderScalar("Remove Clear", ImGuiDataType_U32, &game->timings.removeClear[0], &game->timings.removeClear[1], &game->timings.removeClear[2]);
       ImGui::SliderScalar("Fall Delay", ImGuiDataType_U32, &game->timings.fallDelay[0], &game->timings.fallDelay[1], &game->timings.fallDelay[2]);
@@ -519,8 +519,8 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    ImGui::NewLine();
 
    if (ImGui::CollapsingHeader("Board Setup")) {
-      ImGui::InputInt("Board Width", &game->bWidth);
-      ImGui::InputInt("Board Height", &game->bHeight);
+      ImGui::InputInt("Board Width", &game->settings.bWidth);
+      ImGui::InputInt("Board Height", &game->settings.bHeight);
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
       ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
       ImGui::NewLine();
@@ -919,8 +919,8 @@ void multiplayerUI(Game* game, bool* p_open) {
       ImGui::NewLine();
 
       if (ImGui::CollapsingHeader("Board Setup")) {
-         ImGui::InputInt("Board Width", &game->bWidth);
-         ImGui::InputInt("Board Height", &game->bHeight);
+         ImGui::InputInt("Board Width", &game->settings.bWidth);
+         ImGui::InputInt("Board Height", &game->settings.bHeight);
          ImGui::NewLine();
       }
 

@@ -381,8 +381,8 @@ void imguiRender(Game* game) {
    //int width, height;
    //SDL_GetWindowSize(game->sdl->window, &width, &height);
 
-   int boardWidth = game->tWidth * game->bWidth;
-   int boardHeight = game->tHeight * game->bHeight;
+   int boardWidth = game->settings.tWidth * game->settings.bWidth;
+   int boardHeight = game->settings.tHeight * game->settings.bHeight;
    rendererSetTarget(0, 0, boardWidth, boardHeight);  
 
    //Do this if we want the meshes to stay the same size when then window changes...

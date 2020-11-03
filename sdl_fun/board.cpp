@@ -88,20 +88,20 @@ void boardLoadRandom(Board* board) {
 Board* boardCreate(Game* game, int team) {
    Board* board = new Board;
    if (board) {
-      Tile* tiles = _boardCreateArray(game->bHeight, game->bWidth);
+      Tile* tiles = _boardCreateArray(game->settings.bHeight, game->settings.bWidth);
       if (tiles) {
          board->game = game;
          board->team = team;
 
          board->tiles = tiles;
 
-         board->startH = game->bHeight;  //start playing area of the board... everything above is for garbage
-         board->endH = game->bHeight * 2;  //end playing area of the board
+         board->startH = game->settings.bHeight;  //start playing area of the board... everything above is for garbage
+         board->endH = game->settings.bHeight * 2;  //end playing area of the board
          board->wBuffer = board->endH + 1;  //Extra row upcoming rows
-         board->w = game->bWidth;
+         board->w = game->settings.bWidth;
 
-         board->tileHeight = game->tHeight;
-         board->tileWidth = game->tWidth;
+         board->tileHeight = game->settings.tHeight;
+         board->tileWidth = game->settings.tWidth;
 
          board->pile = garbagePileCreate();
 
@@ -110,8 +110,8 @@ Board* boardCreate(Game* game, int team) {
          board->mesh = meshCreate();  //Everything is draw with this
 
          //Set the cursor to midway on the board
-         float cursorX = (float)(game->bWidth / 2 - 1) * game->tWidth;
-         float cursorY = (float)(game->bHeight / 2 + 1) * game->tHeight;
+         float cursorX = (float)(game->settings.bWidth / 2 - 1) * game->settings.tWidth;
+         float cursorY = (float)(game->settings.bHeight / 2 + 1) * game->settings.tHeight;
          if (game->players <= 2) {
             Cursor* cursor = cursorCreate(board, cursorX, cursorY, board->team - 1);
             board->cursors.push_back(cursor);

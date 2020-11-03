@@ -42,6 +42,7 @@ struct SessionInfo {
 
 struct NetPlay {
    GGPOSession* ggpo = nullptr;                           //Pointer to ggpo structure
+   bool syncTest = false;                                 //For GGPO Sync test
 
    GGPOPlayer players[GAME_MAX_PLAYERS];                  //Structure used to create a GGPO session
    GGPOPlayerHandle localPlayer = -1;                     //What is the GGPO player number for this player

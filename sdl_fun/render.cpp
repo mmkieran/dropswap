@@ -574,8 +574,8 @@ FBO* rendererCreateFBO(Game* game) {
    FBO* fbo = new FBO;
    if (fbo) {
 
-      fbo->w = game->bWidth * game->tWidth;  //game->windowWidth;
-      fbo->h = game->bHeight * game->tHeight;  //game->windowHeight;
+      fbo->w = game->settings.bWidth * game->settings.tWidth;  //game->windowWidth;
+      fbo->h = game->settings.bHeight * game->settings.tHeight;  //game->windowHeight;
 
       glGenFramebuffers(1, &fbo->handle);
 

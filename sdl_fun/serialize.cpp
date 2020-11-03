@@ -44,10 +44,10 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //writeStream(stream, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   writeStream(stream, game->bHeight);
-   writeStream(stream, game->bWidth);
-   writeStream(stream, game->tWidth);
-   writeStream(stream, game->tHeight);
+   writeStream(stream, game->settings.bHeight);
+   writeStream(stream, game->settings.bWidth);
+   writeStream(stream, game->settings.tWidth);
+   writeStream(stream, game->settings.tHeight);
    writeStream(stream, game->isRunning);
    writeStream(stream, game->players);
    writeStream(stream, game->playing);
@@ -63,10 +63,10 @@ void _gameDeserialize(Byte* &start, Game* game) {
    //readStream(start, game->windowHeight);
    //   Vector<Board*>* boards = nullptr;
    //   Resources* resources = nullptr;
-   readStream(start, game->bHeight);
-   readStream(start, game->bWidth);
-   readStream(start, game->tWidth);
-   readStream(start, game->tHeight);
+   readStream(start, game->settings.bHeight);
+   readStream(start, game->settings.bWidth);
+   readStream(start, game->settings.tWidth);
+   readStream(start, game->settings.tHeight);
    readStream(start, game->isRunning);
    readStream(start, game->players);
    readStream(start, game->playing);
@@ -525,7 +525,7 @@ FILE* gameSaveState(Game* game, const char* filename) {
 
    }
    else { printf("Failed to save file... Err: %d\n", err); }
-   game->save = stream;  //todo debug replace with a nicer system to store saves
+   game->settings.save = stream;  
    fclose(out);
    return out;
 }

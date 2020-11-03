@@ -77,6 +77,15 @@ struct Player {
    UserInput input;
 };
 
+struct GameSettings {
+   int bHeight = 12;
+   int bWidth = 6;
+   int tWidth = 64;
+   int tHeight = 64;
+
+   std::vector <unsigned char> save;
+};
+
 //@@Start Serialize
 struct Game {
    int vsync = -1;                             //Are we using vertical sync to match monitor refresh rate (-1 is no)
@@ -94,26 +103,20 @@ struct Game {
 
    Player p;
    GameTimings timings;
+   GameSettings settings;
 
-   bool ai = false;  //debug
-   int aiDelay[3] = { 4, 1, 10 };   //The AI takes an action every x frames
+   bool ai = false;                            
+   int aiDelay[3] = { 4, 1, 10 };              //The AI takes an action every x frames
 
-   int bHeight = 12;
-   int bWidth = 6;
-   int tWidth = 64;
-   int tHeight = 64;
-
-   bool isRunning = false;  //used in main loop
+   bool isRunning = false;                     //Used in main application loop
 
    int players = 1;
    bool playing = false;
 
    bool paused = false;
 
-   bool debug = false;
-   bool syncTest = false;  //For GGPO Sync test
-   int frameCount = 0;
-   std::vector <unsigned char> save;  //todo debug find a better place for this later
+   bool debug = false;                          //Toggle to show debug tools and options
+   int frameCount = 0; 
 
    int timer = 0;
    KeepTime kt;
