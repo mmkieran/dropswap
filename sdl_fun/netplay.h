@@ -30,14 +30,14 @@ struct PlayerConnectionInfo {
 
 //This is to transfer information from imgui window to the Player struct
 struct SessionInfo {
-   bool host = false;
-   bool me = false;
-   u_short localPort = 7001;
-   int playerType = 0;
-   char ipAddress[32] = "127.0.0.1";
-   char name[30] = { 0 };
-   int pNum = 1;
-   int team = 0;
+   bool host = false;                     //Is this connection the host
+   bool me = false;                       //Is this connection this computer
+   u_short localPort = 7001;              //GGPO (UDP) port
+   int playerType = 0;                    //GGPO Player Type, 0 is player and 1 is spectator
+   char ipAddress[32] = "127.0.0.1";      //GGPO IP address
+   char name[30] = { 0 };                 //Player name
+   int pNum = 1;                          //GGPO Player Number
+   int team = 0;                          //Team represents what board you control
 };
 
 struct NetPlay {

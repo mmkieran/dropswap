@@ -543,8 +543,6 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::NewLine();
    }
 
-   static SessionInfo hostSetup[GAME_MAX_PLAYERS];
-
    static unsigned short participants = 2;
    int pMin = 2;
    int pMax = GAME_MAX_PLAYERS;
@@ -572,11 +570,12 @@ void ggpoSessionUI(Game* game, bool* p_open) {
             fgets(buffer, 2048, in); //First data line
             while (!feof(in))
             {
-               hostSetup[i].me = atoi(strtok(buffer, ",\n"));          // me
-               hostSetup[i].host = atoi(strtok(nullptr, ",\n"));       // host
-               hostSetup[i].playerType = atoi(strtok(nullptr, ",\n")); // player type
-               strcpy(hostSetup[i].ipAddress, strtok(nullptr, ",\n"));  // ip address
-               hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
+               game->net->hostSetup[i].me = atoi(strtok(buffer, ",\n"));            // me
+               game->net->hostSetup[i].host = atoi(strtok(nullptr, ",\n"));         // host
+               game->net->hostSetup[i].playerType = atoi(strtok(nullptr, ",\n"));   // player type
+               game->net->hostSetup[i].team = atoi(strtok(nullptr, ",\n"));         // team
+               strcpy(game->net->hostSetup[i].ipAddress, strtok(nullptr, ",\n"));   // ip address
+               game->net->hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
 
                i++;
                fgets(buffer, 2048, in);
@@ -595,11 +594,12 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          if (err == 0) {
             fprintf(out, "Me,Host,Player Number,Type,IP Address,Port\n");
             for (int i = 0; i < participants; i++) {
-               fprintf(out, "%d,", hostSetup[i].me);
-               fprintf(out, "%d,", hostSetup[i].host);
-               fprintf(out, "%d,", hostSetup[i].playerType);
-               fprintf(out, "%s,", hostSetup[i].ipAddress);
-               fprintf(out, "%d,", hostSetup[i].localPort);
+               fprintf(out, "%d,", game->net->hostSetup[i].me);
+               fprintf(out, "%d,", game->net->hostSetup[i].host);
+               fprintf(out, "%d,", game->net->hostSetup[i].playerType);
+               fprintf(out, "%d,", game->net->hostSetup[i].team);
+               fprintf(out, "%s,", game->net->hostSetup[i].ipAddress);
+               fprintf(out, "%d,", game->net->hostSetup[i].localPort);
                fprintf(out, "\n");
             }
          }
@@ -610,10 +610,10 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::SameLine();
       if (ImGui::Button("Clear Setup")) {
          for (int i = 0; i < participants; i++) {
-            hostSetup[i].me = false;
-            hostSetup[i].host = false;
-            hostSetup[i].playerType = 0;
-            hostSetup[i].localPort = 7001 + i;
+            game->net->hostSetup[i].me = false;
+            game->net->hostSetup[i].host = false;
+            game->net->hostSetup[i].playerType = 0;
+            game->net->hostSetup[i].localPort = 7001 + i;
          }
          participants = 2;
       }
@@ -630,25 +630,27 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          ImGui::TextColored(ImVec4(1.0f, 1.0f * pNum / 4, 0.0f, 1.0f), "Player %d", pNum);
          ImGui::SameLine();
 
-         if (ImGui::Checkbox("Me", &hostSetup[i].me)) {
+         if (ImGui::Checkbox("Me", &game->net->hostSetup[i].me)) {
             for (int j = 0; j < participants; j++) {
-               if (hostSetup[j].me == true && i != j) { hostSetup[j].me = false; }
+               if (game->net->hostSetup[j].me == true && i != j) { game->net->hostSetup[j].me = false; }
             }
          }
          ImGui::SameLine();
 
-         if (ImGui::Checkbox("Host", &hostSetup[i].host)) {
+         if (ImGui::Checkbox("Host", &game->net->hostSetup[i].host)) {
             for (int j = 0; j < participants; j++) {
-               if (hostSetup[j].host == true && i != j) { hostSetup[j].host = false; }
+               if (game->net->hostSetup[j].host == true && i != j) { game->net->hostSetup[j].host = false; }
             }
          }
          ImGui::SameLine();
-         ImGui::Combo("Player Type", &hostSetup[i].playerType, "Player\0Spectator\0");
+         ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
          ImGui::SameLine();
-         ImGui::InputText("IP Address", hostSetup[i].ipAddress, IM_ARRAYSIZE(hostSetup[i].ipAddress));
+         ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+         ImGui::SameLine();
+         ImGui::InputText("IP Address", game->net->hostSetup[i].ipAddress, IM_ARRAYSIZE(game->net->hostSetup[i].ipAddress));
          ImGui::SameLine();
          if (manualPorts) {
-            ImGui::DragScalar("Port", ImGuiDataType_U16, &hostSetup[i].localPort, 1.0);
+            ImGui::DragScalar("Port", ImGuiDataType_U16, &game->net->hostSetup[i].localPort, 1.0);
             ImGui::SameLine(); HelpMarker("Select a unique port number that you will use to send information to host.");
             ImGui::SameLine();
          }
@@ -665,12 +667,16 @@ void ggpoSessionUI(Game* game, bool* p_open) {
    if (game->net->ggpo == nullptr) {
       if (ImGui::Button("Open Connection")) {
          connectStats = true;
-         if (manualPorts == false) {
-            for (int i = 0; i < participants; i++) { hostSetup[i].localPort = 7001 + i; }
+         int pNum = 1;
+         for (int i = 0; i < participants; i++) {
+            if (manualPorts == false) { game->net->hostSetup[i].localPort = 7001 + i; }
+            if (game->net->hostSetup->playerType == 0) { 
+               game->net->hostSetup[i].pNum = pNum; 
+               pNum++; 
+            }
          }
-         std::thread ggpoSessionThread(ggpoCreateSession, game, hostSetup, participants);
-         ggpoSessionThread.detach();
-         //ggpoCreateSession(game, hostSetup, participants);
+         game->players = pNum;
+         ggpoCreateSession(game, game->net->hostSetup, participants);
       }
    }
 
@@ -837,11 +843,9 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
    if (game->winsockRunning == true) {
       if (serverStatus == server_done) {
          tcpCloseConnections();
-         //This is the thread that start GGPO and creates a UPNP port mapping
-         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-         ggpoSessionThread.detach();
          serverStatus = server_none;
          connectStats = false;
+         ggpoCreateSession(game, game->net->hostSetup, game->players);
       }
    }
 }
@@ -885,9 +889,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
             }
          }
          clientStatus = client_loaded;
-         //This is the thread that start GGPO and creates a UPNP port mapping
-         std::thread ggpoSessionThread(ggpoCreateSession, game, game->net->hostSetup, game->players);
-         ggpoSessionThread.detach();
+         ggpoCreateSession(game, game->net->hostSetup, game->players);
       }
    }
    if (game->winsockRunning == true) {

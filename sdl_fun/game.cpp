@@ -23,6 +23,8 @@
 
 #define GAME_COUNTIN 2000
 
+std::thread upnpThread;
+
 //Handle for SDL window and OpenGL Context
 struct GameWindow {
    SDL_Window* window;
@@ -173,8 +175,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    else {printf("Initialized gl3w...\n"); }
 
    game->winsockRunning = winsockStart();
-   std::thread upnpThread(upnpStartup, game);
-   upnpThread.detach();
+   upnpThread = std::thread(upnpStartup, game);
 
    //Load game resources
    game->resources = initResources();
@@ -429,6 +430,7 @@ void imguiRender(Game* game) {
 
 //Jokulhaups
 void gameDestroy(Game* game) {
+   upnpThread.join();
    for (auto&& board : game->boards) {
       if (board) { boardDestroy(board); }
    }

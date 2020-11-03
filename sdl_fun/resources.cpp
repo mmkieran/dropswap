@@ -1,7 +1,7 @@
 
 #include "resources.h"
 
-#include <thread>
+//#include <thread>
 #include <time.h>
 
 struct Resources {
@@ -45,14 +45,6 @@ static const char* _soundPaths[] =
    "assets/waltz.mp3"
 };
 
-static void _resourceThread(Resources* resources) {
-   for (int i = 0; i < sound_COUNT; i++) {
-      SoLoud::Wav* gWave = new SoLoud::Wav;
-      gWave->load(_soundPaths[i]);
-      resources->sounds.push_back(gWave);
-   }
-}
-
 Resources* initResources() {
    Resources* resources = new Resources;
 
@@ -64,8 +56,11 @@ Resources* initResources() {
       resources->textures.push_back(textureLoadFromFile(_texturePaths[i]) );
    }
 
-   std::thread loadSound(_resourceThread, resources);
-   loadSound.detach();
+   for (int i = 0; i < sound_COUNT; i++) {
+      SoLoud::Wav* gWave = new SoLoud::Wav;
+      gWave->load(_soundPaths[i]);
+      resources->sounds.push_back(gWave);
+   }
 
    //Might have more than 1 shader eventually?
    resources->shaderProgram = shaderProgramCreate();

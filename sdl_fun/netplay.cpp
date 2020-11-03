@@ -26,7 +26,7 @@ std::vector <Byte> matchInfo;  //Vector to store saved game data
 std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
 std::map <unsigned short, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
 
-#define NETLOG true
+#define NETLOG false
 FILE* dsLog;
 bool logOpen = false;
 
