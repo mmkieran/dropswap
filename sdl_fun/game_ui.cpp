@@ -512,6 +512,9 @@ void ggpoSessionUI(Game* game, bool* p_open) {
       ImGui::Checkbox("DEBUG: Sync test", &game->net->syncTest);
       ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
    }
+   static int mode = 0;
+   ImGui::Combo("Game Mode", &mode, "Individual Boards\0Shared Board\0");
+   game->settings.mode = (GameMode)mode;
 
    helpfulText("The seed is used to generate a random board. It must be the same for both players.");
    ImGui::NewLine();
@@ -675,7 +678,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
                pNum++; 
             }
          }
-         game->players = pNum;
+         game->players = pNum - 1;
          ggpoCreateSession(game, game->net->hostSetup, participants);
       }
    }

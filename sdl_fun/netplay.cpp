@@ -446,16 +446,11 @@ int ggpoDisconnectPlayer(int player) {
 void ggpoEndSession(Game* game) {
    if (game->net) {
       ggpoClose(game->net->ggpo);
-      int frameDelay = game->net->frameDelay[0];
-      int disconnectTime = game->net->disconnectTime[0];
-      bool upnp = game->net->upnp;
-      delete game->net;
-
-      //mayeb todo... I'm lazy and just delete and recreate it
-      game->net = new NetPlay;
-      game->net->frameDelay[0] = frameDelay;
-      game->net->disconnectTime[0] = disconnectTime;
-      game->net->upnp = upnp;
+      game->net->localPlayer = -1;
+      game->net->myConnNum = -1;
+      game->net->hostConnNum = -1;
+      game->net->timeSync = 0;
+      game->net->messages.clear();
    }
 }
 

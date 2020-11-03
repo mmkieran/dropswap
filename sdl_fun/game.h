@@ -78,7 +78,7 @@ struct Player {
 };
 
 enum GameMode {
-   multi_solo,
+   multi_solo = 0,
    multi_shared,
 };
 
