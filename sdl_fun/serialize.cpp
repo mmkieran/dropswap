@@ -165,6 +165,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->endH);
    writeStream(stream, board->wBuffer);
    writeStream(stream, board->w);
+   writeStream(stream, board->h);
    writeStream(stream, board->tileWidth);
    writeStream(stream, board->tileHeight);
    writeStream(stream, board->offset);
@@ -195,6 +196,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->endH);
    readStream(start, board->wBuffer);
    readStream(start, board->w);
+   readStream(start, board->h);
    readStream(start, board->tileWidth);
    readStream(start, board->tileHeight);
    readStream(start, board->offset);
@@ -479,7 +481,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    for (int i = 0; i < players; i++) {
       Board* board = nullptr;
       if (game->playing) {
-         board = boardCreate(game, i + 1);
+         board = boardCreate(game, i + 1, 64 , 64);
          //deserialize board
          if (board) {
             _boardDeserialize(start, board);

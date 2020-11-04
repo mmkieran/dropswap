@@ -85,7 +85,7 @@ void boardLoadRandom(Board* board) {
 }
 
 //Create a fresh board and return a pointer
-Board* boardCreate(Game* game, int team) {
+Board* boardCreate(Game* game, int team, int tWidth, int tHeight) {
    Board* board = new Board;
    if (board) {
       Tile* tiles = _boardCreateArray(game->settings.bHeight, game->settings.bWidth);
@@ -99,9 +99,12 @@ Board* boardCreate(Game* game, int team) {
          board->endH = game->settings.bHeight * 2;  //end playing area of the board
          board->wBuffer = board->endH + 1;  //Extra row upcoming rows
          board->w = game->settings.bWidth;
+         board->h = game->settings.bHeight;
 
-         board->tileHeight = game->settings.tHeight;
-         board->tileWidth = game->settings.tWidth;
+         //board->tileHeight = game->settings.tHeight;
+         //board->tileWidth = game->settings.tWidth;
+         board->tileHeight = tHeight;
+         board->tileWidth = tWidth;
 
          board->pile = garbagePileCreate();
 		   boardStartRandom(board);

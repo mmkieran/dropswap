@@ -122,7 +122,7 @@ void rendererEnableScissor();
 void rendererDisableScissor();
 void rendererClear(float r, float g, float b, float a);
 
-FBO* rendererCreateFBO(Game* game);
+FBO* rendererCreateFBO(Game* game, int width, int height);
 int rendererDestroyFBO(FBO* fbo);
 void rendererEnableFBO(FBO* fbo);
 void rendererDisableFBO();

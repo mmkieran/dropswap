@@ -570,12 +570,12 @@ void rendererCopyTo(Mesh* mesh) {
 
 }
 
-FBO* rendererCreateFBO(Game* game) {
+FBO* rendererCreateFBO(Game* game, int width, int height) {
    FBO* fbo = new FBO;
    if (fbo) {
 
-      fbo->w = game->settings.bWidth * game->settings.tWidth;  //game->windowWidth;
-      fbo->h = game->settings.bHeight * game->settings.tHeight;  //game->windowHeight;
+      fbo->w = game->settings.bWidth * width;  //game->windowWidth;
+      fbo->h = game->settings.bHeight * height;  //game->windowHeight;
 
       glGenFramebuffers(1, &fbo->handle);
 

@@ -185,8 +185,7 @@ void boardUI(Game* game) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";
          sprintf(playerInfo, "Player Info %d", i + 1);
-         ImGui::BeginChild(playerInfo, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth) + (style.WindowPadding.x * 2), 0 }, true, 0);
-         //ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
+         ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Stats
          ImGui::Text("Player %d", board->team);
@@ -210,7 +209,7 @@ void boardUI(Game* game) {
          char playerName[30] = "Player";
          sprintf(playerName, "Player %d", i + 1);
          ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-         ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
+         ImGui::BeginChild(playerName, ImVec2{ (float)board->w * board->tileWidth, (float)board->h * board->tileHeight }, true, 0);
          ImVec2 csPos = ImGui::GetCursorScreenPos();
 
          //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate

@@ -42,6 +42,7 @@ struct Board {
    int endH;
    int wBuffer;  //Create some extra board to store falling garbage and upcoming rows
    int w = 6;
+   int h = 12;
    int tileWidth;
    int tileHeight;
    float offset = 0;
@@ -78,7 +79,7 @@ struct Board {
 };
 //@@End Serialize
 
-Board* boardCreate(Game* game, int team);
+Board* boardCreate(Game* game, int team, int tWidth, int tHeight);
 Board* boardDestroy(Board* board);
 
 int boardFillTiles(Board* board);

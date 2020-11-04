@@ -299,20 +299,19 @@ void gameStartMatch(Game* game) {
    if (game->players > 1) {
       if (game->settings.mode == multi_shared) {  //Shared board
          boardCount = 2; 
-         //game->settings.tHeight = game->settings.tWidth = 32;  //maybe
       }  
    }
 
    for (int i = 0; i < boardCount; i++) {
-      Board* board = boardCreate(game, i + 1);
+      Board* board = boardCreate(game, i + 1, 64, 64);
       if (board) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
 
          //Create the cursor and assign to board
-         float cursorX = (float)(game->settings.bWidth / 2 - 1) * game->settings.tWidth;
-         float cursorY = (float)(game->settings.bHeight / 2 + 1) * game->settings.tHeight;
+         float cursorX = (float)(game->settings.bWidth / 2 - 1) * board->tileWidth;
+         float cursorY = (float)(game->settings.bHeight / 2 + 1) * board->tileHeight;
          if (game->settings.mode == multi_shared) {
             for (int i = 0; i < game->players; i++) {
                if (game->net->hostSetup[i].team == i) {
@@ -330,7 +329,7 @@ void gameStartMatch(Game* game) {
 
          game->boards.push_back(board);
 
-         FBO* fbo = rendererCreateFBO(game);  //Create Framebuffer Object
+         FBO* fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
          if (fbo) { game->fbos.push_back(fbo); }
       }
    }
@@ -391,6 +390,11 @@ void gameRender(Game* game) {
    if (game->playing == true) {
       int i = 0;
       for (auto&& board : game->boards) {
+         int boardWidth = board->w * board->tileWidth;
+         int boardHeight = board->h * board->tileHeight;
+         //Do this if we want the meshes to stay the same size when then window changes...
+         worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
+         rendererSetTarget(0, 0, boardWidth, boardHeight);
          if (game->fbos[i]) {
             rendererEnableFBO(game->fbos[i]);
             if (board) {
@@ -405,17 +409,6 @@ void gameRender(Game* game) {
 
 //Draw the ImGui windows and the game objects
 void imguiRender(Game* game) {
-
-   //int width, height;
-   //SDL_GetWindowSize(game->sdl->window, &width, &height);
-
-   int boardWidth = game->settings.tWidth * game->settings.bWidth;
-   int boardHeight = game->settings.tHeight * game->settings.bHeight;
-   rendererSetTarget(0, 0, boardWidth, boardHeight);  
-
-   //Do this if we want the meshes to stay the same size when then window changes...
-   worldToDevice(game, 0.0f, 0.0f, boardWidth, boardHeight);
-
    if (game->playing == false || game->paused == true) { mainUI(game); }
    gameRender(game);  //Draw all game objects
 
