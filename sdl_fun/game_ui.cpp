@@ -128,15 +128,9 @@ void mainUI(Game* game) {
 
 //Helper to draw the board texture into the ImGui child window
 static void _drawBoardTexture(Game* game, int index) {
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-      char playerName[20] = "Player";
-      sprintf(playerName, "Player %d", index + 1);
-      ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
       ImVec2 csPos = ImGui::GetCursorScreenPos();
 
-      //This is the secret sauce to render a texture in ImGui
-      //The ImVec2{ 0, 1 }, ImVec2{ 1, 0 } is because it uses a different coordinate system by default
+      //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate
       if (game->fbos[index]) {
          ImGui::Image((void*)(intptr_t)game->fbos[index]->texture, { game->fbos[index]->w, game->fbos[index]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
       }
@@ -154,13 +148,14 @@ static void _drawBoardTexture(Game* game, int index) {
             ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
          }
       }
-
-      ImGui::EndChild();
-      ImGui::PopStyleVar();
 }
 
 //The popup window that shows a summary of a game after bust
-static void _gameResults(Game* game) {
+static void _gameResults(Game* game, int bustee) {
+   ImGui::PushFont(game->fonts[20]);
+   ImGui::Text("Player %d lost or something...", bustee);
+   ImGui::NewLine();
+
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
    float width = ImGui::GetContentRegionAvailWidth();
    ImVec2 wSize = ImGui::GetWindowSize();
@@ -188,6 +183,13 @@ static void _gameResults(Game* game) {
    }
    ImGui::PopStyleVar();
    ImGui::NewLine();
+
+   ImGui::PopFont();
+   if (ImGui::Button("Accept Defeat")) {
+      gameEndMatch(game);
+      ImGui::CloseCurrentPopup();
+      popupDisable(Popup_GameOver);
+   }
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -195,22 +197,28 @@ void boardUI(Game* game) {
    if (game->playing == true) {
 
       ImGui::PushFont(game->fonts[20]);
-      ImGui::Begin("Drop and Swap");
-
-      _drawBoardTexture(game, 0);
-      ImGui::SameLine();
-
-      ImGui::BeginChild("Game Info", ImVec2{ ImGui::GetWindowContentRegionWidth() * 0.2f, (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
-
-      ImGui::Text("Frame Count: %d", game->frameCount);
-      if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
-      if (game->timer > 0) {
-         ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps) );
+      if (!ImGui::Begin("Drop and Swap") ) {
+         ImGui::PopFont();
+         ImGui::End();
+         return;
       }
 
+      //if (game->debug == true) {
+      //   ImGui::Text("Frame Count: %d", game->frameCount);
+      //   if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
+      //   if (game->timer > 0) {
+      //      ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps));
+      //   }
+      //}
+
       static int bustee = 0;
-      for (auto&& board : game->boards) {
-         ImGui::NewLine();
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+      for (int i = 0; i < game->boards.size(); i++) {
+         Board* board = game->boards[i];
+         char playerName[20] = "Player";
+         sprintf(playerName, "Player %d", i + 1);
+         ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), 0 }, true, 0);
+         //ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
 
          //Board Stats
          ImGui::Text("Player %d", board->team);
@@ -229,14 +237,13 @@ void boardUI(Game* game) {
             bustee = board->team;
             popupEnable(Popup_GameOver);
          }
+         _drawBoardTexture(game, i);
+         ImGui::EndChild();
+         if (i + 1 != game->boards.size()) { ImGui::SameLine(); }
       }
-      ImGui::EndChild();
+      ImGui::PopStyleVar();
 
-      if (game->players > 1) { 
-         ImGui::SameLine();
-         _drawBoardTexture(game, 1); 
-      }
-      else {
+      if (game->players == 1) {
          ImGui::SameLine();
          ImGui::BeginChild("One Player Options");
          onePlayerOptions(game);
@@ -252,16 +259,7 @@ void boardUI(Game* game) {
       }
       if (ImGui::BeginPopupModal("Game Over") ) {
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
-         ImGui::PushFont(game->fonts[20]);
-         ImGui::Text("Player %d lost or something...", bustee);
-         ImGui::NewLine();
-         _gameResults(game);
-         ImGui::PopFont();
-         if (ImGui::Button("Accept Defeat")) {
-            gameEndMatch(game);
-            ImGui::CloseCurrentPopup();
-            popupDisable(Popup_GameOver);
-         }
+         _gameResults(game, bustee);
          ImGui::EndPopup();
       }
 
@@ -369,7 +367,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
       ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
 
-      static int tileSize = 0;
+      static int tileSize = 1;
       ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
       if (tileSize == 0) { game->settings.tWidth = game->settings.tHeight = 64; }
       else  if (tileSize == 1) { game->settings.tWidth = game->settings.tHeight = 32; }

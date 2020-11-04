@@ -85,8 +85,8 @@ enum GameMode {
 struct GameSettings {
    int bHeight = 12;
    int bWidth = 6;
-   int tWidth = 64;
-   int tHeight = 64;
+   int tWidth = 32;
+   int tHeight = 32;
 
    GameMode mode = multi_solo;
 

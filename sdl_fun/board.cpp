@@ -363,6 +363,7 @@ void boardSwap(Board* board, Cursor* cursor) {
 
 //Dumps garbage on the other player depending on chain size
 void boardChainGarbage(Game* game, int player, int chain) {
+   //4board fix this
    Board* board;
    if (player == 1) { board = game->boards[1]; }
    else if (player == 2) { board = game->boards[0]; }
@@ -419,6 +420,7 @@ void boardComboGarbage(Game* game, int player, int matchSize) {
    if (player == 1) { board = game->boards[1]; }
    else if (player == 2) { board = game->boards[0]; }
 
+   //4board fix this
    if (board) {
       if (player == 1) {
          _calcComboGarbage(board, matchSize);  //Drop on player 2
@@ -430,6 +432,7 @@ void boardComboGarbage(Game* game, int player, int matchSize) {
 }
 
 static void _silverClear(Game* game, int size, int player) {
+   //4board fix this
    Board* board;
    if (player == 1) { board = game->boards[1]; }
    else if (player == 2) { board = game->boards[0]; }
@@ -1137,12 +1140,12 @@ void aiChain(Board* board) {
 void aiGetSteps(Board* board, int player) {
    //Calculate steps to move cursor into place
    Cursor* cursor = nullptr;
-   if (board->game->players <= 2) {
-      cursor = board->cursors[0];
-   }
-   else if (board->game->players > 2) {
+   if (board->game->players > 2 && board->game->settings.mode == multi_shared) {
       int index = player % 2;
       cursor = board->cursors[index];
+   }
+   else {
+      cursor = board->cursors[0];
    }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
