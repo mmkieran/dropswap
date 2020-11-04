@@ -171,9 +171,10 @@ static void _gameResults(Game* game, int bustee) {
 //Draw the window and child regions for the board texture to be rendered in
 void boardUI(Game* game) {
    if (game->playing == true) {
-
+      ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight });
+      ImGui::SetNextWindowPos({ 0, 0 });
       ImGui::PushFont(game->fonts[20]);
-      if (!ImGui::Begin("Drop and Swap") ) {
+      if (!ImGui::Begin("Drop and Swap", (bool*)0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove) ) {
          ImGui::PopFont();
          ImGui::End();
          return;
@@ -188,16 +189,15 @@ void boardUI(Game* game) {
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Stats
-         ImGui::Text("Player %d", board->team);
+         ImGui::Text("Player %d", board->team);  //todo player id here
          ImGui::Text("Last chain: %d", board->boardStats.lastChain);
-         if (board->game->timer > 0) {
-            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
-            ImGui::Text("APM: %d", apm);
-         }
-         ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
-
-         ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
+         //if (board->game->timer > 0) {
+         //   int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
+         //   ImGui::Text("APM: %d", apm);
+         //}
+         //ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
          ImGui::Text("Game Time: %d s", game->timer / 1000);
+         ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
          ImGui::NewLine();
 
          if (board->bust == true && popupStatus(Popup_GameOver) == false ) {
@@ -209,7 +209,7 @@ void boardUI(Game* game) {
          char playerName[30] = "Player";
          sprintf(playerName, "Player %d", i + 1);
          ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-         ImGui::BeginChild(playerName, ImVec2{ (float)board->w * board->tileWidth, (float)board->h * board->tileHeight }, true, 0);
+         ImGui::BeginChild(playerName, ImVec2{ (float)board->w * board->tileWidth, (float)board->h * board->tileHeight }, true, ImGuiWindowFlags_NoScrollbar);
          ImVec2 csPos = ImGui::GetCursorScreenPos();
 
          //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate

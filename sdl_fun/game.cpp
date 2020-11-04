@@ -303,7 +303,11 @@ void gameStartMatch(Game* game) {
    }
 
    for (int i = 0; i < boardCount; i++) {
-      Board* board = boardCreate(game, i + 1, 64, 64);
+      Board* board;
+      if (i == 0) {  //Make the active player board big
+         board = boardCreate(game, i + 1, 48, 48);
+      }
+      else { board = boardCreate(game, i + 1, 32, 32); }
       if (board) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
@@ -410,9 +414,11 @@ void gameRender(Game* game) {
 //Draw the ImGui windows and the game objects
 void imguiRender(Game* game) {
    if (game->playing == false || game->paused == true) { mainUI(game); }
+   int width, height;
+   SDL_GetWindowSize(game->sdl->window, &width, &height);
    gameRender(game);  //Draw all game objects
 
-   rendererSetTarget(0, 0, NULL, NULL);
+   rendererSetTarget(0, 0, width, height);
    rendererClear(0.0, 0.0, 0.0, 0.0);
 
    boardUI(game);  

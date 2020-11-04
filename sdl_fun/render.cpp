@@ -111,7 +111,7 @@ GLuint vaoCreate() {
    //disable the Z-buffer.  We don't want this, because we're doing a 2D engine.
    glDisable(GL_DEPTH_TEST);
    glEnable(GL_BLEND);  //for images with alpha values
-   glEnable(GL_SCISSOR_TEST);  //For clipping stuff out of a bounding box
+   //glEnable(GL_SCISSOR_TEST);  //For clipping stuff out of a bounding box
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  //setup blending function
 
    return vao;
