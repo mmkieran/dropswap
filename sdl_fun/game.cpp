@@ -10,6 +10,7 @@
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "game.h"
@@ -85,7 +86,7 @@ void sdlSleep(int delay) {
 
 //Give extra frame time to GGPO so it can do it's thing
 void gameGiveIdleToGGPO(Game* game, int time) {
-   if (game->net && game->net->ggpo && time > 0) {
+   if (game->net->ggpo && time > 0) {
       ggpo_idle(game->net->ggpo, time);
    }
 }
@@ -99,7 +100,7 @@ void gameDelayFrame(Game* game, uint64_t end, uint64_t start) {
    if (game->kt.delay > frameTime) {
       leftover = (game->kt.delay - frameTime) / 1000 - 2;
       if (leftover > 0 && leftover < 15) {
-         if (game->players > 1) {
+         if (game->players > 1 && game->net->ggpo != nullptr) {
             gameGiveIdleToGGPO(game, leftover);  //Give some time to GGPO, but leave to wait out frame
          }
          else { sdlSleep(leftover); }

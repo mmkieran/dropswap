@@ -126,30 +126,6 @@ void mainUI(Game* game) {
    ImGui::End();
 }
 
-//Helper to draw the board texture into the ImGui child window
-static void _drawBoardTexture(Game* game, int index) {
-      ImVec2 csPos = ImGui::GetCursorScreenPos();
-
-      //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate
-      if (game->fbos[index]) {
-         ImGui::Image((void*)(intptr_t)game->fbos[index]->texture, { game->fbos[index]->w, game->fbos[index]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-      }
-
-      Board* board = game->boards[index];
-      if (board->visualEvents[visual_clear].active == true) {
-         VisualEvent e = board->visualEvents[visual_clear];
-         if (board->chain > 1 || board->boardStats.lastCombo > 3) {
-            char clearText[10];
-            if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
-            else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
-            ImVec2 textSize = ImGui::CalcTextSize(clearText);
-
-            ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
-            ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
-         }
-      }
-}
-
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game, int bustee) {
    ImGui::PushFont(game->fonts[20]);
@@ -203,21 +179,13 @@ void boardUI(Game* game) {
          return;
       }
 
-      //if (game->debug == true) {
-      //   ImGui::Text("Frame Count: %d", game->frameCount);
-      //   if (game->players > 1) { ImGui::Text("Time Sync: %d", game->net->timeSync); }
-      //   if (game->timer > 0) {
-      //      ImGui::Text("FPS: %0.1f", (1000 / game->kt.fps));
-      //   }
-      //}
-
       static int bustee = 0;
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+      ImGuiStyle style = ImGui::GetStyle();
       for (int i = 0; i < game->boards.size(); i++) {
          Board* board = game->boards[i];
-         char playerName[20] = "Player";
-         sprintf(playerName, "Player %d", i + 1);
-         ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), 0 }, true, 0);
+         char playerInfo[30] = "Player Info";
+         sprintf(playerInfo, "Player Info %d", i + 1);
+         ImGui::BeginChild(playerInfo, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth) + (style.WindowPadding.x * 2), 0 }, true, 0);
          //ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
 
          //Board Stats
@@ -237,11 +205,36 @@ void boardUI(Game* game) {
             bustee = board->team;
             popupEnable(Popup_GameOver);
          }
-         _drawBoardTexture(game, i);
+
+         //Draw the board
+         char playerName[30] = "Player";
+         sprintf(playerName, "Player %d", i + 1);
+         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+         ImGui::BeginChild(playerName, ImVec2{ (float)game->settings.tWidth * (game->settings.bWidth), (float)game->settings.tHeight * (game->settings.bHeight) }, true, 0);
+         ImVec2 csPos = ImGui::GetCursorScreenPos();
+
+         //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate
+         if (game->fbos[i]) {
+            ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         }
+
+         if (board->visualEvents[visual_clear].active == true) {
+            VisualEvent e = board->visualEvents[visual_clear];
+            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
+               char clearText[10];
+               if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
+               else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
+               ImVec2 textSize = ImGui::CalcTextSize(clearText);
+
+               ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
+               ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
+            }
+         }
+         ImGui::EndChild();
+         ImGui::PopStyleVar();
          ImGui::EndChild();
          if (i + 1 != game->boards.size()) { ImGui::SameLine(); }
       }
-      ImGui::PopStyleVar();
 
       if (game->players == 1) {
          ImGui::SameLine();

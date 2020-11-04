@@ -399,8 +399,9 @@ void gameRunFrame() {
 
 //End a GGPO session
 void ggpoClose(GGPOSession* ggpo) {
-   if (ggpo) {
+   if (ggpo != nullptr) {
       ggpo_close_session(ggpo);
+      game->net->ggpo = nullptr;
    }
    if (game->net->upnp) { upnpDeletePort(sessionPort, "UDP"); }
 }
