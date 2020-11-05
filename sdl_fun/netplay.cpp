@@ -32,11 +32,15 @@ bool logOpen = false;
 
 extern Game* game;  //I dunno how I feel about this
 
+static void readGameData();
+int fletcher32_checksum(short* data, size_t len);
+
 //Debug log functions
 bool openNetLog() {
    int err = fopen_s(&dsLog, "saves/dsNetLog.txt", "w");
    if (err == 0) { 
       fprintf(dsLog, "Started dropswap net log...\n");
+      logOpen = true;
       return true; 
    }
    else { return false; }
@@ -229,7 +233,7 @@ void winsockCleanup() {
 
 //Discover if the local gateway device can use UPNP and port-forward the local port
 void upnpStartup(Game* game) {
-   if (NETLOG == true) { openNetLog(); }
+   if (NETLOG == true) { openNetLog(); }  //todo dunno if this belongs here
    int error, status;
    upnp_devices = upnpDiscover(2000, NULL, NULL, 0, 0, 2, &error);
    if (error == 0) {
@@ -781,7 +785,7 @@ SocketInfo getSocket(int index) {
    return sockets[index];
 }
 
-void readGameData() {
+static void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);
    deserializeGameSetup(game, gData);

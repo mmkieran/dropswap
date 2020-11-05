@@ -103,32 +103,12 @@ struct SocketInfo {
    SocketStatus status = sock_none;      //Used to check if things were went or received successfully
 };
 
-////Currently not used...
-//enum CommError {
-//   error_sock_create = 0,
-//   //server start
-//   error_sock_bind,
-//   error_sock_listen,
-//   error_sock_accept,
-//   //client start
-//   error_sock_connect,
-//   //connected
-//   error_sock_send,
-//   error_sock_receive,
-//};
-
-int fletcher32_checksum(short* data, size_t len);
-int ggpoCheckSum(Game* game);
-
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();
 
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants);
 void ggpoClose(GGPOSession* ggpo);
-
 const char* ggpoShowStatus(Game* game, int playerIndex);
-
-int ggpoDisconnectPlayer(int player);
 void ggpoEndSession(Game* game);
 
 bool winsockStart();
@@ -139,7 +119,6 @@ void tcpServerLoop(u_short port, int people, ServerStatus& status, bool &running
 void tcpCloseConnections();
 void tcpCleanup();
 void tcpReset();
-void readGameData();
 SocketInfo getSocket(int index);
 void _connectionInfo();
 
