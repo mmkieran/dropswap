@@ -835,7 +835,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
 
    if (game->winsockRunning == true) {
       if (serverStatus == server_done) {
-         tcpCloseConnections();
+         tcpCleanup();
          serverStatus = server_none;
          connectStats = false;
          ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
@@ -887,7 +887,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
    }
    if (game->winsockRunning == true) {
       if (clientStatus == client_done) {
-         tcpCloseConnections();
+         tcpCleanup();
          clientStatus = client_none;
          connectStats = false;
       }
