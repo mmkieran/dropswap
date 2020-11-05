@@ -305,6 +305,7 @@ void gameStartMatch(Game* game) {
    int boardCount = 0;
    int myBoard = 0;
    if (game->settings.mode == single_player) {
+      game->p.number = 1;  //Maybe move this to a 1 player UI window later
       boardCount = 1;
       myBoard = 0;
    }
@@ -319,10 +320,14 @@ void gameStartMatch(Game* game) {
 
    for (int i = 0; i < boardCount; i++) {
       Board* board;
-      if (i == myBoard) {  //Make the active player's board bigger
-         board = boardCreate(game, i + 1, 48, 48);
-      }
-      else { board = boardCreate(game, i + 1, 32, 32); }
+
+      int team = 0;
+      if (game->settings.mode == multi_solo) { team = i / 2; }
+      else if (game->settings.mode == multi_shared) { team = i; }
+
+      if (team == myBoard) { board = boardCreate(game, team, 48, 48); }  //Determine board size based on current user
+      else { board = boardCreate(game, team, 32, 32); }
+
       if (board) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
@@ -337,7 +342,7 @@ void gameStartMatch(Game* game) {
          }
          else if (game->settings.mode == multi_shared) {
             for (auto&& p : game->pList) {
-               if (p.second.team == i) {  //This is the shared board for this player
+               if (p.second.team == team) {  //This is the shared board for this player
                   Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.second.number);
                   board->cursors.push_back(cursor);
                   p.second.board = board;

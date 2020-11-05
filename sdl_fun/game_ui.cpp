@@ -912,8 +912,12 @@ void multiplayerUI(Game* game, bool* p_open) {
    static int people[3] = { 2, 2, 4 };
 
    ImGui::Checkbox("Host a Game", &isServer);
+   static int mode = 0;
 
    if (isServer == true) {
+      ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+      game->settings.mode = (GameMode)mode;
+
       ImGui::NewLine();
 
       if (ImGui::CollapsingHeader("Board Setup")) {

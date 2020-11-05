@@ -564,7 +564,9 @@ int gameLoadState(Game* game, const char* path) {
 //Serialize hostSetup (port numbers, ips, player number, game info) so we can send it over tcp
 void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->net->participants);
-   for (int i = 0; i < game->players; i++) {
+   int mode = (int)game->settings.mode;
+   writeStream(stream, mode);
+   for (int i = 0; i < game->net->participants; i++) {
       writeStream(stream, game->net->hostSetup[i].host);
       writeStream(stream, game->net->hostSetup[i].ipAddress);
       writeStream(stream, game->net->hostSetup[i].localPort);
@@ -588,7 +590,10 @@ void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
 
 void deserializeGameSetup(Game* game, Byte*& start) {
    readStream(start, game->net->participants);
-   for (int i = 0; i < game->players; i++) {
+   int mode = 0;
+   readStream(start, mode);
+   game->settings.mode = (GameMode)mode;
+   for (int i = 0; i < game->net->participants; i++) {
       readStream(start, game->net->hostSetup[i].host);
       readStream(start, game->net->hostSetup[i].ipAddress);
       readStream(start, game->net->hostSetup[i].localPort);

@@ -12,11 +12,11 @@ void boardPauseTime(Board* board, BoardPauseType type, int size) {
 
    switch (type) {
    case pause_combo:
-      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 5000);  //max pause of 6s
+      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
       if (time > currentPause) { board->pauseLength = time;}
       break;
    case pause_chain:
-      time = min( (size) * 1000 + board->game->timings.removeClear[0], 6000);  //Max pause 8s
+      time = min( (size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
       if (time > currentPause) { board->pauseLength = time; }
       break;
    case pause_clear:
@@ -187,6 +187,7 @@ void boardUpdate(Board* board) {
       if (board->game->net->syncTest == false) {
          for (int i = 0; i < board->cursors.size(); i++) {
             int index = i;
+            //todo 4board fix
             if (board->team == 2 && board->game->players > 2) { index += 2; }  //There are two cursors per board here
             else if (board->team == 2 && board->game->players == 2) { index += 1; }  //One cursor per board
             cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);  //This has kinda become player...

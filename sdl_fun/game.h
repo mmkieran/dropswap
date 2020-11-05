@@ -79,9 +79,10 @@ struct Player {
 };
 
 enum GameMode {
-   single_player = 0,
-   multi_solo,                   //Individual boards
+   multi_solo = 0,                   //Individual boards
    multi_shared,                 //Shared board
+   single_player,
+   game_mode_COUNT,
 };
 
 struct GameSettings {

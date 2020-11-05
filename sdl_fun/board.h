@@ -56,7 +56,7 @@ struct Board {
    std::map <VisualEffect, VisualEvent> visualEvents;
    BoardStats boardStats;
 
-   float level = 1;
+   float level = 5;
    float fallSpeed = 8;
    float moveSpeed = 1;
    bool paused = false;
