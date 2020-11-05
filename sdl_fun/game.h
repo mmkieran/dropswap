@@ -18,6 +18,7 @@
 struct GameWindow;
 
 typedef struct Board Board;
+typedef struct Cursor Cursor;
 typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
 typedef unsigned char Byte;
@@ -67,19 +68,20 @@ struct GameTimings {
 //Information about the player
 struct Player {
    char name[30];
-   int level = 1;
-   int number = 1;
-   int team = 0;
+   int level = 1;                //Selected board level
+   int number = 1;               //1 based player number (GGPO handle in multi)
+   int team = 0;                 //0 is One and 1 is Two
    Board* board = nullptr;
-   int cursor = 0;
+   Cursor* cursor = nullptr;
    bool dead = false;
    int wins = 0;
-   UserInput input;
+   UserInput input;              //Holds the local inputs for the user
 };
 
 enum GameMode {
-   multi_solo = 0,
-   multi_shared,
+   single_player = 0,
+   multi_solo,                   //Individual boards
+   multi_shared,                 //Shared board
 };
 
 struct GameSettings {
@@ -88,7 +90,7 @@ struct GameSettings {
    int tWidth = 32;
    int tHeight = 32;
 
-   GameMode mode = multi_solo;
+   GameMode mode = single_player;
 
    std::vector <unsigned char> save;
 };

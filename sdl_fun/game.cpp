@@ -295,23 +295,31 @@ void _createPlayers(Game* game) {
 void gameStartMatch(Game* game) {
    if (game->players == 1) { game->seed = time(0); }
 
-   for (int i = 0; i < game->fbos.size(); i++) {
+   for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
       if (game->fbos[i]) {
          rendererDestroyFBO(game->fbos[i]);
       }
    }
    game->fbos.clear();
 
-   int boardCount = game->players;
-   if (game->players > 1) {
-      if (game->settings.mode == multi_shared) {  //Shared board
-         boardCount = 2; 
-      }  
+   int boardCount = 0;
+   int myBoard = 0;
+   if (game->settings.mode == single_player) {
+      boardCount = 1;
+      myBoard = 0;
+   }
+   else if (game->settings.mode == multi_shared) {  //Shared board
+      boardCount = 2; 
+      myBoard = game->pList[game->p.number].team;
+   }  
+   else if (game->settings.mode == multi_solo) {  //Solo boards
+      boardCount = game->players;
+      myBoard = game->p.number - 1;
    }
 
    for (int i = 0; i < boardCount; i++) {
       Board* board;
-      if (game->pList[i + 1].number == game->p.number) {  //Make the active player board big
+      if (i == myBoard) {  //Make the active player's board bigger
          board = boardCreate(game, i + 1, 48, 48);
       }
       else { board = boardCreate(game, i + 1, 32, 32); }
@@ -323,19 +331,27 @@ void gameStartMatch(Game* game) {
          //Create the cursor and assign to board
          float cursorX = (float)(game->settings.bWidth / 2 - 1) * board->tileWidth;
          float cursorY = (float)(game->settings.bHeight / 2 + 1) * board->tileHeight;
-         if (game->settings.mode == multi_shared) {
-            for (int i = 0; i < game->players; i++) {
-               if (game->pList[i + 1].team == i) {
-                  Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->net->hostSetup[i].pNum);
+         if (game->settings.mode == single_player) {
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->p.number);
+            board->cursors.push_back(cursor);
+         }
+         else if (game->settings.mode == multi_shared) {
+            for (auto&& p : game->pList) {
+               if (p.second.team == i) {  //This is the shared board for this player
+                  Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.second.number);
                   board->cursors.push_back(cursor);
+                  p.second.board = board;
+                  p.second.cursor = cursor;
                }
             }
          }
-         else {
-            int cIndex = i + 1;
-            if (game->settings.mode == multi_solo) { cIndex = game->net->hostSetup[i].pNum; }
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, cIndex);
-            board->cursors.push_back(cursor);
+         if (game->settings.mode == multi_solo) {
+            for (auto&& p : game->pList) {
+               Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.second.number);
+               board->cursors.push_back(cursor);
+               p.second.board = board;
+               p.second.cursor = cursor;
+            }
          }
 
          game->boards.push_back(board);
@@ -357,6 +373,7 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
+   game->pList.clear();
    game->boards.clear();
    game->playing = false;
    game->paused = false;
