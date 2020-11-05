@@ -109,6 +109,7 @@ struct Game {
    int sounds = 0;                             //Game sound toggle (0 is disabled)
 
    Player p;
+   std::map <int, Player> pList;
    GameTimings timings;
    GameSettings settings;
 

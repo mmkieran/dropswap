@@ -294,13 +294,15 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    cb.on_event = ds_on_event_callback;  
    cb.log_game_state = ds_log_game_state_callback;  //This is turned off right now
 
+   game->pList.clear();  //Clear the player list
+
    int hostNumber = -1;
    int myNumber = -1;
    int spectators = 0;
    for (int i = 0; i < participants; i++) {
       if (connects[i].host == true) { hostNumber = i; }  //Who is hosting
       if (connects[i].me == true) { myNumber = i; }  //who am i? who am i?
-      if (connects[i].playerType == 1) { spectators++; }
+      if (connects[i].playerType == 1) { spectators++; }  //todo we can separate spectators into another list here if needed
    }
 
    game->net->myConnNum = myNumber;
@@ -344,15 +346,22 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          game->net->players[i].u.remote.port = connects[i].localPort;
       }
 
-      GGPOPlayerHandle handle;
+      GGPOPlayerHandle handle = -1;
       result = ggpo_add_player(game->net->ggpo, &game->net->players[i], &handle);  //Add a player to GGPO session
       if (result != GGPO_OK) { printf("Couldn't add player %d", i); }  //todo add a popup here
 
-      game->net->connections[i].handle = handle;
+      if (game->net->players[i].type != GGPO_PLAYERTYPE_SPECTATOR) {  //Populate player list
+         game->pList[handle].number = handle;
+         game->pList[handle].team = connects[i].team;
+         strcpy(game->pList[handle].name, connects[i].name);
+      }
+
+      game->net->connections[i].handle = handle;  //old rip out later
       game->net->connections[i].type = game->net->players[i].type;
 
       if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-         game->net->localPlayer = handle;
+         game->net->localPlayer = handle;  //old and rip out?
+         game->p.number = handle;  //todo check this later
          ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
       }
    }
@@ -455,6 +464,7 @@ void ggpoEndSession(Game* game) {
       game->net->myConnNum = -1;
       game->net->hostConnNum = -1;
       game->net->timeSync = 0;
+      game->net->participants = 0;
       game->net->messages.clear();
    }
 }

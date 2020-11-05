@@ -50,6 +50,7 @@ struct NetPlay {
    PlayerConnectionInfo connections[GAME_MAX_PLAYERS];    //Information about the connection status
    int hostConnNum = -1;                                  //What is the connection number of the host (for connections)
    int myConnNum = -1;                                    //What is my connection number (for connections)
+   int participants = 0;
    UserInput inputs[GAME_MAX_PLAYERS];                    //Structure is populated with synchronized inputs every frame
 
    SessionInfo hostSetup[GAME_MAX_PLAYERS];               //Used to map connection info from UI to GGPO structs

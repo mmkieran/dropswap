@@ -812,9 +812,9 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
       ImGui::PopID();
 
       if (ImGui::Button("Start Game")) {
-         game->players = people[0];
+         game->net->participants = people[0];
          game->seed = time(0);
-         for (int i = 0; i < game->players; i++) {
+         for (int i = 0; i < game->net->participants; i++) {
             SocketInfo sock = getSocket(i - 1);
             if (i == 0) {
                strcpy(game->net->hostSetup[i].name, game->p.name);
@@ -838,7 +838,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
          tcpCloseConnections();
          serverStatus = server_none;
          connectStats = false;
-         ggpoCreateSession(game, game->net->hostSetup, game->players);
+         ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
       }
    }
 }
@@ -864,8 +864,8 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
    //This displays the game information once it is received
    if (clientStatus >= client_received) {
       float width = ImGui::GetContentRegionAvailWidth();
-      for (int i = 0; i < game->players; i++) {
-         ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->players, 200 });
+      for (int i = 0; i < game->net->participants; i++) {
+         ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->net->participants, 200 });
          ImGui::Text(game->net->hostSetup[i].name);
          ImGui::Text(game->net->hostSetup[i].ipAddress);
          ImGui::Text("Host: %d", game->net->hostSetup[i].host);
@@ -873,16 +873,16 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
          ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
          ImGui::Text("Team: %d", game->net->hostSetup[i].team);
          ImGui::EndChild();
-         if (i + 1 != game->players) { ImGui::SameLine(); }
+         if (i + 1 != game->net->participants) { ImGui::SameLine(); }
       }
       if (ImGui::Button("Start Game")) {
-         for (int i = 0; i < game->players; i++) {
+         for (int i = 0; i < game->net->participants; i++) {
             if (i == 0) {
                strcpy(game->net->hostSetup[i].ipAddress, ipAddress);
             }
          }
          clientStatus = client_loaded;
-         ggpoCreateSession(game, game->net->hostSetup, game->players);
+         ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
       }
    }
    if (game->winsockRunning == true) {

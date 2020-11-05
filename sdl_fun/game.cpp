@@ -284,6 +284,13 @@ void gameSinglePlayer(Game* game) {
    gameUpdate(game);
 }
 
+void _createPlayers(Game* game) {
+   for (int i = 0; i < game->players; i++) {
+      game->net->hostSetup[i];
+   }
+
+}
+
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
    if (game->players == 1) { game->seed = time(0); }
@@ -304,7 +311,7 @@ void gameStartMatch(Game* game) {
 
    for (int i = 0; i < boardCount; i++) {
       Board* board;
-      if (i == 0) {  //Make the active player board big
+      if (game->pList[i + 1].number == game->p.number) {  //Make the active player board big
          board = boardCreate(game, i + 1, 48, 48);
       }
       else { board = boardCreate(game, i + 1, 32, 32); }
@@ -318,7 +325,7 @@ void gameStartMatch(Game* game) {
          float cursorY = (float)(game->settings.bHeight / 2 + 1) * board->tileHeight;
          if (game->settings.mode == multi_shared) {
             for (int i = 0; i < game->players; i++) {
-               if (game->net->hostSetup[i].team == i) {
+               if (game->pList[i + 1].team == i) {
                   Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->net->hostSetup[i].pNum);
                   board->cursors.push_back(cursor);
                }
