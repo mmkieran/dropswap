@@ -279,7 +279,7 @@ void gameUpdate(Game* game) {
 void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
-   if (game->ai == true) { gameAI(game, 0); }  //debug
+   if (game->ai == true) { gameAI(game); }  
    gameCheckPause(game, game->p.input);
    gameUpdate(game);
 }
@@ -340,6 +340,8 @@ void gameStartMatch(Game* game) {
          if (game->settings.mode == single_player) {
             Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->p.number);
             board->cursors.push_back(cursor);
+            game->p.board = board;
+            game->p.cursor = cursor;
          }
          else if (game->settings.mode == multi_shared) {
             for (auto&& p : game->pList) {
@@ -352,11 +354,10 @@ void gameStartMatch(Game* game) {
             }
          }
          if (game->settings.mode == multi_solo) {
-            Player p = game->pList[i + 1];
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.number);
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->pList[i + 1].number);
             board->cursors.push_back(cursor);
-            p.board = board;
-            p.cursor = cursor;
+            game->pList[i + 1].board = board;
+            game->pList[i + 1].cursor = cursor;
          }
 
          game->boards.push_back(board);
@@ -386,6 +387,10 @@ void gameEndMatch(Game* game) {
       }
    }
    game->pList.clear();
+   game->p.board = nullptr;
+   game->p.cursor = nullptr;
+   game->p.number = 1;
+   game->p.team = 0;
    game->boards.clear();
    game->teams.clear();
    game->playing = false;
@@ -509,11 +514,6 @@ bool gameRunning(Game* game) {
    return game->isRunning;
 }
 
-void gameAI(Game* game, int player) {
-   if (game->players <= 2) {
-      boardAI(game->boards[player], player);
-   }
-   else if (game->players > 2) {
-      boardAI(game->boards[player / 2], player);
-   }
+void gameAI(Game* game) {
+   boardAI(game);
 }

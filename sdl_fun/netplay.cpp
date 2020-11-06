@@ -394,10 +394,7 @@ void gameRunFrame() {
 
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          processInputs(game); 
-         if (game->ai == true) {        
-            if (game->net->syncTest == false) { gameAI(game, game->net->localPlayer - 1); }
-            else { gameAI(game, 0); }
-         }
+         if (game->ai == true) { gameAI(game); }
          result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p.input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones

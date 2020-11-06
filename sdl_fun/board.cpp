@@ -1141,15 +1141,14 @@ void aiChain(Board* board) {
    }
 }
 
-void aiGetSteps(Board* board, int player) {
+void aiGetSteps(Board* board) {
    //Calculate steps to move cursor into place
-   Cursor* cursor = nullptr;
-   if (board->game->players > 2 && board->game->settings.mode == multi_shared) {
-      int index = player % 2;
-      cursor = board->cursors[index];
+   Cursor* cursor;
+   if (board->game->settings.mode == single_player) {
+      cursor = board->game->p.cursor;
    }
    else {
-      cursor = board->cursors[0];
+      cursor = board->game->pList[board->game->p.number].cursor;
    }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
@@ -1203,8 +1202,6 @@ void aiGetSteps(Board* board, int player) {
 }
 
 void aiDoStep(Board* board) {
-   //UserInput input = { 0 };
-
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
       CursorStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
@@ -1226,26 +1223,25 @@ void aiDoStep(Board* board) {
          break;
       }
    }
-   //board->game->p.input = input;
 }
 
-void boardAI(Board* board, int player) {
-   if (board->game->timer > board->game->timings.countIn[0]) {
+void boardAI(Game* game) {
+   Board* board;
+   if (game->settings.mode == single_player) { board = game->p.board; }
+   if (game->settings.mode == multi_shared) { board = game->pList[game->p.number].board; }
+   if (game->settings.mode == multi_solo) { board = game->pList[game->p.number].board; }
+   if (game->timer > game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
          aiClearGarbage(board); 
          if (aiLogic.moves.empty()) { aiFindVertMatch(board); }
          if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
 
-         if (aiLogic.moves.empty() == false) { aiGetSteps(board, player); }
+         if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
       }
    }
 
    if (aiLogic.matchSteps.empty() == false) {
       aiDoStep(board);
    }
-   //else {  //No steps so wipe out the inputs
-   //   UserInput input = { 0 };
-   //   board->game->p.input = input;
-   //}
 }
