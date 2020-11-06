@@ -72,6 +72,7 @@ void cursorDraw(Board* board, Cursor* cursor) {
       xOffset = cursor->x - board->tileWidth / 6;
       yOffset = cursor->y - board->tileHeight / 6;
    }
+   //todo make cursors tags draw on the right if there are two
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 

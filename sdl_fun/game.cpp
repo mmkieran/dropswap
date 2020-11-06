@@ -332,6 +332,7 @@ void gameStartMatch(Game* game) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
+         game->teams[team].push_back(board);
 
          //Create the cursor and assign to board
          float cursorX = (float)(game->settings.bWidth / 2 - 1) * board->tileWidth;
@@ -364,6 +365,13 @@ void gameStartMatch(Game* game) {
          if (fbo) { game->fbos.push_back(fbo); }
       }
    }
+   for (int i = 0; i < game->boards.size(); i++) {
+      for (int j = 0; j < game->boards.size(); j++) {
+         if (i == j) { continue; }
+         if (game->boards[i]->team == game->boards[j]->team) { game->boards[i]->allies.push_back(j); }
+         else { game->boards[i]->enemies.push_back(j); }
+      }
+   }
    game->playing = true;
    game->frameCount = 0;
    game->timer = 0;
@@ -379,6 +387,7 @@ void gameEndMatch(Game* game) {
    }
    game->pList.clear();
    game->boards.clear();
+   game->teams.clear();
    game->playing = false;
    game->paused = false;
    game->frameCount = 0;

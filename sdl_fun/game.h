@@ -113,6 +113,7 @@ struct Game {
 
    Player p;
    std::map <int, Player> pList;
+   std::map < int, std::vector <Board*> > teams;
    GameTimings timings;
    GameSettings settings;
 

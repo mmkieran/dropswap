@@ -362,18 +362,21 @@ void boardSwap(Board* board, Cursor* cursor) {
 }
 
 //Dumps garbage on the other player depending on chain size
-void boardChainGarbage(Game* game, int player, int chain) {
-   //4board fix this
-   Board* board;
-   if (player == 1) { board = game->boards[1]; }
-   else if (player == 2) { board = game->boards[0]; }
+void boardChainGarbage(Game* game, Board* creator, int chain) {
+   if (creator->enemies.size() > 1) {
+      for (int i = 0; i < creator->enemies.size(); i++) {
+         if (creator->target == i) { continue; }
+         creator->target = creator->enemies[i];
+      }
+   }
+   else { creator->target = creator->enemies[0]; }
 
-   if (board) {
+   if (game->boards[creator->target]) {
       int gWidth = 6;
       int gHeight = 0;
       if (chain - 1 > 12) { gHeight = 12; }
       else { gHeight = chain - 1; }
-      if (gHeight > 0) { garbageCreate(board, gWidth, gHeight); }
+      if (gHeight > 0) { garbageCreate(game->boards[creator->target], gWidth, gHeight); }
    }
 }
 
@@ -415,37 +418,38 @@ static void _calcComboGarbage(Board* board, int matchSize) {
 }
 
 //Dumps garbage on the other player depending on match size
-void boardComboGarbage(Game* game, int player, int matchSize) {
-   Board* board;
-   if (player == 1) { board = game->boards[1]; }
-   else if (player == 2) { board = game->boards[0]; }
+void boardComboGarbage(Game* game, Board* creator, int matchSize) {
+   if (creator->enemies.size() > 1) {
+      for (int i = 0; i < creator->enemies.size(); i++) {
+         if (creator->target == i) { continue; }
+         creator->target = creator->enemies[i];
+      }
+   }
+   else { creator->target = creator->enemies[0]; }
 
-   //4board fix this
-   if (board) {
-      if (player == 1) {
-         _calcComboGarbage(board, matchSize);  //Drop on player 2
-      }
-      else if (player == 2) {
-         _calcComboGarbage(board, matchSize);
-      }
+   if (game->boards[creator->target]) {
+      _calcComboGarbage(game->boards[creator->target], matchSize);
    }
 }
 
-static void _silverClear(Game* game, int size, int player) {
-   //4board fix this
-   Board* board;
-   if (player == 1) { board = game->boards[1]; }
-   else if (player == 2) { board = game->boards[0]; }
+static void _silverClear(Game* game, Board* creator, int size) {
+   if (creator->enemies.size() > 1) {
+      for (int i = 0; i < creator->enemies.size(); i++) {
+         if (creator->target == i) { continue; }
+         creator->target = creator->enemies[i];
+      }
+   }
+   else { creator->target = creator->enemies[0]; }
 
-   if (board) {
+   if (game->boards[creator->target]) {
       int metals = min(size, 7);
       for (int i = 3; i <= size; i++) {  //Drop a bunch of metal
-         garbageCreate(board, 6, 1, true);
+         garbageCreate(game->boards[creator->target], 6, 1, true);
       }
 
       if (size > 3) {  //Extra non-metal garbage
          int width = min(size - 1, 6);
-         garbageCreate(board, width, 1);
+         garbageCreate(game->boards[creator->target], width, 1);
       }
    }
 }
@@ -528,7 +532,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
    }
 
    if (board->game->players > 1 && uniqueMatches.size() > 3) {  //Check for combos in clear
-      boardComboGarbage(board->game, board->team, uniqueMatches.size() );
+      boardComboGarbage(board->game, board, uniqueMatches.size() );
    }
 
    int silvers = 0;
@@ -567,7 +571,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          //todo add score logic here
       }
    }
-   if (silvers > 0 && board->game->players > 1) { _silverClear(board->game, silvers, board->team); }
+   if (silvers > 0 && board->game->players > 1) { _silverClear(board->game, board, silvers); }
 }
 
 //Detects and adjusts all the positions of the tiles that are falling
@@ -733,7 +737,7 @@ void boardRemoveClears(Board* board) {
    }
    if (stillChaining == false) { //No tiles are part of a chain
       if (board->chain > 1) {
-         if (board->game->players > 1) { boardChainGarbage(board->game, board->team, board->chain); }
+         if (board->game->players > 1) { boardChainGarbage(board->game, board, board->chain); }
          boardPauseTime(board, pause_chain, board->chain); 
          board->boardStats.lastChain = board->chain;
          board->boardStats.chainCounts[board->chain] += 1;  //Board Stats

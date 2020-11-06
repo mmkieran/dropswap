@@ -66,6 +66,9 @@ struct Board {
    bool danger = false;
    bool bust = false;
    int chain = 1;
+   std::vector <int> enemies;
+   std::vector <int> allies;
+   int target = -1;
 
    int team = 1;
 
