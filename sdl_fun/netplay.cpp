@@ -318,7 +318,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    }
    else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
       game->players = participants - spectators;
-      result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", participants - spectators, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
+      result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", game->players, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
       return;  //And we're done
    }
    else {  //Start a regular GGPO Session

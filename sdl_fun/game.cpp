@@ -322,7 +322,7 @@ void gameStartMatch(Game* game) {
       Board* board;
 
       int team = 0;
-      if (game->settings.mode == multi_solo) { team = i / 2; }
+      if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
       else if (game->settings.mode == multi_shared) { team = i; }
 
       if (team == myBoard) { board = boardCreate(game, team, 48, 48); }  //Determine board size based on current user
@@ -351,12 +351,11 @@ void gameStartMatch(Game* game) {
             }
          }
          if (game->settings.mode == multi_solo) {
-            for (auto&& p : game->pList) {
-               Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.second.number);
-               board->cursors.push_back(cursor);
-               p.second.board = board;
-               p.second.cursor = cursor;
-            }
+            Player p = game->pList[i + 1];
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.number);
+            board->cursors.push_back(cursor);
+            p.board = board;
+            p.cursor = cursor;
          }
 
          game->boards.push_back(board);
