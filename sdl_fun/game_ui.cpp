@@ -190,21 +190,17 @@ void boardUI(Game* game) {
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Stats
-         ImGui::Text("Player %d", board->team);  //todo player id here
-         ImGui::Text("Last chain: %d", board->boardStats.lastChain);
-         //if (board->game->timer > 0) {
-         //   int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
-         //   ImGui::Text("APM: %d", apm);
-         //}
-         //ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
-         ImGui::Text("Game Time: %d s", game->timer / 1000);
+         if (game->settings.mode == multi_shared) { ImGui::Text("Team %d", board->team); }
+         if (game->settings.mode == multi_solo) { ImGui::Text(game->pList[i].name); }
+         if (game->settings.mode == single_player) { ImGui::Text(game->p.name); }
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
-         ImGui::NewLine();
 
+         //4board todo this doesn't belong here...
          if (board->bust == true && popupStatus(Popup_GameOver) == false ) {
             bustee = board->team;
             popupEnable(Popup_GameOver);
          }
+         //
 
          //Draw the board
          char playerName[30] = "Player";
@@ -217,6 +213,18 @@ void boardUI(Game* game) {
          if (game->fbos[i]) {
             ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
          }
+         ImGui::EndChild();
+
+         char boardStats[30] = "Board Info";
+         sprintf(boardStats, "Player Info %d", i + 1);
+         ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
+         ImGui::Text("Game Time: %d s", game->timer / 1000);
+         ImGui::Text("Last chain: %d", board->boardStats.lastChain);
+         if (board->game->timer > 0) {
+            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
+            ImGui::Text("APM: %d", apm);
+         }
+         ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
 
          if (board->visualEvents[visual_clear].active == true) {
             VisualEvent e = board->visualEvents[visual_clear];
@@ -435,7 +443,7 @@ void onePlayerOptions(Game* game) {
    if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
    if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
-   if (game->debug == true) {
+   if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
       ImGui::Checkbox("Turn On AI", &game->ai);
       ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
 

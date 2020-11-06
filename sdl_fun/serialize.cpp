@@ -184,6 +184,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->bust);
    writeStream(stream, board->chain);
    writeStream(stream, board->team);
+   writeStream(stream, board->target);
    //   GarbagePile* pile = nullptr;
    writeStream(stream, board->seed);
    writeStream(stream, board->randomCalls);
@@ -215,6 +216,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->bust);
    readStream(start, board->chain);
    readStream(start, board->team);
+   readStream(start, board->target);
    //   GarbagePile* pile = nullptr;
    readStream(start, board->seed);
    readStream(start, board->randomCalls);

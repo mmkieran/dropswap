@@ -182,15 +182,15 @@ void boardUpdate(Board* board) {
    garbageFall(board, board->fallSpeed * 1.50 * (board->tileHeight / 64.0) + board->level / 3.0);  //Normalized for tile size of 64
    boardAssignSlot(board, false);
 
-   if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared) {
+   if (board->game->net->syncTest == true) {  //Special logic for sync test
+      for (int i = 0; i < board->cursors.size(); i++) {
+         cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
+      }
+   }
+   else if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared) {
       for (int i = 0; i < board->cursors.size(); i++) {
          int index = board->cursors[i]->index - 1;  //Zero-based player number to lookup inputs from GGPO
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);
-      }
-   }
-   else if (board->game->net->syncTest == true) {  //Special logic for sync test
-      for (int i = 0; i < board->cursors.size(); i++) {
-         cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
       }
    }
    else if (board->game->settings.mode == single_player) {
