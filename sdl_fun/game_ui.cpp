@@ -807,9 +807,6 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
          else { ImGui::Text(sock.name); }
          ImGui::SameLine();
          ImGui::SetCursorPosX(224);
-         int minPNum = 1;
-         ImGui::SliderScalar("Player Number", ImGuiDataType_U32, &game->net->hostSetup[i].pNum, &minPNum, &people[0]);
-         ImGui::SameLine();
          ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
          ImGui::SameLine();
          ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
@@ -823,6 +820,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
       if (ImGui::Button("Start Game")) {
          game->net->participants = people[0];
          game->seed = time(0);
+         int pNum = 1;
          for (int i = 0; i < game->net->participants; i++) {
             SocketInfo sock = getSocket(i - 1);
             if (i == 0) {
@@ -837,6 +835,10 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
             }
             strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
             game->net->hostSetup[i].localPort = 7001 + i;
+            if (game->net->hostSetup[i].playerType == 0) { 
+               game->net->hostSetup[i].pNum = pNum;
+               pNum++;
+            };
          }
          serverStatus = server_send;
       }
