@@ -98,6 +98,7 @@ void mainUI(Game* game) {
    if (game->playing == false) {
       if (ImGui::Button("One Player", ImVec2{ width, 0 })) {
          game->players = 1;
+         game->settings.mode = single_player;
          gameStartMatch(game);
       }
       ImGui::NewLine();

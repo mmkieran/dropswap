@@ -391,8 +391,6 @@ void gameEndMatch(Game* game) {
 
 //Call the draw function for all the boards
 void gameRender(Game* game) {
-   //Remember that this has to happen after ImGui, or the clear will remove everything...
-
    //Play sounds here because of GGPO
    static bool silence = false;
    static bool dangerPlaying = false;
