@@ -744,9 +744,9 @@ void boardRemoveClears(Board* board) {
       }
       board->chain = 1; 
    }
-   //else if (stillChaining == true && board->chain > 1) {
-   //   if (board->pauseLength == 0) { board->pauseLength = 100; board->paused = true; }
-   //}
+   else if (stillChaining == true) {
+      if (board->pauseLength < 50) { board->pauseLength = 50; board->paused = true; }
+   }
    if (stillClearedTiles == true) { board->waitForClear = true; }
    else { board->waitForClear = false; }
    return;

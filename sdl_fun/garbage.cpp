@@ -9,7 +9,6 @@
 
 #include <assert.h>
 
-//#define DEPLOYTIME 3000
 #define SHAKETIME 100
 
 void garbageClear(Board* board, std::map <int, Garbage*> cleared);
@@ -360,7 +359,7 @@ void garbageFall(Board* board, double velocity) {
 
             if (potentialDrop <= 0) {  
                drop = 0;
-               garbage->falling = false;
+               if (below->falling == false) { garbage->falling = false; }
                break;
             }
             else if (potentialDrop < drop) {  //It can fall a little bit further
@@ -379,17 +378,15 @@ void garbageFall(Board* board, double velocity) {
                   tile->ypos += drop;
                }
             }
+         }
+         if (garbage->falling == false) {  
+            if (garbage->totalFall > board->tileHeight * 2 - 0.00001) {  //Landing
+               board->game->soundToggles[sound_crashland] = true;
+               boardPauseTime(board, pause_crashland);
 
-            if (drop + 0.00001 < velocity) {  //Landing
-               if (garbage->totalFall > board->tileHeight - 0.00001) {
-                  board->game->soundToggles[sound_crashland] = true; 
-                  boardPauseTime(board, pause_crashland);
-
-                  boardEnableVisual(board, visual_shake, SHAKETIME);
-               }
-               garbage->totalFall = 0;
-               garbage->falling = false;
+               boardEnableVisual(board, visual_shake, SHAKETIME);
             }
+            garbage->totalFall = 0;
          }
       }
    }
