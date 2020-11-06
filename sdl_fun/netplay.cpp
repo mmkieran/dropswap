@@ -766,7 +766,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          break;
       case client_received:
          readGameData();
-         for (int i = 0; i < game->players; i++) {
+         for (int i = 0; i < game->net->participants; i++) {
             if (strcmp(game->net->hostSetup[i].name, game->p.name) == 0) {
                game->net->hostSetup[i].me = true;
             }
