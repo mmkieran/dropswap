@@ -128,9 +128,9 @@ void mainUI(Game* game) {
 }
 
 //The popup window that shows a summary of a game after bust
-static void _gameResults(Game* game, int bustee) {
+static void _gameResults(Game* game) {
    ImGui::PushFont(game->fonts[20]);
-   ImGui::Text("Player %d lost or something...", bustee);
+   ImGui::Text("Player %d lost or something...", game->busted);
    ImGui::NewLine();
 
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
@@ -181,7 +181,6 @@ void boardUI(Game* game) {
          return;
       }
 
-      static int bustee = 0;
       ImGuiStyle style = ImGui::GetStyle();
       for (int i = 0; i < game->boards.size(); i++) {
          Board* board = game->boards[i];
@@ -189,18 +188,11 @@ void boardUI(Game* game) {
          sprintf(playerInfo, "Player Info %d", i + 1);
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
-         //Board Stats
+         //Board Header
          if (game->settings.mode == multi_shared) { ImGui::Text("Team %d", board->team); }
          if (game->settings.mode == multi_solo) { ImGui::Text(game->pList[i].name); }
          if (game->settings.mode == single_player) { ImGui::Text(game->p.name); }
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
-
-         //4board todo this doesn't belong here...
-         if (board->bust == true && popupStatus(Popup_GameOver) == false ) {
-            bustee = board->team;
-            popupEnable(Popup_GameOver);
-         }
-         //
 
          //Draw the board
          char playerName[30] = "Player";
@@ -215,6 +207,7 @@ void boardUI(Game* game) {
          }
          ImGui::EndChild();
 
+         //More Board Stats
          char boardStats[30] = "Board Info";
          sprintf(boardStats, "Player Info %d", i + 1);
          ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
@@ -253,6 +246,9 @@ void boardUI(Game* game) {
       ImGui::PopFont();
 
       //Game over popup
+      if (game->busted != -1 && popupStatus(Popup_GameOver) == false) {
+         popupEnable(Popup_GameOver);
+      }
       if (popupOpen(Popup_GameOver) == true) { 
          ImGui::SetNextWindowSize({ 600, 500 });
          ImGui::OpenPopup("Game Over"); 
@@ -260,7 +256,7 @@ void boardUI(Game* game) {
       }
       if (ImGui::BeginPopupModal("Game Over") ) {
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
-         _gameResults(game, bustee);
+         _gameResults(game);
          ImGui::EndPopup();
       }
 

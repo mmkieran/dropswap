@@ -250,14 +250,23 @@ Move players cursor to remaining board
 
 //Check the boards to see if it's game over
 bool gameCheckBust(Game* game) {
-   int teams[2] = { 0 , 0 };
-   for (int i = 0; i < game->boards.size(); i++) {
-      if (game->boards[i]->bust == true) {
-         teams[game->boards[i]->team] += 1;
-         return true;
+   if (game->busted == -1) {
+      int dead[2] = { 0 , 0 };
+      int total[2] = { 0 , 0 };
+      for (int i = 0; i < game->boards.size(); i++) {
+         total[game->boards[i]->team] += 1;
+         if (game->boards[i]->bust == true) {
+            dead[game->boards[i]->team] += 1;
+         }
       }
+      for (int i = 0; i < 2; i++) {
+         if (total[i] == dead[i] && total[i] != 0) { 
+            game->busted = i;
+            return true;
+         }
+      }
+      return false;
    }
-   return false;
 }
 
 //Detect if any player paused the game
@@ -277,6 +286,7 @@ void gameUpdate(Game* game) {
    if (game->playing == false || game->paused == true) { return; }
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i] == nullptr) { continue; }
+      if (game->boards[i]->bust == true) { continue; }
       boardUpdate(game->boards[i]);
    }
    game->frameCount++;
@@ -399,6 +409,7 @@ void gameEndMatch(Game* game) {
    game->paused = false;
    game->frameCount = 0;
    game->timer = 0;
+   game->busted = -1;
    soundsStopAll();
    if (game->players > 1) {
       ggpoEndSession(game);

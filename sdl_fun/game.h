@@ -137,7 +137,7 @@ struct Game {
    std::map < int, std::vector <Board*> > teams;
    int players = 1;
    bool playing = false;
-   bool busted = false;
+   int busted = -1;
    bool paused = false;
    int timer = 0;
 };

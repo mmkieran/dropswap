@@ -432,6 +432,7 @@ void boardComboGarbage(Game* game, Board* creator, int matchSize) {
    }
 }
 
+//Drops metal garbage on the player depending on size
 static void _silverClear(Game* game, Board* creator, int size) {
    if (creator->enemies.size() > 1) {
       for (int i = 0; i < creator->enemies.size(); i++) {
