@@ -361,15 +361,20 @@ void boardSwap(Board* board, Cursor* cursor) {
    return;
 }
 
-//Dumps garbage on the other player depending on chain size
-void boardChainGarbage(Game* game, Board* creator, int chain) {
-   if (creator->enemies.size() > 1) {
-      for (int i = 0; i < creator->enemies.size(); i++) {
-         if (creator->target == i) { continue; }
-         creator->target = creator->enemies[i];
+static void _boardTarget(Board* board) {
+   if (board->enemies.size() > 1) {
+      for (int i = 0; i < board->enemies.size(); i++) {
+         if (board->game->boards[board->enemies[i]]->bust == true) { board->enemies.erase(board->enemies.begin() + i); }
+         if (board->target == i) { continue; }
+         board->target = board->enemies[i];
       }
    }
-   else { creator->target = creator->enemies[0]; }
+   else { board->target = board->enemies[0]; }
+}
+
+//Dumps garbage on the other player depending on chain size
+void boardChainGarbage(Game* game, Board* creator, int chain) {
+   _boardTarget(creator);
 
    if (game->boards[creator->target]) {
       int gWidth = 6;
@@ -419,13 +424,7 @@ static void _calcComboGarbage(Board* board, int matchSize) {
 
 //Dumps garbage on the other player depending on match size
 void boardComboGarbage(Game* game, Board* creator, int matchSize) {
-   if (creator->enemies.size() > 1) {
-      for (int i = 0; i < creator->enemies.size(); i++) {
-         if (creator->target == i) { continue; }
-         creator->target = creator->enemies[i];
-      }
-   }
-   else { creator->target = creator->enemies[0]; }
+   _boardTarget(creator);
 
    if (game->boards[creator->target]) {
       _calcComboGarbage(game->boards[creator->target], matchSize);
@@ -434,13 +433,7 @@ void boardComboGarbage(Game* game, Board* creator, int matchSize) {
 
 //Drops metal garbage on the player depending on size
 static void _silverClear(Game* game, Board* creator, int size) {
-   if (creator->enemies.size() > 1) {
-      for (int i = 0; i < creator->enemies.size(); i++) {
-         if (creator->target == i) { continue; }
-         creator->target = creator->enemies[i];
-      }
-   }
-   else { creator->target = creator->enemies[0]; }
+   _boardTarget(creator);
 
    if (game->boards[creator->target]) {
       int metals = min(size, 7);
