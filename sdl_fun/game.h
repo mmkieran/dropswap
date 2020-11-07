@@ -102,6 +102,10 @@ struct GameSettings {
    std::vector <unsigned char> save;
 };
 
+struct GameState {
+
+};
+
 //@@Start Serialize
 struct Game {
    bool winsockRunning = false;                    //Is Windows Sockets running... required for GGPO and game transfer
@@ -116,30 +120,26 @@ struct Game {
    Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
    std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
    int sounds = 0;                                 //Game sound toggle (0 is disabled)
+   bool isRunning = false;                         //Used in main application loop
+   KeepTime kt;                                    //Structure to keep SDL ticks and calculate elapsed time
+   int frameCount = 0;                             //How many frames have we done
+   bool debug = false;                             //Toggle to show debug tools and options
+   uint64_t seed = 0;                              //Holds the random number seed given to each board
 
    Player p;
-   std::map <int, Player> pList;
-   std::map < int, std::vector <Board*> > teams;
    GameTimings timings;
    GameSettings settings;
 
    bool ai = false;                            
    int aiDelay[3] = { 4, 1, 10 };                  //The AI takes an action every x frames
 
-   bool isRunning = false;                         //Used in main application loop
-
+   std::map <int, Player> pList;
+   std::map < int, std::vector <Board*> > teams;
    int players = 1;
    bool playing = false;
-
+   bool busted = false;
    bool paused = false;
-
-   bool debug = false;                             //Toggle to show debug tools and options
-   int frameCount = 0; 
-
    int timer = 0;
-   KeepTime kt;
-
-   uint64_t seed = 0;                           //used for random number generation
 };
 //@@End Serialize
 

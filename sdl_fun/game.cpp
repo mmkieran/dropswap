@@ -250,8 +250,10 @@ Move players cursor to remaining board
 
 //Check the boards to see if it's game over
 bool gameCheckBust(Game* game) {
+   int teams[2] = { 0 , 0 };
    for (int i = 0; i < game->boards.size(); i++) {
       if (game->boards[i]->bust == true) {
+         teams[game->boards[i]->team] += 1;
          return true;
       }
    }
