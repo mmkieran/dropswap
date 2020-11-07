@@ -65,6 +65,13 @@ struct GameTimings {
    int deployTime[3] = { 3000, 0, 5000 };      //How long does it take for garbage to be placed on the board
 };
 
+struct User {
+   char name[30];
+   int level = 1;                //Selected board level
+   int number = 1;               //1 based player number (GGPO handle in multi)
+   int wins = 0;
+};
+
 //Information about the player
 struct Player {
    char name[30];
@@ -74,7 +81,6 @@ struct Player {
    Board* board = nullptr;
    Cursor* cursor = nullptr;
    bool dead = false;
-   int wins = 0;
    UserInput input;              //Holds the local inputs for the user
 };
 
@@ -98,18 +104,18 @@ struct GameSettings {
 
 //@@Start Serialize
 struct Game {
-   bool winsockRunning = false;                //Is Windows Sockets running... required for GGPO and game transfer
-   GameWindow* sdl = nullptr;                  //SDL Window pointer
-   float windowWidth;                          //SDL Window width
-   float windowHeight;                         //SDL Window height
-   int vsync = -1;                             //Instead of frame delay use vsync to match monitor refresh rate (-1 is no)
-   std::vector <FBO*> fbos;                    //FBOs are used to draw the board to a texture
-   NetPlay* net;                               //Used for multiplayer    
-   std::map <int, ImFont*> fonts;              //ImGui fonts stored by their size in the map
-   std::vector <Board*> boards;                //Boards for all players
-   Resources* resources = nullptr;             //Resources for the game like textures, sounds, and files
-   std::map <SoundEffect, bool> soundToggles;  //Map of all the sounds and whether they are playing
-   int sounds = 0;                             //Game sound toggle (0 is disabled)
+   bool winsockRunning = false;                    //Is Windows Sockets running... required for GGPO and game transfer
+   GameWindow* sdl = nullptr;                      //SDL Window pointer
+   float windowWidth;                              //SDL Window width
+   float windowHeight;                             //SDL Window height
+   int vsync = -1;                                 //Instead of frame delay use vsync to match monitor refresh rate (-1 is no)
+   std::vector <FBO*> fbos;                        //FBOs are used to draw the board to a texture
+   NetPlay* net;                                   //Used for multiplayer    
+   std::map <int, ImFont*> fonts;                  //ImGui fonts stored by their size in the map
+   std::vector <Board*> boards;                    //Boards for all players
+   Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
+   std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
+   int sounds = 0;                                 //Game sound toggle (0 is disabled)
 
    Player p;
    std::map <int, Player> pList;
@@ -118,22 +124,22 @@ struct Game {
    GameSettings settings;
 
    bool ai = false;                            
-   int aiDelay[3] = { 4, 1, 10 };              //The AI takes an action every x frames
+   int aiDelay[3] = { 4, 1, 10 };                  //The AI takes an action every x frames
 
-   bool isRunning = false;                     //Used in main application loop
+   bool isRunning = false;                         //Used in main application loop
 
    int players = 1;
    bool playing = false;
 
    bool paused = false;
 
-   bool debug = false;                          //Toggle to show debug tools and options
+   bool debug = false;                             //Toggle to show debug tools and options
    int frameCount = 0; 
 
    int timer = 0;
    KeepTime kt;
 
-   uint64_t seed = 0;  //used for random number generation
+   uint64_t seed = 0;                           //used for random number generation
 };
 //@@End Serialize
 

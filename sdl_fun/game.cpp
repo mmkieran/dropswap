@@ -242,6 +242,12 @@ void gameHandleEvents(Game* game) {
 
 }
 
+/* bustup
+Check all the boards for each team and see if one is busted
+If it is busted, stop updating and change the tiles to garbage
+Move players cursor to remaining board
+*/
+
 //Check the boards to see if it's game over
 bool gameCheckBust(Game* game) {
    for (int i = 0; i < game->boards.size(); i++) {
@@ -282,13 +288,6 @@ void gameSinglePlayer(Game* game) {
    if (game->ai == true) { gameAI(game); }  
    gameCheckPause(game, game->p.input);
    gameUpdate(game);
-}
-
-void _createPlayers(Game* game) {
-   for (int i = 0; i < game->players; i++) {
-      game->net->hostSetup[i];
-   }
-
 }
 
 //Create the boards and set playing to true
@@ -333,7 +332,7 @@ void gameStartMatch(Game* game) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
          boardFillTiles(board);
-         game->teams[team].push_back(board);
+         game->teams[team].push_back(board);  //todo do we need this?
 
          //Create the cursor and assign to board
          float cursorX = (float)(game->settings.bWidth / 2 - 1) * board->tileWidth;
