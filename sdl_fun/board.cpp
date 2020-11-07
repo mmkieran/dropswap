@@ -364,9 +364,11 @@ void boardSwap(Board* board, Cursor* cursor) {
 static void _boardTarget(Board* board) {
    if (board->enemies.size() > 1) {
       for (int i = 0; i < board->enemies.size(); i++) {
-         if (board->game->boards[board->enemies[i]]->bust == true) { board->enemies.erase(board->enemies.begin() + i); }
-         if (board->target == i) { continue; }
+         //if (board->game->boards[board->enemies[i]]->bust == true) { board->enemies.erase(board->enemies.begin() + i); }
+         if (board->game->boards[board->enemies[i]]->bust == true) { continue; }
+         if (board->target == board->enemies[i]) { continue; }
          board->target = board->enemies[i];
+         break;
       }
    }
    else { board->target = board->enemies[0]; }

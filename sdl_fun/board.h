@@ -66,7 +66,7 @@ struct Board {
    bool danger = false;
    bool bust = false;
    int chain = 1;
-   std::vector <int> enemies;
+   std::vector <int> enemies;  //Index of used to access a board in game->boards
    std::vector <int> allies;
    int target = -1;
 
