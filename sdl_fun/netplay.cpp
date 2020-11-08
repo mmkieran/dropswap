@@ -467,6 +467,7 @@ void ggpoEndSession(Game* game) {
       game->net->timeSync = 0;
       game->net->participants = 0;
       game->net->messages.clear();
+      //memset(&game->net->hostSetup[0], 0, sizeof(SessionInfo) * GAME_MAX_PLAYERS);
    }
 }
 
@@ -672,6 +673,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
          if (tcpHostListen(port) == true) { 
             status = server_listening; 
             myID = sockRandomID(game->p.name);
+            memcpy(&sockets[-1].id[0], myID.data(), sizeof(Byte) * 32);
          }
          else {
             status = server_none;
@@ -693,7 +695,8 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
                if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
                else {
                   sockets[i].status = sock_received;
-                  strcpy(sockets[i].name, sockets[i].recBuff);
+                  memcpy(&sockets[i].id[0], (unsigned char*)sockets[i].recBuff, sizeof(Byte) * 32);
+                  strcpy(sockets[i].name, &sockets[i].recBuff[32]);  //The leftover is the name
                   game->net->messages.push_back("Player connected");
                }
             }
@@ -766,7 +769,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          }
          break;
       case client_connected:
-         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //randomid
+         if (sendMsg(sockets[-1].sock, (char*)myID.data(), myID.size() ) == true) { status = client_sent; }  
          break;
       case client_sent:
          if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { status = client_received; }
@@ -774,9 +777,10 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
       case client_received:
          readGameData();
          for (int i = 0; i < game->net->participants; i++) {
-            if (strcmp(game->net->hostSetup[i].name, game->p.name) == 0) {
+            if (memcmp(&game->net->hostSetup[i].id[0], &myID[0], 32 ) == 0) {  
                game->net->hostSetup[i].me = true;
             }
+            else { game->net->hostSetup[i].me = false; }
          }
          game->net->messages.push_back("Game data received and loaded.");
          game->net->messages.push_back("Hit Start when ready.");

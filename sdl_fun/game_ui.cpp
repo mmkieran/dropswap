@@ -834,7 +834,9 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
             else {
                strcpy(game->net->hostSetup[i].name, sock.name);
                game->net->hostSetup[i].host = false;
+               game->net->hostSetup[i].me = false;
             }
+            memcpy(&game->net->hostSetup[i].id, sock.id, 32);
             strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
             game->net->hostSetup[i].localPort = 7001 + i;
             if (game->net->hostSetup[i].playerType == 0) { 

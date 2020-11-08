@@ -36,6 +36,7 @@ struct SessionInfo {
    int playerType = 0;                    //GGPO Player Type, 0 is player and 1 is spectator
    char ipAddress[32] = "127.0.0.1";      //GGPO IP address
    char name[30] = { 0 };                 //Player name
+   unsigned char id[32];                  //Player's random (hopefully unique) id
    int pNum = 1;                          //GGPO Player Number
    int team = 0;                          //Team represents what board you control
 };
@@ -98,7 +99,7 @@ enum SocketStatus {
 //Socket structures for winsocks
 struct SocketInfo {
    char name[30];                        //Player name used to identify socket
-   std::vector <Byte> id;                //A randomly generated id from the client
+   unsigned char id[32];                 //A randomly generated id from the client
    SOCKET sock = { 0 };                  //Integer id for the socket
    sockaddr_in address = { 0 };          //Information about the socket such as address and port
    char recBuff[BUFFERLEN];              //Buffer used to receive messages
