@@ -359,7 +359,8 @@ void garbageFall(Board* board, double velocity) {
 
             if (potentialDrop <= 0) {  
                drop = 0;
-               if (below->falling == false) { garbage->falling = false; }
+               below = boardGetTile(board, row + 1, i);
+               if (below && below->falling == false) { garbage->falling = false; }
                break;
             }
             else if (potentialDrop < drop) {  //It can fall a little bit further
