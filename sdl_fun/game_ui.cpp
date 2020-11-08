@@ -130,18 +130,23 @@ void mainUI(Game* game) {
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushFont(game->fonts[20]);
-   ImGui::Text("Player %d lost or something...", game->busted);
+   ImGui::Text("Team %d lost or something...", game->busted);
    ImGui::NewLine();
 
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
    float width = ImGui::GetContentRegionAvailWidth();
    ImVec2 wSize = ImGui::GetWindowSize();
    float cursorY = ImGui::GetCursorPosY();
-   for (auto&& board : game->boards) {
+   for (int i = 0; i < game->boards.size(); i++) {
+      Board* board = game->boards[i];
       char playerName[20] = "Player";
-      sprintf(playerName, "Player %d", board->team);
+      if (game->settings.mode == multi_shared) {
+         //sprintf(playerName, "Player %d", board->team);
+      }
+      else { sprintf(playerName, "Player %d", game->pList[i].number); }
       ImGui::BeginChild(playerName, { width / game->boards.size(), (wSize.y - cursorY) * 0.9f });
-      ImGui::Text("Player: %d", board->team);
+      ImGui::Text("Team: %d", board->team);
+      ImGui::Text(game->pList[i].name);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
       int danger = board->boardStats.dangeresque / 60.0f;

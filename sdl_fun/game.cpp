@@ -242,12 +242,6 @@ void gameHandleEvents(Game* game) {
 
 }
 
-/* bustup
-Check all the boards for each team and see if one is busted
-If it is busted, stop updating and change the tiles to garbage
-Move players cursor to remaining board
-*/
-
 //Check the boards to see if it's game over
 bool gameCheckBust(Game* game) {
    if (game->busted == -1) {
