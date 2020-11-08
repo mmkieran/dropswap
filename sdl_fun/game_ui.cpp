@@ -141,12 +141,12 @@ static void _gameResults(Game* game) {
       Board* board = game->boards[i];
       char playerName[20] = "Player";
       if (game->settings.mode == multi_shared) {
-         //sprintf(playerName, "Player %d", board->team);
+         sprintf(playerName, "Team %d", board->team);
       }
-      else { sprintf(playerName, "Player %d", game->pList[i].number); }
+      else { sprintf(playerName, "Player %d", game->pList[i + 1].number); }
       ImGui::BeginChild(playerName, { width / game->boards.size(), (wSize.y - cursorY) * 0.9f });
       ImGui::Text("Team: %d", board->team);
-      ImGui::Text(game->pList[i].name);
+      ImGui::Text(game->pList[i + 1].name);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
       int danger = board->boardStats.dangeresque / 60.0f;
@@ -880,7 +880,7 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
    if (clientStatus >= client_received) {
       float width = ImGui::GetContentRegionAvailWidth();
       for (int i = 0; i < game->net->participants; i++) {
-         ImGui::BeginChild(game->net->hostSetup[i].name, { width / game->net->participants, 200 });
+         ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
          ImGui::Text(game->net->hostSetup[i].name);
          ImGui::Text(game->net->hostSetup[i].ipAddress);
          ImGui::Text("Host: %d", game->net->hostSetup[i].host);
@@ -921,11 +921,6 @@ void multiplayerUI(Game* game, bool* p_open) {
          showDebugConn = true;
       }
       if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
-
-      if (ImGui::Button("Test Random Name")) {
-         char testName[30] = "Kieran";
-         sockRandomID(testName);      
-      }
    }
 
    static bool isServer = false;
@@ -934,21 +929,22 @@ void multiplayerUI(Game* game, bool* p_open) {
    static int people[3] = { 2, 2, 4 };
 
    ImGui::Checkbox("Host a Game", &isServer);
+   ImGui::NewLine();
+   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
    static int mode = 0;
 
    if (isServer == true) {
-      ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-      game->settings.mode = (GameMode)mode;
-
       ImGui::NewLine();
-
       if (ImGui::CollapsingHeader("Board Setup")) {
+         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+         game->settings.mode = (GameMode)mode;
          ImGui::InputInt("Board Width", &game->settings.bWidth);
          ImGui::InputInt("Board Height", &game->settings.bHeight);
+         ImGui::Checkbox("I AM A ROBOT", &game->ai);
          ImGui::NewLine();
       }
 
-      if (ImGui::CollapsingHeader("GGPO Options")) { //todo send this with game info
+      if (ImGui::CollapsingHeader("GGPO Options")) { 
          ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
          ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
          ImGui::NewLine();
@@ -956,7 +952,6 @@ void multiplayerUI(Game* game, bool* p_open) {
    }
 
    ImGui::NewLine();
-   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
    if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
    if (isServer == true) {
       ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
