@@ -52,6 +52,7 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->players);
    writeStream(stream, game->playing);
    writeStream(stream, game->paused);
+   writeStream(stream, game->busted);
    writeStream(stream, game->frameCount);
    writeStream(stream, game->timer);
    writeStream(stream, game->seed);
@@ -71,6 +72,7 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->players);
    readStream(start, game->playing);
    readStream(start, game->paused);
+   readStream(start, game->busted);
    readStream(start, game->frameCount);
    readStream(start, game->timer);
    readStream(start, game->seed);
@@ -127,6 +129,41 @@ void _boardStatsSerialize(std::vector <Byte>& stream, Board* board) {
          writeStream(stream, pair.first);
          writeStream(stream, pair.second);
       }
+   }
+}
+
+void _boardAlliesSerialize(std::vector <Byte>& stream, Board* board) {
+   int count = board->allies.size();
+   writeStream(stream, count);
+   for (auto&& ally : board->allies) {
+      writeStream(stream, ally);
+   }
+
+   count = 0;
+   count = board->enemies.size();
+   writeStream(stream, count);
+   for (auto&& enemy : board->enemies) {
+      writeStream(stream, enemy);
+   }
+}
+
+void _boardAlliesDeserialize(Byte*& start, Board* board) {
+   int count = 0;
+   readStream(start, count);
+   board->allies.clear();
+   for (int i = 0; i < count; i++) {
+      int ally;
+      readStream(start, ally);
+      board->allies.push_back(ally);
+   }
+
+   count = 0;
+   readStream(start, count);
+   board->enemies.clear();
+   for (int i = 0; i < count; i++) {
+      int enemy;
+      readStream(start, enemy);
+      board->enemies.push_back(enemy);
    }
 }
 
@@ -190,6 +227,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->randomCalls);
    _boardStatsSerialize(stream, board);
    _boardVisualSerialize(stream, board);
+   _boardAlliesSerialize(stream, board);
 }
 
 void _boardDeserialize(Byte* &start, Board* board) {
@@ -222,6 +260,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->randomCalls);
    _boardStatsDeserialize(start, board);
    _boardVisualDeserialize(start, board);
+   _boardAlliesDeserialize(start, board);
 }
 
 //Below are special deserializers for Tile enums
