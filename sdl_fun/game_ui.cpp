@@ -771,12 +771,13 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-ServerStatus serverStatus = server_none;
-ClientStatus clientStatus = client_none;
-std::thread serverThread;
-std::thread clientThread;
-bool clientRunning = false;
-bool serverRunning = false;
+//Globals used by TCP transfer threads
+ServerStatus serverStatus = server_none;     //What stage of the game info transfer is the server in
+ClientStatus clientStatus = client_none;     //What stage of the game info transfer is the client in
+std::thread serverThread;                    //Is the server thread handle
+std::thread clientThread;                    //Is the client thread handle
+bool clientRunning = false;                  //Is the client thread running
+bool serverRunning = false;                  //Is the server thread running
 
 static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
    //This code is for the server
@@ -912,11 +913,18 @@ void multiplayerUI(Game* game, bool* p_open) {
       return;
    }
 
-   static bool showDebugConn = false;
-   if (ImGui::Button("Show Conn State")) {
-      showDebugConn = true;
+   if (game->debug == true) {
+      static bool showDebugConn = false;
+      if (ImGui::Button("Show Conn State")) {
+         showDebugConn = true;
+      }
+      if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
+
+      if (ImGui::Button("Test Random Name")) {
+         char testName[30] = "Kieran";
+         sockRandomID(testName);      
+      }
    }
-   if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
 
    static bool isServer = false;
    static bool connectStats = false;

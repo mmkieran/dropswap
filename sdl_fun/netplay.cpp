@@ -2,9 +2,8 @@
 #include "netplay.h"
 
 #include <time.h>
-#include <string>
 #include <thread>
-#include <chrono>
+#include <random>
 
 #include "imgui/imgui.h"
 
@@ -20,17 +19,22 @@ IGDdatas upnp_data;
 char aLanAddr[64];
 u_short sessionPort = 7001;
 
-////Globals used by TCP sockets
-int connections = 0;  //How many accepted connections do we have
-std::vector <Byte> matchInfo;  //Vector to store saved game data
-std::map <int, SocketInfo> sockets;  //Connections between host and player... -1 is the listening/connecting socket
-std::map <unsigned short, bool> tcpPorts = { {7000, false}, {7001, false}, {7002, false}, {7003, false}, {7004, false}, {7005, false} };
+//Globals used by TCP sockets
+int connections = 0;                               //How many accepted connections do we have
+std::vector <Byte> matchInfo;                      //Vector to store saved game data
+std::map <int, SocketInfo> sockets;                //Connections between host and player... -1 is the listening/connecting socket
+std::map <unsigned short, bool> tcpPorts = {       //List of potential TCP ports and if they are open for UPNP
+   {7000, false}, {7001, false}, {7002, false}, 
+   {7003, false}, {7004, false}, {7005, false},
+};
+std::vector <Byte> myID;                           //Randomly generated ID for the current user
 
-#define NETLOG false
-FILE* dsLog;
-bool logOpen = false;
+#define NETLOG false                               //Creates a log file in dropswap/saves for TCP connection issues
+FILE* dsLog = nullptr;                             //Handle for the log file
+bool logOpen = false;                              //Is the log file currently open (todo not used currently)
 
-extern Game* game;  //I dunno how I feel about this
+extern Game* game;                                 //Used to access the game pointer from Main.. I dunno how I feel about this
+
 
 static void readGameData();
 int fletcher32_checksum(short* data, size_t len);
@@ -665,7 +669,10 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
          running = false;
          break;
       case server_started:
-         if (tcpHostListen(port) == true) { status = server_listening; }
+         if (tcpHostListen(port) == true) { 
+            status = server_listening; 
+            myID = sockRandomID(game->p.name);
+         }
          else {
             status = server_none;
             running = false;
@@ -741,7 +748,10 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          running = false;
          break;
       case client_started:
-         if (tcpClientStartup(port, ip) == true) { status = client_connecting; }
+         if (tcpClientStartup(port, ip) == true) { 
+            status = client_connecting; 
+            myID = sockRandomID(name);
+         }
          else {
             status = client_none;
             running = false;
@@ -756,7 +766,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          }
          break;
       case client_connected:
-         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //30 is the size of player name
+         if (sendMsg(sockets[-1].sock, name, strlen(name)) == true) { status = client_sent; }  //randomid
          break;
       case client_sent:
          if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { status = client_received; }
@@ -820,4 +830,25 @@ void _connectionInfo() {
       ImGui::Text("GGPO is running");
 
    }
+}
+
+//Initialize the random number generator
+std::vector <Byte> sockRandomID(const char* name) {
+   std::vector <Byte> stream;
+   std::default_random_engine gen( time(0) );
+   std::uniform_int_distribution <int> dist(0, 255);  //Generate a random unsigned char
+
+   for (int i = 0; i < 32; i++) {
+      int val = dist(gen);
+      stream.push_back(val);
+   }
+   //Write the name to the end of the stream
+   int len = strlen(name);
+   int oldSize = stream.size();
+   int newSize = oldSize + sizeof(Byte) * (len + 1);  //Add one for the \0 char to end string
+   stream.resize(newSize);
+   auto writeLocation = stream.data() + oldSize;
+   memcpy(writeLocation, name, sizeof(Byte) * (len + 1));
+
+   return stream;
 }

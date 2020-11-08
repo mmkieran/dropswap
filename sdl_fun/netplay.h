@@ -98,6 +98,7 @@ enum SocketStatus {
 //Socket structures for winsocks
 struct SocketInfo {
    char name[30];                        //Player name used to identify socket
+   std::vector <Byte> id;                //A randomly generated id from the client
    SOCKET sock = { 0 };                  //Integer id for the socket
    sockaddr_in address = { 0 };          //Information about the socket such as address and port
    char recBuff[BUFFERLEN];              //Buffer used to receive messages
@@ -121,6 +122,7 @@ void tcpCloseConnections();
 void tcpCleanup();
 void tcpReset();
 SocketInfo getSocket(int index);
+std::vector <Byte> sockRandomID(const char* name);
 void _connectionInfo();
 
 void upnpStartup(Game* game);
