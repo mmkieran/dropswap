@@ -616,6 +616,7 @@ void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
       writeStream(stream, game->net->hostSetup[i].pNum);
       writeStream(stream, game->net->hostSetup[i].team);
       writeStream(stream, game->net->hostSetup[i].id);
+      writeStream(stream, game->net->hostSetup[i].level);
 
       writeStream(stream, game->net->frameDelay[0]);
       writeStream(stream, game->net->disconnectTime[0]);
@@ -644,6 +645,7 @@ void deserializeGameSetup(Game* game, Byte*& start) {
       readStream(start, game->net->hostSetup[i].pNum);
       readStream(start, game->net->hostSetup[i].team);
       readStream(start, game->net->hostSetup[i].id);
+      readStream(start, game->net->hostSetup[i].level);
 
       readStream(start, game->net->frameDelay[0]);
       readStream(start, game->net->disconnectTime[0]);

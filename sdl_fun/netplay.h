@@ -39,6 +39,7 @@ struct SessionInfo {
    unsigned char id[32];                  //Player's random (hopefully unique) id
    int pNum = 1;                          //GGPO Player Number
    int team = 0;                          //Team represents what board you control
+   int level = 5;                    //Player handicap (level) for the board
 };
 
 struct NetPlay {
@@ -99,7 +100,6 @@ enum SocketStatus {
 //Socket structures for winsocks
 struct SocketInfo {
    char name[30];                        //Player name used to identify socket
-   unsigned char id[32];                 //A randomly generated id from the client
    SOCKET sock = { 0 };                  //Integer id for the socket
    sockaddr_in address = { 0 };          //Information about the socket such as address and port
    char recBuff[BUFFERLEN];              //Buffer used to receive messages

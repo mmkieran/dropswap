@@ -67,7 +67,7 @@ struct GameTimings {
 
 struct User {
    char name[30];
-   int level = 1;                //Selected board level
+   int level = 5;                //Selected board level
    int number = 1;               //1 based player number (GGPO handle in multi)
    int wins = 0;
 };
@@ -75,7 +75,7 @@ struct User {
 //Information about the player
 struct Player {
    char name[30];
-   int level = 1;                //Selected board level
+   int level = 5;                //Selected board level
    int number = 1;               //1 based player number (GGPO handle in multi)
    int team = 0;                 //0 is One and 1 is Two
    Board* board = nullptr;

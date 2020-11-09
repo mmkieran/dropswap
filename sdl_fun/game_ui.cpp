@@ -825,21 +825,24 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
          int pNum = 1;
          for (int i = 0; i < game->net->participants; i++) {
             SocketInfo sock = getSocket(i - 1);
-            if (i == 0) {
+            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
+            game->net->hostSetup[i].localPort = 7001 + i;
+            if (i == 0) {  //This connection is the host
                strcpy(game->net->hostSetup[i].name, game->p.name);
                game->net->hostSetup[i].host = true;
                game->net->hostSetup[i].me = true;
+               game->net->hostSetup[i].level = game->p.level;
                strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
             }
-            else {
-               strcpy(game->net->hostSetup[i].name, sock.name);
+            else {  //All the other players
+               memcpy(&game->net->hostSetup[i].id, (unsigned char*)sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
+               memcpy(&game->net->hostSetup[i].level, (unsigned char*)sock.recBuff[32], sizeof(int));  //Get client board level from message
+               strcpy(game->net->hostSetup[i].name, &sock.recBuff[32 + sizeof(int)]);  //The leftover is the name
                game->net->hostSetup[i].host = false;
                game->net->hostSetup[i].me = false;
+               //We figure out "me" on the client recieving side
             }
-            memcpy(&game->net->hostSetup[i].id, sock.id, 32);
-            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
-            game->net->hostSetup[i].localPort = 7001 + i;
-            if (game->net->hostSetup[i].playerType == 0) { 
+            if (game->net->hostSetup[i].playerType == 0) { //Only players get a number
                game->net->hostSetup[i].pNum = pNum;
                pNum++;
             };
@@ -887,13 +890,14 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
          ImGui::Text("Me: %d", game->net->hostSetup[i].me);
          ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
          ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+         ImGui::Text("Level: %d", game->net->hostSetup[i].level);
          ImGui::EndChild();
          if (i + 1 != game->net->participants) { ImGui::SameLine(); }
       }
       if (ImGui::Button("Start Game")) {
          for (int i = 0; i < game->net->participants; i++) {
             if (i == 0) {
-               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);
+               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);  //Use the IP we used to connect to the host
             }
          }
          clientStatus = client_loaded;
@@ -931,9 +935,12 @@ void multiplayerUI(Game* game, bool* p_open) {
    ImGui::Checkbox("Host a Game", &isServer);
    ImGui::NewLine();
    ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
-   static int mode = 0;
+   int minBoardLevel = 0;
+   int maxBoardLevel = 10;
+   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
 
    if (isServer == true) {
+      static int mode = 0;
       ImGui::NewLine();
       if (ImGui::CollapsingHeader("Board Setup")) {
          ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");

@@ -27,7 +27,7 @@ std::map <unsigned short, bool> tcpPorts = {       //List of potential TCP ports
    {7000, false}, {7001, false}, {7002, false}, 
    {7003, false}, {7004, false}, {7005, false},
 };
-std::vector <Byte> myID;                           //Randomly generated ID for the current user
+std::vector <Byte> myInfo;                           //Randomly generated ID for the current user
 
 #define NETLOG false                               //Creates a log file in dropswap/saves for TCP connection issues
 FILE* dsLog = nullptr;                             //Handle for the log file
@@ -672,8 +672,8 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
       case server_started:
          if (tcpHostListen(port) == true) { 
             status = server_listening; 
-            myID = sockRandomID(game->p.name);
-            memcpy(&sockets[-1].id[0], myID.data(), sizeof(Byte) * 32);
+            myInfo = sockRandomID(game->p.name);
+            memcpy(&game->net->hostSetup[0].id, myInfo.data(), sizeof(Byte) * 32);
          }
          else {
             status = server_none;
@@ -695,8 +695,6 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
                if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
                else {
                   sockets[i].status = sock_received;
-                  memcpy(&sockets[i].id[0], (unsigned char*)sockets[i].recBuff, sizeof(Byte) * 32);
-                  strcpy(sockets[i].name, &sockets[i].recBuff[32]);  //The leftover is the name
                   game->net->messages.push_back("Player connected");
                }
             }
@@ -753,7 +751,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
       case client_started:
          if (tcpClientStartup(port, ip) == true) { 
             status = client_connecting; 
-            myID = sockRandomID(name);
+            myInfo = sockRandomID(name);
          }
          else {
             status = client_none;
@@ -769,7 +767,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          }
          break;
       case client_connected:
-         if (sendMsg(sockets[-1].sock, (char*)myID.data(), myID.size() ) == true) { status = client_sent; }  
+         if (sendMsg(sockets[-1].sock, (char*)myInfo.data(), myInfo.size() ) == true) { status = client_sent; }  
          break;
       case client_sent:
          if (recMsg(sockets[-1].sock, sockets[-1].recBuff, BUFFERLEN) == true) { status = client_received; }
@@ -777,7 +775,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
       case client_received:
          readGameData();
          for (int i = 0; i < game->net->participants; i++) {
-            if (memcmp(&game->net->hostSetup[i].id[0], &myID[0], 32 ) == 0) {  
+            if (memcmp(&game->net->hostSetup[i].id[0], &myInfo[0], 32 ) == 0) {  
                game->net->hostSetup[i].me = true;
             }
             else { game->net->hostSetup[i].me = false; }
@@ -846,12 +844,19 @@ std::vector <Byte> sockRandomID(const char* name) {
       int val = dist(gen);
       stream.push_back(val);
    }
-   //Write the name to the end of the stream
-   int len = strlen(name);
+   //Write the board level
    int oldSize = stream.size();
-   int newSize = oldSize + sizeof(Byte) * (len + 1);  //Add one for the \0 char to end string
+   int newSize = oldSize + sizeof(int); 
    stream.resize(newSize);
    auto writeLocation = stream.data() + oldSize;
+   memcpy(writeLocation, &game->p.level, sizeof(int));
+
+   //Write the name to the end of the stream
+   int len = strlen(name);
+   oldSize = stream.size();
+   newSize = oldSize + sizeof(Byte) * (len + 1);  //Add one for the \0 char to end string
+   stream.resize(newSize);
+   writeLocation = stream.data() + oldSize;
    memcpy(writeLocation, name, sizeof(Byte) * (len + 1));
 
    return stream;
