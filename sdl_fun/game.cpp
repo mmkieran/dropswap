@@ -352,20 +352,26 @@ void gameStartMatch(Game* game) {
             game->p.cursor = cursor;
          }
          else if (game->settings.mode == multi_shared) {
+            float level = 0;
+            int count = 0;
             for (auto&& p : game->pList) {
                if (p.second.team == team) {  //This is the shared board for this player
                   Cursor* cursor = cursorCreate(board, cursorX, cursorY, p.second.number);
                   board->cursors.push_back(cursor);
                   p.second.board = board;
                   p.second.cursor = cursor;
+                  level += game->net->hostSetup[i].level;
+                  count++;
                }
             }
+            board->level = level / count;
          }
          if (game->settings.mode == multi_solo) {
             Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->pList[i + 1].number);
             board->cursors.push_back(cursor);
             game->pList[i + 1].board = board;
             game->pList[i + 1].cursor = cursor;
+            board->level = game->net->hostSetup[i].level;
          }
 
          game->boards.push_back(board);

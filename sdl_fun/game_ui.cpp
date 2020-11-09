@@ -835,9 +835,9 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
                strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
             }
             else {  //All the other players
-               memcpy(&game->net->hostSetup[i].id, (unsigned char*)sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
-               memcpy(&game->net->hostSetup[i].level, (unsigned char*)sock.recBuff[32], sizeof(int));  //Get client board level from message
-               strcpy(game->net->hostSetup[i].name, &sock.recBuff[32 + sizeof(int)]);  //The leftover is the name
+               memcpy(&game->net->hostSetup[i].id, &sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
+               memcpy(&game->net->hostSetup[i].level, &sock.recBuff[32], sizeof(int));  //Get client board level from message
+               strcpy(game->net->hostSetup[i].name, sock.name);  
                game->net->hostSetup[i].host = false;
                game->net->hostSetup[i].me = false;
                //We figure out "me" on the client recieving side
@@ -935,7 +935,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    ImGui::Checkbox("Host a Game", &isServer);
    ImGui::NewLine();
    ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
-   int minBoardLevel = 0;
+   int minBoardLevel = 1;
    int maxBoardLevel = 10;
    ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
 
@@ -944,7 +944,6 @@ void multiplayerUI(Game* game, bool* p_open) {
       ImGui::NewLine();
       if (ImGui::CollapsingHeader("Board Setup")) {
          ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-         game->settings.mode = (GameMode)mode;
          ImGui::InputInt("Board Width", &game->settings.bWidth);
          ImGui::InputInt("Board Height", &game->settings.bHeight);
          ImGui::Checkbox("I AM A ROBOT", &game->ai);
@@ -956,6 +955,7 @@ void multiplayerUI(Game* game, bool* p_open) {
          ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
          ImGui::NewLine();
       }
+      if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward
    }
 
    ImGui::NewLine();

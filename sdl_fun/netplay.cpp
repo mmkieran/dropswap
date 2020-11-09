@@ -695,6 +695,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
                if (recMsg(sockets[i].sock, sockets[i].recBuff, BUFFERLEN) == false) { done = false; }
                else {
                   sockets[i].status = sock_received;
+                  strcpy(sockets[i].name, &sockets[i].recBuff[32 + sizeof(int)]);  //The leftover is the name
                   game->net->messages.push_back("Player connected");
                }
             }
