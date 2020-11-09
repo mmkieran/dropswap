@@ -195,7 +195,7 @@ void boardUI(Game* game) {
 
          //Board Header
          if (game->settings.mode == multi_shared) { ImGui::Text("Team %d", board->team); }
-         if (game->settings.mode == multi_solo) { ImGui::Text(game->pList[i].name); }
+         if (game->settings.mode == multi_solo) { ImGui::Text(game->pList[i + 1].name); }
          if (game->settings.mode == single_player) { ImGui::Text(game->p.name); }
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
 
@@ -291,6 +291,26 @@ void boardUI(Game* game) {
                ImGui::CloseCurrentPopup();
                popupDisable(Popup_Disconnect);
             }
+         }
+         ImGui::EndPopup();
+      }
+
+      if (popupOpen(Popup_Quit) == true) {
+         //ImGui::SetNextWindowSize({ 200, 200 });
+         ImGui::OpenPopup("Quit Game");
+         popups[Popup_Quit].isOpen = true;
+      }
+      if (ImGui::BeginPopupModal("Quit Game")) {
+         if (popups[Popup_Quit].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         if (ImGui::Button("Quit")) {
+            gameEndMatch(game);
+            ImGui::CloseCurrentPopup();
+            popupDisable(Popup_Quit);
+         }
+         ImGui::SameLine();
+         if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+            popupDisable(Popup_Quit);
          }
          ImGui::EndPopup();
       }
@@ -938,6 +958,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    int minBoardLevel = 1;
    int maxBoardLevel = 10;
    ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+   ImGui::Checkbox("I AM A ROBOT", &game->ai);
 
    if (isServer == true) {
       static int mode = 0;
@@ -946,7 +967,6 @@ void multiplayerUI(Game* game, bool* p_open) {
          ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
          ImGui::InputInt("Board Width", &game->settings.bWidth);
          ImGui::InputInt("Board Height", &game->settings.bHeight);
-         ImGui::Checkbox("I AM A ROBOT", &game->ai);
          ImGui::NewLine();
       }
 

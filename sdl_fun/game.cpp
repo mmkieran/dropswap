@@ -221,8 +221,8 @@ void gameHandleEvents(Game* game) {
       }
       if (event.type == SDL_KEYDOWN) {
          if (event.key.keysym.sym == SDLK_ESCAPE) { 
-            if (game->paused == true) { game->paused = false; }
-            else { game->paused = true; }
+            if (game->playing == true && popupStatus(Popup_Quit) == false) { popupEnable(Popup_Quit); }
+            else { popupDisable(Popup_Quit); }
          }
          if (game->players == 1) {  //Only save state in one player games
             if (event.key.keysym.sym == SDLK_F1) { gameSaveState(game, "saves/game_state.dat"); }
