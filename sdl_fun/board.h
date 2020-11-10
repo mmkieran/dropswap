@@ -58,7 +58,7 @@ struct Board {
 
    float level = 5;
    float fallSpeed = 10;
-   float moveSpeed = 0.11;
+   float moveSpeed = 0.04;
    bool paused = false;
    bool waitForClear = false;
    int pauseLength = 0;

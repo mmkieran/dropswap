@@ -169,7 +169,8 @@ void boardUpdate(Board* board) {
 
    if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
       if (board->paused == false && board->waitForClear == false) {
-         boardMoveUp(board, 0.07 + (board->level - 1) * 0.12);  //Normalized for tile size of 64
+         double moveSpeed = (board->moveSpeed + board->level * 0.10) * (board->tileHeight / 52.0);
+         boardMoveUp(board, moveSpeed);  //Normalized for tile size of 64
          garbageDeploy(board);
       }
    }
@@ -177,9 +178,12 @@ void boardUpdate(Board* board) {
    if (board->danger == true && board->paused == false) {
       board->bust = true;
    }
+   double tileSpeed = (board->fallSpeed + board->level * 0.28 ) * (board->tileHeight / 52.0);
+   boardFall(board, tileSpeed);  //Normalized for tile size of 52
 
-   boardFall(board, 10 + (board->level - 1) * 0.28);  //Normalized for tile size of 64
-   garbageFall(board, 22 + (board->level - 1) * 0.28);  //Normalized for tile size of 64
+   double garbageSpeed = (board->fallSpeed * 2 + (board->level * 0.28) ) * (board->tileHeight / 52.0);
+   garbageFall(board, garbageSpeed);  //Normalized for tile size of 52
+
    boardAssignSlot(board, false);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test

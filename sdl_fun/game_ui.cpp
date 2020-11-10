@@ -502,12 +502,12 @@ void onePlayerOptions(Game* game) {
          for (auto&& board : game->boards) {
             if (board) {
                float minFallSpeed = 0;
-               float maxFallSpeed = 25.0;
+               float maxFallSpeed = 1.0;
 
                ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
                float minBoardSpeed = 0;
-               float maxBoardSpeed = 5.0;
+               float maxBoardSpeed = 1.0;
                ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
 
                float minBoardLevel = 0;
