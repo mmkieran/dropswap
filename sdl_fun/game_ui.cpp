@@ -950,7 +950,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    static bool isServer = false;
    static bool connectStats = false;
    static char ipAddress[20] = "127.0.0.1";
-   static int people[3] = { 2, 2, 4 };
+   static int people[3] = { 2, 2, GAME_MAX_PLAYERS };
 
    ImGui::Checkbox("Host a Game", &isServer);
    ImGui::NewLine();

@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #define GGPO_MAX_PLAYERS                  2  //kmm this doesn't do anything?
-#define GGPO_MAX_PREDICTION_FRAMES        8  //kmm I'm not sure this does anything
+#define GGPO_MAX_PREDICTION_FRAMES       12  //kmm I'm not sure this does anything
 #define GGPO_MAX_SPECTATORS              32
 
 #define GGPO_SPECTATOR_INPUT_INTERVAL     4

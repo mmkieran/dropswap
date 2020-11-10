@@ -13,7 +13,7 @@
 #include <vector>
 #include <map>
 
-#define GAME_MAX_PLAYERS    4
+#define GAME_MAX_PLAYERS    6
 
 struct GameWindow;
 

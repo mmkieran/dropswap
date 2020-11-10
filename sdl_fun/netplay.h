@@ -56,7 +56,7 @@ struct NetPlay {
    UserInput inputs[GAME_MAX_PLAYERS];                    //Structure is populated with synchronized inputs every frame
 
    SessionInfo hostSetup[GAME_MAX_PLAYERS];               //Used to map connection info from UI to GGPO structs
-   int frameDelay[3] = { 2, 1, 10 };                      //How long should we delay the local user input in the session
+   int frameDelay[3] = { 1, 1, 10 };                      //How long should we delay the local user input in the session
    int disconnectTime[3] = { 10000, 0, 30000 };           //How long do we wait before we disconnect a player (0 is forever)
    std::vector <std::string> messages;                    //For network messages to user through UI
    bool upnp = true;                                      //Do we want to use UPNP?
