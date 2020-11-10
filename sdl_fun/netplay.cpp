@@ -17,7 +17,8 @@ UPNPDev* upnp_devices = 0;
 UPNPUrls upnp_urls;
 IGDdatas upnp_data;
 char aLanAddr[64];
-u_short sessionPort = 7001;
+u_short sessionPort = 7001;                        //What port does GGPO (UDP) use?
+bool udpPortMapped = false;                        //Did we map a UDP port using UPNP?
 
 //Globals used by TCP sockets
 int connections = 0;                               //How many accepted connections do we have
@@ -243,13 +244,13 @@ void upnpStartup(Game* game) {
    if (error == 0) {
       status = UPNP_GetValidIGD(upnp_devices, &upnp_urls, &upnp_data, aLanAddr, sizeof(aLanAddr));
       if (status == 1) { 
-         game->net->upnp = true;
+         game->upnpRunning = true;
          return; 
       }
       else if (NETLOG == true) { fprintf(dsLog, "Failed to find a valid IGD device: %d\n", status); }
    }
    else if (NETLOG == true) { fprintf(dsLog, "UPNP discovery failed with error: %d\n", error); }
-   game->net->upnp = false;
+   game->upnpRunning = false;
 }
 
 int upnpAddPort(u_short port, const char* protocol) {
@@ -313,7 +314,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
-   int upnpSuccess = upnpAddPort(sessionPort, "UDP"); 
+   udpPortMapped = upnpAddPort(sessionPort, "UDP"); 
 
    if (game->net->syncTest == true) {  //Set syncTest to true to do a single player sync test
       char name[] = "DropAndSwap";
@@ -417,7 +418,7 @@ void ggpoClose(GGPOSession* ggpo) {
       ggpo_close_session(ggpo);
       game->net->ggpo = nullptr;
    }
-   if (game->net->upnp) { upnpDeletePort(sessionPort, "UDP"); }
+   if (udpPortMapped == true) { upnpDeletePort(sessionPort, "UDP"); }
 }
 
 //Display the connection status based on the PlayerConnectState Enum
@@ -529,7 +530,7 @@ bool tcpHostListen(u_short port) {
    sockets[-1].address.sin_addr.s_addr = htonl(INADDR_ANY);  //htonl converts ulong to tcp/ip network byte order
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && tcpPorts[port] == false) {
+   if (game->net->upnp == true && game->upnpRunning == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port, "TCP"); 
       if (upnp) { tcpPorts[port] = true; }
       else { return false; }
@@ -578,7 +579,7 @@ void tcpHostAccept() {
    sockets[connections].sock = conn;
    unsigned short port = 0;
    WSANtohs(sockets[connections].sock, sockets[connections].address.sin_port, &port);  //Convert network byte order to host byte order
-   if (game->net->upnp == true && tcpPorts[port] == false) {
+   if (game->net->upnp == true && game->upnpRunning == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port, "TCP");  //Add port forwarding for this port
       if (upnp == true) { tcpPorts[port] = true; }
    }
@@ -605,7 +606,7 @@ bool tcpClientStartup(u_short port, const char* ip) {
    sockets[-1].address.sin_addr.s_addr = inet_addr(ip);
    sockets[-1].address.sin_port = htons(port);
 
-   if (game->net->upnp == true && tcpPorts[port] == false) {
+   if (game->net->upnp == true && game->upnpRunning == true && tcpPorts[port] == false) {
       bool upnp = upnpAddPort(port, "TCP");
       if (upnp) { tcpPorts[port] = true; }
       else {
@@ -829,9 +830,14 @@ void _connectionInfo() {
          }
       }
    }
-   if (game->net->ggpo != nullptr) {
-      ImGui::Text("GGPO is running");
-
+   if (ImGui::CollapsingHeader("GGPO")) {
+      if (game->net->ggpo != nullptr) {
+         ImGui::Text("GGPO is Running");
+         for (int i = 0; i < game->net->participants; i++) {
+            ImGui::Text("Participant %d", i + 1)
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ggpoShowStatus(game, i));
+         }
+      }
    }
 }
 

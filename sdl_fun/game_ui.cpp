@@ -973,6 +973,7 @@ void multiplayerUI(Game* game, bool* p_open) {
       if (ImGui::CollapsingHeader("GGPO Options")) { 
          ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
          ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+         ImGui::Checkbox("Use UPNP", &game->net->upnp);
          ImGui::NewLine();
       }
       if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward
@@ -1009,7 +1010,7 @@ void debugConnections(Game* game, bool* p_open) {
    }
 
    ImGui::Text("Winsock running: %d", game->winsockRunning);
-   ImGui::Text("UPNP running: %d", game->net->upnp);
+   ImGui::Text("UPNP running: %d", game->upnpRunning);
    ImGui::Text("Server thread running: %d", serverRunning);
    ImGui::Text("Server status: %d", serverStatus);
    ImGui::Text("Client thread running: %d", clientRunning);

@@ -109,6 +109,7 @@ struct GameState {
 //@@Start Serialize
 struct Game {
    bool winsockRunning = false;                    //Is Windows Sockets running... required for GGPO and game transfer
+   bool upnpRunning = false;                       //Did we find a valid UPNP device?
    GameWindow* sdl = nullptr;                      //SDL Window pointer
    float windowWidth;                              //SDL Window width
    float windowHeight;                             //SDL Window height
