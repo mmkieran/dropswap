@@ -60,6 +60,7 @@ struct NetPlay {
    int disconnectTime[3] = { 10000, 0, 30000 };           //How long do we wait before we disconnect a player (0 is forever)
    std::vector <std::string> messages;                    //For network messages to user through UI
    bool upnp = true;                                      //Do we want to use UPNP?
+   bool netlog = false;                                   //Enable logging of network errors
    int timeSync = 0;                                      //Used to delay updating the game if one player is too many frames ahead
 };
 

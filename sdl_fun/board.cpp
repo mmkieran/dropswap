@@ -155,7 +155,7 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
 //Calculate how fast the board should move up
 static double _calcMove(Board* board) {
    double moveSpeed = 0;
-   if (board->level <= 1) { moveSpeed = 0; }
+   if (board->level < 1 || board->moveSpeed == 0) { return 0; }
    moveSpeed = (board->moveSpeed + (board->level - 1) * 0.13) * (board->tileHeight / 52.0);
    return moveSpeed;
 }
@@ -163,9 +163,9 @@ static double _calcMove(Board* board) {
 //Calculate how fast the tiles should fall
 static double _calcFall(Board* board, bool garbage = false) {
    double fallSpeed = 0;
-   if (board->level <= 1) { fallSpeed = 0; }
+   if (board->level < 1 || board->fallSpeed == 0) { return 0; }
    fallSpeed = (board->fallSpeed + (board->level - 1) * 0.26) * (board->tileHeight / 52.0);
-   if (garbage == true) { fallSpeed * 2; }
+   if (garbage == true) { fallSpeed = fallSpeed * 2; }
    return fallSpeed;
 }
 

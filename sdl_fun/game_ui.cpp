@@ -426,6 +426,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
+         ImGui::Checkbox("Network log file", &game->net->netlog);
          static bool showOldSession = false;
          if (showOldSession == false) {
             if (ImGui::Button("Show Old Session Window")) {
@@ -510,7 +511,7 @@ void onePlayerOptions(Game* game) {
                float maxBoardSpeed = 1.0;
                ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
 
-               float minBoardLevel = 0;
+               float minBoardLevel = 1.0;
                float maxBoardLevel = 10.0;
                ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
             }
