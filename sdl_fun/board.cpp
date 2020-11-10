@@ -152,6 +152,23 @@ void boardSetTile(Board* board, Tile tile, int row, int col) {
    board->tiles[(board->w * row + col)] = tile;
 }
 
+//Calculate how fast the board should move up
+static double _calcMove(Board* board) {
+   double moveSpeed = 0;
+   if (board->level <= 1) { moveSpeed = 0; }
+   moveSpeed = (board->moveSpeed + (board->level - 1) * 0.13) * (board->tileHeight / 52.0);
+   return moveSpeed;
+}
+
+//Calculate how fast the tiles should fall
+static double _calcFall(Board* board, bool garbage = false) {
+   double fallSpeed = 0;
+   if (board->level <= 1) { fallSpeed = 0; }
+   fallSpeed = (board->fallSpeed + (board->level - 1) * 0.26) * (board->tileHeight / 52.0);
+   if (garbage == true) { fallSpeed * 2; }
+   return fallSpeed;
+}
+
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
 
@@ -169,8 +186,7 @@ void boardUpdate(Board* board) {
 
    if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
       if (board->paused == false && board->waitForClear == false) {
-         double moveSpeed = (board->moveSpeed + board->level * 0.10) * (board->tileHeight / 52.0);
-         boardMoveUp(board, moveSpeed);  //Normalized for tile size of 64
+         boardMoveUp(board, _calcMove(board));
          garbageDeploy(board);
       }
    }
@@ -178,11 +194,8 @@ void boardUpdate(Board* board) {
    if (board->danger == true && board->paused == false) {
       board->bust = true;
    }
-   double tileSpeed = (board->fallSpeed + board->level * 0.28 ) * (board->tileHeight / 52.0);
-   boardFall(board, tileSpeed);  //Normalized for tile size of 52
-
-   double garbageSpeed = (board->fallSpeed * 2 + (board->level * 0.28) ) * (board->tileHeight / 52.0);
-   garbageFall(board, garbageSpeed);  //Normalized for tile size of 52
+   boardFall(board, _calcFall(board));  
+   garbageFall(board, _calcFall(board, true));  
 
    boardAssignSlot(board, false);
 

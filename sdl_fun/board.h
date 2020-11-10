@@ -57,8 +57,8 @@ struct Board {
    BoardStats boardStats;
 
    float level = 5;
-   float fallSpeed = 10;
-   float moveSpeed = 0.04;
+   float fallSpeed = 10;  //10-13
+   float moveSpeed = 0.06;  //0.06 - 1.6
    bool paused = false;
    bool waitForClear = false;
    int pauseLength = 0;

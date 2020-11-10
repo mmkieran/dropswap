@@ -502,7 +502,7 @@ void onePlayerOptions(Game* game) {
          for (auto&& board : game->boards) {
             if (board) {
                float minFallSpeed = 0;
-               float maxFallSpeed = 1.0;
+               float maxFallSpeed = 20.0;
 
                ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
