@@ -959,6 +959,7 @@ void multiplayerUI(Game* game, bool* p_open) {
    int maxBoardLevel = 10;
    ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
    ImGui::Checkbox("I AM A ROBOT", &game->ai);
+   ImGui::Checkbox("Use UPNP", &game->net->upnp);
 
    if (isServer == true) {
       static int mode = 0;
@@ -973,7 +974,6 @@ void multiplayerUI(Game* game, bool* p_open) {
       if (ImGui::CollapsingHeader("GGPO Options")) { 
          ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
          ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-         ImGui::Checkbox("Use UPNP", &game->net->upnp);
          ImGui::NewLine();
       }
       if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward

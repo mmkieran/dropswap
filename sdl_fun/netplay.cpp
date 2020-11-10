@@ -834,7 +834,7 @@ void _connectionInfo() {
       if (game->net->ggpo != nullptr) {
          ImGui::Text("GGPO is Running");
          for (int i = 0; i < game->net->participants; i++) {
-            ImGui::Text("Participant %d", i + 1)
+            ImGui::Text("Participant %d", i + 1);
             ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ggpoShowStatus(game, i));
          }
       }
