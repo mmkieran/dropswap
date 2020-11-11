@@ -1157,12 +1157,9 @@ void aiChain(Board* board) {
 void aiGetSteps(Board* board) {
    //Calculate steps to move cursor into place
    Cursor* cursor;
-   if (board->game->settings.mode == single_player) {
-      cursor = board->game->p.cursor;
-   }
-   else {
-      cursor = board->game->pList[board->game->p.number].cursor;
-   }
+   if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
+   else if (board->game->settings.mode == single_player) { cursor = board->game->p.cursor; }
+   else { cursor = board->game->pList[board->game->p.number].cursor; }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
 
@@ -1241,8 +1238,9 @@ void aiDoStep(Board* board) {
 void boardAI(Game* game) {
    Board* board;
    if (game->settings.mode == single_player) { board = game->p.board; }
-   if (game->settings.mode == multi_shared) { board = game->pList[game->p.number].board; }
-   if (game->settings.mode == multi_solo) { board = game->pList[game->p.number].board; }
+   else if (game->net->syncTest == true) { board = game->boards[0]; }
+   else if (game->settings.mode == multi_shared) { board = game->pList[game->p.number].board; }
+   else if (game->settings.mode == multi_solo) { board = game->pList[game->p.number].board; }
    if (game->timer > game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
          aiClearGarbage(board); 
