@@ -18,8 +18,8 @@ struct Cursor {
    double y;                           //Cursor y position on the board
    CursorMode mode = cursor_swapping;  //Is the cursor swapping or dropping
 
-   Texture* texture;                   //Used to draw the cursor tag texture
-   Animation* animation;               //Used to draw the cursor animation
+   Texture* texture = nullptr;         //Used to draw the cursor tag texture
+   Animation* animation = nullptr;     //Used to draw the cursor animation
 
    int h;                              //Cursor height
    int w;                              //Cursor width

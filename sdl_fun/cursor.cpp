@@ -78,85 +78,85 @@ void cursorDraw(Board* board, Cursor* cursor) {
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
-
-   if (cursor->y <= 0) {
-      cursor->y = board->tileHeight + board->offset;
-   }
-
-   float y = cursorGetY(cursor);
-   float x = cursorGetX(cursor);
-
-   if (input.up.p) {
-      apm = true;  //Board Stats
-      if (y - board->tileHeight <= 0) { return; }
-      else {
-         cursorSetY(cursor, (y - board->tileHeight));
+   //Swapping mode
+   if (cursor->mode == cursor_swapping) {
+      if (cursor->y <= 0) {
+         cursor->y = board->tileHeight + board->offset;
       }
-   }
 
-   else if (input.down.p) {
-      apm = true;  //Board Stats
-      if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
-      else {
-         cursorSetY(cursor, (y + board->tileHeight));
-      }
-   }
+      float y = cursorGetY(cursor);
+      float x = cursorGetX(cursor);
 
-   else if (input.right.p) {
-      apm = true;  //Board Stats
-      if (x >= (board->w - 2) * board->tileWidth) { return; }
-      else {
-         cursorSetX(cursor, (x + board->tileWidth));
-      }
-   }
-
-   else if (input.left.p) {
-      apm = true;  //Board Stats
-      if (x <= 0) { return; }
-      else {
-         cursorSetX(cursor, (x - board->tileWidth));
-      }
-   }
-
-   else if (input.right.h) {
-      if (x >= (board->w - 2) * board->tileWidth) { return; }
-      else {
-         cursorSetX(cursor, (x + board->tileWidth));
-      }
-   }
-
-   else if (input.left.h) {
-      if (x <= 0) { return; }
-      else {
-         cursorSetX(cursor, (x - board->tileWidth));
-      }
-   }
-
-   else if (input.up.h) {
-      if (y - board->tileHeight <= 0) { return; }
-      else {
-         cursorSetY(cursor, (y - board->tileHeight));
-      }
-   }
-
-   else if (input.down.h) {
-      if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
-      else {
-         cursorSetY(cursor, (y + board->tileHeight));
-      }
-   }
-
-   else if (input.swap.p) {
-      apm = true;  //Board Stats
-      boardSwap(board, cursor);
-   }
-
-   else if ((input.nudge.p || input.nudge.h) && board->waitForClear == false) {
-      if (board->danger == false) {
+      if (input.up.p) {
          apm = true;  //Board Stats
-         boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
-         board->paused = false;
-         board->pauseLength = 0;
+         if (y - board->tileHeight <= 0) { return; }
+         else { cursorSetY(cursor, (y - board->tileHeight)); }
+      }
+      else if (input.down.p) {
+         apm = true;  //Board Stats
+         if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+         else { cursorSetY(cursor, (y + board->tileHeight)); }
+      }
+      else if (input.right.p) {
+         apm = true;  //Board Stats
+         if (x >= (board->w - 2) * board->tileWidth) { return; }
+         else { cursorSetX(cursor, (x + board->tileWidth)); }
+      }
+      else if (input.left.p) {
+         apm = true;  //Board Stats
+         if (x <= 0) { return; }
+         else { cursorSetX(cursor, (x - board->tileWidth)); }
+      }
+      else if (input.right.h) {
+         if (x >= (board->w - 2) * board->tileWidth) { return; }
+         else { cursorSetX(cursor, (x + board->tileWidth)); }
+      }
+      else if (input.left.h) {
+         if (x <= 0) { return; }
+         else { cursorSetX(cursor, (x - board->tileWidth)); }
+      }
+
+      else if (input.up.h) {
+         if (y - board->tileHeight <= 0) { return; }
+         else { cursorSetY(cursor, (y - board->tileHeight)); }
+      }
+      else if (input.down.h) {
+         if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+         else {
+            cursorSetY(cursor, (y + board->tileHeight));
+         }
+      }
+      else if (input.swap.p) {
+         apm = true;  //Board Stats
+         boardSwap(board, cursor);
+      }
+      else if ((input.nudge.p || input.nudge.h) && board->waitForClear == false) {
+         if (board->danger == false) {
+            apm = true;  //Board Stats
+            boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
+            board->paused = false;
+            board->pauseLength = 0;
+         }
+      }
+   }
+   //Dropping mode
+   if (cursor->mode == cursor_dropping) {
+      if (input.up.p) { return; }
+      else if (input.up.p) { return; }
+      else if (input.down.p) { 
+         //Trigger tiles to drop
+         //Basically run it through boardFall with extra speed
+      }
+      else if (input.left.p) {
+         //Check if the tiles next to it are occupied
+         //If not, swap with empty tiles
+      }
+      else if (input.right.p) {
+         //Check if the tiles next to it are occupied
+         //If not, swap with empty tiles
+      }
+      else if (input.swap.p) {
+         //This rotates the tiles 90 degrees clockwise?
       }
    }
 

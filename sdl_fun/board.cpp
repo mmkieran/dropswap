@@ -295,9 +295,11 @@ static void _swapTiles(Tile* tile1, Tile* tile2) {
    Tile tmp = *tile2;
 
    tile2->type = tile1->type;
-   tile2->texture = tile1->texture;
    tile1->type = tmp.type;
+   tile2->texture = tile1->texture;
    tile1->texture = tmp.texture;
+   tile2->ID = tile1->ID;
+   tile1->ID = tmp.ID;
 }
 
 //Swap two tiles on the board horizontally
@@ -813,9 +815,12 @@ void boardMoveUp(Board* board, float height) {
 
 //Fills half the board with tiles so that there are no matches
 int boardFillTiles(Board* board) {
+   int count = 1;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
+         tile->ID = count;  //Unique ID for each tile
+         count++;
          if (row < board->startH + (board->endH - board->startH) / 2) {
             tileInit(board, tile, row, col, tile_empty);
             continue;
