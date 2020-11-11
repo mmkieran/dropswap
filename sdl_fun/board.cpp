@@ -164,7 +164,7 @@ static double _calcMove(Board* board) {
 static double _calcFall(Board* board, bool garbage = false) {
    double fallSpeed = 0;
    if (board->level < 1 || board->fallSpeed == 0) { return 0; }
-   fallSpeed = (board->fallSpeed + (board->level - 1) * 0.26) * (board->tileHeight / 52.0);
+   fallSpeed = (board->fallSpeed + (board->level - 1) * 0.23) * (board->tileHeight / 52.0);
    if (garbage == true) { fallSpeed = fallSpeed * 2; }
    return fallSpeed;
 }
