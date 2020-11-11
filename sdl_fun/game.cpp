@@ -335,10 +335,10 @@ void gameStartMatch(Game* game) {
       if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
       else if (game->settings.mode == multi_shared) { team = i; }
 
-      //if (game->players > 2) { board = boardCreate(game, team, 40, 40); }  //todo Hard code board size for now
-      //else { board = boardCreate(game, team, 52, 52); }  //todo Hard code board size for now
-      if (team == myBoard) { board = boardCreate(game, team, 48, 48); }  //Determine board size based on current user
-      else { board = boardCreate(game, team, 32, 32); }
+      if (game->players > 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
+      else { board = boardCreate(game, team, 52, 52); }  //todo Hard code board size for now
+      //if (team == myBoard) { board = boardCreate(game, team, 48, 48); }  //Determine board size based on current user
+      //else { board = boardCreate(game, team, 32, 32); }
 
       if (board) {
          board->pauseLength = GAME_COUNTIN;
