@@ -925,14 +925,14 @@ void boardClear(Board* board) {
 
 
 //Everything below here if for AI Logic
-enum CursorStep {
-   cursor_none = 0,
-   cursor_left,
-   cursor_right,
-   cursor_up,
-   cursor_down,
-   cursor_swap,
-   cursor_COUNT,
+enum AIStep {
+   ai_none = 0,
+   ai_left,
+   ai_right,
+   ai_up,
+   ai_down,
+   ai_swap,
+   ai_COUNT,
 };
 
 struct TileIndex {
@@ -948,7 +948,7 @@ struct MoveInfo {
 struct AILogic {
 
    std::list <MoveInfo> moves;         //Each tile's current row/col and destination
-   std::list <CursorStep> matchSteps;  //The Cursor movements needed to make a match
+   std::list <AIStep> matchSteps;  //The Cursor movements needed to make a match
 };
 
 AILogic aiLogic;
@@ -1175,35 +1175,35 @@ void aiGetSteps(Board* board) {
 
       for (int i = 0; i < abs(colDiff); i++) {
          if (colDiff < 0) {        //move left
-            aiLogic.matchSteps.push_back(cursor_left);
+            aiLogic.matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (colDiff > 0) {   //move right
-            aiLogic.matchSteps.push_back(cursor_right);
+            aiLogic.matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
       for (int i = 0; i < abs(rowDiff); i++) {
          if (rowDiff < 0) {        //move up
-            aiLogic.matchSteps.push_back(cursor_up);
+            aiLogic.matchSteps.push_back(ai_up);
             cursorRow--;
          }
          else if (rowDiff > 0) {   //move down
-            aiLogic.matchSteps.push_back(cursor_down);
+            aiLogic.matchSteps.push_back(ai_down);
             cursorRow++;
          }
       }
 
       //Figure out how many swaps to move the target tile to the destination
       for (int i = 0; i < abs(moveDirection); i++) {
-         aiLogic.matchSteps.push_back(cursor_swap);
+         aiLogic.matchSteps.push_back(ai_swap);
          if (abs(moveDirection) == i + 1) { break; }
          if (moveDirection < 0) {        //move left
-            aiLogic.matchSteps.push_back(cursor_left);
+            aiLogic.matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (moveDirection > 0) {   //move right
-            aiLogic.matchSteps.push_back(cursor_right);
+            aiLogic.matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
@@ -1213,22 +1213,22 @@ void aiGetSteps(Board* board) {
 
 void aiDoStep(Board* board) {
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
-      CursorStep step = aiLogic.matchSteps.front();
+      AIStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
-      case cursor_left:
+      case ai_left:
          board->game->p.input.left.p = true;
          break;
-      case cursor_right:
+      case ai_right:
          board->game->p.input.right.p = true;
          break;
-      case cursor_up:
+      case ai_up:
          board->game->p.input.up.p = true;
          break;
-      case cursor_down:
+      case ai_down:
          board->game->p.input.down.p = true;
          break;
-      case cursor_swap:
+      case ai_swap:
          board->game->p.input.swap.p = true;
          break;
       }
