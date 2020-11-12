@@ -76,6 +76,14 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
+void cursorGetTiles(Board* board, Cursor* cursor, Tile* tiles[2]) {
+   for (int i = 0; i < 2; i++) {
+      Tile* tile = board->tLookup[cursor->dropList[i]];
+      //if (tile->status != status_drop) { ; }
+      tiles[i] = tile;
+   }
+}
+
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
    if (input.power.p == true && cursor->mode == 0) { 
@@ -83,13 +91,15 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
       Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
       if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
-      Tile* tiles[2] = { tile1, tile2 };
-      for (int i = 0; i < 2; i++) {
-         tiles[i]->status = status_drop;
-         tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
-         cursor->dropList[i] = tiles[i]->ID;
+      if (enoughSpace == true) {
+         Tile* tiles[2] = { tile1, tile2 };
+         for (int i = 0; i < 2; i++) {
+            tiles[i]->status = status_drop;
+            tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
+            cursor->dropList[i] = tiles[i]->ID;
+         }
+         cursor->mode = 1;
       }
-      cursor->mode = 1; 
    }
    else if (input.power.p == true && cursor->mode == 1) { cursor->mode = 0; }
    //Swapping mode
@@ -158,6 +168,9 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       float y = cursorGetY(cursor);
       float x = cursorGetX(cursor);
 
+      Tile* tiles[2];
+      cursorGetTiles(board, cursor, tiles);
+
       if (input.up.p) { return; }
       else if (input.up.p) { return; }
       else if (input.down.p) { 
@@ -165,8 +178,20 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
          //Basically run it through boardFall with extra speed
       }
       else if (input.left.p) {
-         //Check if the tiles next to it are occupied
-         //If not, swap with empty tiles
+         bool enoughSpace = true;
+         Tile* target[2];
+         for (int i = 0; i < 2; i++) {
+            int row = tileGetRow(board, tiles[i]);
+            int col = tileGetCol(board, tiles[i]);
+            Tile* left = boardGetTile(board, row + i, col - 1);
+            if (!left || left->type != tile_empty) { enoughSpace = false; }
+            else { target[i] = left; }
+         }
+         if (enoughSpace == true) {
+            for (int i = 0; i < 2; i++) {
+               _swapTiles(target[i], tiles[i]);
+            }
+         }
       }
       else if (input.right.p) {
          //Check if the tiles next to it are occupied

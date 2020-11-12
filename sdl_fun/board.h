@@ -97,6 +97,7 @@ void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x
 void boardRemoveVisuals(Board* board);
 
 void boardMoveUp(Board* board, float height);
+void _swapTiles(Tile* tile1, Tile* tile2);
 void boardSwap(Board* board, Cursor* cursor);
 
 void boardFall(Board* board, float velocity);
