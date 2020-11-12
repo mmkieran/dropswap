@@ -187,7 +187,6 @@ void boardUpdate(Board* board) {
    if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
       if (board->paused == false && board->waitForClear == false) {
          boardMoveUp(board, _calcMove(board));
-         garbageDeploy(board);
       }
    }
 
@@ -196,6 +195,7 @@ void boardUpdate(Board* board) {
    }
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
+   garbageDeploy(board);
 
    boardAssignSlot(board, false);
 
