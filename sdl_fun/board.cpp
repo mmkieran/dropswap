@@ -815,7 +815,7 @@ void boardMoveUp(Board* board, float height) {
 
 //Fills half the board with tiles so that there are no matches
 int boardFillTiles(Board* board) {
-   int count = 1;
+   int count = 0;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);

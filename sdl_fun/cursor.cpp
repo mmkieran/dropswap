@@ -138,6 +138,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
             board->pauseLength = 0;
          }
       }
+      else if (input.power.p) { cursor->mode = cursor_dropping; }
    }
    //Dropping mode
    if (cursor->mode == cursor_dropping) {
@@ -158,6 +159,8 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       else if (input.swap.p) {
          //This rotates the tiles 90 degrees clockwise?
       }
+
+      else if (input.power.p) { cursor->mode = cursor_swapping; }
    }
 
    if (apm == true) { board->boardStats.apm++; }
