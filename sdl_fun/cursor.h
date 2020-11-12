@@ -6,23 +6,18 @@ typedef struct Animation Animation;
 typedef struct UserInput UserInput;
 typedef struct Texture Texture;
 
-enum CursorMode {
-   cursor_swapping = 0,
-   cursor_dropping,
-};
-
 //@@Start Serialize
 struct Cursor {
-   int index = 0;                      //This is the player number (Corresponds to GGPO player number)
-   double x;                           //Cursor x position on the board
-   double y;                           //Cursor y position on the board
-   CursorMode mode = cursor_swapping;  //Is the cursor swapping or dropping
+   int index = 0;                         //This is the player number (Corresponds to GGPO player number)
+   double x;                              //Cursor x position on the board
+   double y;                              //Cursor y position on the board
+   int h;                                 //Cursor height
+   int w;                                 //Cursor width
+   int mode = 0;                          //1 is dropping and 0 is swapping
+   int dropList[2];                       //The list of tiles currently being dropped
 
-   Texture* texture = nullptr;         //Used to draw the cursor tag texture
-   Animation* animation = nullptr;     //Used to draw the cursor animation
-
-   int h;                              //Cursor height
-   int w;                              //Cursor width
+   Texture* texture = nullptr;            //Used to draw the cursor tag texture
+   Animation* animation = nullptr;        //Used to draw the cursor animation
 };
 //@@End Serialize
 

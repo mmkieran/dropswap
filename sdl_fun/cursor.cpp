@@ -78,8 +78,10 @@ void cursorDraw(Board* board, Cursor* cursor) {
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
+   if (input.power.p == true && cursor->mode == 0) { cursor->mode = 1; }
+   else if (input.power.p == true && cursor->mode == 1) { cursor->mode = 0; }
    //Swapping mode
-   if (cursor->mode == cursor_swapping) {
+   if (cursor->mode == 0) {
       if (cursor->y <= 0) {
          cursor->y = board->tileHeight + board->offset;
       }
@@ -138,10 +140,12 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
             board->pauseLength = 0;
          }
       }
-      else if (input.power.p) { cursor->mode = cursor_dropping; }
    }
    //Dropping mode
-   if (cursor->mode == cursor_dropping) {
+   if (cursor->mode == 1) {
+      float y = cursorGetY(cursor);
+      float x = cursorGetX(cursor);
+
       if (input.up.p) { return; }
       else if (input.up.p) { return; }
       else if (input.down.p) { 
@@ -159,8 +163,6 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       else if (input.swap.p) {
          //This rotates the tiles 90 degrees clockwise?
       }
-
-      else if (input.power.p) { cursor->mode = cursor_swapping; }
    }
 
    if (apm == true) { board->boardStats.apm++; }
