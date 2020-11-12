@@ -79,8 +79,15 @@ void cursorDraw(Board* board, Cursor* cursor) {
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
    if (input.power.p == true && cursor->mode == 0) { 
+      bool enoughSpace = false;
+      Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
+      Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
+      if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
+      Tile* tiles[2] = { tile1, tile2 };
       for (int i = 0; i < 2; i++) {
-         cursor->dropList[i];
+         tiles[i]->status = status_drop;
+         tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
+         cursor->dropList[i] = tiles[i]->ID;
       }
       cursor->mode = 1; 
    }

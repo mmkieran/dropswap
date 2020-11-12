@@ -5,44 +5,6 @@
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
-//This functions processes the type of pause to figure out the length of the pause
-void boardPauseTime(Board* board, BoardPauseType type, int size) {
-   int currentPause = board->pauseLength;
-   int time = 0;
-
-   switch (type) {
-   case pause_combo:
-      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
-      if (time > currentPause) { board->pauseLength = time;}
-      break;
-   case pause_chain:
-      time = min( (size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
-      if (time > currentPause) { board->pauseLength = time; }
-      break;
-   case pause_clear:
-      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_crashland:
-      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
-         board->pauseLength = board->game->timings.landPause[0];
-      }
-      break;
-   case pause_garbageclear:
-      if (currentPause < board->game->timings.removeClear[0]) {
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_danger:
-      if (currentPause < board->game->timings.gracePeriod[0]) {
-         board->pauseLength = board->game->timings.gracePeriod[0];
-      }
-      break;
-   }
-   board->paused = true;
-};
-
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 
@@ -78,10 +40,7 @@ void boardStartRandom(Board* board) {
 //Restores the state of the random number generator based on number of calls
 void boardLoadRandom(Board* board) {
 	boardStartRandom(board);
-
-	if (board->randomCalls > 0) {
-		board->generator.discard(board->randomCalls);
-	}
+	if (board->randomCalls > 0) {board->generator.discard(board->randomCalls);}
 }
 
 //Create a fresh board and return a pointer
@@ -109,6 +68,7 @@ Board* boardCreate(Game* game, int team, int tWidth, int tHeight) {
          board->pile = garbagePileCreate();
 		   boardStartRandom(board);
          board->mesh = meshCreate();  //Everything is draw with this
+         board->tLookup.resize((board->wBuffer) * board->w);
 
          return board;
       }
@@ -169,8 +129,20 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
+//Look through the tiles and assign them to a vector by id
+static void _updateTileIndex(Board* board) {
+   //board->tLookup.clear();
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         board->tLookup[tile->ID] = tile;
+      }
+   }
+}
+
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
+   _updateTileIndex(board);  //todo maybe combine with other looping later
 
    boardRemoveClears(board);
 
@@ -518,6 +490,44 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       current++;
    }
 }
+
+//This functions processes the type of pause to figure out the length of the pause
+void boardPauseTime(Board* board, BoardPauseType type, int size) {
+   int currentPause = board->pauseLength;
+   int time = 0;
+
+   switch (type) {
+   case pause_combo:
+      time = min((size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_chain:
+      time = min((size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_clear:
+      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_crashland:
+      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
+         board->pauseLength = board->game->timings.landPause[0];
+      }
+      break;
+   case pause_garbageclear:
+      if (currentPause < board->game->timings.removeClear[0]) {
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_danger:
+      if (currentPause < board->game->timings.gracePeriod[0]) {
+         board->pauseLength = board->game->timings.gracePeriod[0];
+      }
+      break;
+   }
+   board->paused = true;
+};
 
 //Checks a list of tiles to see if any matches were made
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
