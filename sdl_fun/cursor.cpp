@@ -78,7 +78,12 @@ void cursorDraw(Board* board, Cursor* cursor) {
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
-   if (input.power.p == true && cursor->mode == 0) { cursor->mode = 1; }
+   if (input.power.p == true && cursor->mode == 0) { 
+      for (int i = 0; i < 2; i++) {
+         cursor->dropList[i];
+      }
+      cursor->mode = 1; 
+   }
    else if (input.power.p == true && cursor->mode == 1) { cursor->mode = 0; }
    //Swapping mode
    if (cursor->mode == 0) {

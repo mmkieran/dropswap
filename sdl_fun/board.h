@@ -38,46 +38,47 @@ struct BoardStats {
 //The top left of the board is (0, 0) for rendering and for array indices
 //@@Start Serialize
 struct Board {
-   int startH = 12;
-   int endH;
-   int wBuffer;  //Create some extra board to store falling garbage and upcoming rows
-   int w = 6;
-   int h = 12;
-   int tileWidth;
-   int tileHeight;
-   float offset = 0;
+   int startH = 12;                                      //The visual beginning of the top of the board (doesn't include garbage buffer above)
+   int endH;                                             //The visual end of the board (not including the buffer row)
+   int wBuffer;                                          //Create some extra board to store falling garbage and upcoming rows
+   int w = 6;                                            //How many tiles wide is the board
+   int h = 12;                                           //How many tiles high is the board
+   int tileWidth;                                        //How wide in pixels is a tile
+   int tileHeight;                                       //How tall in pixels is a tile
+   float offset = 0;                                     //How far has the board moved up (resets to 0 after a full tile height)
 
-   Tile* tiles = nullptr;
-   std::vector <Cursor*> cursors;
-   Game* game = nullptr;
+   Tile* tiles = nullptr;                                //An array of tiles as a continuous chunk of memory
+   std::vector <Cursor*> cursors;                        //The list of cursors on the board
+   Game* game = nullptr;                                 //So you can access the game struct
 
-   Mesh* mesh = nullptr;
+   Mesh* mesh = nullptr;                                 //Used to draw all the textures on the board
+     
+   std::map <VisualEffect, VisualEvent> visualEvents;    //What visual effects are taking place on the board (global)
+   BoardStats boardStats;                                //Tracks the statistics for each board
+   std::vector <Tile*> tLookup;
 
-   std::map <VisualEffect, VisualEvent> visualEvents;
-   BoardStats boardStats;
+   float level = 5;                                      //Player handicap (modified board speed and fall rate...increases with clears and caps at 10)
+   float fallSpeed = 10;                                 //This is the base fall rate (ranges from 10-13)
+   float moveSpeed = 0.06;                               //This ist he base move speed (ranges from 0.06 - 1.6)
+   bool waitForClear = false;                            //Are we waiting for a tile to fall to move the board
+   bool paused = false;                                  //Is the board paused
+   int pauseLength = 0;                                  //The time (milliseconds) that the board is paused for
+   double score = 0;                                     //todo currently not used
+   bool danger = false;                                  //Are there tiles at the top of the board
+   bool bust = false;                                    //Are there tiles at the top and the board is not paused
+   int chain = 1;                                        //Is a chain occuring? 1 means no
+   std::vector <int> enemies;                            //Index used to access a board in game->boards
+   std::vector <int> allies;                             //Index used to access a board in game->boards 
+   int target = -1;                                      //The index in game->boards that we are currently dumping garbage on
 
-   float level = 5;
-   float fallSpeed = 10;  //10-13
-   float moveSpeed = 0.06;  //0.06 - 1.6
-   bool paused = false;
-   bool waitForClear = false;
-   int pauseLength = 0;
-   double score = 0;
-   bool danger = false;
-   bool bust = false;
-   int chain = 1;
-   std::vector <int> enemies;  //Index used to access a board in game->boards
-   std::vector <int> allies;   //Index used to access a board in game->boards 
-   int target = -1;
+   int team = 1;                                         //Teams are 0 and 1
 
-   int team = 1;
+   GarbagePile* pile = nullptr;                          //List of all garbage (deployed and incoming)
 
-   GarbagePile* pile = nullptr;
-
-   uint64_t seed = 0;
-   uint64_t randomCalls = 0;
-   std::default_random_engine generator;
-   std::uniform_int_distribution<int> distribution;
+   uint64_t seed = 0;                                    //The random seed for the board (used to generate random tiles)
+   uint64_t randomCalls = 0;                             //How many times have used the random number generator, used to save/reload the state of the generator
+   std::default_random_engine generator;                 //The actual random number algorithm/engine
+   std::uniform_int_distribution<int> distribution;      //The distribution for the random number generator (uniform)
 
 };
 //@@End Serialize
