@@ -80,6 +80,7 @@ void cursorFindTiles(Board* board, Cursor* cursor) {
    int count = 0;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
+         if (count == 2) { break; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_drop) {
             cursor->dropList[count] = tile;
@@ -125,6 +126,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
             tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
             tiles[i]->status = status_drop;
             tiles[i]->statusTime = board->game->timer + 10000;
+            tiles[i]->falling = true;
             cursor->dropList[i] = tiles[i];
          }
          cursor->mode = 1;
@@ -200,7 +202,6 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       cursorFindTiles(board, cursor);
 
       if (input.up.p) { return; }
-      else if (input.up.p) { return; }
       else if (input.down.p) { 
          //Trigger tiles to drop
          //Basically run it through boardFall with extra speed

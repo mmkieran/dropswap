@@ -601,6 +601,9 @@ void boardFall(Board* board, float velocity) {
             tile->falling = false;
             continue;
          }
+         if (tile->status == status_drop) {
+            drop = velocity / 8;
+         }
          
          int lookDown = 2;
          Tile* below = boardGetTile(board, row + 1, col);
@@ -642,6 +645,10 @@ void boardFall(Board* board, float velocity) {
             if (below == nullptr) {
                tile->chain = false;
             }
+         }
+         if (tile->status == status_drop && tile->falling == false) {
+            tile->status = status_normal;
+            tile->statusTime = 0;
          }
       }
    }
@@ -898,6 +905,7 @@ void makeItRain(Board* board) {
       else {
          tileInit(board, tile, row + 1, col, type);
       }
+      tile->falling = true;
    }
 }
 
