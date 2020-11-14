@@ -82,47 +82,36 @@ struct DropInfo {
    
 };
 
-static void _createDropTiles(Board* board, Cursor* cursor) {
-   bool enoughSpace = false;
-   Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
-   Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
-   if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
-   if (enoughSpace == true) {
-      Tile* tiles[2] = { tile1, tile2 };
-      for (int i = 0; i < 2; i++) {
-         tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
-         tiles[i]->status = status_drop;
-         tiles[i]->statusTime = board->game->timer + 10000;
-         tiles[i]->falling = true;
-         cursor->dropList[i] = tiles[i];
-      }
-   }
-}
-
-void dropFindTiles(Board* board, Cursor* cursor) {
-   int count = 0;
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         if (count == 2) { break; }
-         Tile* tile = boardGetTile(board, row, col);
-         if (tile->status == status_drop) {
-            cursor->dropList[count] = tile;
-            count++;
+void createDropTiles(Board* board, Cursor* cursor) {
+   if (cursor->mode == 1) {
+      if (cursor->dropList[0] != -1 && cursor->dropList[1] != -1) { return; }
+      bool enoughSpace = false;
+      Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
+      Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
+      if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
+      if (enoughSpace == true) {
+         Tile* tiles[2] = { tile1, tile2 };
+         for (int i = 0; i < 2; i++) {
+            tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
+            tiles[i]->status = status_drop;
+            tiles[i]->statusTime = board->game->timer + 10000;
+            tiles[i]->falling = true;
+            cursor->dropList[i] = tiles[i]->ID;
+            board->tileLookup[tiles[i]->ID] = tiles[i];
          }
       }
    }
-   if (count < 2) { _createDropTiles(board, cursor); }
 }
-
 
 void dropLateral(Board* board, Cursor* cursor, int dir) {
    bool enoughSpace = true;
    Tile* target[2];
    std::vector <Tile> backup;
    for (int i = 0; i < 2; i++) {
-      backup.push_back(*cursor->dropList[i]);
-      int row = tileGetRow(board, cursor->dropList[i]);
-      int col = tileGetCol(board, cursor->dropList[i]);
+      Tile* tile = board->tileLookup[cursor->dropList[i]];
+      backup.push_back(*tile);
+      int row = tileGetRow(board, tile);
+      int col = tileGetCol(board, tile);
       Tile* neighbor = boardGetTile(board, row, col + dir);
       if (neighbor == nullptr || (neighbor->type != tile_empty && neighbor->status != status_drop)) { enoughSpace = false; }
       else { target[i] = neighbor; }
@@ -134,7 +123,7 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
          Tile tmp = *target[i];
          *target[i] = backup[i];
          target[i]->xpos = tmp.xpos;
-         tileInit(board, cursor->dropList[i], row, col, tile_empty);
+         tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty);
       }
    }
 }
@@ -150,11 +139,13 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
 
    bool vertical = false;
    Tile* top = nullptr;
-   if (cursor->dropList[0]->ypos != cursor->dropList[1]->ypos) { vertical = true; }
+   Tile* tile1 = board->tileLookup[cursor->dropList[0]];
+   Tile* tile2 = board->tileLookup[cursor->dropList[0]];
+   if (tile1->ypos != tile2->ypos) { vertical = true; }
 
    for (int i = 0; i < 2; i++) {
-      int row = tileGetRow(board, cursor->dropList[i]);
-      int col = tileGetCol(board, cursor->dropList[i]);
+      int row = tileGetRow(board, board->tileLookup[cursor->dropList[i]]);
+      int col = tileGetCol(board, board->tileLookup[cursor->dropList[i]]);
 
    }
    if (enoughSpace == true) {
@@ -229,10 +220,13 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    }
    //Dropping mode
    if (cursor->mode == 1) {
+      createDropTiles(board, cursor);
+      if (board->tileLookup[cursor->dropList[0]]->falling == false || board->tileLookup[cursor->dropList[1]]->falling == false) {
+         cursor->dropList[0] = -1;
+         cursor->dropList[1] = -1;
+      }
       float y = cursorGetY(cursor);
       float x = cursorGetX(cursor);
-
-      dropFindTiles(board, cursor);
 
       if (input.up.p) { return; }
       else if (input.down.p) { 

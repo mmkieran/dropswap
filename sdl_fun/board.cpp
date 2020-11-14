@@ -164,8 +164,6 @@ void boardUpdate(Board* board) {
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
 
-   boardAssignSlot(board, false);
-
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
@@ -183,6 +181,7 @@ void boardUpdate(Board* board) {
       }
    }
 
+   boardAssignSlot(board, false);
    boardRemoveVisuals(board);
 }
 

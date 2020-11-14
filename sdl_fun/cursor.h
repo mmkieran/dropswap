@@ -15,7 +15,7 @@ struct Cursor {
    int h;                                 //Cursor height
    int w;                                 //Cursor width
    int mode = 0;                          //1 is dropping and 0 is swapping
-   Tile* dropList[2];                     //The list of tiles currently being dropped
+   int dropList[2] = { -1, -1 };          //The list of tiles currently being dropped
 
    Texture* texture = nullptr;            //Used to draw the cursor tag texture
    Animation* animation = nullptr;        //Used to draw the cursor animation
