@@ -82,9 +82,9 @@ struct DropInfo {
    
 };
 
-void createDropTiles(Board* board, Cursor* cursor) {
+bool createDropTiles(Board* board, Cursor* cursor) {
    if (cursor->mode == 1) {
-      if (cursor->dropList[0] != -1 && cursor->dropList[1] != -1) { return; }
+      if (cursor->dropList[0] != -1 && cursor->dropList[1] != -1) { return true; }
       bool enoughSpace = false;
       Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
       Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
@@ -99,8 +99,10 @@ void createDropTiles(Board* board, Cursor* cursor) {
             cursor->dropList[i] = tiles[i]->ID;
             board->tileLookup[tiles[i]->ID] = tiles[i];
          }
+         return true;
       }
    }
+   return false;
 }
 
 void dropLateral(Board* board, Cursor* cursor, int dir) {
@@ -109,11 +111,11 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
    std::vector <Tile> backup;
    for (int i = 0; i < 2; i++) {
       Tile* tile = board->tileLookup[cursor->dropList[i]];
-      backup.push_back(*tile);
+      backup.push_back(*tile);  //This is in case moving a dropping tile would land on the other half
       int row = tileGetRow(board, tile);
       int col = tileGetCol(board, tile);
       Tile* neighbor = boardGetTile(board, row, col + dir);
-      if (neighbor == nullptr || (neighbor->type != tile_empty && neighbor->status != status_drop)) { enoughSpace = false; }
+      if (neighbor == nullptr || (neighbor->type != tile_empty)) { enoughSpace = false; }
       else { target[i] = neighbor; }
    }
    if (enoughSpace == true) {
@@ -123,6 +125,9 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
          Tile tmp = *target[i];
          *target[i] = backup[i];
          target[i]->xpos = tmp.xpos;
+         if (dir == -1) { target[i]->effect = visual_swapl; }
+         else if (dir == 1) { target[i]->effect = visual_swapr; }
+         target[i]->effectTime = board->game->timer + SWAPTIME;
          tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty);
       }
    }
@@ -220,27 +225,30 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    }
    //Dropping mode
    if (cursor->mode == 1) {
-      createDropTiles(board, cursor);
-      if (board->tileLookup[cursor->dropList[0]]->falling == false || board->tileLookup[cursor->dropList[1]]->falling == false) {
-         cursor->dropList[0] = -1;
-         cursor->dropList[1] = -1;
-      }
-      float y = cursorGetY(cursor);
-      float x = cursorGetX(cursor);
+      bool space = createDropTiles(board, cursor);
+      if (space == false) { cursor->mode = 0; }
+      else if (space == true) {
+         if (board->tileLookup[cursor->dropList[0]]->falling == false || board->tileLookup[cursor->dropList[1]]->falling == false) {
+            cursor->dropList[0] = -1;
+            cursor->dropList[1] = -1;
+         }
+         float y = cursorGetY(cursor);
+         float x = cursorGetX(cursor);
 
-      if (input.up.p) { return; }
-      else if (input.down.p) { 
-         //Trigger tiles to drop
-         //Basically run it through boardFall with extra speed
-      }
-      else if (input.left.p) {
-         dropLateral(board, cursor, -1);
-      }
-      else if (input.right.p) {
-         dropLateral(board, cursor, 1);
-      }
-      else if (input.swap.p) {
-         //This rotates the tiles 90 degrees clockwise?
+         if (input.up.p) { return; }
+         else if (input.down.p) {
+            //Trigger tiles to drop
+            //Basically run it through boardFall with extra speed
+         }
+         else if (input.left.p) {
+            dropLateral(board, cursor, -1);
+         }
+         else if (input.right.p) {
+            dropLateral(board, cursor, 1);
+         }
+         else if (input.swap.p) {
+            //This rotates the tiles 90 degrees clockwise?
+         }
       }
    }
 

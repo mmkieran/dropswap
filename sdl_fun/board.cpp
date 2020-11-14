@@ -610,9 +610,7 @@ void boardFall(Board* board, float velocity) {
             tile->falling = false;
             continue;
          }
-         if (tile->status == status_drop) {
-            drop = velocity / 8;
-         }
+         if (tile->status == status_drop) { drop = velocity / 8; }
          
          int lookDown = 2;
          Tile* below = boardGetTile(board, row + 1, col);
