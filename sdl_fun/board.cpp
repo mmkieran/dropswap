@@ -634,6 +634,10 @@ void boardFall(Board* board, float velocity) {
          if (prevFall == true && tile->falling == false) {
             //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
             board->game->soundToggles[sound_land] = true;
+            if (tile->status == status_drop) {
+               tile->status = status_normal;
+               tile->statusTime = 0;
+            }
          }
          else if (prevFall == false && tile->falling == false) {
             int lookDown = 2;
@@ -645,10 +649,6 @@ void boardFall(Board* board, float velocity) {
             if (below == nullptr) {
                tile->chain = false;
             }
-         }
-         if (tile->status == status_drop && tile->falling == false) {
-            tile->status = status_normal;
-            tile->statusTime = 0;
          }
       }
    }

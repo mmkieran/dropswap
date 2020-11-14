@@ -76,6 +76,23 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
+static void _createDropTiles(Board* board, Cursor* cursor) {
+   bool enoughSpace = false;
+   Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
+   Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
+   if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
+   if (enoughSpace == true) {
+      Tile* tiles[2] = { tile1, tile2 };
+      for (int i = 0; i < 2; i++) {
+         tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
+         tiles[i]->status = status_drop;
+         tiles[i]->statusTime = board->game->timer + 10000;
+         tiles[i]->falling = true;
+         cursor->dropList[i] = tiles[i];
+      }
+   }
+}
+
 void cursorFindTiles(Board* board, Cursor* cursor) {
    int count = 0;
    for (int row = 0; row < board->wBuffer; row++) {
@@ -88,6 +105,7 @@ void cursorFindTiles(Board* board, Cursor* cursor) {
          }
       }
    }
+   if (count < 2) { _createDropTiles(board, cursor); }
 }
 
 
@@ -115,30 +133,12 @@ void cursorDropLateral(Board* board, Cursor* cursor, int dir) {
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
-   if (input.power.p == true && cursor->mode == 0) { 
-      bool enoughSpace = false;
-      Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
-      Tile* tile2 = boardGetTile(board, board->startH + 1, board->w / 2);
-      if (tile1->type == tile_empty && tile2->type == tile_empty) { enoughSpace = true; }
-      if (enoughSpace == true) {
-         Tile* tiles[2] = { tile1, tile2 };
-         for (int i = 0; i < 2; i++) {
-            tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
-            tiles[i]->status = status_drop;
-            tiles[i]->statusTime = board->game->timer + 10000;
-            tiles[i]->falling = true;
-            cursor->dropList[i] = tiles[i];
-         }
-         cursor->mode = 1;
-      }
-   }
+   if (cursor->y <= 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
+   if (input.power.p == true && cursor->mode == 0) { cursor->mode = 1; }
    else if (input.power.p == true && cursor->mode == 1) { cursor->mode = 0; }
+
    //Swapping mode
    if (cursor->mode == 0) {
-      if (cursor->y <= 0) {
-         cursor->y = board->tileHeight + board->offset;
-      }
-
       float y = cursorGetY(cursor);
       float x = cursorGetX(cursor);
 
