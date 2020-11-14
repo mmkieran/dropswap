@@ -337,7 +337,6 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
    _serializeVisualEffect(stream, tile);
-   writeStream(stream, tile->ID);
    writeStream(stream, tile->effectTime);
    writeStream(stream, tile->xpos);
    writeStream(stream, tile->ypos);
@@ -355,7 +354,6 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
    _deserializeVisualEffect(start, tile);
-   readStream(start, tile->ID);
    readStream(start, tile->effectTime);
    readStream(start, tile->xpos);
    readStream(start, tile->ypos);

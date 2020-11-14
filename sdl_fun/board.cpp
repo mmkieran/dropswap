@@ -68,7 +68,6 @@ Board* boardCreate(Game* game, int team, int tWidth, int tHeight) {
          board->pile = garbagePileCreate();
 		   boardStartRandom(board);
          board->mesh = meshCreate();  //Everything is draw with this
-         board->tLookup.resize((board->wBuffer) * board->w);
 
          return board;
       }
@@ -97,9 +96,8 @@ Board* boardDestroy(Board* board) {
 
 //Get a tile using the row and col
 Tile* boardGetTile(Board* board, int row, int col) {
-   if (row < 0 || row > board->wBuffer - 1) {
-      return nullptr;
-   }
+   if (row < 0 || row > board->wBuffer - 1) { return nullptr; }
+   if (col < 0 || col > board->w - 1) { return nullptr; }
    Tile* tile = &board->tiles[(board->w * row + col)];
    return tile;
 }
@@ -129,21 +127,8 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
-//Look through the tiles and assign them to a vector by id
-static void _updateTileIndex(Board* board) {
-   //board->tLookup.clear();
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         board->tLookup[tile->ID] = tile;
-      }
-   }
-}
-
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
-   _updateTileIndex(board);  //todo maybe combine with other looping later
-
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {
@@ -270,8 +255,6 @@ void _swapTiles(Tile* tile1, Tile* tile2) {
    tile1->type = tmp.type;
    tile2->texture = tile1->texture;
    tile1->texture = tmp.texture;
-   tile2->ID = tile1->ID;
-   tile1->ID = tmp.ID;
 }
 
 //Swap two tiles on the board horizontally
@@ -683,7 +666,7 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    Tile* up2 = boardGetTile(board, row - 2, col);
 
    int total = 6;
-   while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type)) {
+   while ((left && left2 && type == left->type && type == left2->type) || (up && up2 && type == up->type && type == up2->type)) {
       current++;
       if (current > total) {
          current = current % total;
@@ -829,8 +812,6 @@ int boardFillTiles(Board* board) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         tile->ID = count;  //Unique ID for each tile
-         count++;
          if (row < board->startH + (board->endH - board->startH) / 2) {
             tileInit(board, tile, row, col, tile_empty);
             continue;
@@ -904,20 +885,18 @@ void makeItRain(Board* board) {
       Tile* left2 = boardGetTile(board, row, col - 2);
 
       int total = 6;
-      if (left && left2) {
-         while ((type == left->type && type == left2->type)) {
-            current++;
-            if (current > total) {
-               current = current % total;
-            }
-            type = (TileType)current;
+      while ((left && left2 && type == left->type && type == left2->type)) {
+         current++;
+         if (current > total) {
+            current = current % total;
          }
-         if (col % 2 == 0) {
-            tileInit(board, tile, row, col, type);
-         }
-         else {
-            tileInit(board, tile, row + 1, col, type);
-         }
+         type = (TileType)current;
+      }
+      if (col % 2 == 0) {
+         tileInit(board, tile, row, col, type);
+      }
+      else {
+         tileInit(board, tile, row + 1, col, type);
       }
    }
 }

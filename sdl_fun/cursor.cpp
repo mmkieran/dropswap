@@ -76,11 +76,39 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
-void cursorGetTiles(Board* board, Cursor* cursor, Tile* tiles[2]) {
+void cursorFindTiles(Board* board, Cursor* cursor) {
+   int count = 0;
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->status == status_drop) {
+            cursor->dropList[count] = tile;
+            count++;
+         }
+      }
+   }
+}
+
+
+void cursorDropLateral(Board* board, Cursor* cursor, int dir) {
+   bool enoughSpace = true;
+   Tile* target[2];
    for (int i = 0; i < 2; i++) {
-      Tile* tile = board->tLookup[cursor->dropList[i]];
-      //if (tile->status != status_drop) { ; }
-      tiles[i] = tile;
+      int row = tileGetRow(board, cursor->dropList[i]);
+      int col = tileGetCol(board, cursor->dropList[i]);
+      Tile* neighbor = boardGetTile(board, row, col + dir);
+      if (neighbor == nullptr || (neighbor->type != tile_empty && neighbor->status != status_drop)) { enoughSpace = false; }
+      else { target[i] = neighbor; }
+   }
+   if (enoughSpace == true) {
+      for (int i = 0; i < 2; i++) {
+         int row = tileGetRow(board, cursor->dropList[i]);
+         int col = tileGetCol(board, cursor->dropList[i]);
+         Tile tmp = *target[i];
+         *target[i] = *cursor->dropList[i];
+         target[i]->xpos = tmp.xpos;
+         tileInit(board, cursor->dropList[i], row, col, tile_empty);
+      }
    }
 }
 
@@ -94,9 +122,10 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       if (enoughSpace == true) {
          Tile* tiles[2] = { tile1, tile2 };
          for (int i = 0; i < 2; i++) {
-            tiles[i]->status = status_drop;
             tileInit(board, tiles[i], tileGetRow(board, tiles[i]), tileGetCol(board, tiles[i]), (TileType)boardRandomTile(board));
-            cursor->dropList[i] = tiles[i]->ID;
+            tiles[i]->status = status_drop;
+            tiles[i]->statusTime = board->game->timer + 10000;
+            cursor->dropList[i] = tiles[i];
          }
          cursor->mode = 1;
       }
@@ -168,8 +197,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       float y = cursorGetY(cursor);
       float x = cursorGetX(cursor);
 
-      Tile* tiles[2];
-      cursorGetTiles(board, cursor, tiles);
+      cursorFindTiles(board, cursor);
 
       if (input.up.p) { return; }
       else if (input.up.p) { return; }
@@ -178,24 +206,10 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
          //Basically run it through boardFall with extra speed
       }
       else if (input.left.p) {
-         bool enoughSpace = true;
-         Tile* target[2];
-         for (int i = 0; i < 2; i++) {
-            int row = tileGetRow(board, tiles[i]);
-            int col = tileGetCol(board, tiles[i]);
-            Tile* left = boardGetTile(board, row + i, col - 1);
-            if (!left || left->type != tile_empty) { enoughSpace = false; }
-            else { target[i] = left; }
-         }
-         if (enoughSpace == true) {
-            for (int i = 0; i < 2; i++) {
-               _swapTiles(target[i], tiles[i]);
-            }
-         }
+         cursorDropLateral(board, cursor, -1);
       }
       else if (input.right.p) {
-         //Check if the tiles next to it are occupied
-         //If not, swap with empty tiles
+         cursorDropLateral(board, cursor, 1);
       }
       else if (input.swap.p) {
          //This rotates the tiles 90 degrees clockwise?

@@ -55,7 +55,6 @@ struct Board {
      
    std::map <VisualEffect, VisualEvent> visualEvents;    //What visual effects are taking place on the board (global)
    BoardStats boardStats;                                //Tracks the statistics for each board
-   std::vector <Tile*> tLookup;
 
    float level = 5;                                      //Player handicap (modified board speed and fall rate...increases with clears and caps at 10)
    float fallSpeed = 10;                                 //This is the base fall rate (ranges from 10-13)

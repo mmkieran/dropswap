@@ -5,6 +5,7 @@ typedef struct Mesh Mesh;
 typedef struct Animation Animation;
 typedef struct UserInput UserInput;
 typedef struct Texture Texture;
+typedef struct Tile Tile;
 
 //@@Start Serialize
 struct Cursor {
@@ -14,7 +15,7 @@ struct Cursor {
    int h;                                 //Cursor height
    int w;                                 //Cursor width
    int mode = 0;                          //1 is dropping and 0 is swapping
-   int dropList[2];                       //The list of tiles currently being dropped
+   Tile* dropList[2];                     //The list of tiles currently being dropped
 
    Texture* texture = nullptr;            //Used to draw the cursor tag texture
    Animation* animation = nullptr;        //Used to draw the cursor animation
