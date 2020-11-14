@@ -76,6 +76,12 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
+struct DropInfo {
+   Tile* rotatePoint = nullptr;
+   bool vertical = true;
+   
+};
+
 static void _createDropTiles(Board* board, Cursor* cursor) {
    bool enoughSpace = false;
    Tile* tile1 = boardGetTile(board, board->startH, board->w / 2);
@@ -93,7 +99,7 @@ static void _createDropTiles(Board* board, Cursor* cursor) {
    }
 }
 
-void cursorFindTiles(Board* board, Cursor* cursor) {
+void dropFindTiles(Board* board, Cursor* cursor) {
    int count = 0;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
@@ -109,10 +115,12 @@ void cursorFindTiles(Board* board, Cursor* cursor) {
 }
 
 
-void cursorDropLateral(Board* board, Cursor* cursor, int dir) {
+void dropLateral(Board* board, Cursor* cursor, int dir) {
    bool enoughSpace = true;
    Tile* target[2];
+   std::vector <Tile> backup;
    for (int i = 0; i < 2; i++) {
+      backup.push_back(*cursor->dropList[i]);
       int row = tileGetRow(board, cursor->dropList[i]);
       int col = tileGetCol(board, cursor->dropList[i]);
       Tile* neighbor = boardGetTile(board, row, col + dir);
@@ -121,11 +129,37 @@ void cursorDropLateral(Board* board, Cursor* cursor, int dir) {
    }
    if (enoughSpace == true) {
       for (int i = 0; i < 2; i++) {
-         int row = tileGetRow(board, cursor->dropList[i]);
-         int col = tileGetCol(board, cursor->dropList[i]);
+         int row = tileGetRow(board, &backup[i]);
+         int col = tileGetCol(board, &backup[i]);
          Tile tmp = *target[i];
-         *target[i] = *cursor->dropList[i];
+         *target[i] = backup[i];
          target[i]->xpos = tmp.xpos;
+         tileInit(board, cursor->dropList[i], row, col, tile_empty);
+      }
+   }
+}
+
+/*
+Determine if drop tiles are horizontal or vertical
+If vertical, move top... if horizontal move left
+Check for space before move
+*/
+void dropRotate(Board* board, Cursor* cursor, int dir) {
+   bool enoughSpace = true;
+   Tile* target[2];
+
+   bool vertical = false;
+   Tile* top = nullptr;
+   if (cursor->dropList[0]->ypos != cursor->dropList[1]->ypos) { vertical = true; }
+
+   for (int i = 0; i < 2; i++) {
+      backup.push_back(*cursor->dropList[i]);
+      int row = tileGetRow(board, cursor->dropList[i]);
+      int col = tileGetCol(board, cursor->dropList[i]);
+
+   }
+   if (enoughSpace == true) {
+      for (int i = 0; i < 2; i++) {
          tileInit(board, cursor->dropList[i], row, col, tile_empty);
       }
    }
@@ -199,7 +233,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       float y = cursorGetY(cursor);
       float x = cursorGetX(cursor);
 
-      cursorFindTiles(board, cursor);
+      dropFindTiles(board, cursor);
 
       if (input.up.p) { return; }
       else if (input.down.p) { 
@@ -207,10 +241,10 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
          //Basically run it through boardFall with extra speed
       }
       else if (input.left.p) {
-         cursorDropLateral(board, cursor, -1);
+         dropLateral(board, cursor, -1);
       }
       else if (input.right.p) {
-         cursorDropLateral(board, cursor, 1);
+         dropLateral(board, cursor, 1);
       }
       else if (input.swap.p) {
          //This rotates the tiles 90 degrees clockwise?
