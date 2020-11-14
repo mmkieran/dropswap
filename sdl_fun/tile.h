@@ -29,6 +29,7 @@ enum TileStatus {
 
 //@@Start Serialize
 struct Tile {
+   int ID = -1;                        //A unique ID for the tile
    TileType type;                      //Determines texture and behavior of tile (e.g. star)
 
    double xpos;                        //The x position of the tile on the board

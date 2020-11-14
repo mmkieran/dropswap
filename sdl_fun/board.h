@@ -69,6 +69,8 @@ struct Board {
    std::vector <int> enemies;                            //Index used to access a board in game->boards
    std::vector <int> allies;                             //Index used to access a board in game->boards 
    int target = -1;                                      //The index in game->boards that we are currently dumping garbage on
+   int uniqueID = 0;                                     //Used to generate a unique ID for non-empty tiles
+   std::map <int, Tile*> tileLookup;                     //A list of tiles by ID
 
    int team = 1;                                         //Teams are 0 and 1
 

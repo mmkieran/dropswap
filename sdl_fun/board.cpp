@@ -127,8 +127,18 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
+static void _buildTileLookup(Board* board) {
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type != tile_empty) { board->tileLookup[tile->ID] = tile; }
+      }
+   }
+}
+
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
+   _buildTileLookup(board);
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {

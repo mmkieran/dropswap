@@ -42,6 +42,15 @@ void tileSetTexture(Board* board, Tile* tile) {
 
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
    tile->type = type;
+   if (tile->type != tile_empty) {
+      tile->ID = board->uniqueID;
+      board->uniqueID++;
+   }
+   else {
+      board->tileLookup.erase(tile->ID);
+      tile->ID = -1;
+   }
+
    tile->status = status_normal;
    tile->effect = visual_none;  //We don't need to save this because it only happens during render
    tile->effectTime = 0;

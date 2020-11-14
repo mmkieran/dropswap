@@ -153,14 +153,13 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    if (cursor->dropList[0]->ypos != cursor->dropList[1]->ypos) { vertical = true; }
 
    for (int i = 0; i < 2; i++) {
-      backup.push_back(*cursor->dropList[i]);
       int row = tileGetRow(board, cursor->dropList[i]);
       int col = tileGetCol(board, cursor->dropList[i]);
 
    }
    if (enoughSpace == true) {
       for (int i = 0; i < 2; i++) {
-         tileInit(board, cursor->dropList[i], row, col, tile_empty);
+         //tileInit(board, cursor->dropList[i], row, col, tile_empty);
       }
    }
 }

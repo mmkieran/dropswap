@@ -331,8 +331,8 @@ void gameStartMatch(Game* game) {
       Board* board;
 
       int team = 0;
-      //if (game->net->syncTest == true) { team = i; }
-      if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
+      if (game->net->syncTest == true) { team = i; }
+      else if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
       else if (game->settings.mode == multi_shared) { team = i; }
 
       if (game->players > 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
