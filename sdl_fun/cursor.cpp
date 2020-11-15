@@ -149,31 +149,44 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
 }
 
 void dropRotate(Board* board, Cursor* cursor, int dir = 1) {
-   Tile* target;
+   Tile* target = nullptr;
 
-   bool vertical = false;
-   bool top = false;
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
+
+   if (!tile1 || !tile2) { return; }
 
    int row = tileGetRow(board, board->tileLookup[cursor->dropList[0]]);
    int col = tileGetCol(board, board->tileLookup[cursor->dropList[0]]);
 
+   double xAdjust = board->tileWidth;
+   double yAdjust = board->tileHeight;
    if (tile1->ypos != tile2->ypos) {  //Vertical position
-      vertical = true; 
       if (tile1->ypos < tile2->ypos) {  //Rotating tile is at the top
-         top = true; 
          target = boardGetTile(board, row + 1, col + 1);
       }
-      else { target = boardGetTile(board, row - 1, col -1); }
-
-      if (!target || target->type != tile_empty) { return; }
-      Tile tmp = *target;
-      *target = *tile1;
-      target->xpos = tmp.xpos;
-      target->ypos += board->tileHeight;
-      tileInit(board, tile1, row, col, tile_empty);
+      else { 
+         target = boardGetTile(board, row - 1, col -1); 
+         xAdjust *= -1;
+         yAdjust *= -1;
+      }
    }
+   else if (tile1->ypos == tile2->ypos) {  //Horizontal position
+      if (tile1->xpos < tile2->xpos) {  //Rotating tile is on the left
+         target = boardGetTile(board, row - 1, col + 1);
+         yAdjust *= -1;
+      }
+      else { 
+         target = boardGetTile(board, row + 1, col - 1); 
+         xAdjust *= -1;
+      }
+   }
+
+   if (!target || target->type != tile_empty) { return; }
+   *target = *tile1;
+   target->xpos += xAdjust;
+   target->ypos += yAdjust;
+   tileInit(board, tile1, row, col, tile_empty);
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
