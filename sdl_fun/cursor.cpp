@@ -148,7 +148,7 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
    }
 }
 
-void dropRotate(Board* board, Cursor* cursor, int dir = 1) {
+void dropRotate(Board* board, Cursor* cursor, int dir) {
    Tile* target = nullptr;
 
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
@@ -163,22 +163,26 @@ void dropRotate(Board* board, Cursor* cursor, int dir = 1) {
    double yAdjust = board->tileHeight;
    if (tile1->ypos != tile2->ypos) {  //Vertical position
       if (tile1->ypos < tile2->ypos) {  //Rotating tile is at the top
-         target = boardGetTile(board, row + 1, col + 1);
+         target = boardGetTile(board, row + 1, col + dir);
+         xAdjust *= dir;
+         yAdjust *= 1;
       }
-      else { 
-         target = boardGetTile(board, row - 1, col -1); 
-         xAdjust *= -1;
-         yAdjust *= -1;
+      else {  //it's at the bottom
+         target = boardGetTile(board, row - 1, col - dir); 
+         xAdjust *= -dir;
+         yAdjust *= - 1;
       }
    }
    else if (tile1->ypos == tile2->ypos) {  //Horizontal position
       if (tile1->xpos < tile2->xpos) {  //Rotating tile is on the left
-         target = boardGetTile(board, row - 1, col + 1);
-         yAdjust *= -1;
+         target = boardGetTile(board, row - dir, col + 1);
+         xAdjust *= 1;
+         yAdjust *= -dir;
       }
-      else { 
-         target = boardGetTile(board, row + 1, col - 1); 
+      else {  //it's on the right
+         target = boardGetTile(board, row + dir, col - 1); 
          xAdjust *= -1;
+         yAdjust *= dir;
       }
    }
 
@@ -205,45 +209,45 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
          if (y - board->tileHeight <= 0) { return; }
          else { cursorSetY(cursor, (y - board->tileHeight)); }
       }
-      else if (input.down.p) {
+      if (input.down.p) {
          apm = true;  //Board Stats
          if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
          else { cursorSetY(cursor, (y + board->tileHeight)); }
       }
-      else if (input.right.p) {
+      if (input.right.p) {
          apm = true;  //Board Stats
          if (x >= (board->w - 2) * board->tileWidth) { return; }
          else { cursorSetX(cursor, (x + board->tileWidth)); }
       }
-      else if (input.left.p) {
+      if (input.left.p) {
          apm = true;  //Board Stats
          if (x <= 0) { return; }
          else { cursorSetX(cursor, (x - board->tileWidth)); }
       }
-      else if (input.right.h) {
+      if (input.right.h) {
          if (x >= (board->w - 2) * board->tileWidth) { return; }
          else { cursorSetX(cursor, (x + board->tileWidth)); }
       }
-      else if (input.left.h) {
+      if (input.left.h) {
          if (x <= 0) { return; }
          else { cursorSetX(cursor, (x - board->tileWidth)); }
       }
 
-      else if (input.up.h) {
+      if (input.up.h) {
          if (y - board->tileHeight <= 0) { return; }
          else { cursorSetY(cursor, (y - board->tileHeight)); }
       }
-      else if (input.down.h) {
+      if (input.down.h) {
          if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
          else {
             cursorSetY(cursor, (y + board->tileHeight));
          }
       }
-      else if (input.swap.p) {
+      if (input.swap.p) {
          apm = true;  //Board Stats
          boardSwap(board, cursor);
       }
-      else if ((input.nudge.p || input.nudge.h) && board->waitForClear == false) {
+      if ((input.nudge.p || input.nudge.h) && board->waitForClear == false) {
          if (board->danger == false) {
             apm = true;  //Board Stats
             boardMoveUp(board, 4 * (board->tileHeight / 64.0f));
@@ -254,30 +258,22 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    }
    //Dropping mode
    if (cursor->mode == 1) {
-      bool space = createDropTiles(board, cursor);
-      if (space == false) { cursor->mode = 0; }
-      else if (space == true) {
+      bool tileSpace = createDropTiles(board, cursor);
+      if (tileSpace == false) { cursor->mode = 0; }
+      else if (tileSpace == true) {
          if (board->tileLookup[cursor->dropList[0]]->falling == false || board->tileLookup[cursor->dropList[1]]->falling == false) {
             cursor->dropList[0] = -1;
             cursor->dropList[1] = -1;
          }
-         float y = cursorGetY(cursor);
-         float x = cursorGetX(cursor);
-
-         if (input.up.p) { return; }
-         else if (input.down.p) {
+         if (input.down.p) {
             //Trigger tiles to drop
             //Basically run it through boardFall with extra speed
          }
-         else if (input.left.p) {
-            dropLateral(board, cursor, -1);
-         }
-         else if (input.right.p) {
-            dropLateral(board, cursor, 1);
-         }
-         else if (input.swap.p) {
-            dropRotate(board, cursor);
-         }
+         if (input.left.p) { dropLateral(board, cursor, -1); }
+         if (input.right.p) { dropLateral(board, cursor, 1); }
+         if (input.swap.p) { dropRotate(board, cursor, 1); }
+         if (input.up.p) { 
+            dropRotate(board, cursor, -1); }
       }
    }
 
