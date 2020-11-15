@@ -193,6 +193,54 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    tileInit(board, tile1, row, col, tile_empty);
 }
 
+void dropDrop(Board* board, Cursor* cursor) {
+   std::vector <Tile*> tilesToCheck;
+   float drop = 16;
+
+   for (int i = 0; i < 2; i++) {
+      if (cursor->dropList[i] == -1) { return; }
+      Tile* tile = board->tileLookup[cursor->dropList[i]];
+      int row = tileGetRow(board, tile);
+      int col = tileGetCol(board, tile);
+      bool prevFall = tile->falling;  //Was the tile falling previously
+
+      int lookDown = 2;
+      Tile* below = boardGetTile(board, row + 1, col);
+      while (below && (below->type == tile_empty || (below->status == status_drop && below->falling == true)) ) {
+         below = boardGetTile(board, row + lookDown, col);
+         lookDown++;
+      }
+
+      float potentialDrop = drop;
+      potentialDrop = below->ypos - (tile->ypos + (float)board->tileHeight);  //check how far we can drop it
+
+      if (potentialDrop <= drop) {  //We swapped a tile into it as it fell
+         tile->ypos = below->ypos - board->tileHeight;
+         if (below->falling == true) {
+            tile->falling = true;
+            //tilesToCheck.push_back(tile);  //debug just check 'em all and see if they need to be cleared
+         }
+         else {
+            tile->falling = false;
+         }
+      }
+      else if (potentialDrop > drop) {  //We can fall as much as we want
+         tile->ypos += drop;
+         tile->falling = true;
+      }
+
+      tilesToCheck.push_back(tile);  //debug just check 'em all for clears
+      if (prevFall == true && tile->falling == false) {
+         //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
+         board->game->soundToggles[sound_land] = true;
+         if (tile->status == status_drop) {
+            tile->status = status_normal;
+            tile->statusTime = 0;
+         }
+      }
+   }
+}
+
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
    if (cursor->y <= 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
@@ -265,9 +313,8 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
             cursor->dropList[0] = -1;
             cursor->dropList[1] = -1;
          }
-         if (input.down.p) {
-            //Trigger tiles to drop
-            //Basically run it through boardFall with extra speed
+         if (input.down.p || input.down.h) {
+            dropDrop(board, cursor);
          }
          if (input.left.p) { dropLateral(board, cursor, -1); }
          if (input.right.p) { dropLateral(board, cursor, 1); }
