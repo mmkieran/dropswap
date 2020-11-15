@@ -76,11 +76,14 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
+//-----------
+//todo do we need this?
 struct DropInfo {
    Tile* rotatePoint = nullptr;
    bool vertical = true;
    
 };
+//--------------
 
 bool createDropTiles(Board* board, Cursor* cursor) {
    if (cursor->mode == 1) {
@@ -109,54 +112,67 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
    bool enoughSpace = true;
    Tile* target[2];
    std::vector <Tile> backup;
+
+   Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
+   Tile* tile2 = board->tileLookup[cursor->dropList[1]];
+
+   bool vertical = false;
+   if (tile1->ypos != tile2->ypos) { vertical = true; }
+
    for (int i = 0; i < 2; i++) {
       Tile* tile = board->tileLookup[cursor->dropList[i]];
       backup.push_back(*tile);  //This is in case moving a dropping tile would land on the other half
       int row = tileGetRow(board, tile);
       int col = tileGetCol(board, tile);
       Tile* neighbor = boardGetTile(board, row, col + dir);
-      if (neighbor == nullptr || (neighbor->type != tile_empty)) { enoughSpace = false; }
+      if (neighbor == nullptr || (neighbor->type != tile_empty && neighbor->status != status_drop)) { enoughSpace = false; }
       else { target[i] = neighbor; }
    }
    if (enoughSpace == true) {
       for (int i = 0; i < 2; i++) {
-         int row = tileGetRow(board, &backup[i]);
-         int col = tileGetCol(board, &backup[i]);
+         int row = tileGetRow(board, board->tileLookup[cursor->dropList[i]]);
+         int col = tileGetCol(board, board->tileLookup[cursor->dropList[i]]);
          Tile tmp = *target[i];
          *target[i] = backup[i];
          target[i]->xpos = tmp.xpos;
          if (dir == -1) { target[i]->effect = visual_swapl; }
          else if (dir == 1) { target[i]->effect = visual_swapr; }
          target[i]->effectTime = board->game->timer + SWAPTIME;
-         tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty);
+         if (vertical == true) { tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty); }
+         else if (vertical == false) {
+            if (tmp.type != tile_empty) {
+               tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty);
+            }
+         }
       }
    }
 }
 
-/*
-Determine if drop tiles are horizontal or vertical
-If vertical, move top... if horizontal move left
-Check for space before move
-*/
-void dropRotate(Board* board, Cursor* cursor, int dir) {
-   bool enoughSpace = true;
-   Tile* target[2];
+void dropRotate(Board* board, Cursor* cursor, int dir = 1) {
+   Tile* target;
 
    bool vertical = false;
-   Tile* top = nullptr;
-   Tile* tile1 = board->tileLookup[cursor->dropList[0]];
-   Tile* tile2 = board->tileLookup[cursor->dropList[0]];
-   if (tile1->ypos != tile2->ypos) { vertical = true; }
+   bool top = false;
+   Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
+   Tile* tile2 = board->tileLookup[cursor->dropList[1]];
 
-   for (int i = 0; i < 2; i++) {
-      int row = tileGetRow(board, board->tileLookup[cursor->dropList[i]]);
-      int col = tileGetCol(board, board->tileLookup[cursor->dropList[i]]);
+   int row = tileGetRow(board, board->tileLookup[cursor->dropList[0]]);
+   int col = tileGetCol(board, board->tileLookup[cursor->dropList[0]]);
 
-   }
-   if (enoughSpace == true) {
-      for (int i = 0; i < 2; i++) {
-         //tileInit(board, cursor->dropList[i], row, col, tile_empty);
+   if (tile1->ypos != tile2->ypos) {  //Vertical position
+      vertical = true; 
+      if (tile1->ypos < tile2->ypos) {  //Rotating tile is at the top
+         top = true; 
+         target = boardGetTile(board, row + 1, col + 1);
       }
+      else { target = boardGetTile(board, row - 1, col -1); }
+
+      if (!target || target->type != tile_empty) { return; }
+      Tile tmp = *target;
+      *target = *tile1;
+      target->xpos = tmp.xpos;
+      target->ypos += board->tileHeight;
+      tileInit(board, tile1, row, col, tile_empty);
    }
 }
 
@@ -247,7 +263,7 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
             dropLateral(board, cursor, 1);
          }
          else if (input.swap.p) {
-            //This rotates the tiles 90 degrees clockwise?
+            dropRotate(board, cursor);
          }
       }
    }

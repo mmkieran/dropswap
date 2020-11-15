@@ -264,35 +264,34 @@ void _swapTiles(Tile* tile1, Tile* tile2) {
    tile1->type = tmp.type;
    tile2->texture = tile1->texture;
    tile1->texture = tmp.texture;
+   tile2->ID = tile1->ID;
+   tile1->ID = tmp.ID;
 }
 
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board, Cursor* cursor) {
-
    if (board->game->timer < board->game->timings.countIn[0]) { return; } //No swapping during count in
-
-   float xCursor = cursorGetX(cursor);
-   float yCursor = cursorGetY(cursor);
-
    int col = cursorGetCol(board, cursor);
    int row = cursorGetRow(board, cursor);
-
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
    assert(tile1 && tile2);
+
+   if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
+   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
+   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
+   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap stopped tiles
+   if (tile1->status == status_drop || tile2->status == status_drop) { return; }    //Don't swap player controlled tiles
+
+   float xCursor = cursorGetX(cursor);
+   float yCursor = cursorGetY(cursor);
 
    tile1->chain = tile2->chain = false;
 
    Tile* below1 = boardGetTile(board, row + 1, col);
    Tile* below2 = boardGetTile(board, row + 1, col + 1);
-
    Tile* above1 = boardGetTile(board, row - 1, col);
    Tile* above2 = boardGetTile(board, row - 1, col + 1);
-
-   if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
-   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
-   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
-   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap disabled tiles
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling == true && tile2->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
@@ -332,15 +331,12 @@ void boardSwap(Board* board, Cursor* cursor) {
    tiles.push_back(tile2);
 
    board->game->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
-
    tile1->effect = visual_swapl;  //Visual interpolation for swapping left
    tile1->effectTime = board->game->timer + SWAPTIME;
-
    tile2->effect = visual_swapr;  //Visual interpolation for swapping right
    tile2->effectTime = board->game->timer + SWAPTIME;
 
    boardCheckClear(board, tiles, false);
-
    return;
 }
 
