@@ -191,6 +191,15 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    tileInit(board, tile1, row, col, tile_empty);
 }
 
+void _clearDroplist(Board* board, Cursor* cursor) {
+   for (int i = 0; i < 2; i++) {
+      Tile* tile = board->tileLookup[cursor->dropList[i]];
+      tile->status = status_normal;
+      tile->statusTime = 0;
+      cursor->dropList[i] = -1;
+   }
+}
+
 //Make the droptiles fall based on a velocity (pixels), returns true if they land
 bool dropDrop(Board* board, Cursor* cursor, float velocity) {
    if (cursor->dropList[0] == -1 || cursor->dropList[1] == -1) { return true; }
@@ -261,7 +270,10 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
    if (cursor->y <= 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
    if (input.power.p == true && cursor->mode == 0) { cursor->mode = 1; }
-   else if (input.power.p == true && cursor->mode == 1) { cursor->mode = 0; }
+   else if (input.power.p == true && cursor->mode == 1) { 
+      cursor->mode = 0; 
+      _clearDroplist(board, cursor);
+   }
 
    //Swapping mode
    if (cursor->mode == 0) {
