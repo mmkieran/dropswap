@@ -76,6 +76,10 @@ void cursorDraw(Board* board, Cursor* cursor) {
    meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
 }
 
+
+// Drop Functions
+//-----------------
+
 bool createDropTiles(Board* board, Cursor* cursor) {
    if (cursor->mode == 1) {
       if (cursor->dropList[0] != -1 && cursor->dropList[1] != -1) { return true; }
@@ -142,6 +146,7 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
 }
 
 void dropRotate(Board* board, Cursor* cursor, int dir) {
+   if (cursor->dropList[0] == -1 && cursor->dropList[1] == -1) { return; }
    Tile* target = nullptr;
 
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
@@ -186,22 +191,24 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    tileInit(board, tile1, row, col, tile_empty);
 }
 
-void dropDrop(Board* board, Cursor* cursor) {
-   if (cursor->dropList[0] == -1 || cursor->dropList[1] == -1) { return; }
+//Make the droptiles fall based on a velocity (pixels), returns true if they land
+bool dropDrop(Board* board, Cursor* cursor, float velocity) {
+   if (cursor->dropList[0] == -1 || cursor->dropList[1] == -1) { return true; }
 
    std::vector <Tile*> tilesToCheck;
-   float drop = 16;
+   float drop = velocity;
 
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
    Tile* botUp[2] = { tile1, tile2 };
    if (tile1->ypos != tile2->ypos) {
-      if (tile1->ypos < tile2->ypos) {
+      if (tile1->ypos < tile2->ypos) {  //Always move the bottom tile first
          botUp[0] = tile2;
          botUp[1] = tile1;
       }
    }
    
+   bool landed = false;
    for (int i = 0; i < 2; i++) {
       Tile* tile = botUp[i];
       int row = tileGetRow(board, tile);
@@ -222,7 +229,6 @@ void dropDrop(Board* board, Cursor* cursor) {
          tile->ypos = below->ypos - board->tileHeight;
          if (below->falling == true) {
             tile->falling = true;
-            //tilesToCheck.push_back(tile);  //debug just check 'em all and see if they need to be cleared
          }
          else { tile->falling = false; }
       }
@@ -232,14 +238,23 @@ void dropDrop(Board* board, Cursor* cursor) {
       }
 
       tilesToCheck.push_back(tile);  //debug just check 'em all for clears
-      if (prevFall == true && tile->falling == false) {
-         //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
+      if (tile->falling == false) { landed = true; }
+   }
+   if (landed == true) {
+      for (int i = 0; i < 2; i++) {
+         Tile* tile = botUp[i];
          board->game->soundToggles[sound_land] = true;
          tile->status = status_normal;
          tile->statusTime = 0;
          cursor->dropList[i] = -1;
+         tile->falling = false;
       }
+      if (tilesToCheck.size() > 0) {
+         boardCheckClear(board, tilesToCheck, true);
+      }
+      return true;
    }
+   return false;
 }
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
@@ -307,22 +322,23 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    }
    //Dropping mode
    if (cursor->mode == 1) {
+      bool landed = false;
       bool tileSpace = createDropTiles(board, cursor);
-      if (tileSpace == false) { cursor->mode = 0; }
-      else if (tileSpace == true) {
-         if (board->tileLookup[cursor->dropList[0]]->falling == false || board->tileLookup[cursor->dropList[1]]->falling == false) {
-            cursor->dropList[0] = -1;
-            cursor->dropList[1] = -1;
-         }
-         if (input.down.p || input.down.h) {
-            dropDrop(board, cursor);
-         }
-         if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
-         if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
-         if (input.swap.p) { dropRotate(board, cursor, 1); }
-         if (input.up.p) { 
-            dropRotate(board, cursor, -1); }
+      if (tileSpace == false) { 
+         cursor->mode = 0; 
+         return;
       }
+      landed = dropDrop(board, cursor, 2);
+      if (landed == true) { return; }
+      if (input.down.p || input.down.h) {
+         landed = dropDrop(board, cursor, 12);
+         if (landed == true) { return; }
+      }
+      if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
+      if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
+      if (input.swap.p) { dropRotate(board, cursor, 1); }
+      if (input.up.p) { 
+         dropRotate(board, cursor, -1); }
    }
 
    if (apm == true) { board->boardStats.apm++; }
