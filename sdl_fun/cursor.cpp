@@ -334,25 +334,22 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    }
    //Dropping mode
    if (cursor->mode == 1) {
-      bool landed = false;
       bool tileSpace = createDropTiles(board, cursor);
       if (tileSpace == false) { 
          cursor->mode = 0; 
+         //todo add visual and audio feedback here
          return;
       }
-      landed = dropDrop(board, cursor, 2);
-      if (landed == true) { return; }
-      if (input.down.p || input.down.h) {
-         landed = dropDrop(board, cursor, 12);
-         if (landed == true) { return; }
+      float drop = 2;  //todo calculate this based on board level
+      if (input.down.p || input.down.h) { drop += 12; }
+      bool landed = dropDrop(board, cursor, drop);
+      if (landed == false) {
+         if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
+         if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
+         if (input.swap.p) { dropRotate(board, cursor, 1); }
+         if (input.up.p) { dropRotate(board, cursor, -1); }
       }
-      if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
-      if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
-      if (input.swap.p) { dropRotate(board, cursor, 1); }
-      if (input.up.p) { 
-         dropRotate(board, cursor, -1); }
    }
-
    if (apm == true) { board->boardStats.apm++; }
 }
 
