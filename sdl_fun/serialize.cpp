@@ -371,6 +371,18 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileGarbage(start, board, tile);
 }
 
+void _cursorSerializeDroplist(std::vector <Byte>& stream, Board* board, Cursor* cursor) {
+   for (int i = 0; i < 2; i++) {
+      writeStream(stream, cursor->dropList[i]);
+   }
+}
+
+void _cursorDeserializeDroplist(Byte*& start, Board* board, Cursor* cursor) {
+   for (int i = 0; i < 2; i++) {
+      readStream(start, cursor->dropList[i]);
+   }
+}
+
 void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
    int cursorNumber = board->cursors.size();
    writeStream(stream, cursorNumber);
@@ -383,6 +395,7 @@ void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
       writeStream(stream, cursor->h);
       writeStream(stream, cursor->w);
       writeStream(stream, cursor->mode);
+      _cursorSerializeDroplist(stream, board, cursor);
    }
 }
 
@@ -398,6 +411,7 @@ void _cursorDeserialize(Byte* &start, Board* board) {
       readStream(start, cursor->h);
       readStream(start, cursor->w);
       readStream(start, cursor->mode);
+      _cursorDeserializeDroplist(start, board, cursor);
    }
 }
 
