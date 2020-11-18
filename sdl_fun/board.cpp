@@ -857,7 +857,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
-      if (current->type == tile_empty) { DebugBreak(); }  //This is a position conflict... bad
+      if (current->type != tile_empty) { DebugBreak(); }  //This is a position conflict... bad
       *current = t;
       tileSetTexture(board, current);
 
