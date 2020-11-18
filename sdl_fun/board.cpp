@@ -163,6 +163,7 @@ void boardUpdate(Board* board) {
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
+   boardAssignSlot(board, false);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
