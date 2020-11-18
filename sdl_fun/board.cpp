@@ -138,7 +138,6 @@ static void _buildTileLookup(Board* board) {
 
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
-   _buildTileLookup(board);
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {
@@ -164,6 +163,7 @@ void boardUpdate(Board* board) {
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
    boardAssignSlot(board, false);
+   _buildTileLookup(board);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
