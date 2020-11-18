@@ -117,3 +117,5 @@ void boardStartRandom(Board* board);
 void boardLoadRandom(Board* board);
 
 void boardAI(Game* game);
+
+void boardDebug(Board* board, bool* p_open);

@@ -2,6 +2,7 @@
 
 #include "board.h"
 #include <list>
+#include "imgui/imgui.h"
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
@@ -179,6 +180,8 @@ void boardUpdate(Board* board) {
    else if (board->game->settings.mode == single_player) {
       for (int i = 0; i < board->cursors.size(); i++) {
          cursorUpdate(board, board->cursors[0], board->game->p.input);
+         static bool debugBoard = true;
+         boardDebug(board, &debugBoard);
       }
    }
 
@@ -643,10 +646,14 @@ void boardFall(Board* board, float velocity) {
             int lookDown = 2;
             Tile* below = boardGetTile(board, row + 1, col);
             while (below && below->type != tile_cleared) {
-               below = boardGetTile(board, row + lookDown, col);
-               lookDown++;
+               Tile* next = boardGetTile(board, row + lookDown, col);
+               if (next) {
+                  below = next;
+                  lookDown++;
+               }
+               else { break; }
             }
-            if (below == nullptr) {
+            if (below->type != tile_cleared) {
                tile->chain = false;
             }
          }
@@ -1257,4 +1264,62 @@ void boardAI(Game* game) {
    if (aiLogic.matchSteps.empty() == false) {
       aiDoStep(board);
    }
+}
+
+void _tileInfo(Tile* tile) {
+
+}
+
+void boardDebug(Board* board, bool* p_open) {
+   if (!ImGui::Begin("Game Settings", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   for (int row = board->startH - 1; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         ImGui::PushID(board->w * row + col);
+         Tile* tile = boardGetTile(board, row, col);
+         if (!tile || tile->type == tile_empty) { 
+            if (ImGui::Button("E")) { ; }
+            ImGui::SameLine();
+            ImGui::PopID();
+            continue; 
+         }
+         switch (tile->type) {
+         case tile_circle:
+            if (ImGui::Button("C")) { ; }
+            break;
+         case tile_diamond:
+            if (ImGui::Button("D")) { ; }
+            break;
+         case tile_utriangle:
+            if (ImGui::Button("U")) { ; }
+            break;
+         case tile_dtriangle:
+            if (ImGui::Button("T")) { ; }
+            break;
+         case tile_star:
+            if (ImGui::Button("S")) { ; }
+            break;
+         case tile_heart:
+            if (ImGui::Button("H")) { ; }
+            break;
+         case tile_silver:
+            if (ImGui::Button("P")) { ; }
+            break;
+         case tile_garbage:
+            if (ImGui::Button("G")) { ; }
+            break;
+         case tile_cleared:
+            if (ImGui::Button("CL")) { ; }
+            break;
+         }
+         ImGui::SameLine();
+         ImGui::PopID();
+      }
+      ImGui::NewLine();
+   }
+
+   ImGui::End();
 }
