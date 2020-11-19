@@ -95,7 +95,6 @@ bool createDropTiles(Board* board, Cursor* cursor) {
             tiles[i]->statusTime = board->game->timer + 10000;
             tiles[i]->falling = true;
             cursor->dropList[i] = tiles[i]->ID;
-            board->tileLookup[tiles[i]->ID] = tiles[i];
          }
          return true;
       }
@@ -112,6 +111,8 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
 
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
+
+   //if (!tile1 || !tile2) { return; }
 
    bool vertical = false;
    if (tile1->ypos != tile2->ypos) { vertical = true; }
@@ -152,7 +153,7 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
 
-   if (!tile1 || !tile2) { return; }
+   //if (!tile1 || !tile2) { return; }
 
    int row = tileGetRow(board, board->tileLookup[cursor->dropList[0]]);
    int col = tileGetCol(board, board->tileLookup[cursor->dropList[0]]);
@@ -188,6 +189,7 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    *target = *tile1;
    target->xpos += xAdjust;
    target->ypos += yAdjust;
+   //todo we need to assign slot after this so we don't mess up
    tileInit(board, tile1, row, col, tile_empty);
 }
 
@@ -209,6 +211,9 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
 
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
+
+   //if (!tile1 || !tile2) { return; }
+
    Tile* botUp[2] = { tile1, tile2 };
    if (!tile1 || !tile2) {
       cursor->dropList[0] = cursor->dropList[1] = -1;
@@ -344,15 +349,14 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
          //todo add visual and audio feedback here
          return;
       }
+      if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
+      if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
+      if (input.swap.p) { dropRotate(board, cursor, 1); }
+      if (input.up.p) { dropRotate(board, cursor, -1); }
+
       float drop = 2;  //todo calculate this based on board level
       if (input.down.p || input.down.h) { drop += 12; }
       bool landed = dropDrop(board, cursor, drop);
-      if (landed == false) {
-         if (input.left.p || input.left.h) { dropLateral(board, cursor, -1); }
-         if (input.right.p || input.right.h) { dropLateral(board, cursor, 1); }
-         if (input.swap.p) { dropRotate(board, cursor, 1); }
-         if (input.up.p) { dropRotate(board, cursor, -1); }
-      }
    }
    if (apm == true) { board->boardStats.apm++; }
 }
