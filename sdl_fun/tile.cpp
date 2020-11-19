@@ -76,3 +76,28 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
       meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
    }
 }
+
+//Check if moving changes the row and copy it to the new position, init old position as empty
+void tileSetY(Board* board, Tile* tile, double dist, bool abs) {
+   if (abs == false) { tile->ypos += dist; }
+   else if (abs == true) { tile->ypos = dist; }
+
+   int row = tileGetRow(board, tile);
+   int col = tileGetCol(board, tile);
+
+   int calcRow = (tile->ypos + board->tileHeight - 0.000001) / board->tileHeight + board->startH;
+   if (calcRow != row) {
+      Tile* dest = boardGetTile(board, calcRow, col);
+      if (dest && dest->type == tile_empty) {
+         *dest = *tile;
+         tileSetTexture(board, dest);
+         if (dest->type == tile_garbage && dest->garbage != nullptr) {  //todo we could use tile index instead  
+            garbageSetStart(board->pile, dest);
+         }
+         tileInit(board, tile, row, col, tile_empty);
+      }
+      else {
+         DebugBreak();
+      }  
+   }
+}
