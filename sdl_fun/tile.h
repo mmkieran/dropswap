@@ -57,4 +57,4 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type);
 
 void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none, int effectTime = 0);
 
-void tileSetY(Board* board, Tile* tile, double dist, bool abs);
+void tileAssignSlot(Board* board, Tile* tile);

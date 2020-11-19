@@ -95,6 +95,7 @@ bool createDropTiles(Board* board, Cursor* cursor) {
             tiles[i]->statusTime = board->game->timer + 10000;
             tiles[i]->falling = true;
             cursor->dropList[i] = tiles[i]->ID;
+            board->tileLookup[tiles[i]->ID] = tiles[i];
          }
          return true;
       }
@@ -142,6 +143,7 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
                tileInit(board, board->tileLookup[cursor->dropList[i]], row, col, tile_empty);
             }
          }
+         board->tileLookup[target[i]->ID] = target[i];
       }
    }
 }
@@ -191,6 +193,7 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
    target->ypos += yAdjust;
    //todo we need to assign slot after this so we don't mess up
    tileInit(board, tile1, row, col, tile_empty);
+   board->tileLookup[target->ID] = target;
 }
 
 void _clearDroplist(Board* board, Cursor* cursor) {
@@ -255,23 +258,25 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
          tile->falling = true;
       }
 
-      tilesToCheck.push_back(tile);  //debug just check 'em all for clears
-      if (tile->falling == false) { landed = true; }
+      tilesToCheck.push_back(tile); 
+      if (tile->falling == false) { landed = true; }  //If either tile lands, we let go of both
    }
-   if (landed == true) {
-      for (int i = 0; i < 2; i++) {
+   for (int i = 0; i < 2; i++) {
+      if (landed == true) {
          Tile* tile = botUp[i];
          board->game->soundToggles[sound_land] = true;
          tile->status = status_normal;
          tile->statusTime = 0;
          cursor->dropList[i] = -1;
          tile->falling = false;
+
+         if (tilesToCheck.size() > 0) {
+            boardCheckClear(board, tilesToCheck, true);
+         }
       }
-      if (tilesToCheck.size() > 0) {
-         boardCheckClear(board, tilesToCheck, true);
-      }
-      return true;
+      tileAssignSlot(board, botUp[i]);
    }
+   if (landed == true) { return true; }
    return false;
 }
 

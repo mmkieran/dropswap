@@ -78,10 +78,7 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
 }
 
 //Check if moving changes the row and copy it to the new position, init old position as empty
-void tileSetY(Board* board, Tile* tile, double dist, bool abs) {
-   if (abs == false) { tile->ypos += dist; }
-   else if (abs == true) { tile->ypos = dist; }
-
+void tileAssignSlot(Board* board, Tile* tile) {
    int row = tileGetRow(board, tile);
    int col = tileGetCol(board, tile);
 
