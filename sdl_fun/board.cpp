@@ -132,7 +132,12 @@ static void _buildTileLookup(Board* board) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type != tile_empty) { board->tileLookup[tile->ID] = tile; }
+         if (tile->type != tile_empty) { 
+            if (tile->ID == -1) {
+               int i = 0;
+            }
+            board->tileLookup[tile->ID] = tile; 
+         }
       }
    }
 }
@@ -299,7 +304,7 @@ void boardSwap(Board* board, Cursor* cursor) {
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling == true && tile2->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 8) { return; }
+      else if (above1 && above1->type != tile_empty && above1->ypos - 0.00000001 > tile2->ypos - board->tileHeight) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
@@ -307,7 +312,7 @@ void boardSwap(Board* board, Cursor* cursor) {
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
       if (tile1->falling == true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 8) { return; }
+      else if (above2 && above2->type != tile_empty && above2->ypos - 0.00000001 > tile1->ypos - board->tileHeight) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
@@ -738,6 +743,7 @@ void boardRemoveClears(Board* board) {
                tile->statusTime += current + board->game->timings.removeClear[0];
                tile->clearTime = 0;
                tile->chain = true;
+               //todo droptile make sure we assign ID
                boardPauseTime(board, pause_garbageclear);
             }
 
@@ -860,7 +866,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
       int row, col;
 
-      row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      row = (t.ypos + board->tileHeight - 0.000000001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);

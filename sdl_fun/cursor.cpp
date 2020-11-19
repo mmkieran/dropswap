@@ -210,6 +210,10 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
    Tile* tile1 = board->tileLookup[cursor->dropList[0]];  //Rotating tile
    Tile* tile2 = board->tileLookup[cursor->dropList[1]];
    Tile* botUp[2] = { tile1, tile2 };
+   if (!tile1 || !tile2) {
+      cursor->dropList[0] = cursor->dropList[1] = -1;
+      return true;
+   }
    if (tile1->ypos != tile2->ypos) {
       if (tile1->ypos < tile2->ypos) {  //Always move the bottom tile first
          botUp[0] = tile2;
