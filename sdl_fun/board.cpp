@@ -169,7 +169,7 @@ void boardUpdate(Board* board) {
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
    boardAssignSlot(board, false);
-   _buildTileLookup(board);
+   //_buildTileLookup(board);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
@@ -190,7 +190,7 @@ void boardUpdate(Board* board) {
       }
    }
 
-   boardAssignSlot(board, false);
+   //boardAssignSlot(board, false);
    boardRemoveVisuals(board);
 }
 
@@ -873,6 +873,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       if (current->type != tile_empty) { DebugBreak(); }  //This is a position conflict... bad
       *current = t;
       tileSetTexture(board, current);
+      board->tileLookup[current->ID] = current;
 
       if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
          garbageSetStart(board->pile, current);
