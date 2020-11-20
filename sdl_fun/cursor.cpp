@@ -111,8 +111,8 @@ bool createDropTiles(Board* board, Cursor* cursor) {
    return false;
 }
 
-void dropLateral(Board* board, Cursor* cursor, int dir) {
-   if (cursor->dropList[0] == -1 && cursor->dropList[1] == -1) { return; }
+bool dropLateral(Board* board, Cursor* cursor, int dir) {
+   if (cursor->dropList[0] == -1 && cursor->dropList[1] == -1) { return false; }
 
    bool enoughSpace = true;
    Tile* target[2];
@@ -153,7 +153,9 @@ void dropLateral(Board* board, Cursor* cursor, int dir) {
          }
          board->tileLookup[target[i]->ID] = target[i];
       }
+      return true;
    }
+   return false;
 }
 
 void dropRotate(Board* board, Cursor* cursor, int dir) {
@@ -170,6 +172,8 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
 
    double xAdjust = board->tileWidth;
    double yAdjust = board->tileHeight;
+   bool top = false;
+   bool left = false;
    if (tile1->ypos != tile2->ypos) {  //Vertical position
       if (tile1->ypos < tile2->ypos) {  //Rotating tile is at the top
          target = boardGetTile(board, row + 1, col + dir);
@@ -195,11 +199,16 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
       }
    }
 
-   if (!target || target->type != tile_empty) { return; }
+   if (!target || target->type != tile_empty) { 
+      bool isSpace = dropLateral(board, cursor, -xAdjust/board->tileWidth);
+      if (isSpace) { dropRotate(board, cursor, dir); }
+      return; 
+   }
    *target = *tile1;
    target->xpos += xAdjust;
    target->ypos += yAdjust;
-   //todo we need to assign slot after this so we don't mess up
+   tileAssignSlot(board, target);
+   tile1->ID = -1;
    tileInit(board, tile1, row, col, tile_empty);
    board->tileLookup[target->ID] = target;
 }
