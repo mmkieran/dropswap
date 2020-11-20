@@ -50,7 +50,7 @@ bool netlogCreate() {
 }
 
 template <typename... Args>  //Template parameter pack (variadic arguments)
-bool netlogWrite(char* input, Args... args) {  //Function parameter pack
+bool netlogWrite(const char* input, Args... args) {  //Function parameter pack
    int err = fopen_s(&dsLog, "saves/dsNetLog.txt", "a");
    if (err == 0) {
       fprintf(dsLog, input, args...);  //Pass function parameter pack to file write
