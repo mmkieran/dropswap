@@ -30,3 +30,5 @@ Mat4x4 multiplyMatrix(Mat4x4 left, Mat4x4 right);
 Mat4x4 transformMatrix(Vec2 movement, float degreeAngle, Vec2 scale);
 
 void printMatrix(Mat4x4 test);
+
+double mathTrunc(double val, int places);

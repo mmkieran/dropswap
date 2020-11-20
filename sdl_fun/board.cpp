@@ -304,7 +304,8 @@ void boardSwap(Board* board, Cursor* cursor) {
 
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling == true && tile2->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above1 && above1->type != tile_empty && above1->ypos - 0.00000001 > tile2->ypos - board->tileHeight) { return; }
+      else if (
+         above1 && above1->type != tile_empty && mathTrunc(above1->ypos, 2) > mathTrunc(tile2->ypos - board->tileHeight, 2) ) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
@@ -312,7 +313,8 @@ void boardSwap(Board* board, Cursor* cursor) {
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
       if (tile1->falling == true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above2 && above2->type != tile_empty && above2->ypos - 0.00000001 > tile1->ypos - board->tileHeight) { return; }
+      else if (
+         above2 && above2->type != tile_empty && mathTrunc(above2->ypos, 2) > mathTrunc(tile1->ypos - board->tileHeight, 2) ) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
