@@ -172,8 +172,6 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
 
    double xAdjust = board->tileWidth;
    double yAdjust = board->tileHeight;
-   bool top = false;
-   bool left = false;
    if (tile1->ypos != tile2->ypos) {  //Vertical position
       if (tile1->ypos < tile2->ypos) {  //Rotating tile is at the top
          target = boardGetTile(board, row + 1, col + dir);
