@@ -222,6 +222,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->chain);
    writeStream(stream, board->team);
    writeStream(stream, board->target);
+   writeStream(stream, board->uniqueID);
    //   GarbagePile* pile = nullptr;
    writeStream(stream, board->seed);
    writeStream(stream, board->randomCalls);
@@ -255,6 +256,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->chain);
    readStream(start, board->team);
    readStream(start, board->target);
+   readStream(start, board->uniqueID);
    //   GarbagePile* pile = nullptr;
    readStream(start, board->seed);
    readStream(start, board->randomCalls);
@@ -337,6 +339,7 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
    _serializeVisualEffect(stream, tile);
+   writeStream(stream, tile->ID);
    writeStream(stream, tile->effectTime);
    writeStream(stream, tile->xpos);
    writeStream(stream, tile->ypos);
@@ -354,6 +357,7 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
    _deserializeVisualEffect(start, tile);
+   readStream(start, tile->ID);
    readStream(start, tile->effectTime);
    readStream(start, tile->xpos);
    readStream(start, tile->ypos);
@@ -367,6 +371,18 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileGarbage(start, board, tile);
 }
 
+void _cursorSerializeDroplist(std::vector <Byte>& stream, Board* board, Cursor* cursor) {
+   for (int i = 0; i < 2; i++) {
+      writeStream(stream, cursor->dropList[i]);
+   }
+}
+
+void _cursorDeserializeDroplist(Byte*& start, Board* board, Cursor* cursor) {
+   for (int i = 0; i < 2; i++) {
+      readStream(start, cursor->dropList[i]);
+   }
+}
+
 void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
    int cursorNumber = board->cursors.size();
    writeStream(stream, cursorNumber);
@@ -378,6 +394,8 @@ void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
       //   Animation* animation;
       writeStream(stream, cursor->h);
       writeStream(stream, cursor->w);
+      writeStream(stream, cursor->mode);
+      _cursorSerializeDroplist(stream, board, cursor);
    }
 }
 
@@ -392,6 +410,8 @@ void _cursorDeserialize(Byte* &start, Board* board) {
       //   Animation* animation;
       readStream(start, cursor->h);
       readStream(start, cursor->w);
+      readStream(start, cursor->mode);
+      _cursorDeserializeDroplist(start, board, cursor);
    }
 }
 

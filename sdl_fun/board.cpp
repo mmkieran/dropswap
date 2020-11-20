@@ -2,46 +2,9 @@
 
 #include "board.h"
 #include <list>
+#include "imgui/imgui.h"
 
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
-
-//This functions processes the type of pause to figure out the length of the pause
-void boardPauseTime(Board* board, BoardPauseType type, int size) {
-   int currentPause = board->pauseLength;
-   int time = 0;
-
-   switch (type) {
-   case pause_combo:
-      time = min( (size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
-      if (time > currentPause) { board->pauseLength = time;}
-      break;
-   case pause_chain:
-      time = min( (size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
-      if (time > currentPause) { board->pauseLength = time; }
-      break;
-   case pause_clear:
-      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_crashland:
-      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
-         board->pauseLength = board->game->timings.landPause[0];
-      }
-      break;
-   case pause_garbageclear:
-      if (currentPause < board->game->timings.removeClear[0]) {
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_danger:
-      if (currentPause < board->game->timings.gracePeriod[0]) {
-         board->pauseLength = board->game->timings.gracePeriod[0];
-      }
-      break;
-   }
-   board->paused = true;
-};
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
@@ -78,10 +41,7 @@ void boardStartRandom(Board* board) {
 //Restores the state of the random number generator based on number of calls
 void boardLoadRandom(Board* board) {
 	boardStartRandom(board);
-
-	if (board->randomCalls > 0) {
-		board->generator.discard(board->randomCalls);
-	}
+	if (board->randomCalls > 0) {board->generator.discard(board->randomCalls);}
 }
 
 //Create a fresh board and return a pointer
@@ -137,9 +97,8 @@ Board* boardDestroy(Board* board) {
 
 //Get a tile using the row and col
 Tile* boardGetTile(Board* board, int row, int col) {
-   if (row < 0 || row > board->wBuffer - 1) {
-      return nullptr;
-   }
+   if (row < 0 || row > board->wBuffer - 1) { return nullptr; }
+   if (col < 0 || col > board->w - 1) { return nullptr; }
    Tile* tile = &board->tiles[(board->w * row + col)];
    return tile;
 }
@@ -169,9 +128,22 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
+static void _buildTileLookup(Board* board) {
+   for (int row = 0; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+         if (tile->type != tile_empty) { 
+            if (tile->ID == -1) {
+               int i = 0;
+            }
+            board->tileLookup[tile->ID] = tile; 
+         }
+      }
+   }
+}
+
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
-
    boardRemoveClears(board);
 
    if (board->pauseLength > 0) {
@@ -187,7 +159,6 @@ void boardUpdate(Board* board) {
    if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
       if (board->paused == false && board->waitForClear == false) {
          boardMoveUp(board, _calcMove(board));
-         garbageDeploy(board);
       }
    }
 
@@ -196,8 +167,9 @@ void boardUpdate(Board* board) {
    }
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
-
+   garbageDeploy(board);
    boardAssignSlot(board, false);
+   //_buildTileLookup(board);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
@@ -213,9 +185,12 @@ void boardUpdate(Board* board) {
    else if (board->game->settings.mode == single_player) {
       for (int i = 0; i < board->cursors.size(); i++) {
          cursorUpdate(board, board->cursors[0], board->game->p.input);
+         //static bool debugBoard = true;
+         //boardDebug(board, &debugBoard);
       }
    }
 
+   //boardAssignSlot(board, false);
    boardRemoveVisuals(board);
 }
 
@@ -291,46 +266,46 @@ std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row) {
 }
 
 //Helper with logic for swap
-static void _swapTiles(Tile* tile1, Tile* tile2) {
+void _swapTiles(Tile* tile1, Tile* tile2) {
    Tile tmp = *tile2;
 
    tile2->type = tile1->type;
-   tile2->texture = tile1->texture;
    tile1->type = tmp.type;
+   tile2->texture = tile1->texture;
    tile1->texture = tmp.texture;
+   tile2->ID = tile1->ID;
+   tile1->ID = tmp.ID;
 }
 
 //Swap two tiles on the board horizontally
 void boardSwap(Board* board, Cursor* cursor) {
-
    if (board->game->timer < board->game->timings.countIn[0]) { return; } //No swapping during count in
-
-   float xCursor = cursorGetX(cursor);
-   float yCursor = cursorGetY(cursor);
-
    int col = cursorGetCol(board, cursor);
    int row = cursorGetRow(board, cursor);
-
    Tile* tile1 = boardGetTile(board, row, col);
    Tile* tile2 = boardGetTile(board, row, col + 1);
    assert(tile1 && tile2);
+
+   if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
+   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
+   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
+   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap stopped tiles
+   if (tile1->status == status_drop || tile2->status == status_drop) { return; }    //Don't swap player controlled tiles
+
+   float xCursor = cursorGetX(cursor);
+   float yCursor = cursorGetY(cursor);
 
    tile1->chain = tile2->chain = false;
 
    Tile* below1 = boardGetTile(board, row + 1, col);
    Tile* below2 = boardGetTile(board, row + 1, col + 1);
-
    Tile* above1 = boardGetTile(board, row - 1, col);
    Tile* above2 = boardGetTile(board, row - 1, col + 1);
 
-   if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
-   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
-   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
-   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap disabled tiles
-
    if (tile1->type == tile_empty && tile2->type != tile_empty) {  //Special empty swap cases
       if (tile2->falling == true && tile2->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above1 && above1->type != tile_empty && above1->ypos > tile2->ypos - board->tileHeight + 8) { return; }
+      else if (
+         above1 && above1->type != tile_empty && mathTrunc(above1->ypos, 2) > mathTrunc(tile2->ypos - board->tileHeight, 2) ) { return; }
       else {
          _swapTiles(tile1, tile2);
          tile1->ypos = tile2->ypos;  //When swapping an empty tile, maintain ypos
@@ -338,7 +313,8 @@ void boardSwap(Board* board, Cursor* cursor) {
    }
    else if (tile2->type == tile_empty && tile1->type != tile_empty) {  //Special empty swap cases
       if (tile1->falling == true && tile1->ypos > yCursor + 1) { return; }  //Don't swap non-empty if it's already falling below
-      else if (above2 && above2->type != tile_empty && above2->ypos > tile1->ypos - board->tileHeight + 8) { return; }
+      else if (
+         above2 && above2->type != tile_empty && mathTrunc(above2->ypos, 2) > mathTrunc(tile1->ypos - board->tileHeight, 2) ) { return; }
       else { 
          _swapTiles(tile1, tile2);
          tile2->ypos = tile1->ypos;  //When swapping an empty tile, maintain ypos
@@ -366,15 +342,12 @@ void boardSwap(Board* board, Cursor* cursor) {
    tiles.push_back(tile2);
 
    board->game->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
-
    tile1->effect = visual_swapl;  //Visual interpolation for swapping left
    tile1->effectTime = board->game->timer + SWAPTIME;
-
    tile2->effect = visual_swapr;  //Visual interpolation for swapping right
    tile2->effectTime = board->game->timer + SWAPTIME;
 
    boardCheckClear(board, tiles, false);
-
    return;
 }
 
@@ -517,6 +490,44 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
    }
 }
 
+//This functions processes the type of pause to figure out the length of the pause
+void boardPauseTime(Board* board, BoardPauseType type, int size) {
+   int currentPause = board->pauseLength;
+   int time = 0;
+
+   switch (type) {
+   case pause_combo:
+      time = min((size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_chain:
+      time = min((size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_clear:
+      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_crashland:
+      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
+         board->pauseLength = board->game->timings.landPause[0];
+      }
+      break;
+   case pause_garbageclear:
+      if (currentPause < board->game->timings.removeClear[0]) {
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_danger:
+      if (currentPause < board->game->timings.gracePeriod[0]) {
+         board->pauseLength = board->game->timings.gracePeriod[0];
+      }
+      break;
+   }
+   board->paused = true;
+};
+
 //Checks a list of tiles to see if any matches were made
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
    std::vector <Tile*> matches;
@@ -606,6 +617,7 @@ void boardFall(Board* board, float velocity) {
             tile->falling = false;
             continue;
          }
+         if (tile->status == status_drop) { continue; }
          
          int lookDown = 2;
          Tile* below = boardGetTile(board, row + 1, col);
@@ -641,10 +653,14 @@ void boardFall(Board* board, float velocity) {
             int lookDown = 2;
             Tile* below = boardGetTile(board, row + 1, col);
             while (below && below->type != tile_cleared) {
-               below = boardGetTile(board, row + lookDown, col);
-               lookDown++;
+               Tile* next = boardGetTile(board, row + lookDown, col);
+               if (next) {
+                  below = next;
+                  lookDown++;
+               }
+               else { break; }
             }
-            if (below == nullptr) {
+            if (below->type != tile_cleared) {
                tile->chain = false;
             }
          }
@@ -671,7 +687,7 @@ static TileType _tileGenType(Board* board, Tile* tile) {
    Tile* up2 = boardGetTile(board, row - 2, col);
 
    int total = 6;
-   while ((type == left->type && type == left2->type) || (type == up->type && type == up2->type)) {
+   while ((left && left2 && type == left->type && type == left2->type) || (up && up2 && type == up->type && type == up2->type)) {
       current++;
       if (current > total) {
          current = current % total;
@@ -729,6 +745,7 @@ void boardRemoveClears(Board* board) {
                tile->statusTime += current + board->game->timings.removeClear[0];
                tile->clearTime = 0;
                tile->chain = true;
+               //todo droptile make sure we assign ID
                boardPauseTime(board, pause_garbageclear);
             }
 
@@ -813,6 +830,7 @@ void boardMoveUp(Board* board, float height) {
 
 //Fills half the board with tiles so that there are no matches
 int boardFillTiles(Board* board) {
+   int count = 0;
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -850,13 +868,14 @@ void boardAssignSlot(Board* board, bool buffer = false) {
    for (auto&& t : tileList) {  //Take all the tiles and write them back into the array, adjusted for xy position
       int row, col;
 
-      row = (t.ypos + board->tileHeight - 0.00001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
+      row = (t.ypos + board->tileHeight - 0.000000001) / board->tileHeight + board->startH;  //Moving up triggers on last pixel, down on first
       col = t.xpos / board->tileWidth;
 
       Tile* current = boardGetTile(board, row, col);
-      assert(current->type == tile_empty);  //This is a position conflict... bad
+      if (current->type != tile_empty) { DebugBreak(); }  //This is a position conflict... bad
       *current = t;
       tileSetTexture(board, current);
+      board->tileLookup[current->ID] = current;
 
       if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
          garbageSetStart(board->pile, current);
@@ -889,21 +908,20 @@ void makeItRain(Board* board) {
       Tile* left2 = boardGetTile(board, row, col - 2);
 
       int total = 6;
-      if (left && left2) {
-         while ((type == left->type && type == left2->type)) {
-            current++;
-            if (current > total) {
-               current = current % total;
-            }
-            type = (TileType)current;
+      while ((left && left2 && type == left->type && type == left2->type)) {
+         current++;
+         if (current > total) {
+            current = current % total;
          }
-         if (col % 2 == 0) {
-            tileInit(board, tile, row, col, type);
-         }
-         else {
-            tileInit(board, tile, row + 1, col, type);
-         }
+         type = (TileType)current;
       }
+      if (col % 2 == 0) {
+         tileInit(board, tile, row, col, type);
+      }
+      else {
+         tileInit(board, tile, row + 1, col, type);
+      }
+      tile->falling = true;
    }
 }
 
@@ -925,14 +943,14 @@ void boardClear(Board* board) {
 
 
 //Everything below here if for AI Logic
-enum CursorStep {
-   cursor_none = 0,
-   cursor_left,
-   cursor_right,
-   cursor_up,
-   cursor_down,
-   cursor_swap,
-   cursor_COUNT,
+enum AIStep {
+   ai_none = 0,
+   ai_left,
+   ai_right,
+   ai_up,
+   ai_down,
+   ai_swap,
+   ai_COUNT,
 };
 
 struct TileIndex {
@@ -948,7 +966,7 @@ struct MoveInfo {
 struct AILogic {
 
    std::list <MoveInfo> moves;         //Each tile's current row/col and destination
-   std::list <CursorStep> matchSteps;  //The Cursor movements needed to make a match
+   std::list <AIStep> matchSteps;  //The Cursor movements needed to make a match
 };
 
 AILogic aiLogic;
@@ -1175,35 +1193,35 @@ void aiGetSteps(Board* board) {
 
       for (int i = 0; i < abs(colDiff); i++) {
          if (colDiff < 0) {        //move left
-            aiLogic.matchSteps.push_back(cursor_left);
+            aiLogic.matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (colDiff > 0) {   //move right
-            aiLogic.matchSteps.push_back(cursor_right);
+            aiLogic.matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
       for (int i = 0; i < abs(rowDiff); i++) {
          if (rowDiff < 0) {        //move up
-            aiLogic.matchSteps.push_back(cursor_up);
+            aiLogic.matchSteps.push_back(ai_up);
             cursorRow--;
          }
          else if (rowDiff > 0) {   //move down
-            aiLogic.matchSteps.push_back(cursor_down);
+            aiLogic.matchSteps.push_back(ai_down);
             cursorRow++;
          }
       }
 
       //Figure out how many swaps to move the target tile to the destination
       for (int i = 0; i < abs(moveDirection); i++) {
-         aiLogic.matchSteps.push_back(cursor_swap);
+         aiLogic.matchSteps.push_back(ai_swap);
          if (abs(moveDirection) == i + 1) { break; }
          if (moveDirection < 0) {        //move left
-            aiLogic.matchSteps.push_back(cursor_left);
+            aiLogic.matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (moveDirection > 0) {   //move right
-            aiLogic.matchSteps.push_back(cursor_right);
+            aiLogic.matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
@@ -1213,22 +1231,22 @@ void aiGetSteps(Board* board) {
 
 void aiDoStep(Board* board) {
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
-      CursorStep step = aiLogic.matchSteps.front();
+      AIStep step = aiLogic.matchSteps.front();
       aiLogic.matchSteps.pop_front();
       switch (step) {
-      case cursor_left:
+      case ai_left:
          board->game->p.input.left.p = true;
          break;
-      case cursor_right:
+      case ai_right:
          board->game->p.input.right.p = true;
          break;
-      case cursor_up:
+      case ai_up:
          board->game->p.input.up.p = true;
          break;
-      case cursor_down:
+      case ai_down:
          board->game->p.input.down.p = true;
          break;
-      case cursor_swap:
+      case ai_swap:
          board->game->p.input.swap.p = true;
          break;
       }
@@ -1255,4 +1273,62 @@ void boardAI(Game* game) {
    if (aiLogic.matchSteps.empty() == false) {
       aiDoStep(board);
    }
+}
+
+void _tileInfo(Tile* tile) {
+
+}
+
+void boardDebug(Board* board, bool* p_open) {
+   if (!ImGui::Begin("Game Settings", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   for (int row = board->startH - 1; row < board->wBuffer; row++) {
+      for (int col = 0; col < board->w; col++) {
+         ImGui::PushID(board->w * row + col);
+         Tile* tile = boardGetTile(board, row, col);
+         if (!tile || tile->type == tile_empty) { 
+            if (ImGui::Button("E")) { ; }
+            ImGui::SameLine();
+            ImGui::PopID();
+            continue; 
+         }
+         switch (tile->type) {
+         case tile_circle:
+            if (ImGui::Button("C")) { ; }
+            break;
+         case tile_diamond:
+            if (ImGui::Button("D")) { ; }
+            break;
+         case tile_utriangle:
+            if (ImGui::Button("U")) { ; }
+            break;
+         case tile_dtriangle:
+            if (ImGui::Button("T")) { ; }
+            break;
+         case tile_star:
+            if (ImGui::Button("S")) { ; }
+            break;
+         case tile_heart:
+            if (ImGui::Button("H")) { ; }
+            break;
+         case tile_silver:
+            if (ImGui::Button("P")) { ; }
+            break;
+         case tile_garbage:
+            if (ImGui::Button("G")) { ; }
+            break;
+         case tile_cleared:
+            if (ImGui::Button("CL")) { ; }
+            break;
+         }
+         ImGui::SameLine();
+         ImGui::PopID();
+      }
+      ImGui::NewLine();
+   }
+
+   ImGui::End();
 }

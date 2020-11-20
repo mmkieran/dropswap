@@ -92,9 +92,6 @@ static int _findEmptySpace(Board* board, Garbage* garbage, int startRow, int sta
 
 //Deploys garbage above the visible board if there is space
 void garbageDeploy(Board* board) {
-
-   if (board->paused) { return; } //don't deploy while the board is paused
-
    int startRow = board->startH - 1;  //Start deploying above visible board
    bool noSpace = false;
 
@@ -361,7 +358,17 @@ void garbageFall(Board* board, double velocity) {
                drop = 0;
                below = boardGetTile(board, row + 1, i);
                if (below && below->falling == false) { garbage->falling = false; }
-               break;
+               else if (below && below->falling == true) { 
+                  while (below && below->type != tile_cleared) {
+                     Tile* next = boardGetTile(board, row + lookDown, col);
+                     if (next) {
+                        below = next;
+                        lookDown++;
+                     }
+                     else { break; }
+                  }
+                  if (below == nullptr || below->type != tile_cleared) { garbage->falling = false; }
+               }
             }
             else if (potentialDrop < drop) {  //It can fall a little bit further
                drop = potentialDrop;

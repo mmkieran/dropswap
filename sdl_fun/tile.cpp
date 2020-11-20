@@ -42,6 +42,15 @@ void tileSetTexture(Board* board, Tile* tile) {
 
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
    tile->type = type;
+   if (tile->type != tile_empty) {
+      tile->ID = board->uniqueID;
+      board->uniqueID++;
+   }
+   else {
+      board->tileLookup.erase(tile->ID);
+      tile->ID = -1;
+   }
+
    tile->status = status_normal;
    tile->effect = visual_none;  //We don't need to save this because it only happens during render
    tile->effectTime = 0;
@@ -65,5 +74,29 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
          effect = visual_dark;
       }
       meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
+   }
+}
+
+//Check if moving changes the row and copy it to the new position, init old position as empty
+void tileAssignSlot(Board* board, Tile* tile) {
+   int row = tileGetRow(board, tile);
+   int col = tileGetCol(board, tile);
+
+   int calcRow = (tile->ypos + board->tileHeight - 0.000001) / board->tileHeight + board->startH;
+   if (calcRow != row) {
+      Tile* dest = boardGetTile(board, calcRow, col);
+      if (dest && dest->type == tile_empty) {
+         *dest = *tile;
+         tileSetTexture(board, dest);
+         if (dest->type == tile_garbage && dest->garbage != nullptr) {  //todo we could use tile index instead  
+            garbageSetStart(board->pile, dest);
+         }
+         tile->ID = -1;
+         tileInit(board, tile, row, col, tile_empty);
+         board->tileLookup[dest->ID] = dest;
+      }
+      else {
+         DebugBreak();
+      }  
    }
 }

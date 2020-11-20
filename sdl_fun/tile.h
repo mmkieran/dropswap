@@ -19,36 +19,36 @@ enum TileType {
 
 enum TileStatus {
    status_normal = 0,
-   status_clear,  //cleared
-   status_fall,
-   status_stop,  //no falling
-   status_swap,
-   status_disable, //no clearing, no falling, no swapping
+   //status_clear,                     //I wanted to switch the tile_cleared type to this, but drawing the texture might be complicated
+   status_drop,                        //Is the tile being dropped by a player
+   status_stop,                        //The tile is not allowed to fall
+   status_swap,                        //Used to interpolate the position of a tile after swapping
+   status_disable,                     //no clearing, no falling, no swapping
    status_COUNT
 };
 
 //@@Start Serialize
 struct Tile {
+   int ID = -1;                        //A unique ID for the tile
+   TileType type;                      //Determines texture and behavior of tile (e.g. star)
 
-   TileType type;
+   double xpos;                        //The x position of the tile on the board
+   double ypos;                        //The y position of the tile on the board
 
-   double xpos;
-   double ypos;
+   TileStatus status;                  //Temporary status that changes tile behvaior (e.g. disabled - can't fall or swap)
 
-   TileStatus status;
+   Texture* texture;                   //Used to draw the tile
 
-   Texture* texture;
+   bool falling;                       //Is the tile marked as falling
+   uint64_t clearTime;                 //Used to determine when to remove cleared tiles
+   uint64_t statusTime;                //Used to determine the length of a tile status
+   bool chain = false;                 //Is the tile part of a chain on the board
 
-   bool falling;
-   uint64_t clearTime;
-   uint64_t statusTime;
-   bool chain = false;
+   Garbage* garbage;                   //Points to the piece of garbage that a garbage tile belongs to
+   int idGarbage = -1;                 //ID of the piece of garbage that a garbage tile belongs to
 
-   Garbage* garbage;
-   int idGarbage = -1;
-
-   VisualEffect effect = visual_none;
-   uint64_t effectTime = 0;
+   VisualEffect effect = visual_none;  //Are we drawing something special for the tile
+   uint64_t effectTime = 0;            //How long are we doing the visual effect
 };
 //@@End Serialize
 
@@ -56,3 +56,5 @@ void tileSetTexture(Board* board, Tile* tile);
 void tileInit(Board* board, Tile* tile, int row, int col, TileType type);
 
 void tileDraw(Board* board, Tile* tile, VisualEffect effect = visual_none, int effectTime = 0);
+
+void tileAssignSlot(Board* board, Tile* tile);

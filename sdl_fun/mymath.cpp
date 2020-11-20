@@ -3,6 +3,11 @@
 #include <iostream>
 #include "mymath.h"
 
+double mathTrunc(double val, int places) {
+   int tmp = val * pow(10, places);
+   return (double)tmp / pow(10, places);
+}
+
 //This will be used to translate, rotate, and scale our meshes
 Mat4x4 identityMatrix() {
    Mat4x4 identity;
