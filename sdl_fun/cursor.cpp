@@ -77,7 +77,6 @@ void cursorDraw(Board* board, Cursor* cursor) {
          yOffset = target->ypos - board->tileHeight / 6;
          meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2);
       }
-      else { DebugBreak(); }
    }
    else {
       animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);

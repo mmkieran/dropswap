@@ -91,7 +91,9 @@ void tileAssignSlot(Board* board, Tile* tile) {
          if (dest->type == tile_garbage && dest->garbage != nullptr) {  //todo we could use tile index instead  
             garbageSetStart(board->pile, dest);
          }
+         tile->ID = -1;
          tileInit(board, tile, row, col, tile_empty);
+         board->tileLookup[dest->ID] = dest;
       }
       else {
          DebugBreak();

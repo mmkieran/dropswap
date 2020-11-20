@@ -185,8 +185,8 @@ void boardUpdate(Board* board) {
    else if (board->game->settings.mode == single_player) {
       for (int i = 0; i < board->cursors.size(); i++) {
          cursorUpdate(board, board->cursors[0], board->game->p.input);
-         static bool debugBoard = true;
-         boardDebug(board, &debugBoard);
+         //static bool debugBoard = true;
+         //boardDebug(board, &debugBoard);
       }
    }
 
