@@ -854,7 +854,7 @@ int boardFillTiles(Board* board) {
 //Takes all the non-empty tiles in the board and assigns them a slot based on their position
 void boardAssignSlot(Board* board, bool buffer = false) {
    std::vector <Tile> tileList;
-
+   board->tileLookup.clear();
    for (int row = 0; row < board->wBuffer; row++) {  //Loop through all the tiles and save them in a vector
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
