@@ -59,9 +59,6 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 
 //Draw the cursor on the board with a tag for the player number
 void cursorDraw(Board* board, Cursor* cursor) {
-
-   animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
-
    //Draw the cursor tag in the correct position
    double xOffset, yOffset;
    if (cursor->index + 1 % 2 == 0) {
@@ -73,7 +70,19 @@ void cursorDraw(Board* board, Cursor* cursor) {
       yOffset = cursor->y - board->tileHeight / 6;
    }
    //todo make cursors tags draw on the right if there are two
-   meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth/4, board->tileHeight/4);
+   if (cursor->mode == 1) {
+      Tile* target = board->tileLookup[cursor->dropList[1]];
+      if (target) {
+         xOffset = target->xpos - board->tileWidth / 6;
+         yOffset = target->ypos - board->tileHeight / 6;
+         meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2);
+      }
+      else { DebugBreak(); }
+   }
+   else {
+      animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
+      meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2);
+   }
 }
 
 
@@ -261,6 +270,7 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
       tilesToCheck.push_back(tile); 
       if (tile->falling == false) { landed = true; }  //If either tile lands, we let go of both
    }
+   std::vector <Tile> backup = { *botUp[0], *botUp[1] };
    for (int i = 0; i < 2; i++) {
       if (landed == true) {
          Tile* tile = botUp[i];
@@ -283,7 +293,16 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
    if (cursor->y <= 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
-   if (input.power.p == true && cursor->mode == 0) { cursor->mode = 1; }
+   if (input.power.p == true && cursor->mode == 0) { 
+      bool alreadyDropping = false;
+      for (auto&& c : board->cursors) {
+         if (c->mode == 1) {
+            alreadyDropping = true;
+            break;
+         }
+      }
+      if (alreadyDropping == false) { cursor->mode = 1; }
+   }
    else if (input.power.p == true && cursor->mode == 1) { 
       cursor->mode = 0; 
       _clearDroplist(board, cursor);
