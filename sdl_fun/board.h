@@ -76,7 +76,6 @@ struct Board {
 
    GarbagePile* pile = nullptr;                          //List of all garbage (deployed and incoming)
 
-   uint64_t seed = 0;                                    //The random seed for the board (used to generate random tiles)
    uint64_t randomCalls = 0;                             //How many times have used the random number generator, used to save/reload the state of the generator
    std::default_random_engine generator;                 //The actual random number algorithm/engine
    std::uniform_int_distribution<int> distribution;      //The distribution for the random number generator (uniform)
