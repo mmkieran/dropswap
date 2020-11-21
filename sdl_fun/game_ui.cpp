@@ -180,7 +180,8 @@ void boardUI(Game* game) {
       ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight });
       ImGui::SetNextWindowPos({ 0, 0 });
       ImGui::PushFont(game->fonts[20]);
-      if (!ImGui::Begin("Drop and Swap", (bool*)0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove) ) {
+      //if (!ImGui::Begin("Drop and Swap", (bool*)0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove) ) {
+      if (!ImGui::Begin("Drop and Swap") ) {
          ImGui::PopFont();
          ImGui::End();
          return;
@@ -224,6 +225,7 @@ void boardUI(Game* game) {
          }
          ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
 
+         ImDrawList* dList = ImGui::GetForegroundDrawList();
          if (board->visualEvents[visual_clear].active == true) {
             VisualEvent e = board->visualEvents[visual_clear];
             if (board->chain > 1 || board->boardStats.lastCombo > 3) {
@@ -231,10 +233,17 @@ void boardUI(Game* game) {
                if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
                else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
                ImVec2 textSize = ImGui::CalcTextSize(clearText);
-
-               ImGui::GetWindowDrawList()->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
-               ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
+               dList->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
+               dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
             }
+         }
+         if (board->bust == true) {
+            char gameOverText[10] = "Game Over";
+            ImVec2 tSize = ImGui::CalcTextSize(gameOverText);
+            ImVec2 msgLoc = { csPos.x + board->w * board->tileWidth / 2, csPos.y + board->h * board->tileHeight / 2 };
+            //ImVec2 msgLoc = { csPos.x, csPos.y};
+            dList->AddRectFilled( msgLoc, { msgLoc.x + tSize.x, msgLoc.y + tSize.y }, IM_COL32(0, 0, 0, 200));
+            dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32_WHITE, gameOverText, NULL);
          }
          ImGui::EndChild();
          ImGui::PopStyleVar();
