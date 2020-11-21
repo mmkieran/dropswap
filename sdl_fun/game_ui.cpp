@@ -211,6 +211,26 @@ void boardUI(Game* game) {
          if (game->fbos[i]) {
             ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
          }
+         ImDrawList* dList = ImGui::GetWindowDrawList();
+         ImVec2 pad = ImGui::GetStyle().WindowPadding;
+         if (board->visualEvents[visual_clear].active == true) {  //Draw the visual events over the board texture
+            VisualEvent e = board->visualEvents[visual_clear];
+            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
+               char clearText[10];
+               if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
+               else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
+               ImVec2 textSize = ImGui::CalcTextSize(clearText);
+               dList->AddRectFilled({ e.pos.x + csPos.x - (pad.x * 2), e.pos.y - (pad.y * 2) }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
+               dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
+            }
+         }
+         if (board->bust == true) {  //Draw game over message over the board
+            char gameOverText[10] = "Game Over";
+            ImVec2 tSize = ImGui::CalcTextSize(gameOverText);
+            ImVec2 msgLoc = { csPos.x - (pad.x * 2) - tSize.x / 2 + board->w * board->tileWidth / 2, csPos.y - (pad.y * 2) - tSize.y / 2 + board->h * board->tileHeight / 2 };
+            dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(0, 0, 0, 255));
+            dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32_WHITE, gameOverText, NULL);
+         }
          ImGui::EndChild();
 
          //More Board Stats
@@ -225,26 +245,6 @@ void boardUI(Game* game) {
          }
          ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
 
-         ImDrawList* dList = ImGui::GetForegroundDrawList();
-         if (board->visualEvents[visual_clear].active == true) {
-            VisualEvent e = board->visualEvents[visual_clear];
-            if (board->chain > 1 || board->boardStats.lastCombo > 3) {
-               char clearText[10];
-               if (board->chain > 1) { sprintf(clearText, "%d Chain", board->chain); }
-               else if (board->boardStats.lastCombo > 3) { sprintf(clearText, "%d Combo", board->boardStats.lastCombo); }
-               ImVec2 textSize = ImGui::CalcTextSize(clearText);
-               dList->AddRectFilled({ e.pos.x + csPos.x, e.pos.y }, { e.pos.x + csPos.x + textSize.x, e.pos.y + textSize.y }, IM_COL32(0, 0, 0, 200));
-               dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), { e.pos.x + csPos.x, e.pos.y }, IM_COL32_WHITE, clearText, NULL);
-            }
-         }
-         if (board->bust == true) {
-            char gameOverText[10] = "Game Over";
-            ImVec2 tSize = ImGui::CalcTextSize(gameOverText);
-            ImVec2 msgLoc = { csPos.x + board->w * board->tileWidth / 2, csPos.y + board->h * board->tileHeight / 2 };
-            //ImVec2 msgLoc = { csPos.x, csPos.y};
-            dList->AddRectFilled( msgLoc, { msgLoc.x + tSize.x, msgLoc.y + tSize.y }, IM_COL32(0, 0, 0, 200));
-            dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32_WHITE, gameOverText, NULL);
-         }
          ImGui::EndChild();
          ImGui::PopStyleVar();
          ImGui::EndChild();
