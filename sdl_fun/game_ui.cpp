@@ -946,6 +946,11 @@ void multiplayerUI(Game* game, bool* p_open) {
          showDebugConn = true;
       }
       if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
+      static bool showMultiSetup = false;
+      if (ImGui::Button("Show Game Setup")) {
+         showMultiSetup = true;
+      }
+      if (showMultiSetup == true) { debugMultiplayerSetup(game, &showMultiSetup); }
    }
 
    static bool isServer = false;
@@ -997,8 +1002,16 @@ void multiplayerUI(Game* game, bool* p_open) {
    if (connectStats) { connectStatusUI(game, &connectStats); }
 
    //If GGPO is running then start the game!
-   if (game->net->connections[game->net->myConnNum].state == Running && game->playing == false && game->winsockRunning == true) {
-      gameStartMatch(game);
+   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
+      if (isServer == true) {
+         bool ready = true;
+         for (int i = 0; i < game->net->participants; i++) {
+            if (game->net->connections[i].state != Running) { ready = false; }
+         }
+         if (ready == true) { gameStartMatch(game); }
+      }
+      else if (game->net->connections[game->net->hostConnNum].state == Running)
+         gameStartMatch(game);
    }
 
    ImGui::End();
@@ -1018,6 +1031,34 @@ void debugConnections(Game* game, bool* p_open) {
    ImGui::Text("Client status: %d", clientStatus);
 
    _connectionInfo();
+
+   ImGui::End();
+}
+
+void debugMultiplayerSetup(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Conn State", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::Text("Participants: %d", game->net->participants);
+   ImGui::Text("Seed: %d", game->seed);
+
+   for (int i = 0; i < game->net->participants; i++) {
+      if (ImGui::CollapsingHeader(game->net->hostSetup[i].name)) {
+         ImGui::Text("Me: %d", game->net->hostSetup[i].me);
+         ImGui::Text("Local Port: %d", game->net->hostSetup[i].localPort);
+         ImGui::Text(game->net->hostSetup[i].ipAddress);
+         ImGui::Text(game->net->hostSetup[i].name);
+         ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+         ImGui::Text("ID: %d", game->net->hostSetup[i].id);
+         ImGui::Text("Player Number: %d", game->net->hostSetup[i].pNum);
+         ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+         ImGui::Text("Level: %d", game->net->hostSetup[i].level);
+      }
+   }
+
+   //Add GGPO state
 
    ImGui::End();
 }

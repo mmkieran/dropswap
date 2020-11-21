@@ -29,3 +29,4 @@ void popupDisable(PopupType popup);
 
 void multiplayerUI(Game* game, bool* p_open);
 void debugConnections(Game* game, bool* p_open);
+void debugMultiplayerSetup(Game* game, bool* p_open);

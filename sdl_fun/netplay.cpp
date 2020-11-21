@@ -477,7 +477,7 @@ void ggpoEndSession(Game* game) {
       game->net->timeSync = 0;
       game->net->participants = 0;
       game->net->messages.clear();
-      //memset(&game->net->hostSetup[0], 0, sizeof(SessionInfo) * GAME_MAX_PLAYERS);
+      memset(&game->net->hostSetup[0], 0, sizeof(SessionInfo) * GAME_MAX_PLAYERS);
    }
 }
 
