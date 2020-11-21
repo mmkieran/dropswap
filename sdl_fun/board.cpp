@@ -128,20 +128,6 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
-static void _buildTileLookup(Board* board) {
-   for (int row = 0; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         Tile* tile = boardGetTile(board, row, col);
-         if (tile->type != tile_empty) { 
-            if (tile->ID == -1) {
-               int i = 0;
-            }
-            board->tileLookup[tile->ID] = tile; 
-         }
-      }
-   }
-}
-
 //Update all tiles that are moving, falling, cleared, etc.
 void boardUpdate(Board* board) {
    boardRemoveClears(board);
@@ -164,12 +150,18 @@ void boardUpdate(Board* board) {
 
    if (board->danger == true && board->paused == false) {
       board->bust = true;
+      for (int row = 0; row < board->wBuffer; row++) {
+         for (int col = 0; col < board->w; col++) {
+            Tile* tile = boardGetTile(board, row, col);
+            tileInit(board, tile, row, col, tile_garbage);
+            tileSetTexture(board, tile);
+         }
+      }
    }
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
    boardAssignSlot(board, false);
-   //_buildTileLookup(board);
 
    if (board->game->net->syncTest == true) {  //Special logic for sync test
       for (int i = 0; i < board->cursors.size(); i++) {
@@ -189,8 +181,6 @@ void boardUpdate(Board* board) {
          //boardDebug(board, &debugBoard);
       }
    }
-
-   //boardAssignSlot(board, false);
    boardRemoveVisuals(board);
 }
 

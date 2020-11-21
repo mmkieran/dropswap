@@ -51,7 +51,6 @@ void imguiSetup(Game* game) {
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
-   //ImGui::StyleColorsClassic();
    ImVec4* colors = ImGui::GetStyle().Colors;
    ImGuiStyle& style = ImGui::GetStyle();
    style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.98f, 0.44f, 0.31f);
