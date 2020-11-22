@@ -38,6 +38,13 @@ extern Game* game;                                 //Used to access the game poi
 static void readGameData();
 int fletcher32_checksum(short* data, size_t len);
 
+//todo netmsg
+void netplayMessage(char* fmt, ...) {
+   char successMsg[30];
+   sprintf(successMsg, "Connections Accepted: %d", connections);
+   game->net->messages.push_back(successMsg);
+}
+
 //Debug log functions
 bool netlogCreate() {
    int err = fopen_s(&dsLog, "saves/dsNetLog.txt", "w");
@@ -594,6 +601,9 @@ void tcpHostAccept() {
       if (upnp == true) { tcpPorts[port] = true; }
    }
    connections++;
+   char successMsg[30];  //todo netmsg
+   sprintf(successMsg, "Connections Accepted: %d", connections);
+   game->net->messages.push_back(successMsg);
    lastResult = 0;
 }
 
@@ -707,7 +717,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
                else {
                   sockets[i].status = sock_received;
                   strcpy(sockets[i].name, &sockets[i].recBuff[32 + sizeof(int)]);  //The leftover is the name
-                  game->net->messages.push_back("Player connected");
+                  game->net->messages.push_back("Received Player Info");
                }
             }
          }

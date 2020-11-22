@@ -227,7 +227,6 @@ void boardUI(Game* game) {
             }
             ImGui::Text(game->p.name); 
          }
-         ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
 
          //Draw the board
          char playerName[30] = "Player";
@@ -266,13 +265,9 @@ void boardUI(Game* game) {
          char boardStats[30] = "Board Info";
          sprintf(boardStats, "Player Info %d", i + 1);
          ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
+         ImGui::Text("Pause Time: %0.1f s", board->pauseLength / 1000.0);
          ImGui::Text("Game Time: %d s", game->timer / 1000);
-         ImGui::Text("Last chain: %d", board->boardStats.lastChain);
-         if (board->game->timer > 0) {
-            int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
-            ImGui::Text("APM: %d", apm);
-         }
-         ImGui::Text("Dangeresque: %0.1f s", board->boardStats.dangeresque / 60.0f);
+         ImGui::Text("Frame: %d", game->frameCount);
 
          ImGui::EndChild();
          ImGui::PopStyleVar();
