@@ -11,11 +11,6 @@
 #include <SDL.h>
 #include <math.h>
 
-struct Texture {
-   GLuint handle;
-   int w, h;  //pixels
-};
-
 struct Mesh {
    GLuint vbo;  //vbo handle
    Texture* texture;

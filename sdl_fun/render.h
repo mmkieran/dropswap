@@ -77,6 +77,11 @@ struct FBO {  //Frame Buffer Object
    float h = 0;
 };
 
+struct Texture {
+   GLuint handle;
+   int w, h;  //pixels
+};
+
 int openglContext();
 
 GLuint vaoCreate();

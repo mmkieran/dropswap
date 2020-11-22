@@ -3,6 +3,7 @@
 #include "board.h"
 #include "serialize.h"
 #include "netplay.h"
+#include "resources.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
@@ -195,8 +196,16 @@ void boardUI(Game* game) {
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Header
+         if (i == game->p.number - 1) {  //todo add player icon
+            Texture* t = resourcesGetTexture(game->resources, Texture_star);
+            ImGui::Image((void*)(intptr_t)t->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+            ImGui::SameLine();
+         }
          if (game->settings.mode == multi_shared) { ImGui::Text("Team %d", board->team); }
-         if (game->settings.mode == multi_solo) { ImGui::Text(game->pList[i + 1].name); }
+         if (game->settings.mode == multi_solo) { 
+            ImGui::Text("Team %d", board->team);
+            ImGui::Text(game->pList[i + 1].name); 
+         }
          if (game->settings.mode == single_player) { ImGui::Text(game->p.name); }
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
 
