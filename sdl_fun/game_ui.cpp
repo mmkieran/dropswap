@@ -197,6 +197,7 @@ void boardUI(Game* game) {
 
          //Board Header
          Texture* star = resourcesGetTexture(game->resources, Texture_star);
+         Texture* heart = resourcesGetTexture(game->resources, Texture_heart);
          if (game->settings.mode == multi_shared) {  
             if (i == game->p.team) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -210,6 +211,10 @@ void boardUI(Game* game) {
          if (game->settings.mode == multi_solo) { 
             if (i == game->p.number - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
+            else if (game->p.team == board->team) {
+               ImGui::Image((void*)(intptr_t)heart->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
             ImGui::Text("Team %d", board->team);
