@@ -319,11 +319,12 @@ void gameStartMatch(Game* game) {
    }
    else if (game->settings.mode == multi_shared) {  //Shared board
       boardCount = 2; 
-      myBoard = game->pList[game->p.number].team;
+      game->p.team = myBoard = game->pList[game->p.number].team;
    }  
    else if (game->settings.mode == multi_solo) {  //Solo boards
       boardCount = game->players;
       myBoard = game->p.number - 1;
+      game->p.team = game->pList[game->p.number].team;
    }
 
    for (int i = 0; i < boardCount; i++) {

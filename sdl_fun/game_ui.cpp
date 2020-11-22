@@ -196,17 +196,32 @@ void boardUI(Game* game) {
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Header
-         if (i == game->p.number - 1) {  //todo add player icon
-            Texture* t = resourcesGetTexture(game->resources, Texture_star);
-            ImGui::Image((void*)(intptr_t)t->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-            ImGui::SameLine();
+         Texture* star = resourcesGetTexture(game->resources, Texture_star);
+         if (game->settings.mode == multi_shared) {  
+            if (i == game->p.team) {  //todo add player icon
+               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
+            ImGui::Text("Team %d", board->team); 
+            for (int i = 0; i < game->players; i++) {
+               if (board->team == game->pList[i + 1].team) { ImGui::Text(game->pList[i + 1].name); }
+            }
          }
-         if (game->settings.mode == multi_shared) { ImGui::Text("Team %d", board->team); }
          if (game->settings.mode == multi_solo) { 
+            if (i == game->p.number - 1) {  //todo add player icon
+               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
             ImGui::Text("Team %d", board->team);
             ImGui::Text(game->pList[i + 1].name); 
          }
-         if (game->settings.mode == single_player) { ImGui::Text(game->p.name); }
+         if (game->settings.mode == single_player) { 
+            if (i == game->p.number - 1) {  //todo add player icon
+               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
+            ImGui::Text(game->p.name); 
+         }
          ImGui::Text("Pause Time: %d s", board->pauseLength / 1000);
 
          //Draw the board
@@ -384,6 +399,7 @@ static void _explainControls(Game* game, int controls) {
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("SPACEBAR");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RETURN");
       ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("R");
+      ImGui::Button("Cursor Mode", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("F");
    }
 
    else if (controls == 1) {
@@ -391,6 +407,7 @@ static void _explainControls(Game* game, int controls) {
       ImGui::Button("Swap", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("A");
       ImGui::Button("Pause", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("Start");
       ImGui::Button("Nudge", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("RB Trigger");
+      ImGui::Button("Cursor Mode", ImVec2{ width / ratio, 0 }); ImGui::SameLine(); ImGui::Text("X");
    }
    ImGui::PopStyleColor();
 }
@@ -837,7 +854,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
       connectStats = false;
    }
 
-   if (serverStatus >= server_waiting) {
+   if (serverStatus == server_waiting) {
       //This is the player information table
       ImGui::PushID("Player Info Set");
       for (int i = 0; i < people[0]; i++) {
