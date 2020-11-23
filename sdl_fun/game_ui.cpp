@@ -193,6 +193,7 @@ void boardUI(Game* game) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";
          sprintf(playerInfo, "Player Info %d", i + 1);
+         //ImGui::PushStyleColor(ImGuiCol_ChildBg, (ImVec4)ImColor::ImColor({ 200, 255, 0, 255 }));
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Header
@@ -227,6 +228,7 @@ void boardUI(Game* game) {
             }
             ImGui::Text(game->p.name); 
          }
+         //ImGui::PopStyleColor();
 
          //Draw the board
          char playerName[30] = "Player";
