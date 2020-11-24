@@ -877,35 +877,70 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
       }
       ImGui::PopID();
 
+      static bool teams[2] = { false, false };
+      static int pCount = 0;
       if (ImGui::Button("Start Game")) {
-         game->net->participants = people[0];
-         game->seed = time(0);
-         int pNum = 1;
-         for (int i = 0; i < game->net->participants; i++) {
-            SocketInfo sock = getSocket(i - 1);
-            strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
-            game->net->hostSetup[i].localPort = 7001 + i;
-            if (i == 0) {  //This connection is the host
-               strcpy(game->net->hostSetup[i].name, game->p.name);
-               game->net->hostSetup[i].host = true;
-               game->net->hostSetup[i].me = true;
-               game->net->hostSetup[i].level = game->p.level;
-               strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
-            }
-            else {  //All the other players
-               memcpy(&game->net->hostSetup[i].id, &sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
-               memcpy(&game->net->hostSetup[i].level, &sock.recBuff[32], sizeof(int));  //Get client board level from message
-               strcpy(game->net->hostSetup[i].name, sock.name);  
-               game->net->hostSetup[i].host = false;
-               game->net->hostSetup[i].me = false;
-               //We figure out "me" on the client recieving side
-            }
-            if (game->net->hostSetup[i].playerType == 0) { //Only players get a number
-               game->net->hostSetup[i].pNum = pNum;
-               pNum++;
-            };
+         //validate the game setup
+         teams[0] = teams[1] = false;
+         int pCount = 0;
+         for (int i = 0; i < people[0]; i++) {
+            teams[game->net->hostSetup[i].team] = true;
+            if (game->net->hostSetup[i].playerType == 0) { pCount++; }
          }
-         serverStatus = server_send;
+         if (teams[0] == true && teams[1] == true && pCount <5 && pCount > 1) {
+            game->net->participants = people[0];
+            game->seed = time(0);
+            int pNum = 1;
+            for (int i = 0; i < game->net->participants; i++) {
+               SocketInfo sock = getSocket(i - 1);
+               strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
+               game->net->hostSetup[i].localPort = 7001 + i;
+               if (i == 0) {  //This connection is the host
+                  strcpy(game->net->hostSetup[i].name, game->p.name);
+                  game->net->hostSetup[i].host = true;
+                  game->net->hostSetup[i].me = true;
+                  game->net->hostSetup[i].level = game->p.level;
+                  strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
+               }
+               else {  //All the other players
+                  memcpy(&game->net->hostSetup[i].id, &sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
+                  memcpy(&game->net->hostSetup[i].level, &sock.recBuff[32], sizeof(int));  //Get client board level from message
+                  strcpy(game->net->hostSetup[i].name, sock.name);
+                  game->net->hostSetup[i].host = false;
+                  game->net->hostSetup[i].me = false;
+                  //We figure out "me" on the client recieving side
+               }
+               if (game->net->hostSetup[i].playerType == 0) { //Only players get a number
+                  game->net->hostSetup[i].pNum = pNum;
+                  pNum++;
+               };
+            }
+            serverStatus = server_send;
+         }
+         else {
+            popupEnable(Popup_Error);
+         }
+      }
+
+      if (popupOpen(Popup_Error) == true) {
+         ImGui::OpenPopup("Setup Error");
+         popups[Popup_Error].isOpen = true;
+      }
+      if (ImGui::BeginPopupModal("Setup Error", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+         if (popups[Popup_Error].isOpen == false) { ImGui::CloseCurrentPopup(); }
+         else {
+            if (pCount < 2 && pCount > 0) { ImGui::Text("You must have at least 2 players."); }
+            else if (pCount > 4) { ImGui::Text("You can't have more than 4 players."); }
+            else if (teams[0] == false) { ImGui::Text("You need at least one player on team 0"); }
+            else if (teams[1] == false) { ImGui::Text("You need at least one player on team 1"); }
+            ImGui::NewLine();
+
+            if (ImGui::Button("OK")) {
+               ImGui::CloseCurrentPopup();
+               popupDisable(Popup_Error);
+            }
+            ImGui::EndPopup();
+         }
       }
    }
 
@@ -943,9 +978,9 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
       for (int i = 0; i < game->net->participants; i++) {
          ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
          ImGui::Text(game->net->hostSetup[i].name);
-         ImGui::Text(game->net->hostSetup[i].ipAddress);
-         ImGui::Text("Host: %d", game->net->hostSetup[i].host);
-         ImGui::Text("Me: %d", game->net->hostSetup[i].me);
+         //ImGui::Text(game->net->hostSetup[i].ipAddress);
+         //ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+         //ImGui::Text("Me: %d", game->net->hostSetup[i].me);
          ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
          ImGui::Text("Team: %d", game->net->hostSetup[i].team);
          ImGui::Text("Level: %d", game->net->hostSetup[i].level);
