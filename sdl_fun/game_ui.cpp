@@ -19,7 +19,6 @@ void multiplayerHost(Game* game, bool* p_open);
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
 
-static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats);
 static void _serverLoopUI(Game* game, int people[], bool& connectStats);
 
 
@@ -153,10 +152,7 @@ void mainUI(Game* game) {
 }
 
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) {
-
-   ImGui::PushFont(game->fonts[20]);
    if (!ImGui::Begin("Connection Type", p_open)) {
-      ImGui::PopFont();
       ImGui::End();
       return;
    }
@@ -175,15 +171,13 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) 
       *p_open = false;
       *isHost = false;
    }
-
-   ImGui::PopFont();
    ImGui::End();
 }
 
 //The popup window that shows a summary of a game after bust
 static void _gameResults(Game* game) {
    ImGui::PushFont(game->fonts[20]);
-   ImGui::Text("Team %d lost or something...", game->busted);
+   ImGui::Text("Team %d lost or something...", game->busted + 1);
    ImGui::NewLine();
 
    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
@@ -194,11 +188,11 @@ static void _gameResults(Game* game) {
       Board* board = game->boards[i];
       char playerName[20] = "Player";
       if (game->settings.mode == multi_shared) {
-         sprintf(playerName, "Team %d", board->team);
+         sprintf(playerName, "Team %d", board->team + 1);
       }
       else { sprintf(playerName, "Player %d", game->pList[i + 1].number); }
       ImGui::BeginChild(playerName, { width / game->boards.size(), (wSize.y - cursorY) * 0.9f });
-      ImGui::Text("Team: %d", board->team);
+      ImGui::Text("Team: %d", board->team + 1);
       ImGui::Text(game->pList[i + 1].name);
       ImGui::NewLine();
       int apm = (board->boardStats.apm / (board->game->timer / 1000.0f)) * 60.0f;
@@ -256,7 +250,7 @@ void boardUI(Game* game) {
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
-            ImGui::Text("Team %d", board->team); 
+            ImGui::Text("Team %d", board->team + 1); 
             for (int i = 0; i < game->players; i++) {
                if (board->team == game->pList[i + 1].team) { ImGui::Text(game->pList[i + 1].name); }
             }
@@ -270,7 +264,7 @@ void boardUI(Game* game) {
                ImGui::Image((void*)(intptr_t)heart->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
-            ImGui::Text("Team %d", board->team);
+            ImGui::Text("Team %d", board->team + 1);
             ImGui::Text(game->pList[i + 1].name); 
          }
          if (game->settings.mode == single_player) { 
@@ -904,26 +898,91 @@ void multiplayerJoin(Game* game, bool* p_open) {
    static bool connectStats = false;
    static char ipAddress[20] = "127.0.0.1";
 
-   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
-   int minBoardLevel = 1;
-   int maxBoardLevel = 10;
-   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
-   ImGui::Checkbox("I AM A ROBOT", &game->ai);
-   ImGui::Checkbox("Use UPNP", &game->net->upnp);
-
+   if (clientStatus == client_none) {
+      ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress));
+      ImGui::Checkbox("Use UPNP", &game->net->upnp);
+      ImGui::NewLine();
+      ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
+      int minBoardLevel = 1;
+      int maxBoardLevel = 10;
+      ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+      ImGui::Checkbox("I AM A ROBOT", &game->ai);
+   }
    ImGui::NewLine();
-   ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); 
-
-   ImGui::NewLine();
-   _clientLoopUI(game, ipAddress, connectStats); 
-
-   //Are we viewing the Connection Messages?
-   if (connectStats) { connectStatusUI(game, &connectStats); }
 
    //If GGPO is running then start the game!
    if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
       if (game->net->connections[game->net->hostConnNum].state == Running)
          gameStartMatch(game);
+   }
+
+   if (clientStatus != client_none) {
+      float width = ImGui::GetWindowContentRegionWidth();
+      ImGui::BeginChild("Messages", { width, 300 });
+      ImGui::NewLine();
+      ImGui::Text("Messages");
+      ImGui::Separator();
+      if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+         game->net->messages.clear();
+         *p_open = false;
+      }
+      else {
+         for (auto&& message : game->net->messages) {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message.c_str());
+         }
+      }
+      ImGui::EndChild();
+   }
+
+   //This displays the game information once it is received
+   if (clientStatus >= client_received) {
+      float width = ImGui::GetContentRegionAvailWidth();
+      ImGui::Text("Game Setup");
+      ImGui::Separator();
+      for (int i = 0; i < game->net->participants; i++) {
+         ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
+         ImGui::Text(game->net->hostSetup[i].name);
+         ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+         ImGui::Text("Team: %d", game->net->hostSetup[i].team + 1);
+         ImGui::Text("Board Speed: %d", game->net->hostSetup[i].level);
+         ImGui::EndChild();
+         if (i + 1 != game->net->participants) { ImGui::SameLine(); }
+      }
+      if (ImGui::Button("Start Game")) {
+         for (int i = 0; i < game->net->participants; i++) {
+            if (i == 0) {
+               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);  //Use the IP we used to connect to the host
+            }
+         }
+         clientStatus = client_loaded;
+         ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
+      }
+      ImGui::SameLine();
+   }
+
+   if (game->winsockRunning == true) {
+      if (clientStatus == client_done) {
+         tcpCleanup();
+         clientStatus = client_none;
+         connectStats = false;
+      }
+   }
+
+   if (clientRunning == false) {
+      if (ImGui::Button("Connect to Host")) {
+         clientStatus = client_started;
+         //This is the client loop thread
+         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->p.name, std::ref(clientRunning));
+         clientThread.detach();
+         connectStats = true;
+      }
+      ImGui::SameLine();
+   }
+
+   if (ImGui::Button("Reset Connection")) {  //This just nukes everything
+      tcpReset();
+      clientStatus = client_none;
+      connectStats = false;
    }
    ImGui::End();
 }
@@ -954,7 +1013,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
    int minBoardLevel = 1;
    int maxBoardLevel = 10;
-   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+   ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
    ImGui::Checkbox("I AM A ROBOT", &game->ai);
    ImGui::Checkbox("Use UPNP", &game->net->upnp);
 
@@ -1082,11 +1141,11 @@ static void _serverLoopUI(Game* game, int people[], bool& connectStats) {
       ImGui::PopID();
 
       static bool teams[2] = { false, false };
-      static int pCount = 0;
+      static int pCount = -1;
       if (ImGui::Button("Start Game")) {
          //validate the game setup
          teams[0] = teams[1] = false;
-         int pCount = 0;
+         pCount = 0;
          for (int i = 0; i < people[0]; i++) {
             teams[game->net->hostSetup[i].team] = true;
             if (game->net->hostSetup[i].playerType == 0) { pCount++; }
@@ -1133,10 +1192,12 @@ static void _serverLoopUI(Game* game, int people[], bool& connectStats) {
       if (ImGui::BeginPopupModal("Setup Error", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
          if (popups[Popup_Error].isOpen == false) { ImGui::CloseCurrentPopup(); }
          else {
-            if (pCount < 2 && pCount > 0) { ImGui::Text("You must have at least 2 players."); }
-            else if (pCount > 4) { ImGui::Text("You can't have more than 4 players."); }
-            else if (teams[0] == false) { ImGui::Text("You need at least one player on team 0"); }
-            else if (teams[1] == false) { ImGui::Text("You need at least one player on team 1"); }
+            if (pCount < 2) { 
+               ImGui::Text("You must have at least 2 players."); }
+            else if (pCount > 4) { 
+               ImGui::Text("You can't have more than 4 players."); }
+            else if (teams[0] == false) { ImGui::Text("You need at least one player on team 1"); }
+            else if (teams[1] == false) { ImGui::Text("You need at least one player on team 2"); }
             ImGui::NewLine();
 
             if (ImGui::Button("OK")) {
@@ -1154,58 +1215,6 @@ static void _serverLoopUI(Game* game, int people[], bool& connectStats) {
          serverStatus = server_none;
          connectStats = false;
          ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
-      }
-   }
-}
-
-static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
-   if (clientRunning == false) {
-      if (ImGui::Button("Connect to Host")) {
-         clientStatus = client_started;
-         //This is the client loop thread
-         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->p.name, std::ref(clientRunning));
-         clientThread.detach();
-         connectStats = true;
-      }
-      ImGui::SameLine();
-   }
-
-   if (ImGui::Button("Reset Connection")) {  //This just nukes everything
-      tcpReset();
-      clientStatus = client_none;
-      connectStats = false;
-   }
-
-   //This displays the game information once it is received
-   if (clientStatus >= client_received) {
-      float width = ImGui::GetContentRegionAvailWidth();
-      for (int i = 0; i < game->net->participants; i++) {
-         ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
-         ImGui::Text(game->net->hostSetup[i].name);
-         //ImGui::Text(game->net->hostSetup[i].ipAddress);
-         //ImGui::Text("Host: %d", game->net->hostSetup[i].host);
-         //ImGui::Text("Me: %d", game->net->hostSetup[i].me);
-         ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
-         ImGui::Text("Team: %d", game->net->hostSetup[i].team);
-         ImGui::Text("Level: %d", game->net->hostSetup[i].level);
-         ImGui::EndChild();
-         if (i + 1 != game->net->participants) { ImGui::SameLine(); }
-      }
-      if (ImGui::Button("Start Game")) {
-         for (int i = 0; i < game->net->participants; i++) {
-            if (i == 0) {
-               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);  //Use the IP we used to connect to the host
-            }
-         }
-         clientStatus = client_loaded;
-         ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
-      }
-   }
-   if (game->winsockRunning == true) {
-      if (clientStatus == client_done) {
-         tcpCleanup();
-         clientStatus = client_none;
-         connectStats = false;
       }
    }
 }

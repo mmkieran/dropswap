@@ -774,6 +774,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
          if (tcpClientStartup(port, ip) == true) { 
             status = client_connecting; 
             myInfo = sockRandomID(name);
+            game->net->messages.push_back("Trying to contact host");
          }
          else {
             status = client_none;
@@ -785,7 +786,7 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
       case client_connecting:
          if (tcpClientConnect() == true) { 
             status = client_connected; 
-            game->net->messages.push_back("Waiting for host ready signal");
+            game->net->messages.push_back("Waiting for host to setup the game");
          }
          break;
       case client_connected:
@@ -802,8 +803,8 @@ void tcpClientLoop(u_short port, const char* ip, ClientStatus &status, const cha
             }
             else { game->net->hostSetup[i].me = false; }
          }
-         game->net->messages.push_back("Game data received and loaded.");
-         game->net->messages.push_back("Hit Start when ready.");
+         game->net->messages.push_back("Game data received and loaded");
+         game->net->messages.push_back("Hit Start when ready");
          status = client_waiting;
          break;
       case client_waiting:
