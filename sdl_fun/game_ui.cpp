@@ -11,9 +11,26 @@
 
 #include <thread>
 
-std::vector <std::string> ui_messages;
-
 void ggpoSessionUI(Game* game, bool* p_open);
+void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
+void multiplayerJoin(Game* game, bool* p_open);
+void multiplayerHost(Game* game, bool* p_open);
+
+void debugConnections(Game* game, bool* p_open);
+void debugMultiplayerSetup(Game* game, bool* p_open);
+
+static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats);
+static void _serverLoopUI(Game* game, int people[], bool& connectStats);
+
+
+//Globals used by TCP transfer threads
+ServerStatus serverStatus = server_none;     //What stage of the game info transfer is the server in
+ClientStatus clientStatus = client_none;     //What stage of the game info transfer is the client in
+std::thread serverThread;                    //Is the server thread handle
+std::thread clientThread;                    //Is the client thread handle
+bool clientRunning = false;                  //Is the client thread running
+bool serverRunning = false;                  //Is the server thread running
+
 
 const char* credits = R"(
 A special thanks goes out to:
@@ -104,17 +121,24 @@ void mainUI(Game* game) {
       }
       ImGui::NewLine();
 
+      static bool showConnectionType = false;
       static bool showMultiPlayer = false;
+      static bool isHost = false;
       if (ImGui::Button("Multiplayer", ImVec2{ width, 0 })) {
-         showMultiPlayer = true;
+         showConnectionType = true;
       }
       ImGui::NewLine();
 
-      if (showMultiPlayer && game->playing == false) {
-         multiplayerUI(game, &showMultiPlayer);
+      if (showConnectionType && game->playing == false) {
+         multiHostOrGuest(game, &showConnectionType, &showMultiPlayer, &isHost);
+      }
+      if (showMultiPlayer && game->playing == false && isHost == true) {
+         multiplayerHost(game, &showMultiPlayer);
+      }
+      else if (showMultiPlayer && game->playing == false && isHost == false) {
+         multiplayerJoin(game, &showMultiPlayer);
       }
    }
-
 
    static bool showSettings = false;
    if (ImGui::Button("Settings", ImVec2{ width, 0 }) ) {
@@ -122,6 +146,34 @@ void mainUI(Game* game) {
    }
    if (showSettings) {
       gameSettingsUI(game, &showSettings);
+   }
+
+   ImGui::PopFont();
+   ImGui::End();
+}
+
+void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) {
+
+   ImGui::PushFont(game->fonts[20]);
+   if (!ImGui::Begin("Connection Type", p_open)) {
+      ImGui::PopFont();
+      ImGui::End();
+      return;
+   }
+
+   ImGui::NewLine();
+   float width = ImGui::GetWindowContentRegionWidth();
+
+   if (ImGui::Button("Host a Game", ImVec2{ width, 0 })) {
+      *multiSetup = true;
+      *p_open = false;
+      *isHost = true;
+   }
+   ImGui::NewLine();
+   if (ImGui::Button("Join a Game", ImVec2{ width, 0 })) {
+      *multiSetup = true;
+      *p_open = false;
+      *isHost = false;
    }
 
    ImGui::PopFont();
@@ -829,15 +881,167 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
    ImGui::End();
 }
 
-//Globals used by TCP transfer threads
-ServerStatus serverStatus = server_none;     //What stage of the game info transfer is the server in
-ClientStatus clientStatus = client_none;     //What stage of the game info transfer is the client in
-std::thread serverThread;                    //Is the server thread handle
-std::thread clientThread;                    //Is the client thread handle
-bool clientRunning = false;                  //Is the client thread running
-bool serverRunning = false;                  //Is the server thread running
+void multiplayerJoin(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Connection Setup", p_open)) {
+      ImGui::End();
+      return;
+   }
 
-static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
+   if (game->debug == true) {
+      static bool showDebugConn = false;
+      if (ImGui::Button("Show Conn State")) {
+         showDebugConn = true;
+      }
+      if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
+
+      static bool showMultiSetup = false;
+      if (ImGui::Button("Show Game Setup")) {
+         showMultiSetup = true;
+      }
+      if (showMultiSetup == true) { debugMultiplayerSetup(game, &showMultiSetup); }
+   }
+
+   static bool connectStats = false;
+   static char ipAddress[20] = "127.0.0.1";
+
+   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
+   int minBoardLevel = 1;
+   int maxBoardLevel = 10;
+   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+   ImGui::Checkbox("I AM A ROBOT", &game->ai);
+   ImGui::Checkbox("Use UPNP", &game->net->upnp);
+
+   ImGui::NewLine();
+   ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); 
+
+   ImGui::NewLine();
+   _clientLoopUI(game, ipAddress, connectStats); 
+
+   //Are we viewing the Connection Messages?
+   if (connectStats) { connectStatusUI(game, &connectStats); }
+
+   //If GGPO is running then start the game!
+   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
+      if (game->net->connections[game->net->hostConnNum].state == Running)
+         gameStartMatch(game);
+   }
+   ImGui::End();
+}
+
+void multiplayerHost(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Connection Setup", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   if (game->debug == true) {
+      static bool showDebugConn = false;
+      if (ImGui::Button("Show Conn State")) {
+         showDebugConn = true;
+      }
+      if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
+      static bool showMultiSetup = false;
+      if (ImGui::Button("Show Game Setup")) {
+         showMultiSetup = true;
+      }
+      if (showMultiSetup == true) { debugMultiplayerSetup(game, &showMultiSetup); }
+   }
+
+   static bool connectStats = false;
+   static char ipAddress[20] = "127.0.0.1";
+   static int people[3] = { 2, 2, GAME_MAX_PLAYERS };
+
+   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
+   int minBoardLevel = 1;
+   int maxBoardLevel = 10;
+   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+   ImGui::Checkbox("I AM A ROBOT", &game->ai);
+   ImGui::Checkbox("Use UPNP", &game->net->upnp);
+
+   static int mode = 0;
+   ImGui::NewLine();
+   if (ImGui::CollapsingHeader("Board Setup")) {
+      ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+      ImGui::InputInt("Board Width", &game->settings.bWidth);
+      ImGui::InputInt("Board Height", &game->settings.bHeight);
+      ImGui::NewLine();
+   }
+
+   if (ImGui::CollapsingHeader("GGPO Options")) { 
+      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+      ImGui::NewLine();
+   }
+   if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward
+
+   ImGui::NewLine();
+   ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+   ImGui::NewLine();
+
+   _serverLoopUI(game, &people[0], connectStats); 
+
+   //Are we viewing the Connection Messages?
+   if (connectStats) { connectStatusUI(game, &connectStats); }
+
+   //If GGPO is running then start the game!
+   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
+      bool ready = true;
+      for (int i = 0; i < game->net->participants; i++) {
+         if (game->net->connections[i].state != Running) { ready = false; }
+      }
+      if (ready == true) { gameStartMatch(game); }
+   }
+
+   ImGui::End();
+}
+
+void debugConnections(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Conn State", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::Text("Winsock running: %d", game->winsockRunning);
+   ImGui::Text("UPNP running: %d", game->upnpRunning);
+   ImGui::Text("Server thread running: %d", serverRunning);
+   ImGui::Text("Server status: %d", serverStatus);
+   ImGui::Text("Client thread running: %d", clientRunning);
+   ImGui::Text("Client status: %d", clientStatus);
+
+   _connectionInfo();
+
+   ImGui::End();
+}
+
+void debugMultiplayerSetup(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Conn State", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::Text("Participants: %d", game->net->participants);
+   ImGui::Text("Seed: %d", game->seed);
+
+   for (int i = 0; i < game->net->participants; i++) {
+      if (ImGui::CollapsingHeader(game->net->hostSetup[i].name)) {
+         ImGui::Text("Me: %d", game->net->hostSetup[i].me);
+         ImGui::Text("Local Port: %d", game->net->hostSetup[i].localPort);
+         ImGui::Text(game->net->hostSetup[i].ipAddress);
+         ImGui::Text(game->net->hostSetup[i].name);
+         ImGui::Text("Host: %d", game->net->hostSetup[i].host);
+         ImGui::Text("ID: %d", game->net->hostSetup[i].id);
+         ImGui::Text("Player Number: %d", game->net->hostSetup[i].pNum);
+         ImGui::Text("Team: %d", game->net->hostSetup[i].team);
+         ImGui::Text("Level: %d", game->net->hostSetup[i].level);
+      }
+   }
+
+   //Add GGPO state
+
+   ImGui::End();
+}
+
+static void _serverLoopUI(Game* game, int people[], bool& connectStats) {
    //This code is for the server
    if (serverRunning == false) {
       if (ImGui::Button("Find Players")) {
@@ -887,7 +1091,7 @@ static void _serverLoopUI(Game* game, int people[], bool &connectStats) {
             teams[game->net->hostSetup[i].team] = true;
             if (game->net->hostSetup[i].playerType == 0) { pCount++; }
          }
-         if (teams[0] == true && teams[1] == true && pCount <5 && pCount > 1) {
+         if (teams[0] == true && teams[1] == true && pCount < 5 && pCount > 1) {
             game->net->participants = people[0];
             game->seed = time(0);
             int pNum = 1;
@@ -1004,133 +1208,4 @@ static void _clientLoopUI(Game* game, char ipAddress[], bool& connectStats) {
          connectStats = false;
       }
    }
-}
-
-void multiplayerUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Connection Setup", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   if (game->debug == true) {
-      static bool showDebugConn = false;
-      if (ImGui::Button("Show Conn State")) {
-         showDebugConn = true;
-      }
-      if (showDebugConn == true) { debugConnections(game, &showDebugConn); }
-      static bool showMultiSetup = false;
-      if (ImGui::Button("Show Game Setup")) {
-         showMultiSetup = true;
-      }
-      if (showMultiSetup == true) { debugMultiplayerSetup(game, &showMultiSetup); }
-   }
-
-   static bool isServer = false;
-   static bool connectStats = false;
-   static char ipAddress[20] = "127.0.0.1";
-   static int people[3] = { 2, 2, GAME_MAX_PLAYERS };
-
-   ImGui::Checkbox("Host a Game", &isServer);
-   ImGui::NewLine();
-   ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
-   int minBoardLevel = 1;
-   int maxBoardLevel = 10;
-   ImGui::SliderScalar("Board Level", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
-   ImGui::Checkbox("I AM A ROBOT", &game->ai);
-   ImGui::Checkbox("Use UPNP", &game->net->upnp);
-
-   if (isServer == true) {
-      static int mode = 0;
-      ImGui::NewLine();
-      if (ImGui::CollapsingHeader("Board Setup")) {
-         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-         ImGui::InputInt("Board Width", &game->settings.bWidth);
-         ImGui::InputInt("Board Height", &game->settings.bHeight);
-         ImGui::NewLine();
-      }
-
-      if (ImGui::CollapsingHeader("GGPO Options")) { 
-         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-         ImGui::NewLine();
-      }
-      if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward
-   }
-
-   ImGui::NewLine();
-   if (isServer == false) { ImGui::InputText("Host IP", ipAddress, IM_ARRAYSIZE(ipAddress)); }
-   if (isServer == true) {
-      ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
-   }
-
-   ImGui::NewLine();
-   //If you're a server, use this loop
-   if (isServer == true) { _serverLoopUI(game, &people[0], connectStats); }
-
-   //If you're a client, use this loop
-   else if (isServer == false) { _clientLoopUI(game, ipAddress, connectStats); }
-
-   //Are we viewing the Connection Messages?
-   if (connectStats) { connectStatusUI(game, &connectStats); }
-
-   //If GGPO is running then start the game!
-   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
-      if (isServer == true) {
-         bool ready = true;
-         for (int i = 0; i < game->net->participants; i++) {
-            if (game->net->connections[i].state != Running) { ready = false; }
-         }
-         if (ready == true) { gameStartMatch(game); }
-      }
-      else if (game->net->connections[game->net->hostConnNum].state == Running)
-         gameStartMatch(game);
-   }
-
-   ImGui::End();
-}
-
-void debugConnections(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Conn State", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   ImGui::Text("Winsock running: %d", game->winsockRunning);
-   ImGui::Text("UPNP running: %d", game->upnpRunning);
-   ImGui::Text("Server thread running: %d", serverRunning);
-   ImGui::Text("Server status: %d", serverStatus);
-   ImGui::Text("Client thread running: %d", clientRunning);
-   ImGui::Text("Client status: %d", clientStatus);
-
-   _connectionInfo();
-
-   ImGui::End();
-}
-
-void debugMultiplayerSetup(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Conn State", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   ImGui::Text("Participants: %d", game->net->participants);
-   ImGui::Text("Seed: %d", game->seed);
-
-   for (int i = 0; i < game->net->participants; i++) {
-      if (ImGui::CollapsingHeader(game->net->hostSetup[i].name)) {
-         ImGui::Text("Me: %d", game->net->hostSetup[i].me);
-         ImGui::Text("Local Port: %d", game->net->hostSetup[i].localPort);
-         ImGui::Text(game->net->hostSetup[i].ipAddress);
-         ImGui::Text(game->net->hostSetup[i].name);
-         ImGui::Text("Host: %d", game->net->hostSetup[i].host);
-         ImGui::Text("ID: %d", game->net->hostSetup[i].id);
-         ImGui::Text("Player Number: %d", game->net->hostSetup[i].pNum);
-         ImGui::Text("Team: %d", game->net->hostSetup[i].team);
-         ImGui::Text("Level: %d", game->net->hostSetup[i].level);
-      }
-   }
-
-   //Add GGPO state
-
-   ImGui::End();
 }

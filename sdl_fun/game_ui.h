@@ -27,7 +27,3 @@ void gameSettingsUI(Game* game, bool* p_open);
 void popupEnable(PopupType popup, int other = 0);
 bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
-
-void multiplayerUI(Game* game, bool* p_open);
-void debugConnections(Game* game, bool* p_open);
-void debugMultiplayerSetup(Game* game, bool* p_open);
