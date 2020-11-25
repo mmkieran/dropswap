@@ -245,6 +245,8 @@ void boardUI(Game* game) {
          //Board Header
          Texture* star = resourcesGetTexture(game->resources, Texture_star);
          Texture* heart = resourcesGetTexture(game->resources, Texture_heart);
+         Texture* silver = resourcesGetTexture(game->resources, Texture_silver);
+         Texture* diamond = resourcesGetTexture(game->resources, Texture_diamond);
          if (game->settings.mode == multi_shared) {  
             if (i == game->p.team) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -273,6 +275,15 @@ void boardUI(Game* game) {
                ImGui::SameLine();
             }
             ImGui::Text(game->p.name); 
+            if (board->paused == true) {  //todo add player icon
+               ImGui::Image((void*)(intptr_t)silver->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
+            else {
+               ImGui::Image((void*)(intptr_t)diamond->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               ImGui::SameLine();
+            }
+            ImGui::Text("%0.1f s", board->pauseLength / 1000.0);
          }
          //ImGui::PopStyleColor();
 
@@ -313,7 +324,6 @@ void boardUI(Game* game) {
          char boardStats[30] = "Board Info";
          sprintf(boardStats, "Player Info %d", i + 1);
          ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
-         ImGui::Text("Pause Time: %0.1f s", board->pauseLength / 1000.0);
          ImGui::Text("Game Time: %d s", game->timer / 1000);
          ImGui::Text("Frame: %d", game->frameCount);
 
@@ -918,7 +928,9 @@ void multiplayerJoin(Game* game, bool* p_open) {
 
    float width = ImGui::GetWindowContentRegionWidth();
    if (clientStatus != client_none) {
-      ImGui::BeginChild("Messages", { width, 300 }, true);
+      ImGui::Text(game->p.name);
+      ImGui::NewLine();
+      ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
       ImGui::Separator();
       if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
@@ -1022,7 +1034,9 @@ void multiplayerHost(Game* game, bool* p_open) {
 
    if (serverStatus != server_none) {
       float width = ImGui::GetWindowContentRegionWidth();
-      ImGui::BeginChild("Messages", { width, 300 }, true);
+      ImGui::Text(game->p.name);
+      ImGui::NewLine();
+      ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
       ImGui::Separator();
       if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
@@ -1063,7 +1077,7 @@ void multiplayerHost(Game* game, bool* p_open) {
 
       static int mode = 0;
       ImGui::NewLine();
-      if (ImGui::CollapsingHeader("Board Setup")) {
+      if (ImGui::CollapsingHeader("Board Setup"), ImGuiTreeNodeFlags_DefaultOpen) {
          ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
          ImGui::InputInt("Board Width", &game->settings.bWidth);
          ImGui::InputInt("Board Height", &game->settings.bHeight);
