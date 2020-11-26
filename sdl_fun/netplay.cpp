@@ -337,9 +337,22 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       game->players = 2;
       result = ggpo_start_synctest(&game->net->ggpo, &cb, name, game->players, sizeof(UserInput), 1);
    }
-   else if (connects[myNumber].playerType == 1){  //Spectating a GGPO Session
+   else if (connects[myNumber].playerType == 1) {  //Spectating a GGPO Session
       game->players = participants - spectators;
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", game->players, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
+      
+      game->net->localPlayer = -1;  //old and rip out?
+      game->p.number = -1;  //todo check this later
+      game->net->connections[myNumber].handle = -1;  //old rip out later
+      game->net->connections[myNumber].type = GGPO_PLAYERTYPE_SPECTATOR;
+      for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
+         if (connects[i].playerType == 0) {
+            game->pList[connects[i].pNum].number = connects[i].pNum;
+            game->pList[connects[i].pNum].team = connects[i].team;
+            strcpy(game->pList[connects[i].pNum].name, connects[i].name);
+         }
+      }
+
       return;  //And we're done
    }
    else {  //Start a regular GGPO Session
