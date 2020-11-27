@@ -19,7 +19,7 @@ enum TileType {
 
 enum TileStatus {
    status_normal = 0,
-   //status_clear,                     //I wanted to switch the tile_cleared type to this, but drawing the texture might be complicated
+   status_clear,                     //I wanted to switch the tile_cleared type to this, but drawing the texture might be complicated
    status_drop,                        //Is the tile being dropped by a player
    status_stop,                        //The tile is not allowed to fall
    status_swap,                        //Used to interpolate the position of a tile after swapping

@@ -191,13 +191,8 @@ void boardRender(Game* game, Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty) { continue; }
-
-         if (tile->effect == visual_swapl || tile->effect == visual_swapr || tile->effect == visual_countdown) {
-            if (tile->effectTime < board->game->timer) {
-               tile->effect = visual_none;
-               tile->effectTime = 0;
-            }
-            else { tileDraw(board, tile, tile->effect, tile->effectTime); }
+         if (tile->effect != visual_none) { 
+            tileDraw(board, tile, tile->effect, tile->effectTime); 
          }
          else { tileDraw(board, tile); }
       }
