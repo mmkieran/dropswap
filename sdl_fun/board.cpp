@@ -272,10 +272,7 @@ void boardSwap(Board* board, Cursor* cursor) {
    assert(tile1 && tile2);
 
    if (tile1->type == tile_garbage || tile2->type == tile_garbage) { return; }    //Don't swap garbage
-   if (tile1->type == tile_cleared || tile2->type == tile_cleared) { return; }    //Don't swap clears
-   if (tile1->status == status_disable || tile2->status == status_disable) { return; }    //Don't swap disabled tiles
-   if (tile1->status == status_stop || tile2->status == status_stop) { return; }    //Don't swap stopped tiles
-   if (tile1->status == status_drop || tile2->status == status_drop) { return; }    //Don't swap player controlled tiles
+   if (tile1->status != status_normal || tile2->status != status_normal) { return; }    //Don't swap disabled tiles
 
    float xCursor = cursorGetX(cursor);
    float yCursor = cursorGetY(cursor);
@@ -448,7 +445,7 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
          continue;
       }
 
-      if (t1->type != tile_empty && t1->type != tile_cleared && t1->type != tile_garbage) {
+      if (t1->type != tile_empty && t1->status != status_clear && t1->type != tile_garbage) {
          if (t1->type == t2->type && t1->type == t3->type) {
             if ( (t1->ypos == t2->ypos && t1->ypos == t3->ypos) || (t1->xpos == t2->xpos && t1->xpos == t3->xpos) ) {
                //We have a match... add to match list and move counter ahead looking for more
@@ -567,8 +564,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
 
          garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
-         m->type = tile_cleared;
-         //tileSetTexture(board, m);
+         m->status = status_clear;
          m->clearTime = clearTime;
          m->falling = false;
          m->effect = visual_countdown;
@@ -595,7 +591,7 @@ void boardFall(Board* board, float velocity) {
          Tile* tile = boardGetTile(board, row, col);
          bool prevFall = tile->falling;  //Was the tile falling previously
 
-         if (tile->type == tile_empty || tile->type == tile_cleared || tile->type == tile_garbage) {continue; } 
+         if (tile->type == tile_empty || tile->status == status_clear || tile->type == tile_garbage) {continue; } 
          if (tile->status == status_disable || tile->status == status_stop) {  //Don't fall if it's stopped/disabled
             tile->falling = true;
             continue; 
@@ -639,7 +635,7 @@ void boardFall(Board* board, float velocity) {
          else if (prevFall == false && tile->falling == false) {
             int lookDown = 2;
             Tile* below = boardGetTile(board, row + 1, col);
-            while (below && below->type != tile_cleared) {
+            while (below && below->status != status_clear) {
                Tile* next = boardGetTile(board, row + lookDown, col);
                if (next) {
                   below = next;
@@ -647,7 +643,7 @@ void boardFall(Board* board, float velocity) {
                }
                else { break; }
             }
-            if (below->type != tile_cleared) {
+            if (below->status != status_clear) {
                tile->chain = false;
             }
          }
@@ -695,7 +691,7 @@ void boardRemoveClears(Board* board) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty) { continue; }
-         if (tile->type == tile_cleared || tile->status == status_disable) { stillClearedTiles = true; }
+         if (tile->status == status_clear || tile->status == status_disable) { stillClearedTiles = true; }
 
          //todo Anxiety doesn't really belong here
          if (tileGetRow(board, tile) <= board->startH + 1 && tile->falling == false) { 
@@ -722,7 +718,7 @@ void boardRemoveClears(Board* board) {
             tile->statusTime = 0;
          }
 
-         if (tile->type == tile_cleared) {
+         if (tile->status == status_clear) {
             if (tile->idGarbage >= 0 && tile->clearTime <= current) {
 
                tile->type = _tileGenType(board, tile);
@@ -742,7 +738,7 @@ void boardRemoveClears(Board* board) {
                int r = row - 1;
                Tile* above = boardGetTile(board, r, col);
                while (above && r >= 0) {
-                  if (above->type != tile_empty && above->type != tile_cleared && above->type != tile_garbage) { above->chain = true; }
+                  if (above->type != tile_empty && above->status != status_clear && above->type != tile_garbage) { above->chain = true; }
                   r--;
                   above = boardGetTile(board, r, col);
                }
@@ -958,7 +954,7 @@ struct AILogic {
 AILogic aiLogic;
 
 static bool _validTile(Board* board, Tile* tile) {
-   if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+   if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
       tile->status == status_stop || tile->type == tile_empty) {
       return false;
    }
@@ -1033,7 +1029,7 @@ bool aiFindHorizMatch(Board* board) {
       std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
 
       for (auto&& tile : tiles) {  //Skip this stuff
-         if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+         if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
             tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
             continue;
          }
@@ -1124,16 +1120,16 @@ void aiChain(Board* board) {
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (tile->type == tile_cleared) {
+         if (tile->status == status_clear) {
             Tile* right = boardGetTile(board, row, col + 1);
 
             //vertical match
             bool vertMatch = false;
             Tile* below = boardGetTile(board, row + 1, col);
-            if (below->type == tile_cleared || below->type == tile_empty) {
+            if (below->status == status_clear || below->type == tile_empty) {
                vertMatch = true;
                int lookDown = 2;
-               while (below && (below->type == tile_cleared || below->type == tile_empty)) {
+               while (below && (below->status == status_clear || below->type == tile_empty)) {
                   below = boardGetTile(board, row + lookDown, col);
                   lookDown++;
                }
@@ -1141,7 +1137,7 @@ void aiChain(Board* board) {
 
                std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
                for (auto&& tile : belowTiles) {  //Skip this stuff
-                  if (tile->falling == true || tile->status == status_disable || tile->type == tile_cleared ||
+                  if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
                      tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
                      continue;
                   }

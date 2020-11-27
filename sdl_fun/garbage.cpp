@@ -313,8 +313,8 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
          }
          tile->garbage = nullptr;
          tile->clearTime = clearTime + (200 * c + 1000);
-         tile->statusTime -= 200 * c;
-         tile->type = tile_cleared;
+         //tile->statusTime -= 200 * c;
+         tile->status = status_clear;
          tile->effect = visual_countdown;
          tile->effectTime = clearTime + (200 * c + 1000);
          tile->falling = false;
@@ -361,7 +361,7 @@ void garbageFall(Board* board, double velocity) {
                below = boardGetTile(board, row + 1, i);
                if (below && below->falling == false) { garbage->falling = false; }
                else if (below && below->falling == true) { 
-                  while (below && below->type != tile_cleared) {
+                  while (below && below->status != status_clear) {
                      Tile* next = boardGetTile(board, row + lookDown, col);
                      if (next) {
                         below = next;
@@ -369,7 +369,7 @@ void garbageFall(Board* board, double velocity) {
                      }
                      else { break; }
                   }
-                  if (below == nullptr || below->type != tile_cleared) { garbage->falling = false; }
+                  if (below == nullptr || below->status != status_clear) { garbage->falling = false; }
                }
             }
             else if (potentialDrop < drop) {  //It can fall a little bit further
