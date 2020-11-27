@@ -342,7 +342,7 @@ static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime) 
    }
    else if (effect == visual_countdown) {
       for (int i = 0; i < 4; i++) {
-         float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 2) / board->game->timings.removeClear[0];
+         float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 4) / board->game->timings.removeClear[0];
          vec4[i] = val < 0 ? 0 : val;
       }
    }

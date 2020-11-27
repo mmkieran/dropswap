@@ -71,6 +71,9 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
          effect = visual_dark;
       }
       meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
+      if (tile->type == tile_cleared) {
+         meshDraw(board, resourcesGetTexture(board->game->resources, Texture_cleared), tile->xpos, tile->ypos, board->tileWidth, board->tileHeight);
+      }
    }
 }
 
