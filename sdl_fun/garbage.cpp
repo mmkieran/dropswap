@@ -275,7 +275,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
 
    for (int i = 0; i < 8; i += 2) {
       Tile* neighbor = boardGetTile(board, row + indices[i], col + indices[i + 1]);
-      if (neighbor && neighbor->type == tile_garbage) {
+      if (neighbor && neighbor->type == tile_garbage && neighbor->idGarbage != -1) {
          Garbage* garbage = garbageGet(board->pile, neighbor->idGarbage);
          if (cleared[garbage->ID]) { continue; }
          else { 
@@ -312,6 +312,7 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
             newStart->garbage = garbage;
          }
          tile->garbage = nullptr;
+         tile->idGarbage = -1;
          tile->statusTime = clearTime + (200 * c + 1000);
          tile->status = status_clear;
          tile->effect = visual_countdown;

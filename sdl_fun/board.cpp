@@ -714,13 +714,12 @@ void boardRemoveClears(Board* board) {
          }
 
          if (tile->status == status_clear) {
-            if (tile->idGarbage >= 0 && tile->statusTime <= current) {
+            if (tile->type == tile_garbage && tile->statusTime <= current) {
 
                tile->type = _tileGenType(board, tile);
                tileSetTexture(board, tile);
-               tile->idGarbage = -1;
                tile->status = status_disable;
-               tile->statusTime += current + board->game->timings.removeClear[0];
+               tile->statusTime = current + board->game->timings.removeClear[0];
                tile->chain = true;
                boardPauseTime(board, pause_garbageclear);
             }
