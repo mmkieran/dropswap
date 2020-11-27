@@ -58,6 +58,7 @@ enum VisualEffect {
    visual_shake,
    visual_swapl,  //left swap
    visual_swapr,  //right swap
+   visual_countdown,  
    visual_clear,
    visual_landing,
    visual_COUNT

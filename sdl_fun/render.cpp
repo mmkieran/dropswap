@@ -332,12 +332,18 @@ Mesh* meshCreate() {
 };
 
 //This makes the mesh darker (for disabled tiles)
-static void meshEffectDarken(Board* board, VisualEffect effect) {
+static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime) {
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
 
    if (effect == visual_dark) {
       for (int i = 0; i < 4; i++) {
          vec4[i] = 0.8;
+      }
+   }
+   else if (effect == visual_countdown) {
+      for (int i = 0; i < 4; i++) {
+         float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 2) / board->game->timings.removeClear[0];
+         vec4[i] = val < 0 ? 0 : val;
       }
    }
    shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
@@ -381,7 +387,7 @@ void meshDraw(Board* board, Texture* texture, float destX, float destY, int dest
    Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    
-   meshEffectDarken(board, effect);
+   meshEffectDarken(board, effect, effectTime);
    meshEffectDisplace(board, effect, effectTime);
 
    glBindBuffer(GL_ARRAY_BUFFER, board->mesh->vbo);
