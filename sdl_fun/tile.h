@@ -40,7 +40,6 @@ struct Tile {
    Texture* texture;                   //Used to draw the tile
 
    bool falling;                       //Is the tile marked as falling
-   uint64_t clearTime;                 //Used to determine when to remove cleared tiles
    uint64_t statusTime;                //Used to determine the length of a tile status
    bool chain = false;                 //Is the tile part of a chain on the board
 

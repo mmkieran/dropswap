@@ -422,6 +422,44 @@ static void _silverClear(Game* game, Board* creator, int size) {
    }
 }
 
+//This functions processes the type of pause to figure out the length of the pause
+void boardPauseTime(Board* board, BoardPauseType type, int size) {
+   int currentPause = board->pauseLength;
+   int time = 0;
+
+   switch (type) {
+   case pause_combo:
+      time = min((size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_chain:
+      time = min((size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
+      if (time > currentPause) { board->pauseLength = time; }
+      break;
+   case pause_clear:
+      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_crashland:
+      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
+         board->pauseLength = board->game->timings.landPause[0];
+      }
+      break;
+   case pause_garbageclear:
+      if (currentPause < board->game->timings.removeClear[0]) {
+         board->pauseLength = board->game->timings.removeClear[0];
+      }
+      break;
+   case pause_danger:
+      if (currentPause < board->game->timings.gracePeriod[0]) {
+         board->pauseLength = board->game->timings.gracePeriod[0];
+      }
+      break;
+   }
+   board->paused = true;
+};
+
 //Matchmaker matchmaker make me a match!
 static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches) {
    int current = 0;
@@ -471,44 +509,6 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
       current++;
    }
 }
-
-//This functions processes the type of pause to figure out the length of the pause
-void boardPauseTime(Board* board, BoardPauseType type, int size) {
-   int currentPause = board->pauseLength;
-   int time = 0;
-
-   switch (type) {
-   case pause_combo:
-      time = min((size - 3) * 1000 + board->game->timings.removeClear[0], 6000);  //max pause of 6s
-      if (time > currentPause) { board->pauseLength = time; }
-      break;
-   case pause_chain:
-      time = min((size) * 1000 + board->game->timings.removeClear[0], 8000);  //Max pause 8s
-      if (time > currentPause) { board->pauseLength = time; }
-      break;
-   case pause_clear:
-      if (currentPause < board->game->timings.removeClear[0]) {  //The board should always be paused if things need to be cleared
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_crashland:
-      if (board->pauseLength == 0) {  //Little grace period when garbage is landing in case it's at the top
-         board->pauseLength = board->game->timings.landPause[0];
-      }
-      break;
-   case pause_garbageclear:
-      if (currentPause < board->game->timings.removeClear[0]) {
-         board->pauseLength = board->game->timings.removeClear[0];
-      }
-      break;
-   case pause_danger:
-      if (currentPause < board->game->timings.gracePeriod[0]) {
-         board->pauseLength = board->game->timings.gracePeriod[0];
-      }
-      break;
-   }
-   board->paused = true;
-};
 
 //Checks a list of tiles to see if any matches were made
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo) {
@@ -565,7 +565,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
          m->status = status_clear;
-         m->clearTime = clearTime;
+         m->statusTime = clearTime + board->game->timings.removeClear[0];
          m->falling = false;
          m->effect = visual_countdown;
          m->effectTime = clearTime + board->game->timings.removeClear[0];
@@ -713,25 +713,19 @@ void boardRemoveClears(Board* board) {
             tile->effectTime = 0;
          }
 
-         if (tile->status != status_normal && tile->statusTime <= current) {  //Remove special temporary tile statuses
-            tile->status = status_normal;
-            tile->statusTime = 0;
-         }
-
          if (tile->status == status_clear) {
-            if (tile->idGarbage >= 0 && tile->clearTime <= current) {
+            if (tile->idGarbage >= 0 && tile->statusTime <= current) {
 
                tile->type = _tileGenType(board, tile);
                tileSetTexture(board, tile);
                tile->idGarbage = -1;
                tile->status = status_disable;
                tile->statusTime += current + board->game->timings.removeClear[0];
-               tile->clearTime = 0;
                tile->chain = true;
                boardPauseTime(board, pause_garbageclear);
             }
 
-            else if (tile->clearTime + board->game->timings.removeClear[0] <= current) {  //Regular tile clearing
+            else if (tile->statusTime <= current) {  //Regular tile clearing
                tileInit(board, tile, row, col, tile_empty);
 
                //flag blocks above the clear as potentially part of a chain
@@ -743,6 +737,11 @@ void boardRemoveClears(Board* board) {
                   above = boardGetTile(board, r, col);
                }
             }
+         }
+
+         if (tile->status != status_normal && tile->statusTime <= current) {  //Remove special temporary tile statuses
+            tile->status = status_normal;
+            tile->statusTime = 0;
          }
          if (tile->chain == true) { stillChaining = true; }  //Is any tile still part of a chain?
       }

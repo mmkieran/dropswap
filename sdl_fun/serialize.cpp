@@ -343,7 +343,6 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, tile->ypos);
    //   Mesh* mesh;
    writeStream(stream, tile->falling);
-   writeStream(stream, tile->clearTime);
    writeStream(stream, tile->statusTime);
    writeStream(stream, tile->chain);
    //   Garbage* garbage;
@@ -361,7 +360,6 @@ void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    readStream(start, tile->ypos);
    //   Mesh* mesh;
    readStream(start, tile->falling);
-   readStream(start, tile->clearTime);
    readStream(start, tile->statusTime);
    readStream(start, tile->chain);
    //   Garbage* garbage;
