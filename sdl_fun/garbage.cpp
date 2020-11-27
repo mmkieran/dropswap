@@ -315,6 +315,8 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
          tile->clearTime = clearTime + (200 * c + 1000);
          tile->statusTime -= 200 * c;
          tile->type = tile_cleared;
+         tile->effect = visual_countdown;
+         tile->effectTime = clearTime + (200 * c + 1000);
          tile->falling = false;
       }
 

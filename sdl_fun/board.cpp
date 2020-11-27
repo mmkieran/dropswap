@@ -192,12 +192,12 @@ void boardRender(Game* game, Board* board) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty) { continue; }
 
-         if (tile->effect == visual_swapl || tile->effect == visual_swapr) {
-            if (tile->effectTime <= board->game->timer) {
+         if (tile->effect == visual_swapl || tile->effect == visual_swapr || tile->effect == visual_countdown) {
+            if (tile->effectTime < board->game->timer) {
                tile->effect = visual_none;
                tile->effectTime = 0;
             }
-            tileDraw(board, tile, tile->effect, tile->effectTime);
+            else { tileDraw(board, tile, tile->effect, tile->effectTime); }
          }
          else { tileDraw(board, tile); }
       }
@@ -573,9 +573,11 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          garbageCheckClear(board, m);  //Make sure we didn't clear garbage
          //clear block and set timer
          m->type = tile_cleared;
-         tileSetTexture(board, m);
+         //tileSetTexture(board, m);
          m->clearTime = clearTime;
          m->falling = false;
+         m->effect = visual_countdown;
+         m->effectTime = clearTime + board->game->timings.removeClear[0];
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
@@ -735,7 +737,6 @@ void boardRemoveClears(Board* board) {
                tile->statusTime += current + board->game->timings.removeClear[0];
                tile->clearTime = 0;
                tile->chain = true;
-               //todo droptile make sure we assign ID
                boardPauseTime(board, pause_garbageclear);
             }
 
@@ -864,7 +865,7 @@ void boardAssignSlot(Board* board, bool buffer = false) {
       Tile* current = boardGetTile(board, row, col);
       if (current->type != tile_empty) { DebugBreak(); }  //This is a position conflict... bad
       *current = t;
-      tileSetTexture(board, current);
+      //if (current->type != tile_cleared) { tileSetTexture(board, current); }
       board->tileLookup[current->ID] = current;
 
       if (current->type == tile_garbage && current->garbage != nullptr) {  //if the start tile moves, we need to tell the garbage
