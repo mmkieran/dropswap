@@ -59,7 +59,6 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
 
    tileSetTexture(board, tile);
 
-   tile->clearTime = 0;
    tile->statusTime = 0;
    tile->falling = false;
    tile->chain = false;
