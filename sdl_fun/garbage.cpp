@@ -163,21 +163,21 @@ void garbageSetStart(GarbagePile* pile, Tile* tile) {
    }
 }
 
-//static bool _addTouching(Board* board, Tile* tile,std::map <int, Garbage*>& cleared, std::vector <Garbage*>& checkList) {
-//   if (tile && tile->type == tile_garbage) {  //found more garbage
-//      Garbage* belowGarbage = garbageGet(board->pile, tile->idGarbage);
-//      if (belowGarbage) {
-//         if (cleared[belowGarbage->ID]) { return false; }
-//         else {
-//            cleared[belowGarbage->ID] = belowGarbage;
-//            if (belowGarbage->layers < 2 && belowGarbage->metal == false) {
-//               checkList.push_back(belowGarbage);
-//               return true;
-//            }
-//         }
-//      }
-//   }
-//}
+static bool _addTouching(Board* board, Tile* tile, std::map <int, Garbage*>& cleared, std::vector <Garbage*>& checkList) {
+   if (tile && tile->type == tile_garbage && tile->status != status_clear) {  //found more garbage
+      Garbage* touchingG = garbageGet(board->pile, tile->idGarbage);
+      if (touchingG) {
+         if (cleared[touchingG->ID]) { return false; }
+         else {
+            cleared[touchingG->ID] = touchingG;
+            if (touchingG->layers < 2 && touchingG->metal == false) {
+               checkList.push_back(touchingG);
+               return true;
+            }
+         }
+      }
+   }
+}
 
 //Checks all the tiles around a piece of Garbage to see if more garbage should be cleared
 static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage*> &cleared, std::vector <Garbage*> &checkList) {
@@ -193,70 +193,24 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
    for (int row = startRow; row > startRow - garbage->layers; row--) {  //start at bottom left and go up for each layer
       for (int col = startCol; col < garbage->width + startCol; col++) {
 
-		 //todo make this one function instead of 4 chunk, lol
-
          if (row == startRow) {  //check below for more garbage
             Tile* below = boardGetTile(board, row + 1, col);
-            if (below && below->type == tile_garbage) {  //found more garbage
-               Garbage* belowGarbage = garbageGet(board->pile, below->idGarbage);
-               if (belowGarbage) {
-                  if (cleared[belowGarbage->ID]) { continue; }
-                  else {
-                     cleared[belowGarbage->ID] = belowGarbage;
-                     if (belowGarbage->layers < 2 && belowGarbage->metal == false) {
-                        checkList.push_back(belowGarbage);
-                     }
-                  }
-               }
-            }
+            _addTouching(board, below, cleared, checkList);
          }
 
          if (col == startCol) {  //Check left
             Tile* left = boardGetTile(board, row, col - 1);
-            if (left && left->type == tile_garbage) {  //found more garbage
-               Garbage* leftGarbage = garbageGet(board->pile, left->idGarbage);
-               if (leftGarbage) {
-                  if (cleared[leftGarbage->ID]) { continue; }
-                  else {
-                     cleared[leftGarbage->ID] = leftGarbage;
-                     if (leftGarbage->layers < 2 && leftGarbage->metal == false) {
-                        checkList.push_back(leftGarbage);
-                     }
-                  }
-               }
-            }
+            _addTouching(board, left, cleared, checkList);
          }
 
          if (row == endRow && endRow != startRow) {  //check above
             Tile* above = boardGetTile(board, row - 1, col);
-            if (above && above->type == tile_garbage) {  //found more garbage
-               Garbage* aboveGarbage = garbageGet(board->pile, above->idGarbage);
-               if (aboveGarbage) {
-                  if (cleared[aboveGarbage->ID]) { continue; }
-                  else {
-                     cleared[aboveGarbage->ID] = aboveGarbage;
-                     if (aboveGarbage->layers < 2 && aboveGarbage->metal == false) {
-                        checkList.push_back(aboveGarbage);
-                     }
-                  }
-               }
-            }
+            _addTouching(board, above, cleared, checkList);
          }
 
          if (col == endCol && endCol != startCol) {  //check right
             Tile* right = boardGetTile(board, row, col + 1);
-            if (right && right->type == tile_garbage) {  //found more garbage
-               Garbage* rightGarbage = garbageGet(board->pile, right->idGarbage);
-               if (rightGarbage) {
-                  if (cleared[rightGarbage->ID]) { continue; }
-                  else {
-                     cleared[rightGarbage->ID] = rightGarbage;
-                     if (rightGarbage->layers < 2 && rightGarbage->metal == false) {
-                        checkList.push_back(rightGarbage);
-                     }
-                  }
-               }
-            }
+            _addTouching(board, right, cleared, checkList);
          }
       }
    }
@@ -275,7 +229,7 @@ void garbageCheckClear(Board* board, Tile* tile) {
 
    for (int i = 0; i < 8; i += 2) {
       Tile* neighbor = boardGetTile(board, row + indices[i], col + indices[i + 1]);
-      if (neighbor && neighbor->type == tile_garbage && neighbor->idGarbage != -1) {
+      if (neighbor && neighbor->type == tile_garbage && neighbor->status != status_clear) {
          Garbage* garbage = garbageGet(board->pile, neighbor->idGarbage);
          if (cleared[garbage->ID]) { continue; }
          else { 

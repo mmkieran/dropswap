@@ -695,7 +695,7 @@ void boardRemoveClears(Board* board) {
 
          //todo Anxiety doesn't really belong here
          if (tileGetRow(board, tile) <= board->startH + 1 && tile->falling == false) { 
-            if (tile->type == tile_garbage) {
+            if (tile->type == tile_garbage && tile->status != status_clear) {
                Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
                if (garbage->falling == false) {
                   board->game->soundToggles[sound_anxiety] = true;
@@ -786,7 +786,7 @@ void boardMoveUp(Board* board, float height) {
 
          //Bust logic
          if (tile->ypos <= 0.0f && tile->falling == false) { //Tile is above the top of the board and not falling
-            if (tile->type == tile_garbage) {  
+            if (tile->type == tile_garbage && tile->status != status_clear) {  
                Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
                if (garbage->falling == false) { dangerZone = true; } 
             }
@@ -1027,8 +1027,7 @@ bool aiFindHorizMatch(Board* board) {
       std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
 
       for (auto&& tile : tiles) {  //Skip this stuff
-         if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
-            tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+         if (tile->falling == true || tile->status != status_normal || tile->type == tile_empty || tile->type == tile_garbage) {
             continue;
          }
          tileCounts[tile->type].push_back(tile);
@@ -1135,8 +1134,7 @@ void aiChain(Board* board) {
 
                std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
                for (auto&& tile : belowTiles) {  //Skip this stuff
-                  if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
-                     tile->status == status_stop || tile->type == tile_empty || tile->type == tile_garbage) {
+                  if (tile->falling == true || tile->status != status_normal|| tile->type == tile_empty || tile->type == tile_garbage) {
                      continue;
                   }
                   tileCounts[tile->type].push_back(tile);
