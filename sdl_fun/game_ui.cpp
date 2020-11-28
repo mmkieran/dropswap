@@ -178,7 +178,7 @@ void mainUI(Game* game) {
 }
 
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) {
-   centerWindow(game, { 400, 300 });
+   centerWindow(game, { 600, 500 });
    if (!ImGui::Begin("Connection Type", p_open, winFlags)) {
       ImGui::End();
       return;
@@ -258,7 +258,7 @@ void boardUI(Game* game) {
       ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight }, ImGuiCond_Once);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
       ImGui::PushFont(game->fonts[20]);
-      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags) ) {
+      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar) ) {
       //if (!ImGui::Begin("Drop and Swap") ) {
          ImGui::PopFont();
          ImGui::End();
@@ -917,7 +917,7 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
 }
 
 void multiplayerJoin(Game* game, bool* p_open) {
-   centerWindow(game, { 800, 800 });
+   centerWindow(game, { 1000, 800 });
    if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
       ImGui::End();
       return;
@@ -1030,7 +1030,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
 }
 
 void multiplayerHost(Game* game, bool* p_open) {
-   centerWindow(game, { 600, 600 });
+   centerWindow(game, { 1000, 800 });
    if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
       ImGui::End();
       return;
