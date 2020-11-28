@@ -43,6 +43,7 @@ void imguiSetup(Game* game) {
    game->fonts[13] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 13);
    game->fonts[20] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
    game->fonts[30] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
+   game->fonts[36] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 40);
    io.Fonts->Build();
 
    //Use these for Keyboard and controller navigation
@@ -54,6 +55,10 @@ void imguiSetup(Game* game) {
    ImVec4* colors = ImGui::GetStyle().Colors;
    ImGuiStyle& style = ImGui::GetStyle();
    style.Colors[ImGuiCol_Header] = ImVec4(0.26f, 0.98f, 0.44f, 0.31f);
+   colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+   //colors[ImGuiCol_ChildBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+   colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+   //colors[ImGuiCol_TitleBgActive] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
    style.WindowPadding.x = 20;
    style.ItemSpacing.x = 14;
 

@@ -19,9 +19,6 @@ void multiplayerHost(Game* game, bool* p_open);
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
 
-static void _serverLoopUI(Game* game, int people[], bool& connectStats);
-
-
 //Globals used by TCP transfer threads
 ServerStatus serverStatus = server_none;     //What stage of the game info transfer is the server in
 ClientStatus clientStatus = client_none;     //What stage of the game info transfer is the client in
@@ -39,6 +36,8 @@ Sean Hunter
 ...
 )";
 
+ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+
 //Struct to contain information about the popup
 struct popupInfo {
    bool isOpen = false;  //Is it currently open
@@ -46,7 +45,8 @@ struct popupInfo {
    int other = 0;  //Random other info
 };
 
-std::map <PopupType, popupInfo> popups;  //Map to hold popups by type
+//Map to hold popups by type
+std::map <PopupType, popupInfo> popups; 
 
 //External API to trigger popup
 void popupEnable(PopupType popup, int other) {
@@ -92,11 +92,34 @@ static void helpfulText(const char* input) {
    ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), input);
 }
 
+//Show helper text that is horizontally centered
+static void helpfulCenterText(const char* input) {
+   float width = ImGui::GetWindowContentRegionWidth();
+   ImVec2 size = ImGui::CalcTextSize(input);
+   ImGui::SetCursorPosX((width - size.x) / 2);
+   helpfulText(input);
+}
+
+//Sets the next window to be centered
+static void centerWindow(Game* game, ImVec2 size) {
+   ImGui::SetNextWindowSize(size, ImGuiCond_Once);
+   ImVec2 pos = { (game->windowWidth - size.x) / 2, (game->windowHeight - size.y) / 2 };
+   ImGui::SetNextWindowPos(pos, ImGuiCond_Once);
+}
+
+static void botRightButton(const char* input) {
+   ImVec2 pad = ImGui::GetStyle().WindowPadding;
+   ImVec2 win = ImGui::GetWindowSize();
+   ImVec2 tSize = ImGui::CalcTextSize(input);
+   ImGui::SetCursorPos({ win.x - (tSize.x + pad.x) * 2, win.y - (tSize.y + pad.y) * 2 });
+   ImGui::Separator();
+}
+
 //Main menu UI
 void mainUI(Game* game) {
 
    ImGui::PushFont(game->fonts[20]);
-   if (!ImGui::Begin("Menu")) {
+   if (!ImGui::Begin("Menu", (bool*)0, winFlags)) {
       ImGui::PopFont();
       ImGui::End();
       return;
@@ -106,10 +129,13 @@ void mainUI(Game* game) {
    float width = ImGui::GetWindowContentRegionWidth();
 
    if (game->playing == true) {
+      helpfulCenterText("Hit Pause to Resume the Game");
+      ImGui::NewLine();
       if (ImGui::Button("End Game", ImVec2{ width, 0 })) {
          //ImGui::OpenPopup("Game Over");
          gameEndMatch(game);
       }
+      ImGui::NewLine();
    }
 
    if (game->playing == false) {
@@ -152,7 +178,8 @@ void mainUI(Game* game) {
 }
 
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) {
-   if (!ImGui::Begin("Connection Type", p_open)) {
+   centerWindow(game, { 400, 300 });
+   if (!ImGui::Begin("Connection Type", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -170,6 +197,10 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) 
       *multiSetup = true;
       *p_open = false;
       *isHost = false;
+   }
+   ImGui::NewLine();
+   if (ImGui::Button("Back", ImVec2{ width, 0 })) {
+      *p_open = false;
    }
    ImGui::End();
 }
@@ -224,11 +255,11 @@ static void _gameResults(Game* game) {
 //Draw the window and child regions for the board texture to be rendered in
 void boardUI(Game* game) {
    if (game->playing == true) {
-      ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight });
-      ImGui::SetNextWindowPos({ 0, 0 });
+      ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight }, ImGuiCond_Once);
+      ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
       ImGui::PushFont(game->fonts[20]);
-      //if (!ImGui::Begin("Drop and Swap", (bool*)0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove) ) {
-      if (!ImGui::Begin("Drop and Swap") ) {
+      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags) ) {
+      //if (!ImGui::Begin("Drop and Swap") ) {
          ImGui::PopFont();
          ImGui::End();
          return;
@@ -346,7 +377,7 @@ void boardUI(Game* game) {
          popupEnable(Popup_GameOver);
       }
       if (popupOpen(Popup_GameOver) == true) { 
-         ImGui::SetNextWindowSize({ 600, 500 });
+         ImGui::SetNextWindowSize({ 600, 500 }, ImGuiCond_Once);
          ImGui::OpenPopup("Game Over"); 
          popups[Popup_GameOver].isOpen = true;
       }
@@ -387,7 +418,7 @@ void boardUI(Game* game) {
       }
 
       if (popupOpen(Popup_Quit) == true) {
-         //ImGui::SetNextWindowSize({ 200, 200 });
+         //ImGui::SetNextWindowSize({ 200, 200 }, ImGuiCond_Once);
          ImGui::OpenPopup("Quit Game");
          popups[Popup_Quit].isOpen = true;
       }
@@ -471,7 +502,8 @@ static void _explainControls(Game* game, int controls) {
 }
 
 void gameSettingsUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Game Settings", p_open) ) {
+   centerWindow(game, { 800, 800 });
+   if (!ImGui::Begin("Game Settings", p_open, winFlags) ) {
       ImGui::End();
       return;
    }
@@ -549,7 +581,6 @@ void gameSettingsUI(Game* game, bool* p_open) {
          ImGui::Checkbox("Sync test", &game->net->syncTest);
       }
    }
-
    ImGui::End();
 }
 
@@ -886,7 +917,8 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
 }
 
 void multiplayerJoin(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Connection Setup", p_open)) {
+   centerWindow(game, { 800, 800 });
+   if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -998,7 +1030,8 @@ void multiplayerJoin(Game* game, bool* p_open) {
 }
 
 void multiplayerHost(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Connection Setup", p_open)) {
+   centerWindow(game, { 600, 600 });
+   if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
       ImGui::End();
       return;
    }
