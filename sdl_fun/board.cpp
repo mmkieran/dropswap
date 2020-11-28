@@ -68,7 +68,7 @@ Board* boardCreate(Game* game, int team, int tWidth, int tHeight) {
 
          board->pile = garbagePileCreate();
 		   boardStartRandom(board);
-         board->mesh = meshCreate();  //Everything is draw with this
+         board->mesh = meshCreate();  //Everything is drawn with this
 
          return board;
       }

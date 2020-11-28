@@ -179,6 +179,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //Load game resources
    game->resources = initResources();
+   game->mesh = meshCreate();  //Everything is drawn with this
 
    //Make a vertex array object... stores the links between attributes and vbos
    game->sdl->VAO = vaoCreate();
@@ -501,6 +502,7 @@ void gameDestroy(Game* game) {
    tcpCleanup();
    upnpCleanup();
 
+   game->mesh = meshDestroy(game->mesh);
    destroyResources(game->resources);
 
    for (int i = 0; i < game->fbos.size(); i++) {

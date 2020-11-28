@@ -23,6 +23,7 @@ typedef struct Resources Resources;
 typedef struct NetPlay NetPlay;
 typedef unsigned char Byte;
 typedef struct FBO FBO;
+typedef struct Mesh Mesh;
 typedef struct ImFont ImFont;
 
 enum SoundEffect {
@@ -115,6 +116,7 @@ struct Game {
    float windowHeight;                             //SDL Window height
    int vsync = -1;                                 //Instead of frame delay use vsync to match monitor refresh rate (-1 is no)
    std::vector <FBO*> fbos;                        //FBOs are used to draw the board to a texture
+   Mesh* mesh = nullptr;                           //Used to draw textures in render             
    NetPlay* net;                                   //Used for multiplayer    
    std::map <int, ImFont*> fonts;                  //ImGui fonts stored by their size in the map
    std::vector <Board*> boards;                    //Boards for all players
