@@ -594,7 +594,7 @@ bool tcpHostListen(u_short port) {
 }
 
 //Accepts connections on the listening socket and adds the info to the list of sockets
-void tcpHostAccept() {
+void tcpHostAccept(int people) {
    static unsigned int lastResult = 0;
    int len = sizeof(sockets[connections].address);
    SOCKET conn = accept(sockets[-1].sock, (sockaddr*)&sockets[connections].address, &len);
@@ -614,8 +614,9 @@ void tcpHostAccept() {
       if (upnp == true) { tcpPorts[port] = true; }
    }
    connections++;
-   char successMsg[30];  //todo netmsg
-   sprintf(successMsg, "Connections Accepted: %d", connections);
+   char successMsg[30];
+   sprintf(successMsg, "Connections accepted: %d / %d", connections, people);
+   if (connections > 1) { game->net->messages.pop_back(); }
    game->net->messages.push_back(successMsg);
    lastResult = 0;
 }
@@ -721,7 +722,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
          if (connections == people) {
             status = server_receive;
          }
-         else if (connections < people) { tcpHostAccept(); }
+         else if (connections < people) { tcpHostAccept(people); }
          break;
       case server_receive:
          for (int i = 0; i < connections; i++) {
@@ -730,7 +731,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
                else {
                   sockets[i].status = sock_received;
                   strcpy(sockets[i].name, &sockets[i].recBuff[32 + sizeof(int)]);  //The leftover is the name
-                  game->net->messages.push_back("Received Player Info");
+                  //game->net->messages.push_back("Received Player Info");
                }
             }
          }

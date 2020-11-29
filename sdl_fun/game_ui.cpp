@@ -326,14 +326,15 @@ void boardUI(Game* game) {
          ImGui::Image((void*)(intptr_t)garbage->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo incoming garbage icon
          ImGui::SameLine();
          ImGui::Text("%d X %d", pieces, tiles);
-         if (game->settings.mode == multi_solo) {
-            for (int i = 0; i < game->boards.size(); i++) {
-               if (game->boards[i]->target == board->index) {
-                  ImGui::SameLine();
-                  ImGui::Image((void*)(intptr_t)dtriangle->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo garbage target icon
-               }
-            }
-         }
+         //todo This is for adding an icon for being targetted, but since it happens after the fact, it's not super handy
+         //if (game->settings.mode == multi_solo) {
+         //   for (int i = 0; i < game->boards.size(); i++) {
+         //      if (game->boards[i]->target == board->index) {
+         //         ImGui::SameLine();
+         //         ImGui::Image((void*)(intptr_t)dtriangle->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo garbage target icon
+         //      }
+         //   }
+         //}
          ImGui::PopFont();
          //ImGui::PopStyleColor();
 
@@ -936,7 +937,7 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
 
 void multiplayerJoin(Game* game, bool* p_open) {
    centerWindow(game, { 1000, 800 });
-   if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
+   if (!ImGui::Begin("Join a Game", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -1049,7 +1050,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
 
 void multiplayerHost(Game* game, bool* p_open) {
    centerWindow(game, { 1000, 800 });
-   if (!ImGui::Begin("Connection Setup", p_open, winFlags)) {
+   if (!ImGui::Begin("Host a Game", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -1119,8 +1120,8 @@ void multiplayerHost(Game* game, bool* p_open) {
          ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
          ImGui::SameLine();
          ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
-         ImGui::SameLine();
-         ImGui::Text(inet_ntoa(sock.address.sin_addr));
+         //ImGui::SameLine();
+         //ImGui::Text(inet_ntoa(sock.address.sin_addr));
          ImGui::PopID();
       }
       ImGui::PopID();
