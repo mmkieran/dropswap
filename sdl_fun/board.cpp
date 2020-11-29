@@ -169,9 +169,7 @@ void boardUpdate(Board* board) {
                //todo add animation here... sword coming down?
                Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
                ally->cursors.push_back(cursor);
-               //cursorDestroy(board->cursors[i]);
             }
-            //board->cursors.clear();
          }
       }
    }
