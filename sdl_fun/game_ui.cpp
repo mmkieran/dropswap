@@ -107,6 +107,7 @@ static void centerWindow(Game* game, ImVec2 size) {
    ImGui::SetNextWindowPos(pos, ImGuiCond_Once);
 }
 
+//todo this isn't used and doesn't quite work... remove?
 static void botRightButton(const char* input) {
    ImVec2 pad = ImGui::GetStyle().WindowPadding;
    ImVec2 win = ImGui::GetWindowSize();
@@ -117,7 +118,7 @@ static void botRightButton(const char* input) {
 
 //Main menu UI
 void mainUI(Game* game) {
-
+   centerWindow(game, { 400, 300 });
    ImGui::PushFont(game->fonts[20]);
    if (!ImGui::Begin("Menu", (bool*)0, winFlags)) {
       ImGui::PopFont();
@@ -289,7 +290,7 @@ void boardUI(Game* game) {
             }
          }
          if (game->settings.mode == multi_solo) { 
-            if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
+            if (i == game->user.number - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
