@@ -210,8 +210,10 @@ void boardRender(Game* game, Board* board) {
          else { tileDraw(board, tile); }
       }
    }
-   for (auto&& cursor : board->cursors) {
-      cursorDraw(board, cursor);
+   if (board->bust == false) {
+      for (auto&& cursor : board->cursors) {
+         cursorDraw(board, cursor);
+      }
    }
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);

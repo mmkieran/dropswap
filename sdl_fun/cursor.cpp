@@ -61,9 +61,9 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 void cursorDraw(Board* board, Cursor* cursor) {
    //Draw the cursor tag in the correct position
    double xOffset, yOffset;
-   if (cursor->index + 1 % 2 == 0) {
-      xOffset = cursor->x + cursor->w + board->tileWidth / 6;
-      yOffset = cursor->y + cursor->h + board->tileHeight / 6;
+   if ((cursor->index + 1) % 2 != 0) {
+      xOffset = cursor->x + cursor->w - board->tileWidth / 3;
+      yOffset = cursor->y - board->tileHeight / 6;
    }
    else {
       xOffset = cursor->x - board->tileWidth / 6;
