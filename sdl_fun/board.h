@@ -38,6 +38,7 @@ struct BoardStats {
 //The top left of the board is (0, 0) for rendering and for array indices
 //@@Start Serialize
 struct Board {
+   int index = 0;                                        //The index of this board in game->boards
    int startH = 12;                                      //The visual beginning of the top of the board (doesn't include garbage buffer above)
    int endH;                                             //The visual end of the board (not including the buffer row)
    int wBuffer;                                          //Create some extra board to store falling garbage and upcoming rows

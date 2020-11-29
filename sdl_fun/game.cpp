@@ -351,6 +351,7 @@ void gameStartMatch(Game* game) {
       if (board) {
          board->pauseLength = GAME_COUNTIN;
          board->paused = true;
+         board->index = i;
          boardFillTiles(board);
          game->teams[team].push_back(board);  //todo do we need this?
 

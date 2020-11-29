@@ -157,6 +157,27 @@ void boardUpdate(Board* board) {
             tileSetTexture(board, tile);
          }
       }
+      //Logic to transfer my cursor to my allies board
+      if (board->game->settings.mode == multi_solo) {
+         Board* ally = nullptr;
+         for (auto&& index : board->allies) {  
+            //board->game->boards[index]->allies.erase(board->game->boards[index]->allies.begin() + board->index);  //erase my number from the allies list on my team
+            if (board->game->boards[index]->bust == false) { ally = board->game->boards[index]; }  //Find a living ally so I can transfer my cursor
+         }
+         if (ally) {
+            for (int i = 0; i < board->cursors.size(); i++) {
+               //todo add animation here... sword coming down?
+               board->cursors[i]->y = -board->tileHeight;
+               board->cursors[i]->x = -board->tileWidth;
+               board->cursors[i]->w = ally->cursors[0]->w;  //In case the board size is different?
+               board->cursors[i]->h = ally->cursors[0]->h;
+               board->cursors[i]->mode = 0;
+               board->cursors[i]->dropList[0] = board->cursors[i]->dropList[1] = -1;
+               ally->cursors.push_back(board->cursors[i]);
+            }
+            board->cursors.clear();
+         }
+      }
    }
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
