@@ -167,15 +167,11 @@ void boardUpdate(Board* board) {
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
                //todo add animation here... sword coming down?
-               board->cursors[i]->y = -board->tileHeight;
-               board->cursors[i]->x = -board->tileWidth;
-               board->cursors[i]->w = ally->cursors[0]->w;  //In case the board size is different?
-               board->cursors[i]->h = ally->cursors[0]->h;
-               board->cursors[i]->mode = 0;
-               board->cursors[i]->dropList[0] = board->cursors[i]->dropList[1] = -1;
-               ally->cursors.push_back(board->cursors[i]);
+               Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
+               ally->cursors.push_back(cursor);
+               //cursorDestroy(board->cursors[i]);
             }
-            board->cursors.clear();
+            //board->cursors.clear();
          }
       }
    }
