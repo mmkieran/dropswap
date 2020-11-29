@@ -342,7 +342,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", game->players, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
       
       game->net->localPlayer = -1;  //old and rip out?
-      game->p.number = -1;  //todo check this later
+      game->user.number = -1;  //todo check this later
       game->net->connections[myNumber].handle = -1;  //old rip out later
       game->net->connections[myNumber].type = GGPO_PLAYERTYPE_SPECTATOR;
       for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
@@ -395,7 +395,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
       if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
          game->net->localPlayer = handle;  //old and rip out?
-         game->p.number = handle;  //todo check this later
+         game->user.number = handle;  //todo check this later
          ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
       }
    }
@@ -429,7 +429,7 @@ void gameRunFrame() {
       if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          processInputs(game); 
          if (game->ai == true) { gameAI(game); }
-         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->p.input, sizeof(UserInput));
+         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->user.input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
@@ -706,7 +706,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
       case server_started:
          if (tcpHostListen(port) == true) { 
             status = server_listening; 
-            myInfo = sockRandomID(game->p.name);
+            myInfo = sockRandomID(game->user.name);
             memcpy(&game->net->hostSetup[0].id, myInfo.data(), sizeof(Byte) * 32);
          }
          else {
@@ -890,7 +890,7 @@ std::vector <Byte> sockRandomID(const char* name) {
    int newSize = oldSize + sizeof(int); 
    stream.resize(newSize);
    auto writeLocation = stream.data() + oldSize;
-   memcpy(writeLocation, &game->p.level, sizeof(int));
+   memcpy(writeLocation, &game->user.level, sizeof(int));
 
    //Write the name to the end of the stream
    int len = strlen(name);

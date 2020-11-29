@@ -297,7 +297,7 @@ void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
    if (game->ai == true) { gameAI(game); }  
-   gameCheckPause(game, game->p.input);
+   gameCheckPause(game, game->user.input);
    gameUpdate(game);
 }
 
@@ -315,7 +315,10 @@ void gameStartMatch(Game* game) {
    int boardCount = 0;
    int myBoard = 0;
    if (game->settings.mode == single_player) {
-      game->p.number = 1;  //Maybe move this to a 1 player UI window later
+      strcpy(game->pList[1].name, game->user.name);
+      game->user.number = 1;  //Maybe move this to a 1 player UI window later
+      game->pList[1].team = 0;
+      game->pList[1].level = game->user.level;
       boardCount = 1;
       myBoard = 0;
    }
@@ -325,12 +328,11 @@ void gameStartMatch(Game* game) {
    }
    else if (game->settings.mode == multi_shared) {  //Shared board
       boardCount = 2; 
-      game->p.team = myBoard = game->pList[game->p.number].team;
+      myBoard = game->pList[game->user.number].team;
    }  
    else if (game->settings.mode == multi_solo) {  //Solo boards
       boardCount = game->players;
-      myBoard = game->p.number - 1;
-      game->p.team = game->pList[game->p.number].team;
+      myBoard = game->user.number - 1;
    }
 
    for (int i = 0; i < boardCount; i++) {
@@ -356,10 +358,10 @@ void gameStartMatch(Game* game) {
          float cursorX = (float)(game->settings.bWidth / 2 - 1) * board->tileWidth;
          float cursorY = (float)(game->settings.bHeight / 2 + 1) * board->tileHeight;
          if (game->settings.mode == single_player) {
-            Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->p.number);
+            Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->user.number);
             board->cursors.push_back(cursor);
-            game->p.board = board;
-            game->p.cursor = cursor;
+            game->pList[1].board = board;
+            game->pList[1].cursor = cursor;
          }
          else if (game->settings.mode == multi_shared) {
             float level = 0;
@@ -411,10 +413,7 @@ void gameEndMatch(Game* game) {
       }
    }
    game->pList.clear();
-   game->p.board = nullptr;
-   game->p.cursor = nullptr;
-   game->p.number = 1;
-   game->p.team = 0;
+   game->user.number = 1;
    game->boards.clear();
    game->teams.clear();
    game->playing = false;

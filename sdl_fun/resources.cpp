@@ -117,7 +117,7 @@ void resourcesGetName(Game* game) {
       fgets(buffer, 2048, in); //First data line
       while (!feof(in))
       {
-         if (i == target) { strncpy(game->p.name, strtok(buffer, ",\n"), 30); } // Get a random name
+         if (i == target) { strncpy(game->user.name, strtok(buffer, ",\n"), 30); } // Get a random name
          i++;
          fgets(buffer, 2048, in);
       }

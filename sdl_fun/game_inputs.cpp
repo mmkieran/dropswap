@@ -99,7 +99,7 @@ void processInputs(Game* game) {
    inputProcessKeyboard(game); 
    inputProcessController(game); 
    resetButtonStates(game);
-   game->p.input = userInput;
+   game->user.input = userInput;
 }
 
 void inputProcessKeyboard(Game* game) {

@@ -176,9 +176,7 @@ void boardUpdate(Board* board) {
    }
    else if (board->game->settings.mode == single_player) {
       for (int i = 0; i < board->cursors.size(); i++) {
-         cursorUpdate(board, board->cursors[0], board->game->p.input);
-         //static bool debugBoard = true;
-         //boardDebug(board, &debugBoard);
+         cursorUpdate(board, board->cursors[0], board->game->user.input);
       }
    }
    boardRemoveVisuals(board);
@@ -1154,8 +1152,8 @@ void aiGetSteps(Board* board) {
    //Calculate steps to move cursor into place
    Cursor* cursor;
    if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
-   else if (board->game->settings.mode == single_player) { cursor = board->game->p.cursor; }
-   else { cursor = board->game->pList[board->game->p.number].cursor; }
+   else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; } 
+   else { cursor = board->game->pList[board->game->user.number].cursor; }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
 
@@ -1213,19 +1211,19 @@ void aiDoStep(Board* board) {
       aiLogic.matchSteps.pop_front();
       switch (step) {
       case ai_left:
-         board->game->p.input.left.p = true;
+         board->game->user.input.left.p = true;
          break;
       case ai_right:
-         board->game->p.input.right.p = true;
+         board->game->user.input.right.p = true;
          break;
       case ai_up:
-         board->game->p.input.up.p = true;
+         board->game->user.input.up.p = true;
          break;
       case ai_down:
-         board->game->p.input.down.p = true;
+         board->game->user.input.down.p = true;
          break;
       case ai_swap:
-         board->game->p.input.swap.p = true;
+         board->game->user.input.swap.p = true;
          break;
       }
    }
@@ -1233,10 +1231,10 @@ void aiDoStep(Board* board) {
 
 void boardAI(Game* game) {
    Board* board;
-   if (game->settings.mode == single_player) { board = game->p.board; }
+   if (game->settings.mode == single_player) { board = game->pList[game->user.number].board; }  
    else if (game->net->syncTest == true) { board = game->boards[0]; }
-   else if (game->settings.mode == multi_shared) { board = game->pList[game->p.number].board; }
-   else if (game->settings.mode == multi_solo) { board = game->pList[game->p.number].board; }
+   else if (game->settings.mode == multi_shared) { board = game->pList[game->user.number].board; }
+   else if (game->settings.mode == multi_solo) { board = game->pList[game->user.number].board; }
    if (game->timer > game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
          aiClearGarbage(board); 

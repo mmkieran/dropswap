@@ -71,6 +71,7 @@ struct User {
    int level = 5;                //Selected board level
    int number = 1;               //1 based player number (GGPO handle in multi)
    int wins = 0;
+   UserInput input;              //Holds the local inputs for the user
 };
 
 //Information about the player
@@ -82,7 +83,6 @@ struct Player {
    Board* board = nullptr;
    Cursor* cursor = nullptr;
    bool dead = false;
-   UserInput input;              //Holds the local inputs for the user
 };
 
 enum GameMode {
@@ -101,10 +101,6 @@ struct GameSettings {
    GameMode mode = single_player;
 
    std::vector <unsigned char> save;
-};
-
-struct GameState {
-
 };
 
 //@@Start Serialize
@@ -129,7 +125,7 @@ struct Game {
    bool debug = false;                             //Toggle to show debug tools and options
    uint64_t seed = 0;                              //Holds the random number seed given to each board
 
-   Player p;
+   User user;
    GameTimings timings;
    GameSettings settings;
 

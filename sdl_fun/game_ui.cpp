@@ -279,7 +279,7 @@ void boardUI(Game* game) {
          Texture* silver = resourcesGetTexture(game->resources, Texture_silver);
          Texture* diamond = resourcesGetTexture(game->resources, Texture_diamond);
          if (game->settings.mode == multi_shared) {  
-            if (i == game->p.team) {  //todo add player icon
+            if (i == game->pList[game->user.number].team) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
@@ -289,11 +289,11 @@ void boardUI(Game* game) {
             }
          }
          if (game->settings.mode == multi_solo) { 
-            if (i == game->p.number - 1) {  //todo add player icon
+            if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
-            else if (game->p.team == board->team) {
+            else if (game->pList[game->user.number].team == board->team) {
                ImGui::Image((void*)(intptr_t)heart->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
@@ -301,11 +301,11 @@ void boardUI(Game* game) {
             ImGui::Text(game->pList[i + 1].name); 
          }
          if (game->settings.mode == single_player) { 
-            if (i == game->p.number - 1) {  //todo add player icon
+            if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
             }
-            ImGui::Text(game->p.name); 
+            ImGui::Text(game->user.name); 
             if (board->paused == true) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)silver->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -944,10 +944,10 @@ void multiplayerJoin(Game* game, bool* p_open) {
       ImGui::Checkbox("Use UPNP", &game->net->upnp);
       ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
       ImGui::NewLine();
-      ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
+      ImGui::InputText("Your Name", game->user.name, IM_ARRAYSIZE(game->user.name));
       int minBoardLevel = 1;
       int maxBoardLevel = 10;
-      ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+      ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->user.level, &minBoardLevel, &maxBoardLevel);
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
       ImGui::NewLine();
    }
@@ -960,7 +960,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
 
    float width = ImGui::GetWindowContentRegionWidth();
    if (clientStatus != client_none) {
-      ImGui::Text(game->p.name);
+      ImGui::Text(game->user.name);
       ImGui::NewLine();
       ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
@@ -1016,7 +1016,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
       if (ImGui::Button("Connect to Host")) {
          clientStatus = client_started;
          //This is the client loop thread
-         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->p.name, std::ref(clientRunning));
+         clientThread = std::thread(tcpClientLoop, 7000, ipAddress, std::ref(clientStatus), game->user.name, std::ref(clientRunning));
          clientThread.detach();
       }
       ImGui::SameLine();
@@ -1057,17 +1057,17 @@ void multiplayerHost(Game* game, bool* p_open) {
       ImGui::Checkbox("Use UPNP", &game->net->upnp);
       ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
       ImGui::NewLine();
-      ImGui::InputText("Your Name", game->p.name, IM_ARRAYSIZE(game->p.name));
+      ImGui::InputText("Your Name", game->user.name, IM_ARRAYSIZE(game->user.name));
       int minBoardLevel = 1;
       int maxBoardLevel = 10;
-      ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->p.level, &minBoardLevel, &maxBoardLevel);
+      ImGui::SliderScalar("Board Speed", ImGuiDataType_U32, &game->user.level, &minBoardLevel, &maxBoardLevel);
       ImGui::Checkbox("I AM A ROBOT", &game->ai);
       ImGui::NewLine();
    }
 
    if (serverStatus != server_none) {
       float width = ImGui::GetWindowContentRegionWidth();
-      ImGui::Text(game->p.name);
+      ImGui::Text(game->user.name);
       ImGui::NewLine();
       ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
@@ -1094,7 +1094,7 @@ void multiplayerHost(Game* game, bool* p_open) {
       for (int i = 0; i < people[0]; i++) {
          ImGui::PushID(i);  //So widgets don't name collide
          SocketInfo sock = getSocket(i - 1);
-         if (i == 0) { ImGui::Text(game->p.name); }
+         if (i == 0) { ImGui::Text(game->user.name); }
          else { ImGui::Text(sock.name); }
          ImGui::SameLine();
          ImGui::SetCursorPosX(224);
@@ -1144,10 +1144,10 @@ void multiplayerHost(Game* game, bool* p_open) {
                strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
                game->net->hostSetup[i].localPort = 7001 + i;
                if (i == 0) {  //This connection is the host
-                  strcpy(game->net->hostSetup[i].name, game->p.name);
+                  strcpy(game->net->hostSetup[i].name, game->user.name);
                   game->net->hostSetup[i].host = true;
                   game->net->hostSetup[i].me = true;
-                  game->net->hostSetup[i].level = game->p.level;
+                  game->net->hostSetup[i].level = game->user.level;
                   strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
                }
                else {  //All the other players
