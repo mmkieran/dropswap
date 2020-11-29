@@ -497,6 +497,10 @@ static void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches)
          current++;
          continue;
       }
+      if (t1->status == status_clear || t2->status == status_clear || t3->status == status_clear) {  // if it's stopped, don't match it
+         current++;
+         continue;
+      }
 
       if (t1->type != tile_empty && t1->status != status_clear && t1->type != tile_garbage) {
          if (t1->type == t2->type && t1->type == t3->type) {
