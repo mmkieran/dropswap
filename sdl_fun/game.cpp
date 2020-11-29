@@ -41,9 +41,10 @@ void imguiSetup(Game* game) {
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO(); (void)io;
    game->fonts[13] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 13);
+   game->fonts[18] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 18);
    game->fonts[20] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
    game->fonts[30] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
-   game->fonts[36] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 40);
+   game->fonts[36] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 36);
    io.Fonts->Build();
 
    //Use these for Keyboard and controller navigation

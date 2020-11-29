@@ -260,7 +260,6 @@ void boardUI(Game* game) {
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
       ImGui::PushFont(game->fonts[20]);
       if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar) ) {
-      //if (!ImGui::Begin("Drop and Swap") ) {
          ImGui::PopFont();
          ImGui::End();
          return;
@@ -279,7 +278,8 @@ void boardUI(Game* game) {
          Texture* star = resourcesGetTexture(game->resources, Texture_star);
          Texture* heart = resourcesGetTexture(game->resources, Texture_heart);
          Texture* silver = resourcesGetTexture(game->resources, Texture_silver);
-         Texture* diamond = resourcesGetTexture(game->resources, Texture_diamond);
+         Texture* dtriangle = resourcesGetTexture(game->resources, Texture_dtriangle);
+         Texture* garbage = resourcesGetTexture(game->resources, Texture_g);
          if (game->settings.mode == multi_shared) {  
             ImGui::Text("Team %d", board->team + 1);
             for (auto&& cursor : board->cursors) {
@@ -308,16 +308,33 @@ void boardUI(Game* game) {
                ImGui::SameLine();
             }
             ImGui::Text(game->user.name); 
-            if (board->paused == true) {  //todo add player icon
-               ImGui::Image((void*)(intptr_t)silver->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-               ImGui::SameLine();
-            }
-            else {
-               ImGui::Image((void*)(intptr_t)diamond->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-               ImGui::SameLine();
-            }
-            ImGui::Text("%0.1f s", board->pauseLength / 1000.0);
          }
+         //Board status row
+         ImGui::PushFont(game->fonts[18]);
+         ImGui::Image((void*)(intptr_t)silver->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo pause icon
+         ImGui::SameLine();
+         ImGui::Text("%0.1f s", board->pauseLength / 1000.0);
+         ImGui::SameLine();
+         int pieces = 0;
+         int tiles = 0;
+         for (auto&& garbage : board->pile->garbage) {
+            if (garbage.second->deployed == false) {
+               pieces++;
+               tiles += garbage.second->width * garbage.second->layers;
+            }
+         }
+         ImGui::Image((void*)(intptr_t)garbage->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo incoming garbage icon
+         ImGui::SameLine();
+         ImGui::Text("%d X %d", pieces, tiles);
+         if (game->settings.mode == multi_solo) {
+            for (int i = 0; i < game->boards.size(); i++) {
+               if (game->boards[i]->target == board->index) {
+                  ImGui::SameLine();
+                  ImGui::Image((void*)(intptr_t)dtriangle->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo garbage target icon
+               }
+            }
+         }
+         ImGui::PopFont();
          //ImGui::PopStyleColor();
 
          //Draw the board
