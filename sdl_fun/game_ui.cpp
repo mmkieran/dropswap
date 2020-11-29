@@ -267,6 +267,7 @@ void boardUI(Game* game) {
       }
 
       ImGuiStyle style = ImGui::GetStyle();
+      ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", game->timer / 1000);
       for (int i = 0; i < game->boards.size(); i++) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";
@@ -280,13 +281,13 @@ void boardUI(Game* game) {
          Texture* silver = resourcesGetTexture(game->resources, Texture_silver);
          Texture* diamond = resourcesGetTexture(game->resources, Texture_diamond);
          if (game->settings.mode == multi_shared) {  
-            if (i == game->pList[game->user.number].team) {  //todo add player icon
-               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-               ImGui::SameLine();
-            }
-            ImGui::Text("Team %d", board->team + 1); 
-            for (int i = 0; i < game->players; i++) {
-               if (board->team == game->pList[i + 1].team) { ImGui::Text(game->pList[i + 1].name); }
+            ImGui::Text("Team %d", board->team + 1);
+            for (auto&& cursor : board->cursors) {
+               if (cursor->index == game->user.number) {
+                  ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                  ImGui::SameLine();
+               }
+               ImGui::Text(game->pList[cursor->index].name);
             }
          }
          if (game->settings.mode == multi_solo) { 
@@ -356,8 +357,7 @@ void boardUI(Game* game) {
          char boardStats[30] = "Board Info";
          sprintf(boardStats, "Player Info %d", i + 1);
          ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
-         ImGui::Text("Game Time: %d s", game->timer / 1000);
-         ImGui::Text("Frame: %d", game->frameCount);
+         //ImGui::Text("Frame: %d", game->frameCount);
 
          ImGui::EndChild();
          ImGui::PopStyleVar();

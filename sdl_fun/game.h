@@ -42,10 +42,10 @@ void sdlSleep(int delay);
 
 //Used to get the current time with SDL
 struct KeepTime {
-   uint64_t gameStart = 0;
-   uint64_t timeFreq = 0;
-   double fps = 0;
-   const int delay = 1000000 / 60;  //microseconds
+   uint64_t gameStart = 0;                //The number of sdl ticks since the program started (0)
+   uint64_t timeFreq = 0;                 //used to convert the sdl ticks to seconds
+   double fps = 0;                        //Desired Frames Per Second in the game
+   const int delay = 1000000 / 60;        //microseconds
 
    uint64_t getTime() {
       uint64_t current = sdlGetCounter();
@@ -86,21 +86,21 @@ struct Player {
 };
 
 enum GameMode {
-   multi_solo = 0,                   //Individual boards
-   multi_shared,                     //Shared board
-   single_player,
-   game_mode_COUNT,
+   multi_solo = 0,                  //Individual boards
+   multi_shared,                    //Shared board
+   single_player,                   //todo one of many?
+   game_mode_COUNT,                 //In case we need to iterate through them
 };
 
 struct GameSettings {
-   int bHeight = 12;
-   int bWidth = 6;
-   int tWidth = 32;
-   int tHeight = 32;
+   int bHeight = 12;                      //The height of the (visible) board
+   int bWidth = 6;                        //The width of the (visible) board
+   int tWidth = 32;                       //The width in pixels of tile
+   int tHeight = 32;                      //The height in pixels of a tile
 
-   GameMode mode = single_player;
+   GameMode mode = single_player;         //The currently game mode setting, multi_solo is separate boards for each player
 
-   std::vector <unsigned char> save;
+   std::vector <unsigned char> save;      //todo this is broken and doesn't belong here... This holds the state saves
 };
 
 //@@Start Serialize
@@ -125,20 +125,20 @@ struct Game {
    bool debug = false;                             //Toggle to show debug tools and options
    uint64_t seed = 0;                              //Holds the random number seed given to each board
 
-   User user;
-   GameTimings timings;
-   GameSettings settings;
+   User user;                                      //Information about the user such as name and player number
+   GameTimings timings;                            //Configurable times for things like clears
+   GameSettings settings;                          //Configuration for the board such as tile number and size
 
-   bool ai = false;                            
+   bool ai = false;                                //Is the AI playing for this user
    int aiDelay[3] = { 4, 1, 10 };                  //The AI takes an action every x frames
 
-   std::map <int, Player> pList;
-   std::map < int, std::vector <Board*> > teams;
-   int players = 1;
-   bool playing = false;
-   int busted = -1;
-   bool paused = false;
-   int timer = 0;
+   std::map <int, Player> pList;                   //The list of players (1 based index)
+   std::map < int, std::vector <Board*> > teams;   //todo this isn't used currently
+   int players = 1;                                //How many players are in the game (not spectators)
+   bool playing = false;                           //Is a game in progress
+   int busted = -1;                                //Is the game over, but not closed
+   bool paused = false;                            //Is the game paused
+   int timer = 0;                                  //Game clock in milliseconds
 };
 //@@End Serialize
 
