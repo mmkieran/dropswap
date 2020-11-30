@@ -55,6 +55,7 @@ struct Board {
    Mesh* mesh = nullptr;                                 //Used to draw all the textures on the board
      
    std::map <VisualEffect, VisualEvent> visualEvents;    //What visual effects are taking place on the board (global)
+   std::vector <Animation*> sprites;                     //A list of animations currently occuring on the board
    BoardStats boardStats;                                //Tracks the statistics for each board
 
    float level = 5;                                      //Player handicap (modified board speed and fall rate...increases with clears and caps at 10)

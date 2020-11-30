@@ -37,14 +37,23 @@ struct FBO;
 
 struct Animation {
    Texture* texture = nullptr;
-   int frames;  //How many key frames are in the animation
-   int delay;  //delay in milliseconds between frames
-   int stride; //pixel X distance to next sprite on texture sheet
-   int rowStart; //pixel Y distance to top left of sprite sheet
-   int width;
-   int height;
-   bool animated = false;  //is it animated currently
+   int frames;                                  //How many key frames are in the animation
+   int delay;                                   //delay in milliseconds between frames
+   int stride;                                  //pixel X distance to next sprite on texture sheet
+   int rowStart;                                //pixel Y distance to top left of sprite sheet
+   int width;                                   //The width of the texture on the texture sheet
+   int height;                                  //The height of the texture on the texture sheet
+   bool animated = false;                       //is it animated currently
    uint64_t timer = 0;
+};
+
+struct Sprite {
+   double x = 0;                                //X position of the sprite
+   double y = 0;                                //Y position of the sprite
+   int rotate = 0;                              //Clockwise angle from up (0) that the sprite is rotated
+   double speed = 0;                            //Pixel speed the sprite is moving
+   Graphic render;                              //Struct to hold texture or animation pointer
+   int end = 0;                                 //Time in milliseconds when it will die
 };
 
 struct Graphic {
@@ -54,13 +63,13 @@ struct Graphic {
 
 enum VisualEffect {
    visual_none = 0,
-   visual_dark,
-   visual_shake,
-   visual_swapl,  //left swap
-   visual_swapr,  //right swap
-   visual_countdown,  
-   visual_clear,
-   visual_landing,
+   visual_dark,                                 //Darken disabled tiles (buffer row and spawning tiles from cleared garbage)
+   visual_shake,                                //Shake all tiles on the screen
+   visual_swapl,                                //Used to interpolate position of tile when swapping left
+   visual_swapr,                                //Used to interpolate position of tile when swapping right
+   visual_countdown,                            //Used to fade out cleared tiles
+   visual_clear,                                //Used to generate the chain message on the board
+   visual_landing,                              //Currently not used
    visual_COUNT
 };
 
