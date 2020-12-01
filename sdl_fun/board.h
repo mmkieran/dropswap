@@ -3,6 +3,7 @@
 #include "game.h"
 #include "garbage.h"
 #include "render.h"
+#include "resources.h"
 #include "tile.h"
 #include "cursor.h"
 #include "netplay.h"
@@ -55,7 +56,7 @@ struct Board {
    Mesh* mesh = nullptr;                                 //Used to draw all the textures on the board
      
    std::map <VisualEffect, VisualEvent> visualEvents;    //What visual effects are taking place on the board (global)
-   std::vector <Animation*> sprites;                     //A list of animations currently occuring on the board
+   std::vector <Sprite> sprites;                        //A list of animations currently occuring on the board
    BoardStats boardStats;                                //Tracks the statistics for each board
 
    float level = 5;                                      //Player handicap (modified board speed and fall rate...increases with clears and caps at 10)
@@ -99,7 +100,6 @@ void boardEnableVisual(Board* board, VisualEffect effect, int duration, double x
 void boardRemoveVisuals(Board* board);
 
 void boardMoveUp(Board* board, float height);
-void _swapTiles(Tile* tile1, Tile* tile2);
 void boardSwap(Board* board, Cursor* cursor);
 
 void boardFall(Board* board, float velocity);
@@ -120,3 +120,4 @@ void boardLoadRandom(Board* board);
 void boardAI(Game* game);
 
 void boardDebug(Board* board, bool* p_open);
+void boardDebugSprites(Board* board, bool* p_open);

@@ -259,7 +259,7 @@ void boardUI(Game* game) {
       ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight }, ImGuiCond_Once);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
       ImGui::PushFont(game->fonts[20]);
-      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar) ) {
+      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus) ) {
          ImGui::PopFont();
          ImGui::End();
          return;
@@ -604,6 +604,22 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
+   if (ImGui::Button("Add sprite")) {
+      //need sprite create
+      Sprite sprite;
+      sprite.x = 100;
+      sprite.y = 100;
+      sprite.render.texture = resourcesGetTexture(game->resources, Texture_garbage);
+      game->boards[0]->sprites.push_back(sprite);
+   }
+   if (ImGui::Button("Clear sprites")) {
+      game->boards[0]->sprites.clear();
+   }
+   if (ImGui::Button("Move sprites")) {
+      for (auto&& sprite : game->boards[0]->sprites) {
+         sprite.x = sprite.y += -10;
+      }
+   }
 
    if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
    if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }

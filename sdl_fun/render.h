@@ -47,6 +47,11 @@ struct Animation {
    uint64_t timer = 0;
 };
 
+struct Graphic {
+   Texture* texture = nullptr;
+   Animation* animation = nullptr;
+};
+
 struct Sprite {
    double x = 0;                                //X position of the sprite
    double y = 0;                                //Y position of the sprite
@@ -54,11 +59,6 @@ struct Sprite {
    double speed = 0;                            //Pixel speed the sprite is moving
    Graphic render;                              //Struct to hold texture or animation pointer
    int end = 0;                                 //Time in milliseconds when it will die
-};
-
-struct Graphic {
-   Texture* texture = nullptr;
-   Animation* animation = nullptr;
 };
 
 enum VisualEffect {

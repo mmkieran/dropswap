@@ -7,7 +7,10 @@
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
+void _swapTiles(Tile* tile1, Tile* tile2);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
+void boardDrawSprites(Board* board);
+void boardDebugSprites(Board* board, bool* p_open);
 
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
@@ -215,6 +218,7 @@ void boardRender(Game* game, Board* board) {
          cursorDraw(board, cursor);
       }
    }
+   boardDrawSprites(board);
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
 }
@@ -1272,12 +1276,42 @@ void boardAI(Game* game) {
    }
 }
 
-void _tileInfo(Tile* tile) {
+void boardDrawSprites(Board* board) {
+   for (auto&& sprite : board->sprites) {
+      if (sprite.render.animation != nullptr) {
+         animationDraw(board, sprite.render.animation, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height);
+      }
+      else if (sprite.render.texture != nullptr) {
+         meshDraw(board, sprite.render.texture, sprite.x, sprite.y, sprite.render.texture->w, sprite.render.texture->h);
+      }
+   }
+}
 
+void boardDebugSprites(Board* board, bool* p_open) {
+   if (!ImGui::Begin("Sprite test", p_open)) {
+      ImGui::End();
+      return;
+   }
+   if (ImGui::Button("Add sprite")) {
+      //need sprite create
+      Sprite sprite;
+      sprite.x = 100;
+      sprite.y = 100;
+      sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_garbage);
+      board->sprites.push_back(sprite);
+   }
+
+   ImGui::End();
+}
+
+
+void _tileInfo(Tile* tile) {
+   //This is for boardDebug so you can click the button and get a table of tile info
+   //I haven't done this though...
 }
 
 void boardDebug(Board* board, bool* p_open) {
-   if (!ImGui::Begin("Game Settings", p_open)) {
+   if (!ImGui::Begin("Debug tiles", p_open)) {
       ImGui::End();
       return;
    }
