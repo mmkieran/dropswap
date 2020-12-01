@@ -259,7 +259,7 @@ void boardUI(Game* game) {
       ImGui::SetNextWindowSize({ game->windowWidth, game->windowHeight }, ImGuiCond_Once);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Once);
       ImGui::PushFont(game->fonts[20]);
-      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar) ) {
+      if (!ImGui::Begin("Drop and Swap", (bool*)0, winFlags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus) ) {
          ImGui::PopFont();
          ImGui::End();
          return;
