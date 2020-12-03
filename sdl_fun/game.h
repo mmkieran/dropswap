@@ -25,6 +25,7 @@ typedef unsigned char Byte;
 typedef struct FBO FBO;
 typedef struct Mesh Mesh;
 typedef struct ImFont ImFont;
+typedef struct Sprite Sprite;
 
 enum SoundEffect {
    sound_swap = 0,
@@ -116,6 +117,7 @@ struct Game {
    NetPlay* net;                                   //Used for multiplayer    
    std::map <int, ImFont*> fonts;                  //ImGui fonts stored by their size in the map
    std::vector <Board*> boards;                    //Boards for all players
+   std::vector <Sprite> drawList;                  //todo not used...for rendering textures outside the boards or when not playing a game
    Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
    std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
    int sounds = 0;                                 //Game sound toggle (0 is disabled)

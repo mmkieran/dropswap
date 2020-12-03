@@ -1285,7 +1285,7 @@ void boardDrawSprites(Board* board) {
          animationDraw(board, sprite.render.animation, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height);
       }
       else if (sprite.render.texture != nullptr) {
-         meshDraw(board, sprite.render.texture, sprite.x, sprite.y, sprite.render.texture->w, sprite.render.texture->h);
+         meshDraw(board, sprite.render.texture, sprite.x, sprite.y, sprite.render.texture->w * 2, sprite.render.texture->h * 2, sprite.rotate);
       }
    }
 }

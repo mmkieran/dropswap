@@ -11,10 +11,10 @@ double mathTrunc(double val, int places) {
 Vec2 getXYDistance(Vec2 pos, int angle, double dist) {
    Vec2 out = { 0, 0 };
    float PI = 3.1415926535f;
-   float radianAngle = PI / 180.0f * angle;
+   float radianAngle = PI / 180.0f * (angle - 90);  //-90 Because 90 is up in the right angle triangle
 
-   out.x = sin(radianAngle) * dist;
-   out.y = cos(radianAngle) * dist;
+   out.x = cos(radianAngle) * dist;
+   out.y = sin(radianAngle) * dist;
 
    return out;
 }

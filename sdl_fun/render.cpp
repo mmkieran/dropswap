@@ -364,13 +364,13 @@ Mesh* meshCreate() {
 };
 
 //Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
+void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, float rotate, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
    Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
    
-   Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
+   Mat4x4 mat = transformMatrix(dest, rotate, scale);
    shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
    
    meshEffectDarken(board, effect, effectTime);
@@ -455,7 +455,7 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH) {
+void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH, float rotate) {
 
    int currentFrame = (board->game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
@@ -465,7 +465,7 @@ void animationDraw(Board* board, Animation* animation, float destX, float destY,
       textureTransform(board->game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(board, animation->texture, destX, destY, destW, destH);
+   meshDraw(board, animation->texture, destX, destY, destW, destH, rotate);
 
    textureTransform(board->game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }

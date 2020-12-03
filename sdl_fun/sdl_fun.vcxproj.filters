@@ -148,6 +148,21 @@
     <Image Include="assets\silver.png">
       <Filter>assets</Filter>
     </Image>
+    <Image Include="assets\cursor_tag1.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\cursor_tag2.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\cursor_tag3.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\cursor_tag4.png">
+      <Filter>assets</Filter>
+    </Image>
+    <Image Include="assets\sword.png">
+      <Filter>assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="parse structs.py">

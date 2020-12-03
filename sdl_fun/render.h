@@ -28,6 +28,7 @@ enum TextureEnum {
    Texture_cursor2,
    Texture_cursor3,
    Texture_cursor4,
+   Texture_sword,
    Texture_COUNT  //this one is used to get the count of all the textures
 };
 
@@ -126,10 +127,10 @@ void textureDestroy(Texture* texture);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
+void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, float rotate = 0, VisualEffect effect = visual_none, int effectTime = 0);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
-void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH);
+void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH, float rotate = 0.0f);
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);

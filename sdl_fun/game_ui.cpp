@@ -604,15 +604,20 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
+   static float angle = 0;
+   ImGui::InputFloat("Rotation/Dir", &angle);
    if (ImGui::Button("Add sprite")) {
       //need sprite create
       Sprite sprite;
       sprite.x = 100;
       sprite.y = 100;
-      sprite.speed = 0.1;
-      sprite.end = game->timer + 3000;
+      sprite.speed = 0.5;
+      sprite.end = game->timer + 6000;
       sprite.dir = game->timer % 360;
-      sprite.render.texture = resourcesGetTexture(game->resources, Texture_garbage);
+      sprite.rotate = sprite.dir + 180;
+      //sprite.dir = angle;
+      //sprite.rotate = angle + 180;
+      sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
       game->boards[0]->sprites.push_back(sprite);
    }
    if (ImGui::Button("Clear sprites")) {

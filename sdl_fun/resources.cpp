@@ -32,6 +32,7 @@ static const char* _texturePaths[] =
    "assets/cursor_tag2.png",
    "assets/cursor_tag3.png",
    "assets/cursor_tag4.png",
+   "assets/sword.png",
 };
 
 static const char* _soundPaths[] =

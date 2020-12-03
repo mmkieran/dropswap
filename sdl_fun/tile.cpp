@@ -69,7 +69,7 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
       if (tile->status == status_disable || tileGetRow(board, tile) == board->wBuffer - 1) {
          effect = visual_dark;
       }
-      meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, effect, effectTime);
+      meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, 0.0f, effect, effectTime);
       if (tile->status == status_clear) {
          meshDraw(board, resourcesGetTexture(board->game->resources, Texture_cleared), tile->xpos, tile->ypos, board->tileWidth, board->tileHeight);
       }
