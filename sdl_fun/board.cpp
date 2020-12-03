@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <assert.h>
 
 #include "board.h"
 #include <list>
@@ -9,6 +10,7 @@
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
 void _swapTiles(Tile* tile1, Tile* tile2);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
+void updateSprites(Board* board);
 void boardDrawSprites(Board* board);
 void boardDebugSprites(Board* board, bool* p_open);
 
@@ -197,6 +199,7 @@ void boardUpdate(Board* board) {
          cursorUpdate(board, board->cursors[0], board->game->user.input);
       }
    }
+   updateSprites(board);
    boardRemoveVisuals(board);
 }
 
@@ -1287,6 +1290,20 @@ void boardDrawSprites(Board* board) {
    }
 }
 
+void updateSprites(Board* board) {
+   std::vector <Sprite> activeSprites;
+   for (auto&& sprite : board->sprites) {
+      if (sprite.end < board->game->timer) { continue; }
+      else {
+         Vec2 move = getXYDistance({ (float)sprite.x, (float)sprite.y }, sprite.dir, sprite.speed);
+         sprite.x += move.x;
+         sprite.y += move.y;
+         activeSprites.push_back(sprite);
+      }
+   }
+   board->sprites = activeSprites;
+}
+
 void boardDebugSprites(Board* board, bool* p_open) {
    if (!ImGui::Begin("Sprite test", p_open)) {
       ImGui::End();
@@ -1297,6 +1314,9 @@ void boardDebugSprites(Board* board, bool* p_open) {
       Sprite sprite;
       sprite.x = 100;
       sprite.y = 100;
+      sprite.speed = 0.1;
+      sprite.end = board->game->timer + 3000;
+      sprite.dir = board->game->timer % 360;
       sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_garbage);
       board->sprites.push_back(sprite);
    }

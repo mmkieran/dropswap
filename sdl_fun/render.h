@@ -56,7 +56,8 @@ struct Sprite {
    double x = 0;                                //X position of the sprite
    double y = 0;                                //Y position of the sprite
    int rotate = 0;                              //Clockwise angle from up (0) that the sprite is rotated
-   double speed = 0;                            //Pixel speed the sprite is moving
+   int dir = 0;                                 //Clockwise angle from up (0) that the sprite is heading 
+   float speed = 0;                            //Pixel speed the sprite is moving
    Graphic render;                              //Struct to hold texture or animation pointer
    int end = 0;                                 //Time in milliseconds when it will die
 };

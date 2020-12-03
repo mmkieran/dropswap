@@ -609,6 +609,9 @@ void onePlayerOptions(Game* game) {
       Sprite sprite;
       sprite.x = 100;
       sprite.y = 100;
+      sprite.speed = 0.1;
+      sprite.end = game->timer + 3000;
+      sprite.dir = game->timer % 360;
       sprite.render.texture = resourcesGetTexture(game->resources, Texture_garbage);
       game->boards[0]->sprites.push_back(sprite);
    }
