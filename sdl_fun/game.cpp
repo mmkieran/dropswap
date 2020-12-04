@@ -284,13 +284,24 @@ void gameCheckPause(Game* game, UserInput input) {
 //Update the board state for all players
 void gameUpdate(Game* game) {
    if (game->playing == false || game->paused == true) { return; }
-   for (int i = 0; i < game->boards.size(); i++) {
-      if (game->boards[i] == nullptr) { continue; }
-      if (game->boards[i]->bust == true) { continue; }
-      boardUpdate(game->boards[i]);
+   if (game->waiting == true) {
+      game->waitLength -= 1000 / 60;  
+
+      if (game->waitLength <= 0) {
+         game->waiting = false;
+         game->waitLength = 0;
+      }
    }
-   game->frameCount++;
-   game->timer = game->frameCount * (1000.0f / 60.0f);
+   if (game->waiting == false) {
+      for (int i = 0; i < game->boards.size(); i++) {
+         if (game->boards[i] == nullptr) { continue; }
+         if (game->boards[i]->bust == true) { continue; }
+         boardUpdate(game->boards[i]);
+      }
+   }
+   //todo add game visual logic somewhere in here?
+   game->frameCount++;  //Increment frame count
+   game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
 }
 
 //Process inputs and update game - single player

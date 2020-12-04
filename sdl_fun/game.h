@@ -139,7 +139,9 @@ struct Game {
    int players = 1;                                //How many players are in the game (not spectators)
    bool playing = false;                           //Is a game in progress
    int busted = -1;                                //Is the game over, but not closed
-   bool paused = false;                            //Is the game paused
+   int paused = 0;                                 //Is the game paused
+   bool waiting = false;                           //Is the game waiting for something
+   int waitLength = 0;                             //How long is the game waiting
    int timer = 0;                                  //Game clock in milliseconds
 };
 //@@End Serialize
