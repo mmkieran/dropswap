@@ -1304,27 +1304,6 @@ void updateSprites(Board* board) {
    board->sprites = activeSprites;
 }
 
-void boardDebugSprites(Board* board, bool* p_open) {
-   if (!ImGui::Begin("Sprite test", p_open)) {
-      ImGui::End();
-      return;
-   }
-   if (ImGui::Button("Add sprite")) {
-      //need sprite create
-      Sprite sprite;
-      sprite.x = 100;
-      sprite.y = 100;
-      sprite.speed = 0.1;
-      sprite.end = board->game->timer + 3000;
-      sprite.dir = board->game->timer % 360;
-      sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_garbage);
-      board->sprites.push_back(sprite);
-   }
-
-   ImGui::End();
-}
-
-
 void _tileInfo(Tile* tile) {
    //This is for boardDebug so you can click the button and get a table of tile info
    //I haven't done this though...

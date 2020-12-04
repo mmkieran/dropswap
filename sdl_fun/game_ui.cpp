@@ -604,13 +604,23 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
+   //todo remove this debug crap
    if (ImGui::Button("Game Wait")) {
       game->waiting = true;
       game->waitLength = 3000;
+
+      Sprite sprite;
+      sprite.x = 0;
+      sprite.y = 0;
+      sprite.speed = 1.0;
+      sprite.end = game->timer + 3000;
+      sprite.dir = 180;
+      sprite.rotate = sprite.dir + 180;
+      sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
+      game->drawList.push_back(sprite);
    }
 
    if (ImGui::Button("Add sprite")) {
-      //need sprite create
       Sprite sprite;
       sprite.x = 100;
       sprite.y = 100;

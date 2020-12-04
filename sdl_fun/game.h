@@ -163,6 +163,8 @@ void gameRender(Game* game);
 void gameDestroy(Game* game);
 
 void imguiRender(Game* game);
+void gameUpdateSprites(Game* game);
+void gameDrawSprites(Game* game);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);

@@ -300,6 +300,7 @@ void gameUpdate(Game* game) {
       }
    }
    //todo add game visual logic somewhere in here?
+   gameUpdateSprites(game);
    game->frameCount++;  //Increment frame count
    game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
 }
@@ -503,6 +504,31 @@ void imguiRender(Game* game) {
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
+}
+
+void gameUpdateSprites(Game* game) {
+   std::vector <Sprite> activeSprites;
+   for (auto&& sprite : game->drawList) {
+      if (sprite.end < game->timer) { continue; }
+      else {
+         Vec2 move = getXYDistance({ (float)sprite.x, (float)sprite.y }, sprite.dir, sprite.speed);
+         sprite.x += move.x;
+         sprite.y += move.y;
+         activeSprites.push_back(sprite);
+      }
+   }
+   game->drawList = activeSprites;
+}
+
+void gameDrawSprites(Game* game) {
+   for (auto&& sprite : game->drawList) {
+      if (sprite.render.animation != nullptr) {
+         animationDraw(game, sprite.render.animation, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height);
+      }
+      else if (sprite.render.texture != nullptr) {
+         meshDraw(game, sprite.render.texture, sprite.x, sprite.y, sprite.render.texture->w * 2, sprite.render.texture->h * 2, sprite.rotate);
+      }
+   }
 }
 
 //Jokulhaups
