@@ -364,27 +364,27 @@ Mesh* meshCreate() {
 };
 
 //Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, float rotate, VisualEffect effect, int effectTime) {
+void meshDraw(Game* game, Texture* texture, float destX, float destY, int destW, int destH, float rotate, VisualEffect effect, int effectTime) {
 
    //Vec2 scale = { destW / width, destH / height};
-   Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
+   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
    Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
    
    Mat4x4 mat = transformMatrix(dest, rotate, scale);
-   shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
    
-   meshEffectDarken(board, effect, effectTime);
-   meshEffectDisplace(board, effect, effectTime);
+   meshEffectDarken(game, effect, effectTime);
+   meshEffectDisplace(game, effect, effectTime);
 
-   glBindBuffer(GL_ARRAY_BUFFER, board->mesh->vbo);
+   glBindBuffer(GL_ARRAY_BUFFER, game->mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, texture->handle);
    
-   glDrawArrays(GL_TRIANGLES, 0, board->mesh->ptCount);
+   glDrawArrays(GL_TRIANGLES, 0, game->mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
 //This makes the mesh darker (for disabled tiles) and also for fading out tiles
-static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime) {
+static void meshEffectDarken(Game* game, VisualEffect effect, int effectTime) {
    float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
 
    if (effect == visual_dark) {
@@ -394,15 +394,15 @@ static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime) 
    }
    else if (effect == visual_countdown) {
       for (int i = 0; i < 4; i++) {
-         float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 4) / board->game->timings.removeClear[0];
+         float val = 1.0 * (effectTime - game->timer + game->timings.removeClear[0] / 4) / game->timings.removeClear[0];
          vec4[i] = val < 0 ? 0 : val;
       }
    }
-   shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
+   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
 }
 
 //These are special effects like smooth tile swapping and shake on landing
-static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
+static void meshEffectDisplace(Game* game, VisualEffect effect, int effectTime) {
 
    Mat4x4 mat = identityMatrix();
    Vec2 move = { 0.0f , 0.0f };
@@ -410,11 +410,11 @@ static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime
 
    //Swapping interpolated movement
    if (effect == visual_swapr) {
-      move.x -= board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
+      move.x -= game->settings.tWidth * (effectTime - game->timer) / SWAPTIME;
       moved = true;
    }
    else if (effect == visual_swapl) {
-      move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
+      move.x += game->settings->tWidth * (effectTime - game->timer) / SWAPTIME;
       moved = true;
    }
 
@@ -455,19 +455,19 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH, float rotate) {
+void animationDraw(Game* game, Animation* animation, float destX, float destY, int destW, int destH, float rotate) {
 
-   int currentFrame = (board->game->timer / animation->delay) % animation->frames;
+   int currentFrame = (game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 
    if (animation->animated == true) {
-      textureTransform(board->game, animation->texture, src.x, src.y, size.x, size.y);
+      textureTransform(game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(board, animation->texture, destX, destY, destW, destH, rotate);
+   meshDraw(game, animation->texture, destX, destY, destW, destH, rotate);
 
-   textureTransform(board->game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
+   textureTransform(game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }
 
 //Delete an Animation and free the memory
