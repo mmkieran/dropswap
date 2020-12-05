@@ -416,14 +416,13 @@ void boardUI(Game* game) {
          else {
             if (game->net->timeSync == 0) { game->net->timeSync = 10; }
             int currentTime = game->kt.getTime();
-            for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-               PlayerConnectionInfo connect = game->net->connections[i];
-               if (connect.state == Disconnecting) {
-                  float delta = (currentTime - connect.disconnect_start) / 1000;
-                  ImGui::Text("Player %d", connect.handle);
-                  ImGui::ProgressBar(delta / connect.disconnect_timeout, ImVec2(0.0f, 0.0f));
+            for (int i = 0; i < game->net->participants; i++) {
+               if (game->net->hostSetup[i].state == Disconnecting) {
+                  float delta = (currentTime - game->net->hostSetup[i].dcStart) / 1000;
+                  ImGui::Text("Player %d", game->net->hostSetup[i].pNum);
+                  ImGui::ProgressBar(delta / game->net->hostSetup[i].dcTime, ImVec2(0.0f, 0.0f));
                }
-               if (connect.state == Disconnected) {
+               if (game->net->hostSetup[i].state == Disconnected) {
                   ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
                }
             }
@@ -861,11 +860,11 @@ void ggpoSessionUI(Game* game, bool* p_open) {
          ggpoEndSession(game);
          connectStats = netStats = false;
       }
-      if (game->net && game->net->connections[game->net->myConnNum].state != Running) {
+      if (game->net && getMyConnState() != Running) {
          ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
          ImGui::NewLine();
       }
-      else if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+      else if (game->net && getMyConnState() == Running) {
          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
          ImGui::NewLine();
       }
@@ -873,7 +872,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
 
    int ready = true;
    for (int i = 0; i < participants; i++) {
-      if (game->net->connections[i].state == Running) {
+      if (game->net->hostSetup[i].state == Running) {
          continue;
       }
       else { ready = false; }
@@ -898,7 +897,7 @@ void connectStatusUI(Game* game, bool* p_open) {
       return;
    }
 
-   if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+   if (game->net && getMyConnState() == Running) {
       game->net->messages.clear();
       *p_open = false;
    }
@@ -920,7 +919,7 @@ void ggpoNetStatsUI(Game* game, bool* p_open) {
 
    GGPONetworkStats stats;
    for (int i = 0; i < game->players; i++) {
-      if (game->net->localPlayer == i + 1) { continue; }
+      if (game->user.number == i + 1) { continue; }
       ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
 
       ImGui::Text("Player %d Connection Info", i + 1);
@@ -972,8 +971,8 @@ void multiplayerJoin(Game* game, bool* p_open) {
    }
 
    //If GGPO is running then start the game!
-   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
-      if (game->net->connections[game->net->hostConnNum].state == Running)
+   if (game->playing == false && getMyConnState() == Running) {
+      if (game->net->hostSetup[game->net->hostConnNum].state == Running)
          gameStartMatch(game);
    }
 
@@ -984,7 +983,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
       ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
       ImGui::Separator();
-      if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+      if (game->net && getMyConnState() == Running) {
          game->net->messages.clear();
          *p_open = false;
       }
@@ -1091,7 +1090,7 @@ void multiplayerHost(Game* game, bool* p_open) {
       ImGui::BeginChild("Connection Status", { width, 200 }, true);
       ImGui::Text("Messages");
       ImGui::Separator();
-      if (game->net && game->net->connections[game->net->myConnNum].state == Running) {
+      if (game->net && getMyConnState() == Running) {
          game->net->messages.clear();
          *p_open = false;
       }
@@ -1240,10 +1239,10 @@ void multiplayerHost(Game* game, bool* p_open) {
    }
 
    //If GGPO is running then start the game!
-   if (game->playing == false && game->net->connections[game->net->myConnNum].state == Running) {
+   if (game->playing == false && getMyConnState() == Running) {
       bool ready = true;
       for (int i = 0; i < game->net->participants; i++) {
-         if (game->net->connections[i].state != Running) { ready = false; }
+         if (game->net->hostSetup[i].state != Running) { ready = false; }
       }
       if (ready == true) { gameStartMatch(game); }
    }
