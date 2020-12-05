@@ -13,7 +13,6 @@
 
 enum ConnState {
    Disconnected = 0,
-   PeerFound,
    Connecting,
    Synchronizing,
    Synched,

@@ -842,6 +842,7 @@ void ggpoSessionUI(Game* game, bool* p_open) {
             }
          }
          game->players = pNum - 1;
+         game->net->participants = participants;
          ggpoCreateSession(game, game->net->hostSetup, participants);
       }
    }

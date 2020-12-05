@@ -166,7 +166,7 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
 
    switch (info->code) {
    case GGPO_EVENTCODE_CONNECTED_TO_PEER:
-       SetConnectState(info->u.connected.player, PeerFound);
+       SetConnectState(info->u.connected.player, Connecting);
        break;
    case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
        SetConnectState(info->u.disconnected.player, Synchronizing);
