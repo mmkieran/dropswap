@@ -390,7 +390,6 @@ void boardUI(Game* game) {
          onePlayerOptions(game);
          ImGui::EndChild();
       }
-      ImGui::PopFont();
 
       //Game over popup
       if (game->busted != -1 && popupStatus(Popup_GameOver) == false) {
@@ -419,12 +418,13 @@ void boardUI(Game* game) {
             int currentTime = game->kt.getTime();
             for (int i = 0; i < game->net->participants; i++) {
                if (game->net->hostSetup[i].state == Disconnecting) {
-                  float delta = (currentTime - game->net->hostSetup[i].dcStart) / 1000;
-                  ImGui::Text("%s is Disconnecting: ", game->net->hostSetup[i].name); ImGui::SameLine();
-                  ImGui::ProgressBar(delta / game->net->hostSetup[i].dcTime, ImVec2(0.0f, 0.0f));
+                  int leftover = (game->net->disconnectTime[0] - (currentTime - game->net->hostSetup[i].dcStart) / 1000) / 1000;
+                  ImGui::Text(game->net->hostSetup[i].name); ImGui::SameLine();
+                  ImGui::Text("Time to Reconnect: %d", leftover);
                }
                if (game->net->hostSetup[i].state == Disconnected) {
-                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s is Gone Baby Gone", game->net->hostSetup[i].name);
+                  ImGui::Text(game->net->hostSetup[i].name); ImGui::SameLine();
+                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
                }
             }
             if (ImGui::Button("Bail Out")) {
@@ -480,6 +480,7 @@ void boardUI(Game* game) {
       //   ImGui::EndPopup();
       //}
 
+      ImGui::PopFont();
       ImGui::End();
    }
 }
