@@ -1251,6 +1251,7 @@ void multiplayerHost(Game* game, bool* p_open) {
 }
 
 void ggpoReadyModal(Game* game) {
+   static float framesBeforeReady = 300.0;
    if (popupOpen(Popup_Connecting) == true) {
       ImGui::SetNextWindowSize({ 800, 800 }, ImGuiCond_Once);
       ImGui::OpenPopup("Connecting");
@@ -1281,14 +1282,14 @@ void ggpoReadyModal(Game* game) {
          }
       }
       if (ready == true) { readyCount++; }
-      if (readyCount > 600) { 
+      if (readyCount > framesBeforeReady) {
          popupDisable(Popup_Connecting);
          ImGui::CloseCurrentPopup();
          gameStartMatch(game); 
 
       }
       ImGui::Text("Connection Progress: "); ImGui::SameLine();
-      ImGui::ProgressBar(readyCount / 600.0, ImVec2(0.0f, 0.0f));
+      ImGui::ProgressBar(readyCount / framesBeforeReady, ImVec2(0.0f, 0.0f));
       ImGui::NewLine();
       if (ImGui::Button("Disconnect")) {
          ImGui::CloseCurrentPopup();
