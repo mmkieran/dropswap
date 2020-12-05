@@ -89,6 +89,7 @@ ConnState getServerConnState() {
 ConnState getMyConnState() {
    return game->net->hostSetup[game->user.number - 1].state;
 }
+
 void SetConnectState(int handle, ConnState state) {
    game->net->hostSetup[handle - 1].state = state;
 }
@@ -169,11 +170,13 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
        SetConnectState(info->u.connected.player, Connecting);
        break;
    case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-       SetConnectState(info->u.disconnected.player, Synchronizing);
+       SetConnectState(info->u.synchronizing.player, Synchronizing);
        break;
    case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-       SetConnectState(info->u.disconnected.player, Synched);
-       break;
+      if (game->net->hostSetup[info->u.synchronized.player - 1].state != Running) {
+         SetConnectState(info->u.synchronized.player, Synched);
+      }
+      break;
    case GGPO_EVENTCODE_RUNNING:
        SetConnectStateAll(Running);
        break;
@@ -420,6 +423,9 @@ const char* ggpoShowStatus(Game* game, int playerIndex) {
          break;
       case Synchronizing:
          out = "Synchronizing";
+         break;
+      case Synched:
+         out = "Synched";
          break;
       case Running:
          out = "Running";

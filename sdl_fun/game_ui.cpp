@@ -15,6 +15,7 @@ void ggpoSessionUI(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
+void ggpoReadyModal(Game* game);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -419,14 +420,14 @@ void boardUI(Game* game) {
             for (int i = 0; i < game->net->participants; i++) {
                if (game->net->hostSetup[i].state == Disconnecting) {
                   float delta = (currentTime - game->net->hostSetup[i].dcStart) / 1000;
-                  ImGui::Text("Player %d", game->net->hostSetup[i].pNum);
+                  ImGui::Text("%s is Disconnecting: ", game->net->hostSetup[i].name); ImGui::SameLine();
                   ImGui::ProgressBar(delta / game->net->hostSetup[i].dcTime, ImVec2(0.0f, 0.0f));
                }
                if (game->net->hostSetup[i].state == Disconnected) {
-                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Gone baby gone");
+                  ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s is Gone Baby Gone", game->net->hostSetup[i].name);
                }
             }
-            if (ImGui::Button("Bail out")) {
+            if (ImGui::Button("Bail Out")) {
                gameEndMatch(game);
                ImGui::CloseCurrentPopup();
                popupDisable(Popup_Disconnect);
@@ -971,12 +972,6 @@ void multiplayerJoin(Game* game, bool* p_open) {
       ImGui::NewLine();
    }
 
-   //If GGPO is running then start the game!
-   if (game->playing == false && getMyConnState() == Running) {
-      if (game->net->hostSetup[game->net->hostConnNum].state == Running)
-         gameStartMatch(game);
-   }
-
    float width = ImGui::GetWindowContentRegionWidth();
    if (clientStatus != client_none) {
       ImGui::Text(game->user.name);
@@ -1045,6 +1040,13 @@ void multiplayerJoin(Game* game, bool* p_open) {
       tcpReset();
       clientStatus = client_none;
    }
+
+   //If the GGPO session is started launch the connecting modal window
+   if (game->playing == false && game->net->ggpo) {
+      popupEnable(Popup_Connecting);
+   }
+   ggpoReadyModal(game);
+
    ImGui::End();
 }
 
@@ -1239,16 +1241,61 @@ void multiplayerHost(Game* game, bool* p_open) {
       }
    }
 
-   //If GGPO is running then start the game!
-   if (game->playing == false && getMyConnState() == Running) {
-      bool ready = true;
-      for (int i = 0; i < game->net->participants; i++) {
-         if (game->net->hostSetup[i].state != Running) { ready = false; }
-      }
-      if (ready == true) { gameStartMatch(game); }
+   //If the GGPO session is started launch the connecting modal window
+   if (game->playing == false && game->net->ggpo) {
+      popupEnable(Popup_Connecting);
    }
-
+   ggpoReadyModal(game);
    ImGui::End();
+}
+
+void ggpoReadyModal(Game* game) {
+   if (popupOpen(Popup_Connecting) == true) {
+      ImGui::SetNextWindowSize({ 800, 800 }, ImGuiCond_Once);
+      ImGui::OpenPopup("Connecting");
+      popups[Popup_Connecting].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Connecting")) {
+      if (popups[Popup_Connecting].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      static int readyCount = 0;
+      int ready = true;
+
+      ImGui::Text("Ready Frames: %d", readyCount);
+      if (game->net->ggpo != nullptr) {
+         ImGui::Text("GGPO is Running");
+         ImGui::NewLine();
+         float width = ImGui::GetWindowContentRegionWidth();
+         for (int i = 0; i < game->net->participants; i++) {
+            ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
+            ImGui::Text(game->net->hostSetup[i].name);
+            ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+            ImGui::Text("Team: %d", game->net->hostSetup[i].team + 1);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ggpoShowStatus(game, i));
+            if (game->net->hostSetup[i].state != Running) {
+               readyCount = 0;
+               ready = false;
+            }
+            ImGui::EndChild();
+            if (i + 1 != game->net->participants) { ImGui::SameLine(); }
+         }
+      }
+      if (ready == true) { readyCount++; }
+      if (readyCount > 600) { 
+         popupDisable(Popup_Connecting);
+         ImGui::CloseCurrentPopup();
+         gameStartMatch(game); 
+
+      }
+      ImGui::Text("Connection Progress: "); ImGui::SameLine();
+      ImGui::ProgressBar(readyCount / 600.0, ImVec2(0.0f, 0.0f));
+      ImGui::NewLine();
+      if (ImGui::Button("Disconnect")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_Connecting);
+         ggpoEndSession(game);
+      }
+      ImGui::EndPopup();
+   }
 }
 
 void debugConnections(Game* game, bool* p_open) {
