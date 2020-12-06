@@ -28,22 +28,13 @@ std::map <unsigned short, bool> tcpPorts = {       //List of potential TCP ports
    {7000, false}, {7001, false}, {7002, false}, 
    {7003, false}, {7004, false}, {7005, false},
 };
-std::vector <Byte> myInfo;                           //Randomly generated ID for the current user
-
+std::vector <Byte> myInfo;                          //Randomly generated ID for the current user
 FILE* dsLog = nullptr;                             //Handle for the log file
 
 extern Game* game;                                 //Used to access the game pointer from Main.. I dunno how I feel about this
 
-
 static void readGameData();
 int fletcher32_checksum(short* data, size_t len);
-
-//todo netmsg
-void netplayMessage(char* fmt, ...) {
-   char successMsg[30];
-   sprintf(successMsg, "Connections Accepted: %d", connections);
-   game->net->messages.push_back(successMsg);
-}
 
 //Debug log functions
 bool netlogCreate() {
@@ -91,48 +82,28 @@ int fletcher32_checksum(short* data, size_t len) {
    return sum2 << 16 | sum1;
 }
 
-int ggpoCheckSum(Game* game) {
-   std::vector <Byte> stream = gameSave(game);
-   int len = stream.size();
-   if (len == 0) { return 0; }
-   int checksum = fletcher32_checksum((short*)stream.data(), len / 2);
-   return checksum;
+ConnState getServerConnState() {
+   return game->net->hostSetup[game->net->hostConnNum].state;
 }
 
-void SetConnectState(GGPOPlayerHandle handle, PlayerConnectState state) {
-   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-      if (game->net->connections[i].handle == handle) {
-         game->net->connections[i].connect_progress = 0;
-         game->net->connections[i].state = state;
-         break;
-      }
+ConnState getMyConnState() {
+   return game->net->hostSetup[game->user.number - 1].state;
+}
+
+void SetConnectState(int handle, ConnState state) {
+   game->net->hostSetup[handle - 1].state = state;
+}
+
+void SetConnectStateAll(ConnState state) {
+   for (int i = 0; i < game->net->participants; i++) {
+      game->net->hostSetup[i].state = state;
    }
 }
 
-void SetDisconnectTimeout(GGPOPlayerHandle handle, int when, int timeout) {
-   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-      if (game->net->connections[i].handle == handle) {
-         game->net->connections[i].disconnect_start = when;
-         game->net->connections[i].disconnect_timeout = timeout;
-         game->net->connections[i].state = Disconnecting;
-         break;
-      }
-   }
-}
-
-void SetConnectState(PlayerConnectState state) {
-   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-      game->net->connections[i].state = state;
-   }
-}
-
-void UpdateConnectProgress(GGPOPlayerHandle handle, int progress) {
-   for (int i = 0; i < GAME_MAX_PLAYERS; i++) {
-      if (game->net->connections[i].handle == handle) {
-         game->net->connections[i].connect_progress = progress;
-         break;
-      }
-   }
+void SetDisconnectTimeout(int handle, int when, int timeout) {
+   game->net->hostSetup[handle - 1].dcStart = when;
+   game->net->hostSetup[handle - 1].dcTime = timeout;
+   game->net->hostSetup[handle - 1].state = Disconnecting;
 }
 
 //Don't call it a callback!
@@ -196,17 +167,18 @@ bool __cdecl ds_on_event_callback(GGPOEvent* info) {
 
    switch (info->code) {
    case GGPO_EVENTCODE_CONNECTED_TO_PEER:
-       SetConnectState(info->u.connected.player, Synchronizing);
+       SetConnectState(info->u.connected.player, Connecting);
        break;
    case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-       progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
-       UpdateConnectProgress(info->u.synchronizing.player, progress);
+       SetConnectState(info->u.synchronizing.player, Synchronizing);
        break;
    case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-       UpdateConnectProgress(info->u.synchronized.player, 100);
-       break;
+      if (game->net->hostSetup[info->u.synchronized.player - 1].state != Running) {
+         SetConnectState(info->u.synchronized.player, Synched);
+      }
+      break;
    case GGPO_EVENTCODE_RUNNING:
-       SetConnectState(Running);
+       SetConnectStateAll(Running);
        break;
    case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
        SetDisconnectTimeout(info->u.connection_interrupted.player, game->kt.getTime(), info->u.connection_interrupted.disconnect_timeout);
@@ -325,8 +297,6 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       if (connects[i].me == true) { myNumber = i; }  //who am i? who am i?
       if (connects[i].playerType == 1) { spectators++; }  //todo we can separate spectators into another list here if needed
    }
-
-   game->net->myConnNum = myNumber;
    game->net->hostConnNum = hostNumber;
 
    sessionPort = connects[myNumber].localPort;  //Start the session using my port
@@ -340,11 +310,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
    else if (connects[myNumber].playerType == 1) {  //Spectating a GGPO Session
       game->players = participants - spectators;
       result = ggpo_start_spectating(&game->net->ggpo, &cb, "DropAndSwap", game->players, sizeof(UserInput), sessionPort, connects[hostNumber].ipAddress, connects[hostNumber].localPort);
-      
-      game->net->localPlayer = -1;  //old and rip out?
+
       game->user.number = -1;  //todo check this later
-      game->net->connections[myNumber].handle = -1;  //old rip out later
-      game->net->connections[myNumber].type = GGPO_PLAYERTYPE_SPECTATOR;
       for (int i = 0; i < participants; i++) {  //Fill in GGPOPlayer struct
          if (connects[i].playerType == 0) {
             game->pList[connects[i].pNum].number = connects[i].pNum;
@@ -390,11 +357,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          strcpy(game->pList[handle].name, connects[i].name);
       }
 
-      game->net->connections[i].handle = handle;  //old rip out later
-      game->net->connections[i].type = game->net->players[i].type;
-
       if (game->net->players[i].type == GGPO_PLAYERTYPE_LOCAL) {
-         game->net->localPlayer = handle;  //old and rip out?
          game->user.number = handle;  //todo check this later
          ggpo_set_frame_delay(game->net->ggpo, handle, game->net->frameDelay[0]);
       }
@@ -426,10 +389,10 @@ void gameRunFrame() {
       GGPOErrorCode result = GGPO_OK;
       int disconnect_flags;
 
-      if (game->net->localPlayer != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
+      if (game->user.number != GGPO_INVALID_HANDLE) {  //Add local inputs for valid players
          processInputs(game); 
          if (game->ai == true) { gameAI(game); }
-         result = ggpo_add_local_input(game->net->ggpo, game->net->localPlayer, &game->user.input, sizeof(UserInput));
+         result = ggpo_add_local_input(game->net->ggpo, game->user.number, &game->user.input, sizeof(UserInput));
       }
       //If we got the local inputs successfully, merge in remote ones
       if (GGPO_SUCCEEDED(result)) {
@@ -454,12 +417,15 @@ void ggpoClose(GGPOSession* ggpo) {
 const char* ggpoShowStatus(Game* game, int playerIndex) {
    const char* out = "";
    if (game->net) {
-      switch (game->net->connections[playerIndex].state) {
+      switch (game->net->hostSetup[playerIndex].state) {
       case Connecting:
          out = "Connecting";
          break;
       case Synchronizing:
          out = "Synchronizing";
+         break;
+      case Synched:
+         out = "Synched";
          break;
       case Running:
          out = "Running";
@@ -491,8 +457,6 @@ int ggpoDisconnectPlayer(int player) {
 void ggpoEndSession(Game* game) {
    if (game->net) {
       ggpoClose(game->net->ggpo);
-      game->net->localPlayer = -1;
-      game->net->myConnNum = -1;
       game->net->hostConnNum = -1;
       game->net->timeSync = 0;
       game->net->participants = 0;

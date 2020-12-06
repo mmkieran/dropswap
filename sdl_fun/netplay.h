@@ -11,51 +11,42 @@
 
 #define BUFFERLEN 8192
 
-enum PlayerConnectState {
+enum ConnState {
    Disconnected = 0,
    Connecting,
    Synchronizing,
+   Synched,
    Running,
    Disconnecting,
 };
 
-struct PlayerConnectionInfo {
-   GGPOPlayerType       type;
-   GGPOPlayerHandle     handle = -1;
-   PlayerConnectState   state;
-   int                  connect_progress = 0;
-   int                  disconnect_timeout = 0;
-   int                  disconnect_start = 0;
-};
-
 //This is to transfer information from imgui window to the Player struct
 struct SessionInfo {
-   bool host = false;                     //Is this connection the host
-   bool me = false;                       //Is this connection this computer
-   u_short localPort = 7001;              //GGPO (UDP) port
-   int playerType = 0;                    //GGPO Player Type, 0 is player and 1 is spectator
-   char ipAddress[32] = "127.0.0.1";      //GGPO IP address
-   char name[30] = { 0 };                 //Player name
-   unsigned char id[32];                  //Player's random (hopefully unique) id
-   int pNum = 1;                          //GGPO Player Number
-   int team = 0;                          //Team represents what board you control
-   int level = 5;                    //Player handicap (level) for the board
+   bool host = false;                           //Is this connection the host
+   bool me = false;                             //Is this connection this computer
+   u_short localPort = 7001;                    //GGPO (UDP) port
+   int playerType = 0;                          //GGPO Player Type, 0 is player and 1 is spectator
+   char ipAddress[32] = "127.0.0.1";            //GGPO IP address
+   char name[30] = { 0 };                       //Player name
+   unsigned char id[32];                        //Player's random (hopefully unique) id
+   int pNum = 1;                                //GGPO Player Number
+   int team = 0;                                //Team represents what board you control
+   int level = 5;                               //Player handicap (level) for the board
+   ConnState state = Disconnected;              //What is the current GGPO connection status of the player
+   int dcTime = 0;                  
+   int dcStart = 0;
 };
 
 struct NetPlay {
    GGPOSession* ggpo = nullptr;                           //Pointer to ggpo structure
    bool syncTest = false;                                 //For GGPO Sync test
 
-   GGPOPlayer players[GAME_MAX_PLAYERS];                  //Structure used to create a GGPO session
-   GGPOPlayerHandle localPlayer = -1;                     //What is the GGPO player number for this player
-
-   PlayerConnectionInfo connections[GAME_MAX_PLAYERS];    //Information about the connection status
+   GGPOPlayer players[GAME_MAX_PLAYERS] = { 0 };          //Structure used to create a GGPO session
+   UserInput inputs[GAME_MAX_PLAYERS] = { 0 };            //Structure is populated with synchronized inputs every frame
+   SessionInfo hostSetup[GAME_MAX_PLAYERS] = { 0 };       //Used to map connection info from UI to GGPO structs
+   int participants = 0;                                  //Number of players and spectators in the game
    int hostConnNum = -1;                                  //What is the connection number of the host (for connections)
-   int myConnNum = -1;                                    //What is my connection number (for connections)
-   int participants = 0;
-   UserInput inputs[GAME_MAX_PLAYERS];                    //Structure is populated with synchronized inputs every frame
 
-   SessionInfo hostSetup[GAME_MAX_PLAYERS];               //Used to map connection info from UI to GGPO structs
    int frameDelay[3] = { 1, 1, 10 };                      //How long should we delay the local user input in the session
    int disconnectTime[3] = { 10000, 0, 30000 };           //How long do we wait before we disconnect a player (0 is forever)
    std::vector <std::string> messages;                    //For network messages to user through UI
@@ -114,6 +105,9 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 void ggpoClose(GGPOSession* ggpo);
 const char* ggpoShowStatus(Game* game, int playerIndex);
 void ggpoEndSession(Game* game);
+
+ConnState getServerConnState();
+ConnState getMyConnState();
 
 bool winsockStart();
 void winsockCleanup();
