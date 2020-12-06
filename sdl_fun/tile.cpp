@@ -66,12 +66,39 @@ void tileInit(Board* board, Tile* tile, int row, int col, TileType type) {
 
 void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
    if (tile->type != tile_empty) {
+      DrawInfo info;
+
+      //Color transformations
       if (tile->status == status_disable || tileGetRow(board, tile) == board->wBuffer - 1) {
-         effect = visual_dark;
+         for (int i = 0; i < 4; i++) { info.color[i] = 0.8; }
       }
-      meshDraw(board, tile->texture, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, 0.0f, effect, effectTime);
+      else { for (int i = 0; i < 4; i++) { info.color[i] = 1.0; } }
+
+      if (effect == visual_countdown) {
+         for (int i = 0; i < 4; i++) {
+            float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 4) / board->game->timings.removeClear[0];
+            info.color[i] = val < 0 ? 0 : val;
+         }
+      }
+
+      //Camera movements or mesh displacements
+      Vec2 move = { 0, 0 };
+      if (effect == visual_swapr) {
+         move.x -= board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
+      }
+      else if (effect == visual_swapl) {
+         move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
+      }
+      //Tremble on garbage landing
+      if (board->visualEvents[visual_shake].active == true) {
+         move.y += sin(board->game->timer) * 2;
+      }
+      info.cam = move;
+
+      meshSetDrawRect(info, tile->xpos, tile->ypos, board->tileWidth, board->tileHeight, 0);
+      meshDraw(board->game, tile->texture, info);
       if (tile->status == status_clear) {
-         meshDraw(board, resourcesGetTexture(board->game->resources, Texture_cleared), tile->xpos, tile->ypos, board->tileWidth, board->tileHeight);
+         meshDraw(board->game, resourcesGetTexture(board->game->resources, Texture_cleared), info);
       }
    }
 }

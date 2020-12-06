@@ -11,9 +11,6 @@
 #include <SDL.h>
 #include <math.h>
 
-static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime);
-static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime);
-
 
 struct Mesh {
    GLuint vbo;  //vbo handle
@@ -363,70 +360,38 @@ Mesh* meshCreate() {
    return mesh;
 };
 
-//Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Game* game, Texture* texture, float destX, float destY, int destW, int destH, float rotate, VisualEffect effect, int effectTime) {
+void meshSetDrawRect(DrawInfo &info, float x, float y, int w, int h, int rot) {
+   info.rect.x = x;
+   info.rect.y = y;
+   info.rect.h = h;
+   info.rect.w = w;
+   info.rot = rot;
+}
 
-   //Vec2 scale = { destW / width, destH / height};
-   Vec2 scale = { destW / game->windowWidth, destH / game->windowHeight};
-   Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
+//Texture a mesh, transform it to the correct position, and draw it
+void meshDraw(Game* game, Texture* texture, DrawInfo info) {
+
+   //Determine scale of mesh on texture/mesh on screen
+   Vec2 scale = { info.rect.w / game->windowWidth, info.rect.h / game->windowHeight};
+   Vec2 dest = {round(info.rect.x) , round(info.rect.y)};  //rounding here feels bad for the vibration issue
+   Mat4x4 transform = transformMatrix(dest, info.rot, scale);
    
-   Mat4x4 mat = transformMatrix(dest, rotate, scale);
-   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", mat.values);
-   
-   meshEffectDarken(game, effect, effectTime);
-   meshEffectDisplace(game, effect, effectTime);
+   //Determine mesh displacement
+   Mat4x4 displace = identityMatrix();
+   if (info.cam.x != 0 || info.cam.y != 0) {
+      displace = transformMatrix(info.cam, 0.0f, { 1, 1 });
+   }
+
+   //Set Uniforms in Shaders by name
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", transform.values);
+   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", info.color);
+   shaderSetMat4UniformByName(resourcesGetShader(game), "uCamera", displace.values);
 
    glBindBuffer(GL_ARRAY_BUFFER, game->mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, texture->handle);
    
    glDrawArrays(GL_TRIANGLES, 0, game->mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
-}
-
-//This makes the mesh darker (for disabled tiles) and also for fading out tiles
-static void meshEffectDarken(Game* game, VisualEffect effect, int effectTime) {
-   float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
-
-   if (effect == visual_dark) {
-      for (int i = 0; i < 4; i++) {
-         vec4[i] = 0.8;
-      }
-   }
-   else if (effect == visual_countdown) {
-      for (int i = 0; i < 4; i++) {
-         float val = 1.0 * (effectTime - game->timer + game->timings.removeClear[0] / 4) / game->timings.removeClear[0];
-         vec4[i] = val < 0 ? 0 : val;
-      }
-   }
-   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", vec4);
-}
-
-//These are special effects like smooth tile swapping and shake on landing
-static void meshEffectDisplace(Game* game, VisualEffect effect, int effectTime) {
-
-   Mat4x4 mat = identityMatrix();
-   Vec2 move = { 0.0f , 0.0f };
-   bool moved = false;
-
-   //Swapping interpolated movement
-   if (effect == visual_swapr) {
-      move.x -= game->settings.tWidth * (effectTime - game->timer) / SWAPTIME;
-      moved = true;
-   }
-   else if (effect == visual_swapl) {
-      move.x += game->settings->tWidth * (effectTime - game->timer) / SWAPTIME;
-      moved = true;
-   }
-
-   //Tremble on garbage landing
-   if (board->visualEvents[visual_shake].active == true) {
-      move.y += sin(board->game->timer);
-      moved = true;
-   }
-
-   if (moved == true) { mat = transformMatrix(move, 0.0f, { 1, 1 }); }
-
-   shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
 }
 
 //Destroy the mesh using its opaque pointer
@@ -455,7 +420,7 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Game* game, Animation* animation, float destX, float destY, int destW, int destH, float rotate) {
+void animationDraw(Game* game, Animation* animation, DrawInfo info) {
 
    int currentFrame = (game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
@@ -465,7 +430,7 @@ void animationDraw(Game* game, Animation* animation, float destX, float destY, i
       textureTransform(game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(game, animation->texture, destX, destY, destW, destH, rotate);
+   meshDraw(game, animation->texture, info);
 
    textureTransform(game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }

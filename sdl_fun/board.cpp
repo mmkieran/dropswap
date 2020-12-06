@@ -1281,11 +1281,21 @@ void boardAI(Game* game) {
 
 void boardDrawSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
+      DrawInfo info;
+      //Camera movements or mesh displacements
+      Vec2 move = { 0, 0 };
+      info.cam = move;
+
+      //Color transformations
+      for (int i = 0; i < 4; i++) { info.color[i] = 1.0; }
+
       if (sprite.render.animation != nullptr) {
-         animationDraw(board, sprite.render.animation, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height);
+         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height, 0);
+         animationDraw(board->game, sprite.render.animation, info);
       }
       else if (sprite.render.texture != nullptr) {
-         meshDraw(board, sprite.render.texture, sprite.x, sprite.y, sprite.render.texture->w * 2, sprite.render.texture->h * 2, sprite.rotate);
+         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.texture->w, sprite.render.texture->h, sprite.rotate);
+         meshDraw(board->game, sprite.render.texture, info);
       }
    }
 }

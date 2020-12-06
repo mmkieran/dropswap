@@ -63,6 +63,18 @@ struct Sprite {
    int end = 0;                                 //Time in milliseconds when it will die
 };
 
+struct Rect {
+   float x, y;                                  //Top left corner of rectangle
+   int h, w;                                    //Rectangle height and width
+};
+
+struct DrawInfo {
+   Rect rect;                                   //Determines the size of the mesh square
+   int rot;                                     //Rotation of mesh
+   Vec2 cam;                                    //Has the camera moved it
+   float color[4];                              //Does it have color transformations applied
+};
+
 enum VisualEffect {
    visual_none = 0,
    visual_dark,                                 //Darken disabled tiles (buffer row and spawning tiles from cleared garbage)
@@ -127,10 +139,11 @@ void textureDestroy(Texture* texture);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Game* game, Texture* texture, float destX, float destY, int destW, int destH, float rotate = 0, VisualEffect effect = visual_none, int effectTime = 0);
+void meshSetDrawRect(DrawInfo &info, float x, float y, int h, int w, int rot);
+void meshDraw(Game* game, Texture* texture, DrawInfo info);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
-void animationDraw(Game* game, Animation* animation, float destX, float destY, int destW, int destH, float rotate = 0.0f);
+void animationDraw(Game* game, Animation* animation, DrawInfo info);
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);
