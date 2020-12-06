@@ -427,6 +427,7 @@ void boardUI(Game* game) {
                   ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
                }
             }
+            ImGui::NewLine();
             if (ImGui::Button("Bail Out")) {
                gameEndMatch(game);
                ImGui::CloseCurrentPopup();
@@ -1200,16 +1201,11 @@ void multiplayerHost(Game* game, bool* p_open) {
       if (ImGui::BeginPopupModal("Setup Error", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
          if (popups[Popup_Error].isOpen == false) { ImGui::CloseCurrentPopup(); }
          else {
-            if (pCount < 2) {
-               ImGui::Text("You must have at least 2 players.");
-            }
-            else if (pCount > 4) {
-               ImGui::Text("You can't have more than 4 players.");
-            }
+            if (pCount < 2) { ImGui::Text("You must have at least 2 players."); }
+            else if (pCount > 4) { ImGui::Text("You can't have more than 4 players."); }
             else if (teams[0] == false) { ImGui::Text("You need at least one player on team 1"); }
             else if (teams[1] == false) { ImGui::Text("You need at least one player on team 2"); }
             ImGui::NewLine();
-
             if (ImGui::Button("OK")) {
                ImGui::CloseCurrentPopup();
                popupDisable(Popup_Error);
@@ -1242,9 +1238,41 @@ void multiplayerHost(Game* game, bool* p_open) {
       }
    }
 
+   if (serverStatus == server_ready) {
+      popupEnable(Popup_Waiting);
+   }
+   if (popupOpen(Popup_Waiting) == true) {
+      ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_Once);
+      ImGui::OpenPopup("Waiting for Players");
+      popups[Popup_Waiting].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Waiting for Players")) {
+      if (popups[Popup_Waiting].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      ImGui::Text("Waiting for Player Ready Signals");
+
+      //Todo not sure why this doesn't work. It always says sock_sent
+      //for (int i = 0; i < people[0]; i++) {
+      //   SocketInfo sock = getSocket(i - 1);
+      //   if (sock.status == sock_ready) {
+      //      ImGui::Text("Ready: "); ImGui::SameLine();
+      //      if (i == 0) { ImGui::Text(game->user.name); }
+      //      else { ImGui::Text(sock.name); }
+      //   }
+      //}
+      ImGui::NewLine();
+      if (ImGui::Button("Bail Out")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_Waiting);
+         tcpReset();
+         serverStatus = server_none;
+      }
+      ImGui::EndPopup();
+   }
+
    //If the GGPO session is started launch the connecting modal window
    if (game->playing == false && game->net->ggpo) {
       popupEnable(Popup_Connecting);
+      popupDisable(Popup_Waiting);
    }
    ggpoReadyModal(game);
    ImGui::End();
@@ -1262,10 +1290,9 @@ void ggpoReadyModal(Game* game) {
       static int readyCount = 0;
       int ready = true;
 
-      ImGui::Text("Ready Frames: %d", readyCount);
       if (game->net->ggpo != nullptr) {
-         ImGui::Text("GGPO is Running");
-         ImGui::NewLine();
+         ImGui::Text("Connection Status");
+         ImGui::Separator();
          float width = ImGui::GetWindowContentRegionWidth();
          for (int i = 0; i < game->net->participants; i++) {
             ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 200 });
@@ -1288,8 +1315,11 @@ void ggpoReadyModal(Game* game) {
          gameStartMatch(game); 
 
       }
-      ImGui::Text("Connection Progress: "); ImGui::SameLine();
-      ImGui::ProgressBar(readyCount / framesBeforeReady, ImVec2(0.0f, 0.0f));
+      if (readyCount > 0) {
+         ImGui::Text("Preparing Session: "); 
+         ImGui::SameLine();
+         ImGui::ProgressBar(readyCount / framesBeforeReady, ImVec2(0.0f, 0.0f));
+      }
       ImGui::NewLine();
       if (ImGui::Button("Disconnect")) {
          ImGui::CloseCurrentPopup();
