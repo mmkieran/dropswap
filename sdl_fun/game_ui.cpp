@@ -16,6 +16,7 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
+void waitingModal(const char* windowName, const char* msg, bool isServer = true);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -990,6 +991,13 @@ void multiplayerJoin(Game* game, bool* p_open) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message.c_str());
          }
       }
+
+      if (clientStatus == client_connected || clientStatus == client_sent) {
+         popupEnable(Popup_Waiting);
+      }
+      else { popupDisable(Popup_Waiting); }
+      waitingModal("Waiting For Host", "Waiting for host to send game information", false);
+
       ImGui::EndChild();
       ImGui::NewLine();
    }
@@ -1241,33 +1249,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    if (serverStatus == server_ready) {
       popupEnable(Popup_Waiting);
    }
-   if (popupOpen(Popup_Waiting) == true) {
-      ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_Once);
-      ImGui::OpenPopup("Waiting for Players");
-      popups[Popup_Waiting].isOpen = true;
-   }
-   if (ImGui::BeginPopupModal("Waiting for Players")) {
-      if (popups[Popup_Waiting].isOpen == false) { ImGui::CloseCurrentPopup(); }
-      ImGui::Text("Waiting for Player Ready Signals");
-
-      //Todo not sure why this doesn't work. It always says sock_sent
-      //for (int i = 0; i < people[0]; i++) {
-      //   SocketInfo sock = getSocket(i - 1);
-      //   if (sock.status == sock_ready) {
-      //      ImGui::Text("Ready: "); ImGui::SameLine();
-      //      if (i == 0) { ImGui::Text(game->user.name); }
-      //      else { ImGui::Text(sock.name); }
-      //   }
-      //}
-      ImGui::NewLine();
-      if (ImGui::Button("Bail Out")) {
-         ImGui::CloseCurrentPopup();
-         popupDisable(Popup_Waiting);
-         tcpReset();
-         serverStatus = server_none;
-      }
-      ImGui::EndPopup();
-   }
+   waitingModal("Waiting For Players", "Waiting for player ready signals");
 
    //If the GGPO session is started launch the connecting modal window
    if (game->playing == false && game->net->ggpo) {
@@ -1325,6 +1307,28 @@ void ggpoReadyModal(Game* game) {
          ImGui::CloseCurrentPopup();
          popupDisable(Popup_Connecting);
          ggpoEndSession(game);
+      }
+      ImGui::EndPopup();
+   }
+}
+
+void waitingModal(const char* windowName, const char* msg, bool isServer) {
+   if (popupOpen(Popup_Waiting) == true) {
+      ImGui::SetNextWindowSize({ 300, 300 }, ImGuiCond_Once);
+      ImGui::OpenPopup(windowName);
+      popups[Popup_Waiting].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal(windowName)) {
+      if (popups[Popup_Waiting].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      ImGui::Text(msg);
+
+      ImGui::NewLine();
+      if (ImGui::Button("Bail Out")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_Waiting);
+         tcpReset();
+         if (isServer) { serverStatus = server_none; }
+         else { clientStatus = client_none; }
       }
       ImGui::EndPopup();
    }
