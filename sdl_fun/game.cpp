@@ -364,8 +364,6 @@ void gameStartMatch(Game* game) {
       //else { board = boardCreate(game, team, 32, 32); }
 
       if (board) {
-         board->pauseLength = GAME_COUNTIN;
-         board->paused = true;
          board->index = i;
          boardFillTiles(board);
          game->teams[team].push_back(board);  //todo do we need this?
@@ -418,6 +416,8 @@ void gameStartMatch(Game* game) {
    game->playing = true;
    game->frameCount = 0;
    game->timer = 0;
+   game->waiting = true;
+   game->waitLength = 3000;
    //game->soundToggles[sound_waltz] = true;
 }
 
@@ -513,6 +513,7 @@ void imguiRender(Game* game) {
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
+//Updates the sprites using their speed and direction, removes expired ones
 void gameUpdateSprites(Game* game) {
    std::vector <Sprite> activeSprites;
    for (auto&& sprite : game->drawList) {
@@ -527,6 +528,8 @@ void gameUpdateSprites(Game* game) {
    game->drawList = activeSprites;
 }
 
+//Renders the sprites after imgui has drawn it's windows so we can draw over top
+//todo investigate if we could have just done foreground in ImGui, lol
 void gameDrawSprites(Game* game) {
    for (auto&& sprite : game->drawList) {
       //Camera movements or mesh displacements
