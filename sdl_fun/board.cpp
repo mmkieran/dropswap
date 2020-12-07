@@ -1281,21 +1281,18 @@ void boardAI(Game* game) {
 
 void boardDrawSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
-      DrawInfo info;
       //Camera movements or mesh displacements
       Vec2 move = { 0, 0 };
-      info.cam = move;
+      sprite.info.cam = move;
 
       //Color transformations
-      for (int i = 0; i < 4; i++) { info.color[i] = 1.0; }
+      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
 
       if (sprite.render.animation != nullptr) {
-         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height, 0);
-         animationDraw(board->game, sprite.render.animation, info);
+         animationDraw(board->game, sprite.render.animation, sprite.info);
       }
       else if (sprite.render.texture != nullptr) {
-         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.texture->w, sprite.render.texture->h, sprite.rotate);
-         meshDraw(board->game, sprite.render.texture, info);
+         meshDraw(board->game, sprite.render.texture, sprite.info);
       }
    }
 }
@@ -1305,9 +1302,9 @@ void updateSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
       if (sprite.end < board->game->timer) { continue; }
       else {
-         Vec2 move = getXYDistance({ (float)sprite.x, (float)sprite.y }, sprite.dir, sprite.speed);
-         sprite.x += move.x;
-         sprite.y += move.y;
+         Vec2 move = getXYDistance({ sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
+         sprite.info.rect.x += move.x;
+         sprite.info.rect.y += move.y;
          activeSprites.push_back(sprite);
       }
    }

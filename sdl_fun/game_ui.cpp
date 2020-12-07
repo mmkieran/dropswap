@@ -611,36 +611,23 @@ void onePlayerOptions(Game* game) {
    if (ImGui::Button("Game Wait")) {
       game->waiting = true;
       game->waitLength = 3000;
-
-      Sprite sprite;
-      sprite.x = 0;
-      sprite.y = 0;
-      sprite.speed = 1.0;
-      sprite.end = game->timer + 3000;
-      sprite.dir = 180;
-      sprite.rotate = sprite.dir + 180;
-      sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
-      game->drawList.push_back(sprite);
    }
 
    if (ImGui::Button("Add sprite")) {
       Sprite sprite;
-      sprite.x = 100;
-      sprite.y = 100;
+      sprite.info.rect.x = 100;
+      sprite.info.rect.y = 100;
+      sprite.info.rect.h = 64;
+      sprite.info.rect.w = 64;
       sprite.speed = 0.5;
       sprite.end = game->timer + 6000;
       sprite.dir = game->timer % 360;
-      sprite.rotate = sprite.dir + 180;
+      sprite.info.rot = sprite.dir + 180;
       sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
-      game->boards[0]->sprites.push_back(sprite);
+      game->drawList.push_back(sprite);
    }
    if (ImGui::Button("Clear sprites")) {
-      game->boards[0]->sprites.clear();
-   }
-   if (ImGui::Button("Move sprites")) {
-      for (auto&& sprite : game->boards[0]->sprites) {
-         sprite.x = sprite.y += -10;
-      }
+      game->drawList.clear();
    }
 
    if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }

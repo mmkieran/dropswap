@@ -35,6 +35,7 @@ enum TextureEnum {
 struct Mesh;
 struct Texture;
 struct FBO;
+struct Graphic;
 
 struct Animation {
    Texture* texture = nullptr;
@@ -53,16 +54,6 @@ struct Graphic {
    Animation* animation = nullptr;
 };
 
-struct Sprite {
-   double x = 0;                                //X position of the sprite
-   double y = 0;                                //Y position of the sprite
-   int rotate = 0;                              //Clockwise angle from up (0) that the sprite is rotated
-   int dir = 0;                                 //Clockwise angle from up (0) that the sprite is heading 
-   float speed = 0;                            //Pixel speed the sprite is moving
-   Graphic render;                              //Struct to hold texture or animation pointer
-   int end = 0;                                 //Time in milliseconds when it will die
-};
-
 struct Rect {
    float x, y;                                  //Top left corner of rectangle
    int h, w;                                    //Rectangle height and width
@@ -70,9 +61,17 @@ struct Rect {
 
 struct DrawInfo {
    Rect rect;                                   //Determines the size of the mesh square
-   int rot;                                     //Rotation of mesh
-   Vec2 cam;                                    //Has the camera moved it
+   int rot = 0;                                 //Rotation of mesh
+   Vec2 cam = { 0, 0 };                         //Has the camera moved it
    float color[4];                              //Does it have color transformations applied
+};
+
+struct Sprite {
+   DrawInfo info;
+   int dir = 0;                                 //Clockwise angle from up (0) that the sprite is heading 
+   float speed = 0;                            //Pixel speed the sprite is moving
+   Graphic render;                              //Struct to hold texture or animation pointer
+   int end = 0;                                 //Time in milliseconds when it will die
 };
 
 enum VisualEffect {

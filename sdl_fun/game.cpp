@@ -503,6 +503,12 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+   //Draw Sprites
+   worldToDevice(game, 0.0f, 0.0f, width, height);
+   gameUpdateSprites(game);
+   gameDrawSprites(game);
+
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
@@ -511,9 +517,9 @@ void gameUpdateSprites(Game* game) {
    for (auto&& sprite : game->drawList) {
       if (sprite.end < game->timer) { continue; }
       else {
-         Vec2 move = getXYDistance({ (float)sprite.x, (float)sprite.y }, sprite.dir, sprite.speed);
-         sprite.x += move.x;
-         sprite.y += move.y;
+         Vec2 move = getXYDistance( { sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
+         sprite.info.rect.x += move.x;
+         sprite.info.rect.y += move.y;
          activeSprites.push_back(sprite);
       }
    }
@@ -522,21 +528,18 @@ void gameUpdateSprites(Game* game) {
 
 void gameDrawSprites(Game* game) {
    for (auto&& sprite : game->drawList) {
-      DrawInfo info;
       //Camera movements or mesh displacements
       Vec2 move = { 0, 0 };
-      info.cam = move;
+      sprite.info.cam = move;
 
       //Color transformations
-      for (int i = 0; i < 4; i++) { info.color[i] = 1.0; }
+      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
 
       if (sprite.render.animation != nullptr) {
-         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.animation->width, sprite.render.animation->height, 0);
-         animationDraw(game, sprite.render.animation, info);
+         animationDraw(game, sprite.render.animation, sprite.info);
       }
       else if (sprite.render.texture != nullptr) {
-         meshSetDrawRect(info, sprite.x, sprite.y, sprite.render.texture->w, sprite.render.texture->h, sprite.rotate);
-         meshDraw(game, sprite.render.texture, info);
+         meshDraw(game, sprite.render.texture, sprite.info);
       }
    }
 }
