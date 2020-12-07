@@ -138,7 +138,7 @@ void textureDestroy(Texture* texture);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
-void meshSetDrawRect(DrawInfo &info, float x, float y, int h, int w, int rot);
+void meshSetDrawRect(DrawInfo &info, float x, float y, int w, int h, int rot);
 void meshDraw(Game* game, Texture* texture, DrawInfo info);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);

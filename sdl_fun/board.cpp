@@ -171,7 +171,25 @@ void boardUpdate(Board* board) {
          }
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
-               //todo add animation here... sword coming down?
+               Sprite sprite;
+               meshSetDrawRect(sprite.info, board->w * board->tileWidth / 2, - board->tileHeight, board->tileWidth, board->tileHeight, 0);
+
+               //Figure out where to drop the sword to
+               int col = (ally->w - 1) / 2;
+               int row = ally->startH - 2;
+               int lookDown = 2;
+               Tile* below = boardGetTile(ally, row, col);
+               while (below && below->type == tile_empty) {
+                  below = boardGetTile(board, row + lookDown, col);
+                  lookDown++;
+               }
+
+               sprite.speed = (lookDown - 1) * board->tileHeight / (1000.0 / 60.0);
+               sprite.dir = 180;
+               sprite.end = board->game->timer + 3000;
+               sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
+               board->game->drawList.push_back(sprite);
+
                Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
                ally->cursors.push_back(cursor);
             }
