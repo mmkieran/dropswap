@@ -301,8 +301,10 @@ void gameUpdate(Game* game) {
    }
    //todo add game visual logic somewhere in here?
    gameUpdateSprites(game);
-   game->frameCount++;  //Increment frame count
-   game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
+   if (game->waiting == false) {
+      game->frameCount++;  //Increment frame count
+      game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
+   }
 }
 
 //Process inputs and update game - single player
@@ -506,7 +508,6 @@ void imguiRender(Game* game) {
 
    //Draw Sprites
    worldToDevice(game, 0.0f, 0.0f, width, height);
-   gameUpdateSprites(game);
    gameDrawSprites(game);
 
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
