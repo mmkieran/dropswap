@@ -615,16 +615,36 @@ void onePlayerOptions(Game* game) {
 
    if (ImGui::Button("Add sprite")) {
       Sprite sprite;
-      sprite.info.rect.x = 100;
-      sprite.info.rect.y = 100;
-      sprite.info.rect.h = 64;
-      sprite.info.rect.w = 64;
-      sprite.speed = 0.5;
-      sprite.end = game->timer + 6000;
-      sprite.dir = game->timer % 360;
-      sprite.info.rot = sprite.dir + 180;
-      sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
-      game->drawList.push_back(sprite);
+      //sprite.info.rect.x = 100;
+      //sprite.info.rect.y = 100;
+      //sprite.info.rect.h = 64;
+      //sprite.info.rect.w = 64;
+      //sprite.speed = 0.5;
+      //sprite.end = game->timer + 6000;
+      //sprite.dir = game->timer % 360;
+      //sprite.info.rot = sprite.dir + 180;
+      //sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
+      //game->drawList.push_back(sprite);
+
+      Board* board = game->boards[0];
+      float x = (board->w * board->tileWidth * board->index) + (board->w * board->tileWidth) / 2;  //Find out where the allied board is in the window
+      meshSetDrawRect(sprite.info, x, -board->tileHeight, board->tileWidth, board->tileHeight, 0);
+
+      //Figure out where to drop the sword to
+      int col = (board->w - 1) / 2;
+      int row = board->startH - 1;
+      int lookDown = 2;
+      Tile* below = boardGetTile(board, row, col);
+      while (below && below->type == tile_empty) {
+         below = boardGetTile(board, row + lookDown, col);
+         lookDown++;
+      }
+
+      sprite.speed = (lookDown - 1) * board->tileHeight / (60.0 * 3);
+      sprite.dir = 180;
+      sprite.end = game->kt.getTime() / 1000 + 3000;
+      sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
+      board->game->drawList.push_back(sprite);
    }
    if (ImGui::Button("Clear sprites")) {
       game->drawList.clear();

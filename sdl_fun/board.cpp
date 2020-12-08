@@ -172,7 +172,8 @@ void boardUpdate(Board* board) {
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
                Sprite sprite;
-               meshSetDrawRect(sprite.info, board->w * board->tileWidth / 2, - board->tileHeight, board->tileWidth, board->tileHeight, 0);
+               float x = (ally->w * ally->tileWidth * ally->index) + (ally->w * ally->tileWidth) / 2;  //Find out where the allied board is in the window
+               meshSetDrawRect(sprite.info, x, - ally->tileHeight, ally->tileWidth, ally->tileHeight, 0);
 
                //Figure out where to drop the sword to
                int col = (ally->w - 1) / 2;
@@ -180,11 +181,11 @@ void boardUpdate(Board* board) {
                int lookDown = 2;
                Tile* below = boardGetTile(ally, row, col);
                while (below && below->type == tile_empty) {
-                  below = boardGetTile(board, row + lookDown, col);
+                  below = boardGetTile(ally, row + lookDown, col);
                   lookDown++;
                }
 
-               sprite.speed = (lookDown - 1) * board->tileHeight / (1000.0 / 60.0);
+               sprite.speed = (lookDown - 1) * board->tileHeight / (1000.0 / 60.0) / 3;
                sprite.dir = 180;
                sprite.end = board->game->timer + 3000;
                sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);

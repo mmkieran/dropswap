@@ -517,7 +517,7 @@ void imguiRender(Game* game) {
 void gameUpdateSprites(Game* game) {
    std::vector <Sprite> activeSprites;
    for (auto&& sprite : game->drawList) {
-      if (sprite.end < game->timer) { continue; }
+      if (sprite.end < game->kt.getTime() / 1000) { continue; }
       else {
          Vec2 move = getXYDistance( { sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
          sprite.info.rect.x += move.x;

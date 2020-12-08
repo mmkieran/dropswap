@@ -71,6 +71,7 @@ struct Sprite {
    int dir = 0;                                 //Clockwise angle from up (0) that the sprite is heading 
    float speed = 0;                            //Pixel speed the sprite is moving
    Graphic render;                              //Struct to hold texture or animation pointer
+   int stop = 0;
    int end = 0;                                 //Time in milliseconds when it will die
 };
 
