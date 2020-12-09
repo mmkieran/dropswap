@@ -516,12 +516,14 @@ void imguiRender(Game* game) {
 //Updates the sprites using their speed and direction, removes expired ones
 void gameUpdateSprites(Game* game) {
    std::vector <Sprite> activeSprites;
+   int current = game->kt.getTime() / 1000;
    for (auto&& sprite : game->drawList) {
-      if (sprite.end < game->kt.getTime() / 1000) { continue; }
-      else {
-         Vec2 move = getXYDistance( { sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
-         sprite.info.rect.x += move.x;
-         sprite.info.rect.y += move.y;
+      if (sprite.end > current) { 
+         if (sprite.stop > current) {
+            Vec2 move = getXYDistance({ sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
+            sprite.info.rect.x += move.x;
+            sprite.info.rect.y += move.y;
+         }
          activeSprites.push_back(sprite);
       }
    }

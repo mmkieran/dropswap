@@ -167,13 +167,17 @@ void boardUpdate(Board* board) {
          Board* ally = nullptr;
          for (auto&& index : board->allies) {  
             //board->game->boards[index]->allies.erase(board->game->boards[index]->allies.begin() + board->index);  //erase my number from the allies list on my team
-            if (board->game->boards[index]->bust == false) { ally = board->game->boards[index]; }  //Find a living ally so I can transfer my cursor
+            if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
+               ally = board->game->boards[index]; 
+               break;
+            }  
          }
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
                Sprite sprite;
-               float x = (ally->w * ally->tileWidth * ally->index) + (ally->w * ally->tileWidth) / 2;  //Find out where the allied board is in the window
-               meshSetDrawRect(sprite.info, x, - ally->tileHeight, ally->tileWidth, ally->tileHeight, 0);
+               int current = board->game->kt.getTime() / 1000;
+               float x = ( ( (ally->w) * board->tileWidth + 16) * ally->index) + (ally->w * ally->tileWidth) / 2;  //Find out where the allied board is in the window
+               meshSetDrawRect(sprite.info, x, -ally->tileHeight, ally->tileWidth, ally->tileHeight, 0);
 
                //Figure out where to drop the sword to
                int col = (ally->w - 1) / 2;
@@ -185,11 +189,14 @@ void boardUpdate(Board* board) {
                   lookDown++;
                }
 
-               sprite.speed = (lookDown - 1) * board->tileHeight / (1000.0 / 60.0) / 3;
+               sprite.speed = (below->ypos + ally->tileHeight * 2) / (60.0 * 2);
                sprite.dir = 180;
-               sprite.end = board->game->timer + 3000;
+               sprite.stop = current + 2000;
+               sprite.end = current + 4000;
                sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
                board->game->drawList.push_back(sprite);
+               board->game->waiting = true;
+               board->game->waitLength = 4000;
 
                Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
                ally->cursors.push_back(cursor);
