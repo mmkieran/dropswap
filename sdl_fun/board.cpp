@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <assert.h>
 
 #include "board.h"
 #include <list>
@@ -12,7 +11,6 @@ void _swapTiles(Tile* tile1, Tile* tile2);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void updateSprites(Board* board);
 void boardDrawSprites(Board* board);
-void boardDebugSprites(Board* board, bool* p_open);
 
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
@@ -166,7 +164,6 @@ void boardUpdate(Board* board) {
       if (board->game->settings.mode == multi_solo) {
          Board* ally = nullptr;
          for (auto&& index : board->allies) {  
-            //board->game->boards[index]->allies.erase(board->game->boards[index]->allies.begin() + board->index);  //erase my number from the allies list on my team
             if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
                ally = board->game->boards[index]; 
                break;
@@ -176,8 +173,8 @@ void boardUpdate(Board* board) {
             for (int i = 0; i < board->cursors.size(); i++) {
                Sprite sprite;
                int current = board->game->kt.getTime() / 1000;
-               float x = ( ( (ally->w) * board->tileWidth + 16) * ally->index) + (ally->w * ally->tileWidth) / 2;  //Find out where the allied board is in the window
-               meshSetDrawRect(sprite.info, x, -ally->tileHeight, ally->tileWidth, ally->tileHeight, 0);
+               float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
+               meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight/2, ally->tileWidth, ally->tileHeight, 0);
 
                //Figure out where to drop the sword to
                int col = (ally->w - 1) / 2;
@@ -189,7 +186,7 @@ void boardUpdate(Board* board) {
                   lookDown++;
                }
 
-               sprite.speed = (below->ypos + ally->tileHeight * 2) / (60.0 * 2);
+               sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
                sprite.dir = 180;
                sprite.stop = current + 2000;
                sprite.end = current + 4000;
@@ -198,7 +195,7 @@ void boardUpdate(Board* board) {
                board->game->waiting = true;
                board->game->waitLength = 4000;
 
-               Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
+               Cursor* cursor = cursorCreate(ally, below->xpos, below->ypos, board->cursors[i]->index);
                ally->cursors.push_back(cursor);
             }
          }

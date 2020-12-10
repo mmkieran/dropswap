@@ -346,6 +346,8 @@ void boardUI(Game* game) {
          ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
          ImGui::BeginChild(playerName, ImVec2{ (float)board->w * board->tileWidth, (float)board->h * board->tileHeight }, true, ImGuiWindowFlags_NoScrollbar);
          ImVec2 csPos = ImGui::GetCursorScreenPos();
+         board->sPos.x = csPos.x;
+         board->sPos.y = csPos.y;
 
          //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate
          if (game->fbos[i]) {

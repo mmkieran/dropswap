@@ -43,6 +43,7 @@ struct Board {
    int startH = 12;                                      //The visual beginning of the top of the board (doesn't include garbage buffer above)
    int endH;                                             //The visual end of the board (not including the buffer row)
    int wBuffer;                                          //Create some extra board to store falling garbage and upcoming rows
+   Vec2 sPos = { 0,0 };                                  //The screen position (xy) of the top left corner of the board
    int w = 6;                                            //How many tiles wide is the board
    int h = 12;                                           //How many tiles high is the board
    int tileWidth;                                        //How wide in pixels is a tile
@@ -120,4 +121,3 @@ void boardLoadRandom(Board* board);
 void boardAI(Game* game);
 
 void boardDebug(Board* board, bool* p_open);
-void boardDebugSprites(Board* board, bool* p_open);
