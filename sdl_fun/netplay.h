@@ -101,6 +101,7 @@ struct SocketInfo {
 void gameAdvanceFrame(Game* game);
 void gameRunFrame();
 
+void validateMultiSetup(int people, int& pCount, bool teams[2], ServerStatus& serverStatus);
 void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short participants);
 void ggpoClose(GGPOSession* ggpo);
 const char* ggpoShowStatus(Game* game, int playerIndex);

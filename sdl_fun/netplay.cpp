@@ -867,3 +867,46 @@ std::vector <Byte> sockRandomID(const char* name) {
 
    return stream;
 }
+
+void validateMultiSetup(int people, int& pCount, bool teams[2], ServerStatus& serverStatus) {
+   //validate the game setup
+   teams[0] = teams[1] = false;
+   pCount = 0;
+   for (int i = 0; i < people; i++) {
+      teams[game->net->hostSetup[i].team] = true;
+      if (game->net->hostSetup[i].playerType == 0) { pCount++; }
+   }
+   if (teams[0] == true && teams[1] == true && pCount < 5 && pCount > 1) {
+      game->net->participants = people;
+      game->seed = time(0);
+      int pNum = 1;
+      for (int i = 0; i < game->net->participants; i++) {
+         SocketInfo sock = getSocket(i - 1);
+         strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
+         game->net->hostSetup[i].localPort = 7001 + i;
+         if (i == 0) {  //This connection is the host
+            strcpy(game->net->hostSetup[i].name, game->user.name);
+            game->net->hostSetup[i].host = true;
+            game->net->hostSetup[i].me = true;
+            game->net->hostSetup[i].level = game->user.level;
+            strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
+         }
+         else {  //All the other players
+            memcpy(&game->net->hostSetup[i].id, &sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
+            memcpy(&game->net->hostSetup[i].level, &sock.recBuff[32], sizeof(int));  //Get client board level from message
+            strcpy(game->net->hostSetup[i].name, sock.name);
+            game->net->hostSetup[i].host = false;
+            game->net->hostSetup[i].me = false;
+            //We figure out "me" on the client recieving side
+         }
+         if (game->net->hostSetup[i].playerType == 0) { //Only players get a number
+            game->net->hostSetup[i].pNum = pNum;
+            pNum++;
+         };
+      }
+      serverStatus = server_send;
+   }
+   else {
+      popupEnable(Popup_Error);
+   }
+}

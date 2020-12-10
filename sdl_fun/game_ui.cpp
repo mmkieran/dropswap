@@ -379,7 +379,7 @@ void boardUI(Game* game) {
             sprintf(countDownText, "%d", game->waitLength / 1000 + 1);
             ImVec2 tSize = ImGui::CalcTextSize(countDownText);
             ImVec2 msgLoc = { csPos.x - (pad.x * 2) - tSize.x / 2 + board->w * board->tileWidth / 2, csPos.y - (pad.y * 2) - tSize.y / 2 + board->h * board->tileHeight / 2 };
-            dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(0, 0, 0, 100));
+            dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(255, 255, 255, 255), 3.0);
             dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32(255, 0, 0, 255), countDownText, NULL);
             ImGui::PopFont();
          }
@@ -619,53 +619,6 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
-   //todo remove this debug crap
-   if (ImGui::Button("Game Wait")) {
-      game->waiting = true;
-      game->waitLength = 3000;
-   }
-
-   if (ImGui::Button("Add sprite")) {
-      Sprite sprite;
-      //sprite.info.rect.x = 100;
-      //sprite.info.rect.y = 100;
-      //sprite.info.rect.h = 64;
-      //sprite.info.rect.w = 64;
-      //sprite.speed = 0.5;
-      //sprite.end = game->timer + 6000;
-      //sprite.dir = game->timer % 360;
-      //sprite.info.rot = sprite.dir + 180;
-      //sprite.render.texture = resourcesGetTexture(game->resources, Texture_sword);
-      //game->drawList.push_back(sprite);
-
-      int current = game->kt.getTime() / 1000;
-      Board* board = game->boards[0];
-      float x = (board->w * 16 * board->index) + (board->w * board->tileWidth) / 2;  //Find out where the allied board is in the window
-      meshSetDrawRect(sprite.info, x, -board->tileHeight, board->tileWidth, board->tileHeight, 0);
-
-      //Figure out where to drop the sword to
-      int col = (board->w - 1) / 2;
-      int row = board->startH - 2;
-      int lookDown = 2;
-      Tile* below = boardGetTile(board, row, col);
-      while (below && below->type == tile_empty) {
-         below = boardGetTile(board, row + lookDown, col);
-         lookDown++;
-      }
-
-      sprite.speed = (below->ypos + board->tileHeight * 2) / (60.0 * 2);
-      sprite.dir = 180;
-      sprite.stop = current + 2000;
-      sprite.end = current + 4000;
-      sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
-      board->game->drawList.push_back(sprite);
-      game->waiting = true;
-      game->waitLength = 4000;
-   }
-   if (ImGui::Button("Clear sprites")) {
-      game->drawList.clear();
-   }
-
    if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
    if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
@@ -1217,46 +1170,7 @@ void multiplayerHost(Game* game, bool* p_open) {
       static bool teams[2] = { false, false };
       static int pCount = -1;
       if (ImGui::Button("Start Game")) {
-         //validate the game setup
-         teams[0] = teams[1] = false;
-         pCount = 0;
-         for (int i = 0; i < people[0]; i++) {
-            teams[game->net->hostSetup[i].team] = true;
-            if (game->net->hostSetup[i].playerType == 0) { pCount++; }
-         }
-         if (teams[0] == true && teams[1] == true && pCount < 5 && pCount > 1) {
-            game->net->participants = people[0];
-            game->seed = time(0);
-            int pNum = 1;
-            for (int i = 0; i < game->net->participants; i++) {
-               SocketInfo sock = getSocket(i - 1);
-               strcpy(game->net->hostSetup[i].ipAddress, inet_ntoa(sock.address.sin_addr));
-               game->net->hostSetup[i].localPort = 7001 + i;
-               if (i == 0) {  //This connection is the host
-                  strcpy(game->net->hostSetup[i].name, game->user.name);
-                  game->net->hostSetup[i].host = true;
-                  game->net->hostSetup[i].me = true;
-                  game->net->hostSetup[i].level = game->user.level;
-                  strcpy(game->net->hostSetup[i].ipAddress, "127.0.0.1");
-               }
-               else {  //All the other players
-                  memcpy(&game->net->hostSetup[i].id, &sock.recBuff, sizeof(Byte) * 32);  //Get client id from received message
-                  memcpy(&game->net->hostSetup[i].level, &sock.recBuff[32], sizeof(int));  //Get client board level from message
-                  strcpy(game->net->hostSetup[i].name, sock.name);
-                  game->net->hostSetup[i].host = false;
-                  game->net->hostSetup[i].me = false;
-                  //We figure out "me" on the client recieving side
-               }
-               if (game->net->hostSetup[i].playerType == 0) { //Only players get a number
-                  game->net->hostSetup[i].pNum = pNum;
-                  pNum++;
-               };
-            }
-            serverStatus = server_send;
-         }
-         else {
-            popupEnable(Popup_Error);
-         }
+         validateMultiSetup(people[0], pCount, teams, serverStatus);
       }
       ImGui::SameLine();
 
