@@ -241,7 +241,9 @@ void boardRender(Game* game, Board* board) {
    }
    if (board->bust == false) {
       for (auto&& cursor : board->cursors) {
-         cursorDraw(board, cursor);
+         if (game->waiting == false) {
+            cursorDraw(board, cursor);
+         }
       }
    }
    boardDrawSprites(board);
