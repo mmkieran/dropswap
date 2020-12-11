@@ -8,6 +8,17 @@ double mathTrunc(double val, int places) {
    return (double)tmp / pow(10, places);
 }
 
+Vec2 getXYDistance(Vec2 pos, int angle, double dist) {
+   Vec2 out = { 0, 0 };
+   float PI = 3.1415926535f;
+   float radianAngle = PI / 180.0f * (angle - 90);  //-90 Because 90 is up in the right angle triangle
+
+   out.x = cos(radianAngle) * dist;
+   out.y = sin(radianAngle) * dist;
+
+   return out;
+}
+
 //This will be used to translate, rotate, and scale our meshes
 Mat4x4 identityMatrix() {
    Mat4x4 identity;

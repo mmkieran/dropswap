@@ -45,6 +45,7 @@ void imguiSetup(Game* game) {
    game->fonts[20] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 20);
    game->fonts[30] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 30);
    game->fonts[36] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 36);
+   game->fonts[72] = io.Fonts->AddFontFromFileTTF("assets/arial.ttf", 72);
    io.Fonts->Build();
 
    //Use these for Keyboard and controller navigation
@@ -284,13 +285,27 @@ void gameCheckPause(Game* game, UserInput input) {
 //Update the board state for all players
 void gameUpdate(Game* game) {
    if (game->playing == false || game->paused == true) { return; }
-   for (int i = 0; i < game->boards.size(); i++) {
-      if (game->boards[i] == nullptr) { continue; }
-      if (game->boards[i]->bust == true) { continue; }
-      boardUpdate(game->boards[i]);
+   if (game->waiting == true) {
+      game->waitLength -= 1000 / 60;  
+
+      if (game->waitLength <= 0) {
+         game->waiting = false;
+         game->waitLength = 0;
+      }
    }
-   game->frameCount++;
-   game->timer = game->frameCount * (1000.0f / 60.0f);
+   if (game->waiting == false) {
+      for (int i = 0; i < game->boards.size(); i++) {
+         if (game->boards[i] == nullptr) { continue; }
+         if (game->boards[i]->bust == true) { continue; }
+         boardUpdate(game->boards[i]);
+      }
+   }
+   //todo add game visual logic somewhere in here?
+   gameUpdateSprites(game);
+   if (game->waiting == false) {
+      game->frameCount++;  //Increment frame count
+      game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
+   }
 }
 
 //Process inputs and update game - single player
@@ -350,8 +365,6 @@ void gameStartMatch(Game* game) {
       //else { board = boardCreate(game, team, 32, 32); }
 
       if (board) {
-         board->pauseLength = GAME_COUNTIN;
-         board->paused = true;
          board->index = i;
          boardFillTiles(board);
          game->teams[team].push_back(board);  //todo do we need this?
@@ -404,6 +417,8 @@ void gameStartMatch(Game* game) {
    game->playing = true;
    game->frameCount = 0;
    game->timer = 0;
+   game->waiting = true;
+   game->waitLength = 3000;
    //game->soundToggles[sound_waltz] = true;
 }
 
@@ -491,7 +506,49 @@ void imguiRender(Game* game) {
    ImGui::Render();
 
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+   //Draw Sprites
+   worldToDevice(game, 0.0f, 0.0f, width, height);
+   gameDrawSprites(game);
+
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
+}
+
+//Updates the sprites using their speed and direction, removes expired ones
+void gameUpdateSprites(Game* game) {
+   std::vector <Sprite> activeSprites;
+   int current = game->kt.getTime() / 1000;
+   for (auto&& sprite : game->drawList) {
+      if (sprite.end > current) { 
+         if (sprite.stop > current) {
+            Vec2 move = getXYDistance({ sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
+            sprite.info.rect.x += move.x;
+            sprite.info.rect.y += move.y;
+         }
+         activeSprites.push_back(sprite);
+      }
+   }
+   game->drawList = activeSprites;
+}
+
+//Renders the sprites after imgui has drawn it's windows so we can draw over top
+//todo investigate if we could have just done foreground in ImGui, lol
+void gameDrawSprites(Game* game) {
+   for (auto&& sprite : game->drawList) {
+      //Camera movements or mesh displacements
+      Vec2 move = { 0, 0 };
+      sprite.info.cam = move;
+
+      //Color transformations
+      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
+
+      if (sprite.render.animation != nullptr) {
+         animationDraw(game, sprite.render.animation, sprite.info);
+      }
+      else if (sprite.render.texture != nullptr) {
+         meshDraw(game, sprite.render.texture, sprite.info);
+      }
+   }
 }
 
 //Jokulhaups

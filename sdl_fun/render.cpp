@@ -11,6 +11,7 @@
 #include <SDL.h>
 #include <math.h>
 
+
 struct Mesh {
    GLuint vbo;  //vbo handle
    Texture* texture;
@@ -43,7 +44,7 @@ struct Mesh {
 
 };
 
-
+//Vertex shader source code
 const char* vertexSource = R"glsl(
 #version 150 core
 
@@ -64,7 +65,7 @@ void main() {
 }
 )glsl";
 
-
+//Fragment shader source code
 const char* fragSource = R"glsl(
 #version 150 core
 
@@ -97,6 +98,7 @@ int openglContext() {
    return 0;
 }
 
+//Vertex array object, we don't use this, but we need to have it
 GLuint vaoCreate() {
    //Make a vertex array object... stores the links between attributes and vbos
    GLuint vao;
@@ -118,6 +120,7 @@ void vaoDestroy(GLuint vao) {
    }
 }
 
+//Scissoring clips data outside of a box in the rendered window
 void rendererSetScissor(int x, int y, int width, int height) {
    glScissor(x, y, width, height);
 }
@@ -130,6 +133,7 @@ void rendererDisableScissor() {
    glDisable(GL_SCISSOR_TEST);
 }
 
+//Create the shader from the text source above
 GLuint shaderCreate(ShaderStage shaderStage) {
    GLuint shader;
    if (shaderStage == vertex_shader) {
@@ -158,6 +162,7 @@ GLuint shaderCreate(ShaderStage shaderStage) {
    return shader;
 }
 
+//Create both the vertex and the fragment shader and combine them into a program
 GLuint shaderProgramCreate() {
 
    GLuint shaderProgram;
@@ -198,11 +203,13 @@ void shaderSetVec4(GLuint location, float* vec4) {
    glUniform4fv(location, 1, vec4);
 }
 
+//Returns the shader handle by name
 void shaderSetMat4UniformByName(GLuint program, const char* name, float* mat) {
    GLuint location = shaderGetUniform(program, name);
    shaderSetMat4(location, mat);
 }
 
+//Used for adjusting the camera, texture coordinates, and positions in the shader
 void shaderSetVec4UniformByName(GLuint program, const char* name, float* vec4) {
    GLuint location = shaderGetUniform(program, name);
    shaderSetVec4(location, vec4);
@@ -217,6 +224,27 @@ void shaderDestroyProgram(GLuint program) {
    glDeleteProgram(program);
 }
 
+//Create a texture, use STBI to load an image and bind it to the texture
+Texture* textureLoadFromFile(const char* filename) {
+   int width, height;  //retrieve height and width of image
+   int nChannels; //get number of channels
+   int reqChannels = 4;  //required number of channels
+
+   stbi_set_flip_vertically_on_load(true);  //my images are upside down :)
+   unsigned char* image = stbi_load(filename, &width, &height, &nChannels, reqChannels);
+   if (!image) {
+      printf("Failed to load image: %s...\n", filename);
+      return nullptr;
+   }
+
+   Texture* texture = textureCreate(image, width, height);  //create texture using image data
+
+   stbi_image_free(image);
+
+   return texture;
+}
+
+//Create a new texture and return the pointer to it
 Texture* textureCreate(unsigned char* image, int width, int height) {
    Texture* texture = new Texture;
 
@@ -237,7 +265,7 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  //Linear interpolation instead of nearest pixel when magnify (blurs)
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  //same for shrink
 
-   int internalFormat = GL_RGBA8;  //RGBA with one byte per component?
+   int internalFormat = GL_RGBA8;  //RGBA with one byte per component
    int colorFormat = GL_RGBA;
 
    //type of texture, pixel components, width, height, pixel stuff, type of data, raw bytes
@@ -247,6 +275,7 @@ Texture* textureCreate(unsigned char* image, int width, int height) {
    return texture;
 }
 
+//This changes the texture interpolation method when scaling (linear interpolation versus nearest pixel)
 void textureChangeInterp(Texture* texture, bool nearest = false) {
 
    int flag = GL_LINEAR;
@@ -263,6 +292,24 @@ void textureChangeInterp(Texture* texture, bool nearest = false) {
    glBindTexture(GL_TEXTURE_2D, 0);  //unbind it
 }
 
+//This is for changing where the texture is sampled from the original image
+void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH) {
+
+   Mat4x4 projection = textureOriginToWorld(game, texture->w, texture->h);
+   Mat4x4 device = worldToTextureCoords(game, texture->w, texture->h);
+
+   Vec2 scale = { (float)sourceW / texture->w, (float)sourceH / texture->h };
+   Vec2 dest = { sourceX, sourceY };
+
+   Mat4x4 transform = transformMatrix(dest, 0.0f, scale);
+
+   Mat4x4 intermediate = multiplyMatrix(transform, projection);
+   Mat4x4 mat = multiplyMatrix(device, intermediate);
+
+   shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
+}
+
+//Destroy a texture using its pointer
 void textureDestroy(Texture* texture) {
    if (!texture) { return; }
 
@@ -270,25 +317,7 @@ void textureDestroy(Texture* texture) {
    delete texture;
 }
 
-Texture* textureLoadFromFile(const char* filename) {
-   int width, height;  //retrieve height and width of image
-   int nChannels; //get number of channels
-   int reqChannels = 4;  //required number of channels
-
-   stbi_set_flip_vertically_on_load(true);  //my images are upside down :)
-   unsigned char* image = stbi_load(filename, &width, &height, &nChannels, reqChannels);
-   if (!image) {
-      printf("Failed to load image: %s...\n", filename);
-      return nullptr;
-   }
-
-   Texture* texture = textureCreate(image, width, height);  //create texture using image data
-
-   stbi_image_free(image);
-
-   return texture;
-}
-
+//Create a mesh (VBO), set its attributes and return the pointer to it
 Mesh* meshCreate() {
 
    Mesh* mesh = new Mesh;
@@ -331,74 +360,50 @@ Mesh* meshCreate() {
    return mesh;
 };
 
-//This makes the mesh darker (for disabled tiles)
-static void meshEffectDarken(Board* board, VisualEffect effect, int effectTime) {
-   float vec4[] = { 1.0, 1.0, 1.0, 1.0 };
-
-   if (effect == visual_dark) {
-      for (int i = 0; i < 4; i++) {
-         vec4[i] = 0.8;
-      }
-   }
-   else if (effect == visual_countdown) {
-      for (int i = 0; i < 4; i++) {
-         float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 4) / board->game->timings.removeClear[0];
-         vec4[i] = val < 0 ? 0 : val;
-      }
-   }
-   shaderSetVec4UniformByName(resourcesGetShader(board->game), "colorTrans", vec4);
-}
-
-//These are special effects like smooth tile swapping and shake on landing
-static void meshEffectDisplace(Board* board, VisualEffect effect, int effectTime) {
-
-   Mat4x4 mat = identityMatrix();
-   Vec2 move = { 0.0f , 0.0f };
-   bool moved = false;
-
-   //Swapping interpolated movement
-   if (effect == visual_swapr) {
-      move.x -= board->tileWidth * (effectTime - board->game->timer)/ SWAPTIME;
-      moved = true;
-   }
-   else if (effect == visual_swapl) {
-      move.x += board->tileWidth * (effectTime - board->game->timer) / SWAPTIME;
-      moved = true;
-   }
-
-   //Tremble on garbage landing
-   if (board->visualEvents[visual_shake].active == true) { 
-      move.y += sin(board->game->timer); 
-      moved = true;
-   }
-
-   if (moved == true) { mat = transformMatrix(move, 0.0f, { 1, 1 }); }
-
-   shaderSetMat4UniformByName(resourcesGetShader(board->game), "uCamera", mat.values);
+void meshSetDrawRect(DrawInfo &info, float x, float y, int w, int h, int rot) {
+   info.rect.x = x;
+   info.rect.y = y;
+   info.rect.h = h;
+   info.rect.w = w;
+   info.rot = rot;
 }
 
 //Texture a mesh, transform it to the correct position, and draw it
-void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect, int effectTime) {
+void meshDraw(Game* game, Texture* texture, DrawInfo info) {
 
-   //Vec2 scale = { destW / width, destH / height};
-   Vec2 scale = { destW / board->game->windowWidth, destH / board->game->windowHeight};
-   Vec2 dest = {round(destX) , round(destY)};  //rounding here feels bad for the vibration issue
+   //Determine scale of mesh on texture/mesh on screen
+   Vec2 scale = { info.rect.w / game->windowWidth, info.rect.h / game->windowHeight};
+   Vec2 dest = {round(info.rect.x) , round(info.rect.y)};  //rounding here feels bad for the vibration issue
+   Mat4x4 transform = transformMatrix(dest, info.rot, scale);
    
-   Mat4x4 mat = transformMatrix(dest, 0.0f, scale);
-   shaderSetMat4UniformByName(resourcesGetShader(board->game), "transform", mat.values);
-   
-   meshEffectDarken(board, effect, effectTime);
-   meshEffectDisplace(board, effect, effectTime);
+   //Determine mesh displacement
+   Mat4x4 displace = identityMatrix();
+   if (info.cam.x != 0 || info.cam.y != 0) {
+      displace = transformMatrix(info.cam, 0.0f, { 1, 1 });
+   }
 
-   glBindBuffer(GL_ARRAY_BUFFER, board->mesh->vbo);
+   //Set Uniforms in Shaders by name
+   shaderSetMat4UniformByName(resourcesGetShader(game), "transform", transform.values);
+   shaderSetVec4UniformByName(resourcesGetShader(game), "colorTrans", info.color);
+   shaderSetMat4UniformByName(resourcesGetShader(game), "uCamera", displace.values);
+
+   glBindBuffer(GL_ARRAY_BUFFER, game->mesh->vbo);
    glBindTexture(GL_TEXTURE_2D, texture->handle);
    
-   glDrawArrays(GL_TRIANGLES, 0, board->mesh->ptCount);
+   glDrawArrays(GL_TRIANGLES, 0, game->mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 }
 
+//Destroy the mesh using its opaque pointer
+Mesh* meshDestroy(Mesh* mesh) {
+   if (mesh) {
+      glDeleteBuffers(1, &mesh->vbo);
+      delete mesh;
+   }
+   return nullptr;
+}
+
 //Create an Animation setup for a texture sheet
-//delay is the delay between frames, stride is the distance to the next frame in the sheet, rowStart is if there are stacks of images
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated) {
    Animation* animation = new Animation;
 
@@ -415,19 +420,19 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 }
 
 //Sample a texture sheet and draw the correct frame of the animation using the time
-void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH) {
+void animationDraw(Game* game, Animation* animation, DrawInfo info) {
 
-   int currentFrame = (board->game->timer / animation->delay) % animation->frames;
+   int currentFrame = (game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 
    if (animation->animated == true) {
-      textureTransform(board->game, animation->texture, src.x, src.y, size.x, size.y);
+      textureTransform(game, animation->texture, src.x, src.y, size.x, size.y);
    }
 
-   meshDraw(board, animation->texture, destX, destY, destW, destH);
+   meshDraw(game, animation->texture, info);
 
-   textureTransform(board->game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
+   textureTransform(game, animation->texture, 0, 0, animation->texture->w, animation->texture->h);  //set the texture transform back
 }
 
 //Delete an Animation and free the memory
@@ -438,31 +443,8 @@ Animation* animationDestroy(Animation* animation) {
    return nullptr;
 }
 
-//This is for changing where the texture is sampled from the original image
-void textureTransform(Game* game, Texture* texture, float sourceX, float sourceY, int sourceW, int sourceH) {
-
-   Mat4x4 projection = textureOriginToWorld(game, texture->w, texture->h);
-   Mat4x4 device = worldToTextureCoords(game, texture->w, texture->h);
-
-   Vec2 scale = { (float)sourceW / texture->w, (float)sourceH / texture->h };
-   Vec2 dest = { sourceX, sourceY };
-
-   Mat4x4 transform = transformMatrix(dest, 0.0f, scale);
-
-   Mat4x4 intermediate = multiplyMatrix(transform, projection);
-   Mat4x4 mat = multiplyMatrix(device, intermediate);
-
-   shaderSetMat4UniformByName(resourcesGetShader(game), "texMatrix", mat.values);
-}
-
-Mesh* meshDestroy(Mesh* mesh) {
-   if (mesh) {
-      glDeleteBuffers(1, &mesh->vbo);
-      delete mesh;
-   }
-   return nullptr;
-}
-
+//Uses a shader uniform to set the "projection" matrix in the vertex shader
+//Converts coordinates from the starting position to the window (board) coordinates
 void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
@@ -486,6 +468,8 @@ void originToWorld(Game* game, float xOrigin, float yOrigin, float width, float 
    shaderSetMat4UniformByName(resourcesGetShader(game), "projection", mat.values);
 }
 
+//Uses a shader uniform to set the "device coordinates" matrix in the vertex shader
+//Converts coordinates window coordinates to GL screen (device) coordinates
 void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float height) {
 
    //device coordinates
@@ -507,6 +491,7 @@ void worldToDevice(Game* game, float xOrigin, float yOrigin, float width, float 
    shaderSetMat4UniformByName(resourcesGetShader(game), "deviceCoords", mat.values);
 }
 
+//Converts window coordinates to device (screen) coordinates
 Mat4x4 worldToTextureCoords(Game* game, float width, float height) {
    //texture coordinates
    Vec2 botRight = { 1.0f, 0.0f };
@@ -527,6 +512,7 @@ Mat4x4 worldToTextureCoords(Game* game, float width, float height) {
    return mat;
 }
 
+//Converts texture starting coordinates (in mesh) to window coordinates
 Mat4x4 textureOriginToWorld(Game* game, float width, float height) {
 
    //device coordinates
@@ -549,11 +535,13 @@ Mat4x4 textureOriginToWorld(Game* game, float width, float height) {
    return mat;
 }
 
+//Fills the window with a uniform color
 void rendererClear(float r, float g, float b, float a) {
    glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT);
 }
 
+//Sets the size of the render space in the window... used to render each board to an FBO
 void rendererSetTarget(int originX, int originY, int width, int height) {
    //Set the top left corner of the viewerport rectangle
    glViewport(originX, originY, width, height);
@@ -571,6 +559,7 @@ void rendererCopyTo(Mesh* mesh) {
 
 }
 
+//Create a Frame Buffer Object of a given size
 FBO* rendererCreateFBO(Game* game, int width, int height) {
    FBO* fbo = new FBO;
    if (fbo) {

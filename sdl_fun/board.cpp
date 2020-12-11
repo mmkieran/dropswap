@@ -7,7 +7,10 @@
 #define LEVEL_UP 150.0f          //Rate of increase for board level based on tiles cleared
 
 void _checkClear(std::vector <Tile*> tiles, std::vector <Tile*> &matches);
+void _swapTiles(Tile* tile1, Tile* tile2);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
+void updateSprites(Board* board);
+void boardDrawSprites(Board* board);
 
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
@@ -161,13 +164,38 @@ void boardUpdate(Board* board) {
       if (board->game->settings.mode == multi_solo) {
          Board* ally = nullptr;
          for (auto&& index : board->allies) {  
-            //board->game->boards[index]->allies.erase(board->game->boards[index]->allies.begin() + board->index);  //erase my number from the allies list on my team
-            if (board->game->boards[index]->bust == false) { ally = board->game->boards[index]; }  //Find a living ally so I can transfer my cursor
+            if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
+               ally = board->game->boards[index]; 
+               break;
+            }  
          }
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
-               //todo add animation here... sword coming down?
-               Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
+               Sprite sprite;
+               int current = board->game->kt.getTime() / 1000;
+               float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
+               meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight/2, ally->tileWidth, ally->tileHeight, 0);
+
+               //Figure out where to drop the sword to
+               int col = (ally->w - 1) / 2;
+               int row = ally->startH - 2;
+               int lookDown = 2;
+               Tile* below = boardGetTile(ally, row, col);
+               while (below && below->type == tile_empty) {
+                  below = boardGetTile(ally, row + lookDown, col);
+                  lookDown++;
+               }
+
+               sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
+               sprite.dir = 180;
+               sprite.stop = current + 2000;
+               sprite.end = current + 4000;
+               sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
+               board->game->drawList.push_back(sprite);
+               board->game->waiting = true;
+               board->game->waitLength = 4000;
+
+               Cursor* cursor = cursorCreate(ally, below->xpos, below->ypos, board->cursors[i]->index);
                ally->cursors.push_back(cursor);
             }
          }
@@ -194,6 +222,7 @@ void boardUpdate(Board* board) {
          cursorUpdate(board, board->cursors[0], board->game->user.input);
       }
    }
+   updateSprites(board);
    boardRemoveVisuals(board);
 }
 
@@ -212,9 +241,12 @@ void boardRender(Game* game, Board* board) {
    }
    if (board->bust == false) {
       for (auto&& cursor : board->cursors) {
-         cursorDraw(board, cursor);
+         if (game->waiting == false) {
+            cursorDraw(board, cursor);
+         }
       }
    }
+   boardDrawSprites(board);
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
 }
@@ -1272,12 +1304,45 @@ void boardAI(Game* game) {
    }
 }
 
-void _tileInfo(Tile* tile) {
+void boardDrawSprites(Board* board) {
+   for (auto&& sprite : board->sprites) {
+      //Camera movements or mesh displacements
+      Vec2 move = { 0, 0 };
+      sprite.info.cam = move;
 
+      //Color transformations
+      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
+
+      if (sprite.render.animation != nullptr) {
+         animationDraw(board->game, sprite.render.animation, sprite.info);
+      }
+      else if (sprite.render.texture != nullptr) {
+         meshDraw(board->game, sprite.render.texture, sprite.info);
+      }
+   }
+}
+
+void updateSprites(Board* board) {
+   std::vector <Sprite> activeSprites;
+   for (auto&& sprite : board->sprites) {
+      if (sprite.end < board->game->timer) { continue; }
+      else {
+         Vec2 move = getXYDistance({ sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
+         sprite.info.rect.x += move.x;
+         sprite.info.rect.y += move.y;
+         activeSprites.push_back(sprite);
+      }
+   }
+   board->sprites = activeSprites;
+}
+
+void _tileInfo(Tile* tile) {
+   //This is for boardDebug so you can click the button and get a table of tile info
+   //I haven't done this though...
 }
 
 void boardDebug(Board* board, bool* p_open) {
-   if (!ImGui::Begin("Game Settings", p_open)) {
+   if (!ImGui::Begin("Debug tiles", p_open)) {
       ImGui::End();
       return;
    }

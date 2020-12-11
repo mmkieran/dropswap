@@ -31,4 +31,5 @@ Mat4x4 transformMatrix(Vec2 movement, float degreeAngle, Vec2 scale);
 
 void printMatrix(Mat4x4 test);
 
-double mathTrunc(double val, int places);
+double mathTrunc(double val, int places); 
+Vec2 getXYDistance(Vec2 pos, int angle, double dist);

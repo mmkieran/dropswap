@@ -216,6 +216,10 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <Image Include="assets\circle.png" />
     <Image Include="assets\cleared.png" />
     <Image Include="assets\cursor.png" />
+    <Image Include="assets\cursor_tag1.png" />
+    <Image Include="assets\cursor_tag2.png" />
+    <Image Include="assets\cursor_tag3.png" />
+    <Image Include="assets\cursor_tag4.png" />
     <Image Include="assets\diamond.png" />
     <Image Include="assets\dtriangle.png" />
     <Image Include="assets\empty.png" />
@@ -226,6 +230,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <Image Include="assets\metal.png" />
     <Image Include="assets\silver.png" />
     <Image Include="assets\star.png" />
+    <Image Include="assets\sword.png" />
     <Image Include="assets\utriangle.png" />
   </ItemGroup>
   <ItemGroup>

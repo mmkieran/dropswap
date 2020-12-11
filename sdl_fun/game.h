@@ -25,6 +25,7 @@ typedef unsigned char Byte;
 typedef struct FBO FBO;
 typedef struct Mesh Mesh;
 typedef struct ImFont ImFont;
+typedef struct Sprite Sprite;
 
 enum SoundEffect {
    sound_swap = 0,
@@ -116,6 +117,7 @@ struct Game {
    NetPlay* net;                                   //Used for multiplayer    
    std::map <int, ImFont*> fonts;                  //ImGui fonts stored by their size in the map
    std::vector <Board*> boards;                    //Boards for all players
+   std::vector <Sprite> drawList;                      //todo not used...for rendering textures outside the boards or when not playing a game
    Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
    std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
    int sounds = 0;                                 //Game sound toggle (0 is disabled)
@@ -137,7 +139,9 @@ struct Game {
    int players = 1;                                //How many players are in the game (not spectators)
    bool playing = false;                           //Is a game in progress
    int busted = -1;                                //Is the game over, but not closed
-   bool paused = false;                            //Is the game paused
+   int paused = 0;                                 //Is the game paused
+   bool waiting = false;                           //Is the game waiting for something
+   int waitLength = 0;                             //How long is the game waiting
    int timer = 0;                                  //Game clock in milliseconds
 };
 //@@End Serialize
@@ -159,6 +163,8 @@ void gameRender(Game* game);
 void gameDestroy(Game* game);
 
 void imguiRender(Game* game);
+void gameUpdateSprites(Game* game);
+void gameDrawSprites(Game* game);
 
 void gameStartMatch(Game* game);
 void gameEndMatch(Game* game);
@@ -169,3 +175,6 @@ void gameAI(Game* game);
 
 void gameSwapWindow(Game* game);
 void sdlSetVsync(Game* game, bool toggle);
+
+void gameUpdateSprites(Game* game);
+void gameDrawSprites(Game* game);

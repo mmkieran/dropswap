@@ -28,12 +28,14 @@ enum TextureEnum {
    Texture_cursor2,
    Texture_cursor3,
    Texture_cursor4,
+   Texture_sword,
    Texture_COUNT  //this one is used to get the count of all the textures
 };
 
 struct Mesh;
 struct Texture;
 struct FBO;
+struct Graphic;
 
 struct Animation {
    Texture* texture = nullptr;
@@ -52,12 +54,24 @@ struct Graphic {
    Animation* animation = nullptr;
 };
 
+struct Rect {
+   float x, y;                                  //Top left corner of rectangle
+   int h, w;                                    //Rectangle height and width
+};
+
+struct DrawInfo {
+   Rect rect;                                   //Determines the size of the mesh square
+   int rot = 0;                                 //Rotation of mesh
+   Vec2 cam = { 0, 0 };                         //Has the camera moved it
+   float color[4] = { 0,0,0,0 };                //Does it have color transformations applied
+};
+
 struct Sprite {
-   double x = 0;                                //X position of the sprite
-   double y = 0;                                //Y position of the sprite
-   int rotate = 0;                              //Clockwise angle from up (0) that the sprite is rotated
-   double speed = 0;                            //Pixel speed the sprite is moving
+   DrawInfo info;
+   int dir = 0;                                 //Clockwise angle from up (0) that the sprite is heading 
+   float speed = 0;                            //Pixel speed the sprite is moving
    Graphic render;                              //Struct to hold texture or animation pointer
+   int stop = 0;
    int end = 0;                                 //Time in milliseconds when it will die
 };
 
@@ -125,10 +139,11 @@ void textureDestroy(Texture* texture);
 
 Mesh* meshCreate();
 Mesh* meshDestroy(Mesh* mesh);
-void meshDraw(Board* board, Texture* texture, float destX, float destY, int destW, int destH, VisualEffect effect = visual_none, int effectTime = 0);
+void meshSetDrawRect(DrawInfo &info, float x, float y, int w, int h, int rot);
+void meshDraw(Game* game, Texture* texture, DrawInfo info);
 
 Animation* animationCreate(int frames, int delay, int stride, int rowStart, int width, int height, bool animated);
-void animationDraw(Board* board, Animation* animation, float destX, float destY, int destW, int destH);
+void animationDraw(Game* game, Animation* animation, DrawInfo info);
 Animation* animationDestroy(Animation* animation);
 
 void rendererSetTarget(int botLeftX, int botLeftY, int width, int height);

@@ -52,6 +52,8 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->players);
    writeStream(stream, game->playing);
    writeStream(stream, game->paused);
+   writeStream(stream, game->waiting);
+   writeStream(stream, game->waitLength);
    writeStream(stream, game->busted);
    writeStream(stream, game->frameCount);
    writeStream(stream, game->timer);
@@ -72,6 +74,8 @@ void _gameDeserialize(Byte* &start, Game* game) {
    readStream(start, game->players);
    readStream(start, game->playing);
    readStream(start, game->paused);
+   readStream(start, game->waiting);
+   readStream(start, game->waitLength);
    readStream(start, game->busted);
    readStream(start, game->frameCount);
    readStream(start, game->timer);

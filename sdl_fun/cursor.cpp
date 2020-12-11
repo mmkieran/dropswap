@@ -59,6 +59,15 @@ int cursorGetCol(Board* board, Cursor* cursor) {
 
 //Draw the cursor on the board with a tag for the player number
 void cursorDraw(Board* board, Cursor* cursor) {
+   DrawInfo info;
+
+   //Camera movements or mesh displacements
+   Vec2 move = { 0, 0 };
+   info.cam = move;
+
+   //Color transformations
+   for (int i = 0; i < 4; i++) { info.color[i] = 1.0; }
+
    //Draw the cursor tag in the correct position
    double xOffset, yOffset;
    if ((cursor->index + 1) % 2 != 0) {
@@ -69,19 +78,21 @@ void cursorDraw(Board* board, Cursor* cursor) {
       xOffset = cursor->x - board->tileWidth / 6;
       yOffset = cursor->y - board->tileHeight / 6;
    }
-   //todo make cursors tags draw on the right if there are two
+  
    if (cursor->mode == 1) {
       Tile* target = board->tileLookup[cursor->dropList[1]];
       if (target) {
          xOffset = target->xpos - board->tileWidth / 6;
          yOffset = target->ypos - board->tileHeight / 6;
-         meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2);
       }
    }
-   else {
-      animationDraw(board, cursor->animation, cursor->x, cursor->y, cursor->w, cursor->h);
-      meshDraw(board, cursor->texture, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2);
+   else {  //Draw cursor animation only in swapping mode
+      meshSetDrawRect(info, cursor->x, cursor->y, cursor->w, cursor->h, 0);
+      animationDraw(board->game, cursor->animation, info);
    }
+   //Draw Cursor tag
+   meshSetDrawRect(info, xOffset, yOffset, board->tileWidth / 2, board->tileHeight / 2, 0);
+   meshDraw(board->game, cursor->texture, info);
 }
 
 
