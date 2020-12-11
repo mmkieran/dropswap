@@ -212,6 +212,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    soundsInit();  //Initialize SoLoud components
 
    resourcesGetName(game);
+   game->settings.replay.resize(5 * 60 * 60);  //4replay make sure the replay size is reasonable, may need to expand
 
    return game;
 }
@@ -302,10 +303,12 @@ void gameUpdate(Game* game) {
    }
    //todo add game visual logic somewhere in here?
    gameUpdateSprites(game);
-   if (game->waiting == false) {
-      //4replay
-      game->settings.replay[game->frameCount].input = game->user.input;
+   //4replay
+   if (game->settings.mode == single_player && game->settings.replaying == false) {
+      game->settings.replay[game->frameCount].input = game->user.input;  //todo we should copy all player inputs...
       game->settings.replay[game->frameCount].frame = game->frameCount;
+   }
+   if (game->waiting == false) {
       game->frameCount++;  //Increment frame count
       game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
    }
@@ -438,6 +441,7 @@ void gameEndMatch(Game* game) {
    game->teams.clear();
    game->playing = false;
    game->paused = false;
+   game->settings.replaying = false;
    game->frameCount = 0;
    game->timer = 0;
    game->busted = -1;

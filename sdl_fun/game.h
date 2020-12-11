@@ -108,7 +108,8 @@ struct GameSettings {
    GameMode mode = single_player;         //The currently game mode setting, multi_solo is separate boards for each player
 
    std::vector <unsigned char> save;      //todo this is broken and doesn't belong here... This holds the state saves
-   std::vector <Replay> replay;       //Used to store a replay
+   std::vector <Replay> replay;           //Used to store a replay
+   bool replaying = false;                //Are we viewing a replay?
 };
 
 //@@Start Serialize

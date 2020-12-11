@@ -12,6 +12,7 @@
 #include <thread>
 
 void ggpoSessionUI(Game* game, bool* p_open);
+void singlePlayerGame(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
@@ -141,11 +142,11 @@ void mainUI(Game* game) {
    }
 
    if (game->playing == false) {
+      static bool singlePlayer = false;
       if (ImGui::Button("One Player", ImVec2{ width, 0 })) {
-         game->players = 1;
-         game->settings.mode = single_player;
-         gameStartMatch(game);
+         singlePlayer = true;
       }
+      if (singlePlayer) { singlePlayerGame(game, &singlePlayer); }
       ImGui::NewLine();
 
       static bool showConnectionType = false;
@@ -176,6 +177,32 @@ void mainUI(Game* game) {
    }
 
    ImGui::PopFont();
+   ImGui::End();
+}
+
+void singlePlayerGame(Game* game, bool* p_open) {
+   centerWindow(game, { 600, 500 });
+   if (!ImGui::Begin("Single Player", p_open, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::NewLine();
+   float width = ImGui::GetWindowContentRegionWidth();
+   if (ImGui::Button("Practice", ImVec2{ width, 0 })) {
+      game->players = 1;
+      game->settings.mode = single_player;
+      gameStartMatch(game);
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
+      game->settings.replaying = true;
+      game->players = 1;
+      game->settings.mode = single_player;
+      gameStartMatch(game);
+   }
+
    ImGui::End();
 }
 
