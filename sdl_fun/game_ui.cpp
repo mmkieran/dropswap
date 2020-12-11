@@ -1091,6 +1091,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
    //If the GGPO session is started launch the connecting modal window
    if (game->playing == false && game->net->ggpo) {
       popupEnable(Popup_Connecting);
+      popupDisable(Popup_GameSetup);
    }
    ggpoReadyModal(game);
 
@@ -1171,6 +1172,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    if (serverStatus > server_started) {  //Once we start listening on our socket pop up a modal with status/info
       popupEnable(Popup_GameSetup);
    }
+   else { popupDisable(Popup_GameSetup); }
 
    if (popupOpen(Popup_GameSetup) == true) {
       //ImGui::SetNextWindowSize({ 700, 700 }, ImGuiCond_Once);
@@ -1271,6 +1273,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    //If the GGPO session is started launch the connecting modal window
    if (game->playing == false && game->net->ggpo) {
       popupEnable(Popup_Connecting);
+      popupDisable(Popup_GameSetup);
    }
    ggpoReadyModal(game);
    ImGui::End();
