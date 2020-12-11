@@ -11,6 +11,7 @@ void _swapTiles(Tile* tile1, Tile* tile2);
 void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo);
 void updateSprites(Board* board);
 void boardDrawSprites(Board* board);
+void boardBust(Board* board);
 
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
@@ -131,26 +132,7 @@ static double _calcFall(Board* board, bool garbage = false) {
    return fallSpeed;
 }
 
-//Update all tiles that are moving, falling, cleared, etc.
-void boardUpdate(Board* board) {
-   boardRemoveClears(board);
-
-   if (board->pauseLength > 0) {
-      board->pauseLength -= 1000/60;  //Static FPS for now to ease syncing
-
-      if (board->pauseLength <= 0) {
-         board->paused = false;
-         board->pauseLength = 0;
-      }
-   }
-   else {board->paused = false; }
-
-   if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
-      if (board->paused == false && board->waitForClear == false) {
-         boardMoveUp(board, _calcMove(board));
-      }
-   }
-
+void boardBust(Board* board) {
    if (board->danger == true && board->paused == false) {
       board->bust = true;
       for (int row = 0; row < board->wBuffer; row++) {
@@ -163,18 +145,18 @@ void boardUpdate(Board* board) {
       //Logic to transfer my cursor to my allies board
       if (board->game->settings.mode == multi_solo) {
          Board* ally = nullptr;
-         for (auto&& index : board->allies) {  
+         for (auto&& index : board->allies) {
             if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
-               ally = board->game->boards[index]; 
+               ally = board->game->boards[index];
                break;
-            }  
+            }
          }
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
                Sprite sprite;
                int current = board->game->kt.getTime() / 1000;
                float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
-               meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight/2, ally->tileWidth, ally->tileHeight, 0);
+               meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight / 2, ally->tileWidth, ally->tileHeight, 0);
 
                //Figure out where to drop the sword to
                int col = (ally->w - 1) / 2;
@@ -201,6 +183,30 @@ void boardUpdate(Board* board) {
          }
       }
    }
+}
+
+//Update all tiles that are moving, falling, cleared, etc.
+void boardUpdate(Board* board) {
+   boardRemoveClears(board);
+
+   if (board->pauseLength > 0) {
+      board->pauseLength -= 1000/60;  //Static FPS for now to ease syncing
+
+      if (board->pauseLength <= 0) {
+         board->paused = false;
+         board->pauseLength = 0;
+      }
+   }
+   else {board->paused = false; }
+
+   if (board->game->timer > board->game->timings.countIn[0]) {  //2 second count in to start
+      if (board->paused == false && board->waitForClear == false) {
+         boardMoveUp(board, _calcMove(board));
+      }
+   }
+
+   boardBust(board);
+
    boardFall(board, _calcFall(board));  
    garbageFall(board, _calcFall(board, true));  
    garbageDeploy(board);
