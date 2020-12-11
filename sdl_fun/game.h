@@ -86,6 +86,12 @@ struct Player {
    bool dead = false;
 };
 
+struct Replay {
+   bool changed = false;
+   int frame = 0;
+   UserInput input;              
+};
+
 enum GameMode {
    multi_solo = 0,                  //Individual boards
    multi_shared,                    //Shared board
@@ -102,6 +108,7 @@ struct GameSettings {
    GameMode mode = single_player;         //The currently game mode setting, multi_solo is separate boards for each player
 
    std::vector <unsigned char> save;      //todo this is broken and doesn't belong here... This holds the state saves
+   std::vector <Replay> replay;       //Used to store a replay
 };
 
 //@@Start Serialize

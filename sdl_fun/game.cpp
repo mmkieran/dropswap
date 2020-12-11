@@ -303,6 +303,9 @@ void gameUpdate(Game* game) {
    //todo add game visual logic somewhere in here?
    gameUpdateSprites(game);
    if (game->waiting == false) {
+      //4replay
+      game->settings.replay[game->frameCount].input = game->user.input;
+      game->settings.replay[game->frameCount].frame = game->frameCount;
       game->frameCount++;  //Increment frame count
       game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
    }
