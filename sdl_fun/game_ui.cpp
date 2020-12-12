@@ -198,8 +198,6 @@ void singlePlayerGame(Game* game, bool* p_open) {
    ImGui::NewLine();
    if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
       game->settings.replaying = true;
-      game->players = 1;
-      game->settings.mode = single_player;
       gameStartMatch(game);
    }
 

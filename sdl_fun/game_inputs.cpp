@@ -100,7 +100,7 @@ void processInputs(Game* game) {
    inputProcessController(game); 
    resetButtonStates(game);
    if (game->settings.replaying == true) {
-      game->user.input = game->settings.replay[game->frameCount].input;
+      game->user.input = game->settings.repInputs[game->frameCount].input;
    }
    else {
       game->user.input = userInput;

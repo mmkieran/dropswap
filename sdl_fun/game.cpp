@@ -23,6 +23,7 @@
 #include "sounds.h"
 
 #define GAME_COUNTIN 2000
+#define REPLAY_SIZE 5 * 60 * 60
 
 std::thread upnpThread;
 
@@ -212,7 +213,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    soundsInit();  //Initialize SoLoud components
 
    resourcesGetName(game);
-   game->settings.replay.resize(5 * 60 * 60);  //4replay make sure the replay size is reasonable, may need to expand
+   game->settings.repInputs.resize(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
 
    return game;
 }
@@ -305,8 +306,15 @@ void gameUpdate(Game* game) {
    gameUpdateSprites(game);
    //4replay
    if (game->settings.mode == single_player && game->settings.replaying == false) {
-      game->settings.replay[game->frameCount].input = game->user.input;  //todo we should copy all player inputs...
-      game->settings.replay[game->frameCount].frame = game->frameCount;
+      if (game->frameCount <= game->settings.repInputs.size() - 1) {
+         game->settings.repInputs[game->frameCount].input = game->user.input;  //todo we should copy all player inputs...
+         game->settings.repInputs[game->frameCount].frame = game->frameCount;
+      }
+      else if (game->frameCount > game->settings.repInputs.size()) {
+         Replay replay;
+         replay.input = game->user.input;
+         game->settings.repInputs.push_back(replay);
+      }
    }
    if (game->waiting == false) {
       game->frameCount++;  //Increment frame count
@@ -323,6 +331,15 @@ void gameSinglePlayer(Game* game) {
    gameUpdate(game);
 }
 
+//Process replay inputs and update game
+void gameReplay(Game* game) {
+   if (game->playing == false) { return; }
+   processInputs(game);
+   //if (game->ai == true) { gameAI(game); }
+   //gameCheckPause(game, game->user.input);
+   gameUpdate(game);
+}
+
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
    if (game->players == 1) { game->seed = time(0); }
@@ -336,11 +353,17 @@ void gameStartMatch(Game* game) {
 
    int boardCount = 0;
    int myBoard = 0;
+   if (game->settings.replaying == true) {
+      loadReplay(game);  //4replay hard coded to load from repFile
+      game->busted = -1;
+   }
    if (game->settings.mode == single_player) {
-      strcpy(game->pList[1].name, game->user.name);
-      game->user.number = 1;  //Maybe move this to a 1 player UI window later
-      game->pList[1].team = 0;
-      game->pList[1].level = game->user.level;
+      if (game->settings.replaying == false) {
+         strcpy(game->pList[1].name, game->user.name);
+         game->user.number = 1;  //Maybe move this to a 1 player UI window later
+         game->pList[1].team = 0;
+         game->pList[1].level = game->user.level;
+      }
       boardCount = 1;
       myBoard = 0;
    }
@@ -435,6 +458,12 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
+   if (game->settings.saveReplays == true) {
+      game->settings.repFile = createReplay(game);  //4replays
+      game->settings.repInputs.clear();
+      game->settings.repInputs.resize(REPLAY_SIZE);
+   }
+
    game->pList.clear();
    game->user.number = 1;
    game->boards.clear();

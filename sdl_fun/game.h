@@ -100,16 +100,18 @@ enum GameMode {
 };
 
 struct GameSettings {
-   int bHeight = 12;                      //The height of the (visible) board
-   int bWidth = 6;                        //The width of the (visible) board
-   int tWidth = 32;                       //The width in pixels of tile
-   int tHeight = 32;                      //The height in pixels of a tile
+   int bHeight = 12;                               //The height of the (visible) board
+   int bWidth = 6;                                 //The width of the (visible) board
+   int tWidth = 32;                                //The width in pixels of tile
+   int tHeight = 32;                               //The height in pixels of a tile
 
-   GameMode mode = single_player;         //The currently game mode setting, multi_solo is separate boards for each player
+   GameMode mode = single_player;                  //The currently game mode setting, multi_solo is separate boards for each player
 
-   std::vector <unsigned char> save;      //todo this is broken and doesn't belong here... This holds the state saves
-   std::vector <Replay> replay;           //Used to store a replay
-   bool replaying = false;                //Are we viewing a replay?
+   std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
+   std::vector <unsigned char> repFile;            //todo temp storage for replay
+   std::vector <Replay> repInputs;                 //Used to store the inputs for a replay
+   bool replaying = false;                         //Are we viewing a replay?
+   bool saveReplays = true;                        //Do we want to save replays?
 };
 
 //@@Start Serialize
@@ -165,6 +167,7 @@ void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
 void gameSinglePlayer(Game* game);
+void gameReplay(Game* game);
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 

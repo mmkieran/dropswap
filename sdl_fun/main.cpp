@@ -25,8 +25,9 @@ int main(int argc, char* args[]) {
 
       bool bust = gameCheckBust(game);
       if (bust == false) {
-         if (game->players > 1) { gameRunFrame(); }
-         else if (game->players == 1) { gameSinglePlayer(game); }
+         if (game->settings.replaying == true) { gameReplay(game); }
+         else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
+         else if (game->settings.mode == single_player) { gameSinglePlayer(game); }
       }
       imguiRender(game);  //imgui windows, the board, cursor, and other things 
       

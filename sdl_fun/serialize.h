@@ -26,3 +26,6 @@ FILE* gameSaveState(Game* game, const char* filename);
 
 void serializeMultiSetup(Game* game, std::vector <Byte>& stream);
 void deserializeMultiSetup(Game* game, Byte*& start);
+
+std::vector <Byte> createReplay(Game* game);
+void loadReplay(Game* game);

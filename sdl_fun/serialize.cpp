@@ -737,10 +737,10 @@ std::vector <Byte> createReplay(Game* game) {
    _serializeGameTiming(stream, game);
    _serializeGameUser(stream, game);
 
-   int count = game->settings.replay.size();
+   int count = game->settings.repInputs.size();
    writeStream(stream, count);
    for (int i = 0; i < count; i++) {
-      writeStream(stream, game->settings.replay[i].input);
+      writeStream(stream, game->settings.repInputs[i].input);
    }
 
    return stream;
@@ -748,9 +748,10 @@ std::vector <Byte> createReplay(Game* game) {
 
 //Load a replay from a file
 void loadReplay(Game* game) {
-   std::vector <Byte> stream;
+   //std::vector <Byte> stream;
 
-   unsigned char* start = stream.data();
+   //unsigned char* start = stream.data();
+   unsigned char* start = game->settings.repFile.data();  //todo hard code for now
 
    _gameDeserialize(start, game);
    _deserializePlayerList(start, game);
@@ -760,6 +761,6 @@ void loadReplay(Game* game) {
    int count = 0;
    readStream(start, count);
    for (int i = 0; i < count; i++) {
-      readStream(start, game->settings.replay[i].input);
+      readStream(start, game->settings.repInputs[i].input);
    }
 }
