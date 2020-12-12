@@ -300,7 +300,7 @@ void gameUpdate(Game* game) {
          boardUpdate(game->boards[i]);
       }
    }
-   //todo add game visual logic somewhere in here?
+
    gameUpdateSprites(game);
    if (game->waiting == false) {
       game->frameCount++;  //Increment frame count

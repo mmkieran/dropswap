@@ -622,8 +622,28 @@ int gameLoadState(Game* game, const char* path) {
    return 1;
 }
 
+void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
+   writeStream(stream, game->timings.gracePeriod[0]);
+   writeStream(stream, game->timings.fallDelay[0]);
+   writeStream(stream, game->timings.removeClear[0]);
+   writeStream(stream, game->timings.enterSilver[0]);
+   writeStream(stream, game->timings.countIn[0]);
+   writeStream(stream, game->timings.landPause[0]);
+   writeStream(stream, game->timings.deployTime[0]);
+}
+
+void _deserializeGameTiming(Game* game, Byte*& start) {
+   readStream(start, game->timings.gracePeriod[0]);
+   readStream(start, game->timings.fallDelay[0]);
+   readStream(start, game->timings.removeClear[0]);
+   readStream(start, game->timings.enterSilver[0]);
+   readStream(start, game->timings.countIn[0]);
+   readStream(start, game->timings.landPause[0]);
+   readStream(start, game->timings.deployTime[0]);
+}
+
 //Serialize hostSetup (port numbers, ips, player number, game info) so we can send it over tcp
-void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
+void serializeMultiSetup(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->net->participants);
    int mode = (int)game->settings.mode;
    writeStream(stream, mode);
@@ -637,21 +657,15 @@ void serializeGameSetup(Game* game, std::vector <Byte>& stream) {
       writeStream(stream, game->net->hostSetup[i].team);
       writeStream(stream, game->net->hostSetup[i].id);
       writeStream(stream, game->net->hostSetup[i].level);
-
-      writeStream(stream, game->net->frameDelay[0]);
-      writeStream(stream, game->net->disconnectTime[0]);
-
-      writeStream(stream, game->timings.gracePeriod[0]);
-      writeStream(stream, game->timings.fallDelay[0]);
-      writeStream(stream, game->timings.removeClear[0]);
-      writeStream(stream, game->timings.enterSilver[0]);
-      writeStream(stream, game->timings.countIn[0]);
-      writeStream(stream, game->timings.landPause[0]);
-      writeStream(stream, game->timings.deployTime[0]);
    }
+
+   writeStream(stream, game->net->frameDelay[0]);
+   writeStream(stream, game->net->disconnectTime[0]);
+
+   _serializeGameTiming(game, stream);
 }
 
-void deserializeGameSetup(Game* game, Byte*& start) {
+void deserializeMultiSetup(Game* game, Byte*& start) {
    readStream(start, game->net->participants);
    int mode = 0;
    readStream(start, mode);
@@ -666,16 +680,10 @@ void deserializeGameSetup(Game* game, Byte*& start) {
       readStream(start, game->net->hostSetup[i].team);
       readStream(start, game->net->hostSetup[i].id);
       readStream(start, game->net->hostSetup[i].level);
-
-      readStream(start, game->net->frameDelay[0]);
-      readStream(start, game->net->disconnectTime[0]);
-
-      readStream(start, game->timings.gracePeriod[0]);
-      readStream(start, game->timings.fallDelay[0]);
-      readStream(start, game->timings.removeClear[0]);
-      readStream(start, game->timings.enterSilver[0]);
-      readStream(start, game->timings.countIn[0]);
-      readStream(start, game->timings.landPause[0]);
-      readStream(start, game->timings.deployTime[0]);
    }
+
+   readStream(start, game->net->frameDelay[0]);
+   readStream(start, game->net->disconnectTime[0]);
+
+   _deserializeGameTiming(game, start);
 }
