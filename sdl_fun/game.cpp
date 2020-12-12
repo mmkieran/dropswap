@@ -301,7 +301,7 @@ void gameUpdate(Game* game) {
          boardUpdate(game->boards[i]);
       }
    }
-   //todo add game visual logic somewhere in here?
+
    gameUpdateSprites(game);
    //4replay
    if (game->settings.mode == single_player && game->settings.replaying == false) {

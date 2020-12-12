@@ -711,7 +711,7 @@ void tcpServerLoop(u_short port, int people, ServerStatus &status, bool& running
          for (int i = 0; i < connections; i++) {
             if (sockets[i].status != sock_sent) {
                matchInfo = gameSave(game);  //Serialize the game settings
-               serializeGameSetup(game, matchInfo);  //Serialize the host setup
+               serializeMultiSetup(game, matchInfo);  //Serialize the host setup
                if (sendMsg(sockets[i].sock, (char*)matchInfo.data(), matchInfo.size()) == false) {
                   done = false;
                }
@@ -808,7 +808,7 @@ SocketInfo getSocket(int index) {
 static void readGameData() {
    unsigned char* gData = (unsigned char*)sockets[-1].recBuff;
    gameLoad(game, gData);
-   deserializeGameSetup(game, gData);
+   deserializeMultiSetup(game, gData);
 }
 
 void _connectionInfo() {

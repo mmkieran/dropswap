@@ -24,5 +24,5 @@ std::vector <Byte> gameSave(Game* game);
 int gameLoadState(Game* game, const char* path);
 FILE* gameSaveState(Game* game, const char* filename);
 
-void serializeGameSetup(Game* game, std::vector <Byte>& stream);
-void deserializeGameSetup(Game* game, Byte*& start);
+void serializeMultiSetup(Game* game, std::vector <Byte>& stream);
+void deserializeMultiSetup(Game* game, Byte*& start);
