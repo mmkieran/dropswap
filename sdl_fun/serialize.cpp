@@ -38,7 +38,7 @@ void readStream(Byte* &stream, std::vector <T> &output) {
    }
 }
 
-void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
+void _serializeGameTiming(std::vector <Byte>& stream, Game* game) {
    writeStream(stream, game->timings.gracePeriod[0]);
    writeStream(stream, game->timings.fallDelay[0]);
    writeStream(stream, game->timings.removeClear[0]);
@@ -48,7 +48,7 @@ void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->timings.deployTime[0]);
 }
 
-void _deserializeGameTiming(Game* game, Byte*& start) {
+void _deserializeGameTiming(Byte*& start, Game* game) {
    readStream(start, game->timings.gracePeriod[0]);
    readStream(start, game->timings.fallDelay[0]);
    readStream(start, game->timings.removeClear[0]);
@@ -58,7 +58,7 @@ void _deserializeGameTiming(Game* game, Byte*& start) {
    readStream(start, game->timings.deployTime[0]);
 }
 
-void _serializePlayerList(Game* game, std::vector <Byte>& stream) {
+void _serializePlayerList(std::vector <Byte>& stream, Game* game) {
    int count = game->pList.size();
    writeStream(stream, count);
 
@@ -71,7 +71,7 @@ void _serializePlayerList(Game* game, std::vector <Byte>& stream) {
    }
 }
 
-void _deserializePlayerList(Game* game, Byte*& start) {
+void _deserializePlayerList(Byte*& start, Game* game) {
    int count = 0;
    readStream(start, count);
    for (int i = 0; i < count; i++) {
@@ -81,6 +81,20 @@ void _deserializePlayerList(Game* game, Byte*& start) {
       readStream(start, game->pList[i].team);
       //writeStream(stream, game->pList[i].dead);  //todo not used
    }
+}
+
+void _serializeGameUser(std::vector <Byte>& stream, Game* game) {
+   writeStream(stream, game->user.name);
+   writeStream(stream, game->user.level);
+   writeStream(stream, game->user.number);
+   //writeStream(stream, game->user.wins);
+}
+
+void _deserializeGameUser(Byte*& start, Game* game) {
+   readStream(start, game->user.name);
+   readStream(start, game->user.level);
+   readStream(start, game->user.number);
+   //readStream(start, game->user.wins);
 }
 
 void _gameSerialize(std::vector <Byte> &stream, Game* game) {
@@ -687,9 +701,10 @@ void serializeMultiSetup(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->net->frameDelay[0]);
    writeStream(stream, game->net->disconnectTime[0]);
 
-   _serializeGameTiming(game, stream);
+   _serializeGameTiming(stream, game);
 }
 
+//Deserialize hostSetup (port numbers, ips, player number, game info) received over TCP
 void deserializeMultiSetup(Game* game, Byte*& start) {
    readStream(start, game->net->participants);
    int mode = 0;
@@ -710,5 +725,23 @@ void deserializeMultiSetup(Game* game, Byte*& start) {
    readStream(start, game->net->frameDelay[0]);
    readStream(start, game->net->disconnectTime[0]);
 
-   _deserializeGameTiming(game, start);
+   _deserializeGameTiming(start, game);
+}
+
+//Save a replay to a file
+std::vector <Byte> createReplay(Game* game) {
+   std::vector <Byte> stream;
+   _gameSerialize(stream, game);
+   _serializePlayerList(stream, game);
+   _serializeGameTiming(stream, game);
+   _serializeGameUser(stream, game);
+
+   return stream;
+}
+
+//Load a replay from a file
+void loadReplay(Game* game) {
+   std::vector <Byte> stream;
+
+
 }
