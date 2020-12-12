@@ -731,10 +731,17 @@ void deserializeMultiSetup(Game* game, Byte*& start) {
 //Save a replay to a file
 std::vector <Byte> createReplay(Game* game) {
    std::vector <Byte> stream;
+
    _gameSerialize(stream, game);
    _serializePlayerList(stream, game);
    _serializeGameTiming(stream, game);
    _serializeGameUser(stream, game);
+
+   int count = game->settings.replay.size();
+   writeStream(stream, count);
+   for (int i = 0; i < count; i++) {
+      writeStream(stream, game->settings.replay[i].input);
+   }
 
    return stream;
 }
@@ -743,5 +750,16 @@ std::vector <Byte> createReplay(Game* game) {
 void loadReplay(Game* game) {
    std::vector <Byte> stream;
 
+   unsigned char* start = stream.data();
 
+   _gameDeserialize(start, game);
+   _deserializePlayerList(start, game);
+   _deserializeGameTiming(start, game);
+   _deserializeGameUser(start, game);
+
+   int count = 0;
+   readStream(start, count);
+   for (int i = 0; i < count; i++) {
+      readStream(start, game->settings.replay[i].input);
+   }
 }
