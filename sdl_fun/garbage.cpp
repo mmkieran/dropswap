@@ -169,8 +169,8 @@ static bool _addTouching(Board* board, Tile* tile, std::map <int, Garbage*>& cle
       if (touchingG) {
          if (cleared[touchingG->ID]) { return false; }
          else {
-            cleared[touchingG->ID] = touchingG;
             if (touchingG->layers < 2 && touchingG->metal == false) {
+               cleared[touchingG->ID] = touchingG;
                checkList.push_back(touchingG);
                return true;
             }
@@ -203,12 +203,12 @@ static void _findTouching(Board* board, Garbage* garbage, std::map <int, Garbage
             _addTouching(board, left, cleared, checkList);
          }
 
-         if (row == endRow && endRow != startRow) {  //check above
+         if (row == endRow) {  //check above
             Tile* above = boardGetTile(board, row - 1, col);
             _addTouching(board, above, cleared, checkList);
          }
 
-         if (col == endCol && endCol != startCol) {  //check right
+         if (col == endCol) {  //check right
             Tile* right = boardGetTile(board, row, col + 1);
             _addTouching(board, right, cleared, checkList);
          }
