@@ -38,6 +38,51 @@ void readStream(Byte* &stream, std::vector <T> &output) {
    }
 }
 
+void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
+   writeStream(stream, game->timings.gracePeriod[0]);
+   writeStream(stream, game->timings.fallDelay[0]);
+   writeStream(stream, game->timings.removeClear[0]);
+   writeStream(stream, game->timings.enterSilver[0]);
+   writeStream(stream, game->timings.countIn[0]);
+   writeStream(stream, game->timings.landPause[0]);
+   writeStream(stream, game->timings.deployTime[0]);
+}
+
+void _deserializeGameTiming(Game* game, Byte*& start) {
+   readStream(start, game->timings.gracePeriod[0]);
+   readStream(start, game->timings.fallDelay[0]);
+   readStream(start, game->timings.removeClear[0]);
+   readStream(start, game->timings.enterSilver[0]);
+   readStream(start, game->timings.countIn[0]);
+   readStream(start, game->timings.landPause[0]);
+   readStream(start, game->timings.deployTime[0]);
+}
+
+void _serializePlayerList(Game* game, std::vector <Byte>& stream) {
+   int count = game->pList.size();
+   writeStream(stream, count);
+
+   for (auto&& pair : game->pList) {
+      writeStream(stream, pair.second.name);
+      writeStream(stream, pair.second.number);
+      writeStream(stream, pair.second.level);
+      writeStream(stream, pair.second.team);
+      //writeStream(stream, pair.second.dead);  //todo not used
+   }
+}
+
+void _deserializePlayerList(Game* game, Byte*& start) {
+   int count = 0;
+   readStream(start, count);
+   for (int i = 0; i < count; i++) {
+      readStream(start, game->pList[i].name);
+      readStream(start, game->pList[i].number);
+      readStream(start, game->pList[i].level);
+      readStream(start, game->pList[i].team);
+      //writeStream(stream, game->pList[i].dead);  //todo not used
+   }
+}
+
 void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //   GameWindow* sdl = nullptr;
    //writeStream(stream, game->windowWidth);
@@ -620,26 +665,6 @@ int gameLoadState(Game* game, const char* path) {
    else { printf("Failed to load file... Err: %d\n", err); }
    fclose(in);
    return 1;
-}
-
-void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
-   writeStream(stream, game->timings.gracePeriod[0]);
-   writeStream(stream, game->timings.fallDelay[0]);
-   writeStream(stream, game->timings.removeClear[0]);
-   writeStream(stream, game->timings.enterSilver[0]);
-   writeStream(stream, game->timings.countIn[0]);
-   writeStream(stream, game->timings.landPause[0]);
-   writeStream(stream, game->timings.deployTime[0]);
-}
-
-void _deserializeGameTiming(Game* game, Byte*& start) {
-   readStream(start, game->timings.gracePeriod[0]);
-   readStream(start, game->timings.fallDelay[0]);
-   readStream(start, game->timings.removeClear[0]);
-   readStream(start, game->timings.enterSilver[0]);
-   readStream(start, game->timings.countIn[0]);
-   readStream(start, game->timings.landPause[0]);
-   readStream(start, game->timings.deployTime[0]);
 }
 
 //Serialize hostSetup (port numbers, ips, player number, game info) so we can send it over tcp
