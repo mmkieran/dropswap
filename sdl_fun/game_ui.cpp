@@ -200,7 +200,7 @@ void singlePlayerGame(Game* game, bool* p_open) {
    ImGui::NewLine();
    if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
       game->settings.replaying = true;
-      gameStartMatch(game);
+      //gameStartMatch(game);
       replayWindow = true;
    }
    if (replayWindow == true) { replayUI(game, &replayWindow); }
@@ -662,10 +662,17 @@ void onePlayerOptions(Game* game) {
          gameEndMatch(game);
          gameStartMatch(game);
       }
+      if (ImGui::Button("Load Replay")) {
+         streamLoadFromFile("assets/replay.rep");
+         game->settings.replaying = true;
+         gameEndMatch(game);
+         gameStartMatch(game);
+      }
    }
 
-   if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
-   if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
+   //todo fix statesave
+   //if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
+   //if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
    if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
       ImGui::Checkbox("Turn On AI", &game->ai);
@@ -1427,8 +1434,12 @@ void replayUI(Game* game, bool* p_open) {
       gameEndMatch(game);
       gameStartMatch(game);
    }
-
-
+   if (ImGui::Button("Load Replay")) {
+      game->settings.repFile = streamLoadFromFile("assets/replay.rep");
+      game->settings.replaying = true;
+      //gameEndMatch(game);
+      gameStartMatch(game);
+   }
 
    ImGui::End();
 }

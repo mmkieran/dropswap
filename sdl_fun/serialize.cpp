@@ -632,6 +632,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    return 0;
 }
 
+//Sve the game state to a file
 FILE* gameSaveState(Game* game, const char* filename) {
    FILE* out;
    int err = fopen_s(&out, filename, "w");
@@ -654,6 +655,7 @@ FILE* gameSaveState(Game* game, const char* filename) {
    return out;
 }
 
+//Load the game state from a file
 int gameLoadState(Game* game, const char* path) {
    FILE* in;
    int err = fopen_s(&in, path, "r");
@@ -753,6 +755,8 @@ std::vector <Byte> createReplay(Game* game) {
       writeStream(stream, game->settings.repInputs[i].input);
    }
 
+   streamSaveToFile("assets/replay.rep", stream);
+
    return stream;
 }
 
@@ -783,4 +787,40 @@ void loadReplay(Game* game) {
    for (int i = 0; i < count; i++) {
       readStream(start, game->settings.repInputs[i].input);
    }
+}
+
+//Save a stream of data (Byte vector) to a file
+FILE* streamSaveToFile(const char* path, std::vector <Byte>& stream) {
+   FILE* out;
+   int err = fopen_s(&out, path, "w");
+
+   if (err == 0 && stream.size() > 0) {
+      int streamSize = stream.size();
+      fwrite(&streamSize, sizeof(int), 1, out);
+
+      fwrite(stream.data(), sizeof(Byte) * streamSize, 1, out);
+
+   }
+   else { printf("Failed to save file... Err: %d\n", err); }  //todo game log file
+   fclose(out);
+   return out;
+}
+
+//Load a stream of data from a file
+std::vector <Byte> streamLoadFromFile(const char* path) {
+   FILE* in;
+   int err = fopen_s(&in, path, "r");
+   std::vector <Byte> stream;
+   if (err == 0) {
+      int streamSize = 0;
+      fread(&streamSize, sizeof(int), 1, in);
+      stream.resize(streamSize);
+
+      Byte* start = stream.data();  
+      fread(start, sizeof(Byte) * streamSize, 1, in);
+
+   }
+   else { printf("Failed to load file... Err: %d\n", err); }  //todo game log file
+   fclose(in);
+   return stream;
 }
