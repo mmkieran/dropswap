@@ -737,6 +737,7 @@ std::vector <Byte> createReplay(Game* game) {
    _serializeGameTiming(stream, game);
    _serializeGameUser(stream, game);
 
+   game->settings.repInputs.resize(game->frameCount);
    int count = game->settings.repInputs.size();
    writeStream(stream, count);
    for (int i = 0; i < count; i++) {

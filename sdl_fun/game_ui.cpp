@@ -17,6 +17,7 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
+void replayUI(Game* game, bool* p_open);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -195,11 +196,14 @@ void singlePlayerGame(Game* game, bool* p_open) {
       gameStartMatch(game);
    }
 
+   static bool replayWindow = false;
    ImGui::NewLine();
    if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
       game->settings.replaying = true;
       gameStartMatch(game);
+      replayWindow = true;
    }
+   if (replayWindow == true) { replayUI(game, &replayWindow); }
 
    ImGui::End();
 }
@@ -650,6 +654,16 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
+   ImGui::Text("%d", game->seed);
+
+   if (game->settings.replaying == true) {
+      if (ImGui::Button("Restart")) {
+         game->settings.replaying = true;
+         gameEndMatch(game);
+         gameStartMatch(game);
+      }
+   }
+
    if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
    if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
@@ -1398,6 +1412,23 @@ void debugMultiplayerSetup(Game* game, bool* p_open) {
    }
 
    //Add GGPO state
+
+   ImGui::End();
+}
+
+void replayUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Replay Options", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   if (ImGui::Button("Restart")) {
+      game->settings.replaying = true;
+      gameEndMatch(game);
+      gameStartMatch(game);
+   }
+
+
 
    ImGui::End();
 }

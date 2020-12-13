@@ -342,8 +342,6 @@ void gameReplay(Game* game) {
 
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
-   if (game->players == 1) { game->seed = time(0); }
-
    for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
       if (game->fbos[i]) {
          rendererDestroyFBO(game->fbos[i]);
@@ -355,10 +353,10 @@ void gameStartMatch(Game* game) {
    int myBoard = 0;
    if (game->settings.replaying == true) {
       loadReplay(game);  //4replay hard coded to load from repFile
-      game->busted = -1;
    }
    if (game->settings.mode == single_player) {
       if (game->settings.replaying == false) {
+         game->seed = time(0);
          strcpy(game->pList[1].name, game->user.name);
          game->user.number = 1;  //Maybe move this to a 1 player UI window later
          game->pList[1].team = 0;
@@ -458,12 +456,16 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
-   if (game->settings.saveReplays == true) {
+   game->busted = -1;  //Moved up so it will get saved this way in the replay
+
+   //Save the replay and reset the replay input vector
+   if (game->settings.saveReplays == true && game->settings.replaying == false) {
       game->settings.repFile = createReplay(game);  //4replays
       game->settings.repInputs.clear();
       game->settings.repInputs.resize(REPLAY_SIZE);
    }
 
+   //Reset all the game things
    game->pList.clear();
    game->user.number = 1;
    game->boards.clear();
@@ -473,8 +475,8 @@ void gameEndMatch(Game* game) {
    game->settings.replaying = false;
    game->frameCount = 0;
    game->timer = 0;
-   game->busted = -1;
    soundsStopAll();
+   //End GGPO session if we got that far
    if (game->players > 1) {
       ggpoEndSession(game);
    }
