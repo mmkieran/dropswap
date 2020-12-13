@@ -739,6 +739,8 @@ std::vector <Byte> createReplay(Game* game) {
    writeStream(stream, game->settings.tHeight);
    writeStream(stream, game->players);
    writeStream(stream, game->seed);
+   int mode = (int)game->settings.mode;
+   writeStream(stream, mode);
 
    _serializePlayerList(stream, game);
    _serializeGameTiming(stream, game);
@@ -768,6 +770,9 @@ void loadReplay(Game* game) {
    readStream(start, game->settings.tHeight);
    readStream(start, game->players);
    readStream(start, game->seed);
+   int mode = 0;
+   readStream(start, mode);
+   game->settings.mode = (GameMode)mode;
 
    _deserializePlayerList(start, game);
    _deserializeGameTiming(start, game);

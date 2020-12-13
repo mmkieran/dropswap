@@ -186,6 +186,3 @@ void gameAI(Game* game);
 
 void gameSwapWindow(Game* game);
 void sdlSetVsync(Game* game, bool toggle);
-
-void gameUpdateSprites(Game* game);
-void gameDrawSprites(Game* game);

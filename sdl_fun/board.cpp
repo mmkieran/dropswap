@@ -252,6 +252,7 @@ void boardRender(Game* game, Board* board) {
          }
       }
    }
+   //boardDebug(board, (bool*)0);  //debug only
    boardDrawSprites(board);
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
