@@ -456,7 +456,6 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
-   game->busted = -1;  //Moved up so it will get saved this way in the replay
 
    //Save the replay and reset the replay input vector
    if (game->settings.saveReplays == true && game->settings.replaying == false) {
@@ -475,6 +474,7 @@ void gameEndMatch(Game* game) {
    game->settings.replaying = false;
    game->frameCount = 0;
    game->timer = 0;
+   game->busted = -1;
    soundsStopAll();
    //End GGPO session if we got that far
    if (game->players > 1) {
