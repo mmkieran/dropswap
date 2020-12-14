@@ -90,7 +90,7 @@ struct Player {
 struct Replay {
    bool changed = false;
    int frame = 0;
-   UserInput input;              
+   UserInput input[4];              
 };
 
 enum GameMode {

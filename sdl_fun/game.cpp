@@ -307,12 +307,12 @@ void gameUpdate(Game* game) {
    //4replay
    if (game->settings.mode == single_player && game->settings.replaying == false) {
       if (game->frameCount + 1 <= game->settings.repInputs.size() ) {
-         game->settings.repInputs[game->frameCount].input = game->user.input;  //todo we should copy all player inputs...
+         game->settings.repInputs[game->frameCount].input[0] = game->user.input;  //todo we should copy all player inputs...
          game->settings.repInputs[game->frameCount].frame = game->frameCount;
       }
       else if (game->frameCount > game->settings.repInputs.size()) {
-         Replay replay;
-         replay.input = game->user.input;
+         Replay replay = { 0 };
+         replay.input[0] = game->user.input;
          game->settings.repInputs.push_back(replay);
       }
    }
