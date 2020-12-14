@@ -281,6 +281,15 @@ static void _gameResults(Game* game) {
       ImGui::CloseCurrentPopup();
       popupDisable(Popup_GameOver);
    }
+   
+   if (game->settings.replaying == false) {  //Save the replay
+      ImGui::SameLine();
+      if (ImGui::Button("Save Replay")) {
+         game->settings.repFile = createReplay(game);
+         game->settings.repInputs.clear();
+         game->settings.repInputs.reserve(REPLAY_SIZE);
+      }
+   }
 }
 
 //Draw the window and child regions for the board texture to be rendered in

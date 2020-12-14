@@ -23,7 +23,6 @@
 #include "sounds.h"
 
 #define GAME_COUNTIN 2000
-#define REPLAY_SIZE 5 * 60 * 60
 
 std::thread upnpThread;
 
@@ -213,7 +212,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    soundsInit();  //Initialize SoLoud components
 
    resourcesGetName(game);
-   game->settings.repInputs.resize(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
+   game->settings.repInputs.reserve(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
 
    return game;
 }
@@ -307,7 +306,7 @@ void gameUpdate(Game* game) {
    gameUpdateSprites(game);
    //4replay
    if (game->settings.mode == single_player && game->settings.replaying == false) {
-      if (game->frameCount <= game->settings.repInputs.size() - 1) {
+      if (game->frameCount + 1 <= game->settings.repInputs.size() ) {
          game->settings.repInputs[game->frameCount].input = game->user.input;  //todo we should copy all player inputs...
          game->settings.repInputs[game->frameCount].frame = game->frameCount;
       }
@@ -456,13 +455,6 @@ void gameEndMatch(Game* game) {
       if (game->boards[i]) {
          boardDestroy(game->boards[i]);
       }
-   }
-
-   //Save the replay and reset the replay input vector
-   if (game->settings.saveReplays == true && game->settings.replaying == false) {
-      game->settings.repFile = createReplay(game);  //4replays
-      game->settings.repInputs.clear();
-      game->settings.repInputs.resize(REPLAY_SIZE);
    }
 
    //Reset all the game things

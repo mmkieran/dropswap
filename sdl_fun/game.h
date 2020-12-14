@@ -14,6 +14,7 @@
 #include <map>
 
 #define GAME_MAX_PLAYERS    6
+#define REPLAY_SIZE 5 * 60 * 60
 
 struct GameWindow;
 

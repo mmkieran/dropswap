@@ -784,6 +784,7 @@ void loadReplay(Game* game) {
 
    int count = 0;
    readStream(start, count);
+   game->settings.repInputs.resize(count);
    for (int i = 0; i < count; i++) {
       readStream(start, game->settings.repInputs[i].input);
    }
