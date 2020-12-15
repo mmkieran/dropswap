@@ -285,9 +285,8 @@ static void _gameResults(Game* game) {
    if (game->settings.replaying == false) {  //Save the replay
       ImGui::SameLine();
       if (ImGui::Button("Save Replay")) {
-         game->settings.repFile = createReplay(game);
-         game->settings.repInputs.clear();
-         game->settings.repInputs.reserve(REPLAY_SIZE);
+         createReplay(game);
+         //4replay todo file picker here
       }
    }
 }
@@ -303,6 +302,8 @@ void boardUI(Game* game) {
          ImGui::End();
          return;
       }
+
+      if (game->settings.replaying == true) { replayUI(game, (bool*)0); }
 
       ImGuiStyle style = ImGui::GetStyle();
       ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", game->timer / 1000);
@@ -664,20 +665,6 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
 void onePlayerOptions(Game* game) {
    ImGui::Text("%d", game->seed);
-
-   if (game->settings.replaying == true) {
-      if (ImGui::Button("Restart")) {
-         game->settings.replaying = true;
-         gameEndMatch(game);
-         gameStartMatch(game);
-      }
-      if (ImGui::Button("Load Replay")) {
-         streamLoadFromFile("assets/replay.rep");
-         game->settings.replaying = true;
-         gameEndMatch(game);
-         gameStartMatch(game);
-      }
-   }
 
    //todo fix statesave
    //if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
@@ -1439,15 +1426,21 @@ void replayUI(Game* game, bool* p_open) {
    }
 
    if (ImGui::Button("Restart")) {
+      //game->settings.repInputs.clear();
+      //game->settings.repInputs.reserve(REPLAY_SIZE);
       game->settings.replaying = true;
       gameEndMatch(game);
       gameStartMatch(game);
    }
    if (ImGui::Button("Load Replay")) {
-      game->settings.repFile = streamLoadFromFile("assets/replay.rep");
+      if (game->playing == true) { gameEndMatch(game); }
+      std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
+      loadReplay(game, stream);
       game->settings.replaying = true;
-      //gameEndMatch(game);
       gameStartMatch(game);
+   }
+   if (game->playing == true) {
+      ImGui::ProgressBar((game->frameCount + 1) / (float)game->settings.repInputs.size());
    }
 
    ImGui::End();

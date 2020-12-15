@@ -109,7 +109,6 @@ struct GameSettings {
    GameMode mode = single_player;                  //The currently game mode setting, multi_solo is separate boards for each player
 
    std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
-   std::vector <unsigned char> repFile;            //todo temp storage for replay
    std::vector <Replay> repInputs;                 //Used to store the inputs for a replay
    bool replaying = false;                         //Are we viewing a replay?
    bool saveReplays = true;                        //Do we want to save replays?

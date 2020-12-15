@@ -357,9 +357,7 @@ void gameStartMatch(Game* game) {
 
    int boardCount = 0;
    int myBoard = 0;
-   if (game->settings.replaying == true) {
-      loadReplay(game);  //4replay hard coded to load from repFile
-   }
+
    if (game->settings.mode == single_player) {
       if (game->settings.replaying == false) {
          game->seed = time(0);

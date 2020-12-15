@@ -755,17 +755,14 @@ std::vector <Byte> createReplay(Game* game) {
       writeStream(stream, game->settings.repInputs[i].input);
    }
 
-   streamSaveToFile("assets/replay.rep", stream);
+   streamSaveToFile("saves/replay.rep", stream);
 
    return stream;
 }
 
 //Load a replay from a file
-void loadReplay(Game* game) {
-   //std::vector <Byte> stream;
-
-   //unsigned char* start = stream.data();
-   unsigned char* start = game->settings.repFile.data();  //todo hard code for now
+void loadReplay(Game* game, std::vector <Byte> stream) {
+   unsigned char* start = stream.data();
 
   //Limited Game Serializing
    readStream(start, game->settings.bHeight);
