@@ -252,7 +252,7 @@ void boardRender(Game* game, Board* board) {
          }
       }
    }
-   boardDebug(board, (bool*)0);  //debug only
+   //boardDebug(board, (bool*)0);  //debug only
    boardDrawSprites(board);
    //Garbage is just drawn as a tile texture right now
    //garbageDraw(board);
@@ -1354,49 +1354,51 @@ void boardDebug(Board* board, bool* p_open) {
       return;
    }
 
-   for (int row = board->startH - 1; row < board->wBuffer; row++) {
-      for (int col = 0; col < board->w; col++) {
-         ImGui::PushID(board->w * row + col);
-         Tile* tile = boardGetTile(board, row, col);
-         if (!tile || tile->type == tile_empty) { 
-            if (ImGui::Button("E")) { ; }
+   if (ImGui::CollapsingHeader("##Debug Board")) {
+      for (int row = 0; row < board->wBuffer; row++) {
+         for (int col = 0; col < board->w; col++) {
+            ImGui::PushID(board->w * row + col);
+            Tile* tile = boardGetTile(board, row, col);
+            if (!tile || tile->type == tile_empty) {
+               if (ImGui::Button("E")) { ; }
+               ImGui::SameLine();
+               ImGui::PopID();
+               continue;
+            }
+            switch (tile->type) {
+            case tile_circle:
+               if (ImGui::Button("C")) { ; }
+               break;
+            case tile_diamond:
+               if (ImGui::Button("D")) { ; }
+               break;
+            case tile_utriangle:
+               if (ImGui::Button("U")) { ; }
+               break;
+            case tile_dtriangle:
+               if (ImGui::Button("T")) { ; }
+               break;
+            case tile_star:
+               if (ImGui::Button("S")) { ; }
+               break;
+            case tile_heart:
+               if (ImGui::Button("H")) { ; }
+               break;
+            case tile_silver:
+               if (ImGui::Button("P")) { ; }
+               break;
+            case tile_garbage:
+               if (ImGui::Button("G")) { ; }
+               break;
+            case tile_cleared:
+               if (ImGui::Button("CL")) { ; }
+               break;
+            }
             ImGui::SameLine();
             ImGui::PopID();
-            continue; 
          }
-         switch (tile->type) {
-         case tile_circle:
-            if (ImGui::Button("C")) { ; }
-            break;
-         case tile_diamond:
-            if (ImGui::Button("D")) { ; }
-            break;
-         case tile_utriangle:
-            if (ImGui::Button("U")) { ; }
-            break;
-         case tile_dtriangle:
-            if (ImGui::Button("T")) { ; }
-            break;
-         case tile_star:
-            if (ImGui::Button("S")) { ; }
-            break;
-         case tile_heart:
-            if (ImGui::Button("H")) { ; }
-            break;
-         case tile_silver:
-            if (ImGui::Button("P")) { ; }
-            break;
-         case tile_garbage:
-            if (ImGui::Button("G")) { ; }
-            break;
-         case tile_cleared:
-            if (ImGui::Button("CL")) { ; }
-            break;
-         }
-         ImGui::SameLine();
-         ImGui::PopID();
+         ImGui::NewLine();
       }
-      ImGui::NewLine();
    }
 
    ImGui::End();

@@ -420,7 +420,7 @@ void gameStartMatch(Game* game) {
                   board->cursors.push_back(cursor);
                   p.second.board = board;
                   p.second.cursor = cursor;
-                  level += game->net->hostSetup[i].level;
+                  level += p.second.level;
                   count++;
                }
             }
@@ -431,7 +431,7 @@ void gameStartMatch(Game* game) {
             board->cursors.push_back(cursor);
             game->pList[i + 1].board = board;
             game->pList[i + 1].cursor = cursor;
-            board->level = game->net->hostSetup[i].level;
+            board->level = game->pList[i + 1].level;
          }
 
          game->boards.push_back(board);
