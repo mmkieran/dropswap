@@ -1079,7 +1079,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
    }
    if (ImGui::BeginPopupModal("Connection Status", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
       if (popups[Popup_GameSetup].isOpen == false) { ImGui::CloseCurrentPopup(); }
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str() );
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
       //This displays the game information once it is received
@@ -1236,7 +1236,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    }
    if (ImGui::BeginPopupModal("Connection Status", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
       if (popups[Popup_GameSetup].isOpen == false) { ImGui::CloseCurrentPopup(); }
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str());
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
       if (serverStatus == server_waiting) {
