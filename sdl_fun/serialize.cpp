@@ -74,7 +74,7 @@ void _serializePlayerList(std::vector <Byte>& stream, Game* game) {
 void _deserializePlayerList(Byte*& start, Game* game) {
    int count = 0;
    readStream(start, count);
-   for (int i = 0; i < count; i++) {
+   for (int i = 1; i <= count; i++) {
       readStream(start, game->pList[i].name);
       readStream(start, game->pList[i].number);
       readStream(start, game->pList[i].level);

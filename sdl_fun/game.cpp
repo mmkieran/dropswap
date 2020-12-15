@@ -334,9 +334,15 @@ void gameSinglePlayer(Game* game) {
 //Process replay inputs and update game
 void gameReplay(Game* game) {
    if (game->playing == false) { return; }
-   processInputs(game);
-   //if (game->ai == true) { gameAI(game); }
-   //gameCheckPause(game, game->user.input);
+   //processInputs(game);
+   if (game->settings.mode == single_player) {
+      game->user.input = game->settings.repInputs[game->frameCount].input[0];
+   }
+   else {
+      for (int i = 0; i < game->players; i++) {
+         game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
+      }
+   }
    gameUpdate(game);
 }
 

@@ -99,12 +99,7 @@ void processInputs(Game* game) {
    inputProcessKeyboard(game); 
    inputProcessController(game); 
    resetButtonStates(game);
-   if (game->settings.replaying == true) {
-      game->user.input = game->settings.repInputs[game->frameCount].input[0];
-   }
-   else {
-      game->user.input = userInput;
-   }
+   game->user.input = userInput;
 }
 
 void inputProcessKeyboard(Game* game) {

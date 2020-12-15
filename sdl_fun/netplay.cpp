@@ -334,6 +334,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
          if (connects[i].playerType == 0) {
             game->pList[connects[i].pNum].number = connects[i].pNum;
             game->pList[connects[i].pNum].team = connects[i].team;
+            game->pList[connects[i].pNum].level = connects[i].level;
             strcpy(game->pList[connects[i].pNum].name, connects[i].name);
          }
       }
