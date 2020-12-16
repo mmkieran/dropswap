@@ -1425,13 +1425,14 @@ void replayUI(Game* game, bool* p_open) {
       return;
    }
 
-   if (ImGui::Button("Restart")) {
-      //game->settings.repInputs.clear();
-      //game->settings.repInputs.reserve(REPLAY_SIZE);
-      game->settings.replaying = true;
-      gameEndMatch(game);
-      gameStartMatch(game);
-   }
+   //if (ImGui::Button("Restart")) {
+   //   //game->settings.repInputs.clear();
+   //   //game->settings.repInputs.reserve(REPLAY_SIZE);
+   //   game->settings.replaying = true;
+   //   gameEndMatch(game);
+   //   gameStartMatch(game);
+   //}
+
    if (ImGui::Button("Load Replay")) {
       if (game->playing == true) { gameEndMatch(game); }
       std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
@@ -1439,6 +1440,21 @@ void replayUI(Game* game, bool* p_open) {
       game->settings.replaying = true;
       gameStartMatch(game);
    }
+
+   static int frameRange[3] = { 0, 0, 0 };
+   frameRange[2] = game->settings.repInputs.size();
+   ImGui::SliderScalar("Select Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
+   if (ImGui::Button("Go To Frame")) {
+      if (game->playing == true) { gameEndMatch(game); }
+      std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
+      loadReplay(game, stream);
+      game->settings.replaying = true;
+      gameStartMatch(game);
+      for (int i = 0; i < frameRange[0]; i++) {
+         gameReplay(game);
+      }
+   }
+
    if (game->playing == true) {
       ImGui::ProgressBar((game->frameCount + 1) / (float)game->settings.repInputs.size());
    }
