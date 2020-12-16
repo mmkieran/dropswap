@@ -304,19 +304,9 @@ void gameUpdate(Game* game) {
    }
 
    gameUpdateSprites(game);
-   //4replay
-   if (game->settings.mode == single_player && game->settings.replaying == false) {
-      if (game->frameCount + 1 <= game->settings.repInputs.size() ) {
-         game->settings.repInputs[game->frameCount].input[0] = game->user.input;  //todo we should copy all player inputs...
-         game->settings.repInputs[game->frameCount].frame = game->frameCount;
-      }
-      else if (game->frameCount > game->settings.repInputs.size()) {
-         Replay replay = { 0 };
-         replay.input[0] = game->user.input;
-         game->settings.repInputs.push_back(replay);
-      }
-   }
+
    if (game->waiting == false) {
+      gameCaptureReplayInputs(game);
       game->frameCount++;  //Increment frame count
       game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
    }
@@ -328,21 +318,6 @@ void gameSinglePlayer(Game* game) {
    processInputs(game);
    if (game->ai == true) { gameAI(game); }  
    gameCheckPause(game, game->user.input);
-   gameUpdate(game);
-}
-
-//Process replay inputs and update game
-void gameReplay(Game* game) {
-   if (game->playing == false) { return; }
-   //processInputs(game);
-   if (game->settings.mode == single_player) {
-      game->user.input = game->settings.repInputs[game->frameCount].input[0];
-   }
-   else {
-      for (int i = 0; i < game->players; i++) {
-         game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
-      }
-   }
    gameUpdate(game);
 }
 
@@ -635,4 +610,49 @@ bool gameRunning(Game* game) {
 
 void gameAI(Game* game) {
    boardAI(game);
+}
+
+//Process replay inputs and update game
+void gameReplay(Game* game) {
+   if (game->playing == false) { return; }
+
+   if (game->settings.mode == single_player) {
+      game->user.input = game->settings.repInputs[game->frameCount].input[0];
+   }
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+      for (int i = 0; i < game->players; i++) {
+         game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
+      }
+   }
+   gameUpdate(game);
+}
+
+void gameCaptureReplayInputs(Game* game) {
+   if (game->settings.replaying == true) { return; }
+
+   if (game->settings.mode == single_player) {
+      if (game->frameCount + 1 <= game->settings.repInputs.size()) {
+         game->settings.repInputs[game->frameCount].input[0] = game->user.input;
+      }
+      else if (game->frameCount + 1 > game->settings.repInputs.size()) {
+         ReplayInput replay = { 0 };
+         replay.input[0] = game->user.input;
+         game->settings.repInputs.push_back(replay);
+      }
+   }
+
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+      if (game->frameCount + 1 <= game->settings.repInputs.size()) {
+         for (int i = 0; i < game->players; i++) {
+            game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];
+         }
+      }
+      else if (game->frameCount + 1 > game->settings.repInputs.size()) {
+         ReplayInput replay = { 0 };
+         for (int i = 0; i < game->players; i++) {
+            replay.input[i] = game->net->inputs[i];
+         }
+         game->settings.repInputs.push_back(replay);
+      }
+   }
 }

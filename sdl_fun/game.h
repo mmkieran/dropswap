@@ -87,9 +87,7 @@ struct Player {
    bool dead = false;
 };
 
-struct Replay {
-   bool changed = false;
-   int frame = 0;
+struct ReplayInput {
    UserInput input[4];              
 };
 
@@ -109,9 +107,8 @@ struct GameSettings {
    GameMode mode = single_player;                  //The currently game mode setting, multi_solo is separate boards for each player
 
    std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
-   std::vector <Replay> repInputs;                 //Used to store the inputs for a replay
+   std::vector <ReplayInput> repInputs;            //Used to store the inputs for a replay
    bool replaying = false;                         //Are we viewing a replay?
-   bool saveReplays = true;                        //Do we want to save replays?
 };
 
 //@@Start Serialize
@@ -186,3 +183,5 @@ void gameAI(Game* game);
 
 void gameSwapWindow(Game* game);
 void sdlSetVsync(Game* game, bool toggle);
+
+void gameCaptureReplayInputs(Game* game);

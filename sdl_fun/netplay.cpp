@@ -120,24 +120,6 @@ bool __cdecl ds_advance_frame_callback(int) {
    //Figure out the inputs and check for disconnects
    ggpo_synchronize_input(game->net->ggpo, (void*)game->net->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
 
-   //4replay
-   if (game->settings.replaying == false) {
-      if (game->frameCount + 1 <= game->settings.repInputs.size()) {
-         game->settings.repInputs[game->frameCount].frame = game->frameCount;
-         for (int i = 0; i < game->players; i++) {
-            game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];
-         }
-      }
-      else if (game->frameCount > game->settings.repInputs.size()) {
-         Replay replay = { 0 };
-         replay.frame = game->frameCount;
-         for (int i = 0; i < game->players; i++) {
-            replay.input[i] = game->net->inputs[i];
-         }
-         game->settings.repInputs.push_back(replay);
-      }
-   }
-
    //Call function to advance frame
    gameAdvanceFrame(game);
 
@@ -417,23 +399,6 @@ void gameRunFrame() {
       if (GGPO_SUCCEEDED(result)) {
          result = ggpo_synchronize_input(game->net->ggpo, (void*)game->net->inputs, sizeof(UserInput) * game->players, &disconnect_flags);
          if (GGPO_SUCCEEDED(result)) {
-            //4replay
-            if (game->settings.replaying == false) {
-               if (game->frameCount + 1 <= game->settings.repInputs.size()) {
-                  game->settings.repInputs[game->frameCount].frame = game->frameCount;
-                  for (int i = 0; i < game->players; i++) {
-                     game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];
-                  }
-               }
-               else if (game->frameCount > game->settings.repInputs.size()) {
-                  Replay replay = { 0 };
-                  replay.frame = game->frameCount;
-                  for (int i = 0; i < game->players; i++) {
-                     replay.input[i] = game->net->inputs[i];
-                  }
-                  game->settings.repInputs.push_back(replay);
-               }
-            }
             gameAdvanceFrame(game);  //Update the game 
          }
       }
