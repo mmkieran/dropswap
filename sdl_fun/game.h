@@ -109,6 +109,7 @@ struct GameSettings {
    std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
    std::vector <ReplayInput> repInputs;            //Used to store the inputs for a replay
    int totalFrames = 0;
+   int frameRate = 1;
    bool replaying = false;                         //Are we viewing a replay?
 };
 

@@ -1442,7 +1442,11 @@ void replayUI(Game* game, bool* p_open) {
    }
 
    static int frameRange[3] = { 0, 0, 0 };
+   static int frameRate[3] = { 0, 1, 16 };
    frameRange[2] = game->settings.repInputs.size();
+
+   ImGui::SliderScalar("Select Rate", ImGuiDataType_U32, &game->settings.frameRate, &frameRate[1], &frameRate[2]);
+
    ImGui::SliderScalar("Select Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
    if (ImGui::Button("Go To Frame")) {
       if (game->playing == true) { gameEndMatch(game); }
