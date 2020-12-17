@@ -26,7 +26,7 @@ int main(int argc, char* args[]) {
       bool bust = gameCheckBust(game);
       if (bust == false) {
          if (game->settings.replaying == true) { 
-            int rate = game->settings.frameRate;
+            int rate = game->settings.replaySpeed;
             if (game->frameCount + 1 + rate > game->settings.repInputs.size()) {
                rate = game->settings.repInputs.size() - (game->frameCount + 1 + rate);
             }

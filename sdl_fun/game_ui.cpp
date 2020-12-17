@@ -199,8 +199,6 @@ void singlePlayerGame(Game* game, bool* p_open) {
    static bool replayWindow = false;
    ImGui::NewLine();
    if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
-      game->settings.replaying = true;
-      //gameStartMatch(game);
       replayWindow = true;
    }
    if (replayWindow == true) { replayUI(game, &replayWindow); }
@@ -1425,30 +1423,22 @@ void replayUI(Game* game, bool* p_open) {
       return;
    }
 
-   //if (ImGui::Button("Restart")) {
-   //   //game->settings.repInputs.clear();
-   //   //game->settings.repInputs.reserve(REPLAY_SIZE);
-   //   game->settings.replaying = true;
-   //   gameEndMatch(game);
-   //   gameStartMatch(game);
-   //}
-
+   static int frameRange[3] = { 0, 0, 0 };
+   static int frameRate[3] = { 0, 1, 16 };
    if (ImGui::Button("Load Replay")) {
       if (game->playing == true) { gameEndMatch(game); }
       std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
       loadReplay(game, stream);
       game->settings.replaying = true;
       gameStartMatch(game);
+
+      frameRange[2] = game->settings.repInputs.size();
    }
 
-   static int frameRange[3] = { 0, 0, 0 };
-   static int frameRate[3] = { 0, 1, 16 };
-   frameRange[2] = game->settings.repInputs.size();
+   ImGui::SliderScalar("Replay Speed", ImGuiDataType_U32, &game->settings.replaySpeed, &frameRate[1], &frameRate[2]);
 
-   ImGui::SliderScalar("Select Rate", ImGuiDataType_U32, &game->settings.frameRate, &frameRate[1], &frameRate[2]);
-
-   ImGui::SliderScalar("Select Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
-   if (ImGui::Button("Go To Frame")) {
+   ImGui::SliderScalar("Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
+   if (ImGui::IsItemDeactivated() == true) {
       if (game->playing == true) { gameEndMatch(game); }
       std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
       loadReplay(game, stream);
