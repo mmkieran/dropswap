@@ -1432,22 +1432,24 @@ void replayUI(Game* game, bool* p_open) {
       game->settings.replaying = true;
       gameStartMatch(game);
 
-      frameRange[2] = game->settings.repInputs.size();
+      frameRange[2] = game->settings.repInputs.size() - 1;
    }
 
    ImGui::SliderScalar("Replay Speed", ImGuiDataType_U32, &game->settings.replaySpeed, &frameRate[1], &frameRate[2]);
 
    ImGui::SliderScalar("Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
-   if (ImGui::IsItemDeactivated() == true) {
+   if (ImGui::IsItemDeactivatedAfterEdit() == true) {
       if (game->playing == true) { gameEndMatch(game); }
       std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
       loadReplay(game, stream);
       game->settings.replaying = true;
       gameStartMatch(game);
-      for (int i = 0; i < frameRange[0]; i++) {
+      while (game->frameCount < frameRange[0]) {
          gameReplay(game);
       }
    }
+   else if (ImGui::IsItemActive() == false) { 
+      frameRange[0] = game->frameCount; }
 
    if (game->playing == true) {
       ImGui::ProgressBar((game->frameCount + 1) / (float)game->settings.repInputs.size());
