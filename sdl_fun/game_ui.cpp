@@ -6,8 +6,7 @@
 #include "resources.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "win.h"
 
 #include <thread>
 
@@ -1457,6 +1456,10 @@ void replayUI(Game* game, bool* p_open) {
       else if (ImGui::IsItemActive() == false) {
          frameRange[0] = game->frameCount;
       }
+   }
+
+   if (ImGui::Button("File OPen Test")) {
+      fileOpenUI();
    }
 
    ImGui::End();
