@@ -440,7 +440,7 @@ void boardUI(Game* game) {
          if (i + 1 != game->boards.size()) { ImGui::SameLine(); }
       }
 
-      if (game->players == 1) {
+      if (game->players == 1) {  //One Player Options
          ImGui::SameLine();
          ImGui::BeginChild("One Player Options");
          onePlayerOptions(game);
@@ -662,61 +662,62 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
-   ImGui::Text("%d", game->seed);
 
    //todo fix statesave
    //if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
    //if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
-   if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
-      ImGui::Checkbox("Turn On AI", &game->ai);
-      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+   if (game->settings.replaying == false) {
+      if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
+         ImGui::Checkbox("Turn On AI", &game->ai);
+         ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
 
-      if (ImGui::Button("Clear Board")) {
+         if (ImGui::Button("Clear Board")) {
+            if (game->playing == true) {
+               for (auto&& board : game->boards) {
+                  if (board) { boardClear(board); }
+               }
+            }
+         }
+
+         if (ImGui::Button("Make it rain")) {
+            if (game->playing == true) {
+               for (auto&& board : game->boards) {
+                  if (board) { makeItRain(board); }
+               }
+            }
+         }
+
+         if (game->playing == true) {
+            static int gWidth = 6;
+            static int gHeight = 1;
+            static bool isMetal = false;
+            if (ImGui::Button("Dumpstered")) {
+               for (auto&& board : game->boards) {
+                  if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
+               }
+            }
+            ImGui::InputInt("Garbage Width", &gWidth);
+            ImGui::InputInt("Garbage Height", &gHeight);
+            ImGui::Checkbox("Metal", &isMetal);
+         }
+
          if (game->playing == true) {
             for (auto&& board : game->boards) {
-               if (board) { boardClear(board); }
-            }
-         }
-      }
+               if (board) {
+                  float minFallSpeed = 0;
+                  float maxFallSpeed = 20.0;
 
-      if (ImGui::Button("Make it rain")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { makeItRain(board); }
-            }
-         }
-      }
+                  ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
-      if (game->playing == true) {
-         static int gWidth = 6;
-         static int gHeight = 1;
-         static bool isMetal = false;
-         if (ImGui::Button("Dumpstered")) {
-            for (auto&& board : game->boards) {
-               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
-            }
-         }
-         ImGui::InputInt("Garbage Width", &gWidth);
-         ImGui::InputInt("Garbage Height", &gHeight);
-         ImGui::Checkbox("Metal", &isMetal);
-      }
+                  float minBoardSpeed = 0;
+                  float maxBoardSpeed = 1.0;
+                  ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
 
-      if (game->playing == true) {
-         for (auto&& board : game->boards) {
-            if (board) {
-               float minFallSpeed = 0;
-               float maxFallSpeed = 20.0;
-
-               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-               float minBoardSpeed = 0;
-               float maxBoardSpeed = 1.0;
-               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
-
-               float minBoardLevel = 1.0;
-               float maxBoardLevel = 10.0;
-               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+                  float minBoardLevel = 1.0;
+                  float maxBoardLevel = 10.0;
+                  ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+               }
             }
          }
       }
@@ -1425,6 +1426,7 @@ void replayUI(Game* game, bool* p_open) {
 
    static int frameRange[3] = { 0, 0, 0 };
    static int frameRate[3] = { 0, 1, 16 };
+   static bool replayLoaded = false;
    if (ImGui::Button("Load Replay")) {
       if (game->playing == true) { gameEndMatch(game); }
       std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
@@ -1433,26 +1435,28 @@ void replayUI(Game* game, bool* p_open) {
       gameStartMatch(game);
 
       frameRange[2] = game->settings.repInputs.size() - 1;
+      replayLoaded = true;
    }
 
-   ImGui::SliderScalar("Replay Speed", ImGuiDataType_U32, &game->settings.replaySpeed, &frameRate[1], &frameRate[2]);
+   if (replayLoaded == true) {
+      ImGui::SliderScalar("Speed X", ImGuiDataType_U32, &game->settings.replaySpeed, &frameRate[1], &frameRate[2]);
 
-   ImGui::SliderScalar("Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
-   if (ImGui::IsItemDeactivatedAfterEdit() == true) {
-      if (game->playing == true) { gameEndMatch(game); }
-      std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
-      loadReplay(game, stream);
-      game->settings.replaying = true;
-      gameStartMatch(game);
-      while (game->frameCount < frameRange[0]) {
-         gameReplay(game);
+      ImGui::SliderScalar("Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
+      if (ImGui::IsItemDeactivatedAfterEdit() == true) {
+         if (frameRange[0] < game->frameCount) {
+            if (game->playing == true) { gameEndMatch(game); }
+            std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
+            loadReplay(game, stream);
+            game->settings.replaying = true;
+            gameStartMatch(game);
+         }
+         while (game->frameCount < frameRange[0]) {
+            gameReplay(game);
+         }
       }
-   }
-   else if (ImGui::IsItemActive() == false) { 
-      frameRange[0] = game->frameCount; }
-
-   if (game->playing == true) {
-      ImGui::ProgressBar((game->frameCount + 1) / (float)game->settings.repInputs.size());
+      else if (ImGui::IsItemActive() == false) {
+         frameRange[0] = game->frameCount;
+      }
    }
 
    ImGui::End();
