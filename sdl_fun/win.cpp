@@ -2,9 +2,20 @@
 
 #include <windows.h>
 #include <shobjidl.h> 
+#include <stdio.h>
 
-int fileOpenUI() {
+char* fileOpenUI() {
    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+   char* path = new char[500];  //to return the final path
+   sprintf(path, " ");
+
+   //Create a filter for different file types
+   COMDLG_FILTERSPEC rgSpec[] =
+   {
+       { L"DS Replay Files", L"*.rep" },
+       { L"All Files", L"*.*" },
+   };
+
    if (SUCCEEDED(hr))
    {
       IFileOpenDialog* pFileOpen;
@@ -14,31 +25,41 @@ int fileOpenUI() {
 
       if (SUCCEEDED(hr))
       {
-         // Show the Open dialog box.
-         hr = pFileOpen->Show(NULL);
-
-         // Get the file name from the dialog box.
+         // Set the file types to display only a particular type
+         hr = pFileOpen->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
          if (SUCCEEDED(hr))
          {
-            IShellItem* pItem;
-            hr = pFileOpen->GetResult(&pItem);
+            hr = pFileOpen->SetDefaultExtension(L"rep");
             if (SUCCEEDED(hr))
             {
-               PWSTR pszFilePath;
-               hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+               // Show the Open dialog box.
+               hr = pFileOpen->Show(NULL);
 
-               // Display the file name to the user.
+               // Get the file name from the dialog box.
                if (SUCCEEDED(hr))
                {
-                  MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-                  CoTaskMemFree(pszFilePath);
+                  IShellItem* pItem;
+                  hr = pFileOpen->GetResult(&pItem);
+                  if (SUCCEEDED(hr))
+                  {
+                     PWSTR pszFilePath;
+                     hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                     // Display the file name to the user.
+                     if (SUCCEEDED(hr))
+                     {
+                        MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        wcstombs(path, pszFilePath, 500);
+                        CoTaskMemFree(pszFilePath);
+                     }
+                     pItem->Release();
+                  }
                }
-               pItem->Release();
+               pFileOpen->Release();
             }
          }
-         pFileOpen->Release();
       }
       CoUninitialize();
    }
-   return 0;
+   return path;
 }

@@ -1427,14 +1427,19 @@ void replayUI(Game* game, bool* p_open) {
    static int frameRate[3] = { 0, 1, 16 };
    static bool replayLoaded = false;
    if (ImGui::Button("Load Replay")) {
-      if (game->playing == true) { gameEndMatch(game); }
-      std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
-      loadReplay(game, stream);
-      game->settings.replaying = true;
-      gameStartMatch(game);
+      char* path = fileOpenUI();
 
-      frameRange[2] = game->settings.repInputs.size() - 1;
-      replayLoaded = true;
+      if (strcmp(path, " ") != 0) {
+         if (game->playing == true) { gameEndMatch(game); }
+         std::vector <Byte> stream = streamLoadFromFile(path);
+         loadReplay(game, stream);
+         game->settings.replaying = true;
+         gameStartMatch(game);
+
+         frameRange[2] = game->settings.repInputs.size() - 1;
+         replayLoaded = true;
+      }
+      if (path != nullptr) { delete path; }
    }
 
    if (replayLoaded == true) {
@@ -1456,10 +1461,6 @@ void replayUI(Game* game, bool* p_open) {
       else if (ImGui::IsItemActive() == false) {
          frameRange[0] = game->frameCount;
       }
-   }
-
-   if (ImGui::Button("File OPen Test")) {
-      fileOpenUI();
    }
 
    ImGui::End();

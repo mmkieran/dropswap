@@ -809,7 +809,7 @@ std::vector <Byte> streamLoadFromFile(const char* path) {
    FILE* in;
    int err = fopen_s(&in, path, "r");
    std::vector <Byte> stream;
-   if (err == 0) {
+   if (in != nullptr) {
       int streamSize = 0;
       fread(&streamSize, sizeof(int), 1, in);
       stream.resize(streamSize);
@@ -818,7 +818,10 @@ std::vector <Byte> streamLoadFromFile(const char* path) {
       fread(start, sizeof(Byte) * streamSize, 1, in);
 
    }
-   else { printf("Failed to load file... Err: %d\n", err); }  //todo game log file
+   else { //todo game log file
+      char* msg = strerror(err);
+      printf(msg);
+   }  
    fclose(in);
    return stream;
 }
