@@ -4,7 +4,7 @@
 
 //This resizes a vector and shoves bytes on the end
 template <typename T>
-void writeStream(std::vector <Byte>& stream, const T& input) {
+void writeStream(std::vector <Byte> &stream, const T &input) {
    int oldSize = stream.size();
    int newSize = oldSize + sizeof(T);
    stream.resize(newSize);
@@ -14,27 +14,27 @@ void writeStream(std::vector <Byte>& stream, const T& input) {
 
 //Take a vector of things and write the number and then each item
 template <typename T>
-void writeStream(std::vector <Byte>& stream, std::vector <T> const& input) {
+void writeStream(std::vector <Byte> &stream, std::vector <T> const &input) {
    writeStream(stream, input.size());
    for (auto&& item : input) { writeStream(item); }
 }
 
 //This takes a unsigned char* and reads out a chunk, it then increments the stream pointer
 template <typename T>
-void readStream(Byte*& stream, T& output) {
+void readStream(Byte* &stream, T& output) {
    memcpy(&output, stream, sizeof(T));
    stream += sizeof(T);
 }
 
 //Same as readStream, but for a vector
 template <typename T>
-void readStream(Byte*& stream, std::vector <T>& output) {
+void readStream(Byte* &stream, std::vector <T> &output) {
    size_t count;  //size_t can store the size of any object
    readStream(stream, count);
-   for (size_t i = 0; i < count; i++) {
+   for (size_t i = 0; i < count; i++){
       T instance{};
       readStream(stream, instance);
-      output.push_back(std::move(instance));  //std::move avoids copying
+      output.push_back(std::move(instance) );  //std::move avoids copying
    }
 }
 
@@ -97,7 +97,7 @@ void _deserializeGameUser(Byte*& start, Game* game) {
    //readStream(start, game->user.wins);
 }
 
-void _gameSerialize(std::vector <Byte>& stream, Game* game) {
+void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    //   GameWindow* sdl = nullptr;
    //writeStream(stream, game->windowWidth);
    //writeStream(stream, game->windowHeight);
@@ -119,7 +119,7 @@ void _gameSerialize(std::vector <Byte>& stream, Game* game) {
    writeStream(stream, game->seed);
 }
 
-void _gameDeserialize(Byte*& start, Game* game) {
+void _gameDeserialize(Byte* &start, Game* game) {
    //   GameWindow* sdl = nullptr;
    //readStream(start, game->windowWidth);
    //readStream(start, game->windowHeight);
@@ -260,7 +260,7 @@ void _boardStatsDeserialize(Byte*& start, Board* board) {
    }
 }
 
-void _boardSerialize(std::vector <Byte>& stream, Board* board) {
+void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    writeStream(stream, board->startH);
    writeStream(stream, board->endH);
    writeStream(stream, board->wBuffer);
@@ -293,7 +293,7 @@ void _boardSerialize(std::vector <Byte>& stream, Board* board) {
    _boardAlliesSerialize(stream, board);
 }
 
-void _boardDeserialize(Byte*& start, Board* board) {
+void _boardDeserialize(Byte* &start, Board* board) {
    readStream(start, board->startH);
    readStream(start, board->endH);
    readStream(start, board->wBuffer);
@@ -327,7 +327,7 @@ void _boardDeserialize(Byte*& start, Board* board) {
 }
 
 //Below are special deserializers for Tile enums
-void _serializeTileType(std::vector <Byte>& stream, Tile* tile) {
+void _serializeTileType(std::vector <Byte> &stream, Tile* tile) {
    int type = 0;
    if (tile->type) {
       type = (int)tile->type;
@@ -335,7 +335,7 @@ void _serializeTileType(std::vector <Byte>& stream, Tile* tile) {
    writeStream(stream, type);
 }
 
-void _deserializeTileType(Byte*& start, Tile* tile) {
+void _deserializeTileType(Byte* &start, Tile* tile) {
    int type;
    readStream(start, type);
    if (type >= 0 && type < tile_COUNT) {
@@ -344,7 +344,7 @@ void _deserializeTileType(Byte*& start, Tile* tile) {
    else { tile->type = tile_empty; }
 }
 
-void _serializeTileStatus(std::vector <Byte>& stream, Tile* tile) {
+void _serializeTileStatus(std::vector <Byte> &stream, Tile* tile) {
    int status = 0;
    if (tile->status) {
       status = (int)tile->status;
@@ -352,7 +352,7 @@ void _serializeTileStatus(std::vector <Byte>& stream, Tile* tile) {
    writeStream(stream, status);
 }
 
-void _deserializeTileStatus(Byte*& start, Tile* tile) {
+void _deserializeTileStatus(Byte* &start, Tile* tile) {
    int status;
    readStream(start, status);
    if (status >= 0 && status < status_COUNT) {
@@ -379,7 +379,7 @@ void _deserializeVisualEffect(Byte*& start, Tile* tile) {
 }
 
 //Special serializers for Garbage
-void _serializeTileGarbage(std::vector <Byte>& stream, Tile* tile) {
+void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
    bool garbageStart = false;
    if (tile->garbage != nullptr) {
       garbageStart = true;
@@ -387,7 +387,7 @@ void _serializeTileGarbage(std::vector <Byte>& stream, Tile* tile) {
    writeStream(stream, garbageStart);
 }
 
-void _deserializeTileGarbage(Byte*& start, Board* board, Tile* tile) {
+void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
    bool garbageStart = false;
    readStream(start, garbageStart);
    if (garbageStart == true) {
@@ -396,7 +396,7 @@ void _deserializeTileGarbage(Byte*& start, Board* board, Tile* tile) {
    }
 }
 
-void _tileSerialize(std::vector <Byte>& stream, Tile* tile) {
+void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
    _serializeVisualEffect(stream, tile);
@@ -413,7 +413,7 @@ void _tileSerialize(std::vector <Byte>& stream, Tile* tile) {
    _serializeTileGarbage(stream, tile);
 }
 
-void _tileDeserialize(Byte*& start, Board* board, Tile* tile) {
+void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
    _deserializeVisualEffect(start, tile);
@@ -442,7 +442,7 @@ void _cursorDeserializeDroplist(Byte*& start, Board* board, Cursor* cursor) {
    }
 }
 
-void _cursorSerialize(std::vector <Byte>& stream, Board* board) {
+void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
    int cursorNumber = board->cursors.size();
    writeStream(stream, cursorNumber);
    for (int i = 0; i < cursorNumber; i++) {
@@ -458,9 +458,9 @@ void _cursorSerialize(std::vector <Byte>& stream, Board* board) {
    }
 }
 
-void _cursorDeserialize(Byte*& start, Board* board) {
+void _cursorDeserialize(Byte* &start, Board* board) {
    int cursorNumber = 0;
-   readStream(start, cursorNumber);
+   readStream(start, cursorNumber );
    for (int i = 0; i < cursorNumber; i++) {
       Cursor* cursor = board->cursors[i];
       readStream(start, cursor->x);
@@ -474,7 +474,7 @@ void _cursorDeserialize(Byte*& start, Board* board) {
    }
 }
 
-void _garbageSerialize(std::vector <Byte>& stream, Board* board) {
+void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
 
    writeStream(stream, board->pile->nextID);
    int count = board->pile->garbage.size();
@@ -496,7 +496,7 @@ void _garbageSerialize(std::vector <Byte>& stream, Board* board) {
    }
 }
 
-void _garbageDeserialize(Byte*& start, Board* board) {
+void _garbageDeserialize(Byte* &start, Board* board) {
 
    readStream(start, board->pile->nextID);
 
@@ -601,7 +601,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    for (int i = 0; i < players; i++) {
       Board* board = nullptr;
       if (game->playing) {
-         board = boardCreate(game, i + 1, 64, 64);
+         board = boardCreate(game, i + 1, 64 , 64);
          //deserialize board
          if (board) {
             _boardDeserialize(start, board);
@@ -650,7 +650,7 @@ FILE* gameSaveState(Game* game, const char* filename) {
 
    }
    else { printf("Failed to save file... Err: %d\n", err); }
-   game->settings.save = stream;
+   game->settings.save = stream;  
    fclose(out);
    return out;
 }
@@ -764,7 +764,7 @@ std::vector <Byte> createReplay(Game* game) {
 void loadReplay(Game* game, std::vector <Byte> stream) {
    unsigned char* start = stream.data();
 
-   //Limited Game Serializing
+  //Limited Game Serializing
    readStream(start, game->settings.bHeight);
    readStream(start, game->settings.bWidth);
    readStream(start, game->settings.tWidth);
@@ -814,14 +814,14 @@ std::vector <Byte> streamLoadFromFile(const char* path) {
       fread(&streamSize, sizeof(int), 1, in);
       stream.resize(streamSize);
 
-      Byte* start = stream.data();
+      Byte* start = stream.data();  
       fread(start, sizeof(Byte) * streamSize, 1, in);
 
    }
    else { //todo game log file
       char* msg = strerror(err);
       printf(msg);
-   }
+   }  
    fclose(in);
    return stream;
 }

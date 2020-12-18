@@ -6,16 +6,17 @@
 #include "resources.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "win.h"
 
 #include <thread>
 
 void ggpoSessionUI(Game* game, bool* p_open);
+void singlePlayerGame(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
+void replayUI(Game* game, bool* p_open);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -141,11 +142,11 @@ void mainUI(Game* game) {
    }
 
    if (game->playing == false) {
+      static bool singlePlayer = false;
       if (ImGui::Button("One Player", ImVec2{ width, 0 })) {
-         game->players = 1;
-         game->settings.mode = single_player;
-         gameStartMatch(game);
+         singlePlayer = true;
       }
+      if (singlePlayer) { singlePlayerGame(game, &singlePlayer); }
       ImGui::NewLine();
 
       static bool showConnectionType = false;
@@ -176,6 +177,31 @@ void mainUI(Game* game) {
    }
 
    ImGui::PopFont();
+   ImGui::End();
+}
+
+void singlePlayerGame(Game* game, bool* p_open) {
+   centerWindow(game, { 600, 500 });
+   if (!ImGui::Begin("Single Player", p_open, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::NewLine();
+   float width = ImGui::GetWindowContentRegionWidth();
+   if (ImGui::Button("Practice", ImVec2{ width, 0 })) {
+      game->players = 1;
+      game->settings.mode = single_player;
+      gameStartMatch(game);
+   }
+
+   static bool replayWindow = false;
+   ImGui::NewLine();
+   if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
+      replayWindow = true;
+   }
+   if (replayWindow == true) { replayUI(game, &replayWindow); }
+
    ImGui::End();
 }
 
@@ -252,6 +278,14 @@ static void _gameResults(Game* game) {
       ImGui::CloseCurrentPopup();
       popupDisable(Popup_GameOver);
    }
+   
+   if (game->settings.replaying == false) {  //Save the replay
+      ImGui::SameLine();
+      if (ImGui::Button("Save Replay")) {
+         createReplay(game);
+         //4replay todo file picker here
+      }
+   }
 }
 
 //Draw the window and child regions for the board texture to be rendered in
@@ -265,6 +299,8 @@ void boardUI(Game* game) {
          ImGui::End();
          return;
       }
+
+      if (game->settings.replaying == true) { replayUI(game, (bool*)0); }
 
       ImGuiStyle style = ImGui::GetStyle();
       ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", game->timer / 1000);
@@ -403,7 +439,7 @@ void boardUI(Game* game) {
          if (i + 1 != game->boards.size()) { ImGui::SameLine(); }
       }
 
-      if (game->players == 1) {
+      if (game->players == 1) {  //One Player Options
          ImGui::SameLine();
          ImGui::BeginChild("One Player Options");
          onePlayerOptions(game);
@@ -625,58 +661,62 @@ void gameSettingsUI(Game* game, bool* p_open) {
 }
 
 void onePlayerOptions(Game* game) {
-   if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
-   if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
-   if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
-      ImGui::Checkbox("Turn On AI", &game->ai);
-      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+   //todo fix statesave
+   //if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
+   //if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
 
-      if (ImGui::Button("Clear Board")) {
+   if (game->settings.replaying == false) {
+      if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
+         ImGui::Checkbox("Turn On AI", &game->ai);
+         ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
+
+         if (ImGui::Button("Clear Board")) {
+            if (game->playing == true) {
+               for (auto&& board : game->boards) {
+                  if (board) { boardClear(board); }
+               }
+            }
+         }
+
+         if (ImGui::Button("Make it rain")) {
+            if (game->playing == true) {
+               for (auto&& board : game->boards) {
+                  if (board) { makeItRain(board); }
+               }
+            }
+         }
+
+         if (game->playing == true) {
+            static int gWidth = 6;
+            static int gHeight = 1;
+            static bool isMetal = false;
+            if (ImGui::Button("Dumpstered")) {
+               for (auto&& board : game->boards) {
+                  if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
+               }
+            }
+            ImGui::InputInt("Garbage Width", &gWidth);
+            ImGui::InputInt("Garbage Height", &gHeight);
+            ImGui::Checkbox("Metal", &isMetal);
+         }
+
          if (game->playing == true) {
             for (auto&& board : game->boards) {
-               if (board) { boardClear(board); }
-            }
-         }
-      }
+               if (board) {
+                  float minFallSpeed = 0;
+                  float maxFallSpeed = 20.0;
 
-      if (ImGui::Button("Make it rain")) {
-         if (game->playing == true) {
-            for (auto&& board : game->boards) {
-               if (board) { makeItRain(board); }
-            }
-         }
-      }
+                  ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
 
-      if (game->playing == true) {
-         static int gWidth = 6;
-         static int gHeight = 1;
-         static bool isMetal = false;
-         if (ImGui::Button("Dumpstered")) {
-            for (auto&& board : game->boards) {
-               if (board) { garbageCreate(board, gWidth, gHeight, isMetal); }
-            }
-         }
-         ImGui::InputInt("Garbage Width", &gWidth);
-         ImGui::InputInt("Garbage Height", &gHeight);
-         ImGui::Checkbox("Metal", &isMetal);
-      }
+                  float minBoardSpeed = 0;
+                  float maxBoardSpeed = 1.0;
+                  ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
 
-      if (game->playing == true) {
-         for (auto&& board : game->boards) {
-            if (board) {
-               float minFallSpeed = 0;
-               float maxFallSpeed = 20.0;
-
-               ImGui::SliderScalar("Fall Speed", ImGuiDataType_Float, &board->fallSpeed, &minFallSpeed, &maxFallSpeed);
-
-               float minBoardSpeed = 0;
-               float maxBoardSpeed = 1.0;
-               ImGui::SliderScalar("Board Speed", ImGuiDataType_Float, &board->moveSpeed, &minBoardSpeed, &maxBoardSpeed);
-
-               float minBoardLevel = 1.0;
-               float maxBoardLevel = 10.0;
-               ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+                  float minBoardLevel = 1.0;
+                  float maxBoardLevel = 10.0;
+                  ImGui::SliderScalar("Board Level", ImGuiDataType_Float, &board->level, &minBoardLevel, &maxBoardLevel);
+               }
             }
          }
       }
@@ -1024,7 +1064,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
    }
    if (ImGui::BeginPopupModal("Connection Status", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
       if (popups[Popup_GameSetup].isOpen == false) { ImGui::CloseCurrentPopup(); }
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str() );
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
       //This displays the game information once it is received
@@ -1181,7 +1221,7 @@ void multiplayerHost(Game* game, bool* p_open) {
    }
    if (ImGui::BeginPopupModal("Connection Status", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
       if (popups[Popup_GameSetup].isOpen == false) { ImGui::CloseCurrentPopup(); }
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str());
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
       if (serverStatus == server_waiting) {
@@ -1373,6 +1413,55 @@ void debugMultiplayerSetup(Game* game, bool* p_open) {
    }
 
    //Add GGPO state
+
+   ImGui::End();
+}
+
+void replayUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Replay Options", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   static int frameRange[3] = { 0, 0, 0 };
+   static int frameRate[3] = { 0, 1, 16 };
+   static bool replayLoaded = false;
+   if (ImGui::Button("Load Replay")) {
+      char* path = fileOpenUI();
+
+      if (strcmp(path, " ") != 0) {
+         if (game->playing == true) { gameEndMatch(game); }
+         std::vector <Byte> stream = streamLoadFromFile(path); 
+         loadReplay(game, stream);  //todo we should validate the file and bail before/during load
+         game->settings.replaying = true;
+         gameStartMatch(game);
+
+         frameRange[2] = game->settings.repInputs.size() - 1;
+         replayLoaded = true;
+      }
+      if (path != nullptr) { delete path; }
+   }
+
+   if (replayLoaded == true) {
+      ImGui::SliderScalar("Speed X", ImGuiDataType_U32, &game->settings.replaySpeed, &frameRate[1], &frameRate[2]);
+
+      ImGui::SliderScalar("Frame", ImGuiDataType_U32, &frameRange[0], &frameRange[1], &frameRange[2]);
+      if (ImGui::IsItemDeactivatedAfterEdit() == true) {
+         if (frameRange[0] < game->frameCount) {
+            if (game->playing == true) { gameEndMatch(game); }
+            std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
+            loadReplay(game, stream);
+            game->settings.replaying = true;
+            gameStartMatch(game);
+         }
+         while (game->frameCount < frameRange[0]) {
+            gameReplay(game);
+         }
+      }
+      else if (ImGui::IsItemActive() == false) {
+         frameRange[0] = game->frameCount;
+      }
+   }
 
    ImGui::End();
 }

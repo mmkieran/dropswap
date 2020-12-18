@@ -212,6 +212,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    soundsInit();  //Initialize SoLoud components
 
    resourcesGetName(game);
+   game->settings.repInputs.reserve(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
 
    return game;
 }
@@ -231,10 +232,11 @@ void gameHandleEvents(Game* game) {
             if (game->playing == true && popupStatus(Popup_Quit) == false) { popupEnable(Popup_Quit); }
             else { popupDisable(Popup_Quit); }
          }
-         if (game->players == 1) {  //Only save state in one player games
-            if (event.key.keysym.sym == SDLK_F1) { gameSaveState(game, "saves/game_state.dat"); }
-            else if (event.key.keysym.sym == SDLK_F2) { gameLoadState(game, "saves/game_state.dat"); }
-         }
+         ////Statesave is broken right now
+         //if (game->players == 1) {  //Only save state in one player games
+         //   if (event.key.keysym.sym == SDLK_F1) { gameSaveState(game, "saves/game_state.dat"); }
+         //   else if (event.key.keysym.sym == SDLK_F2) { gameLoadState(game, "saves/game_state.dat"); }
+         //}
       }
 
       if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added
@@ -302,7 +304,9 @@ void gameUpdate(Game* game) {
    }
 
    gameUpdateSprites(game);
+
    if (game->waiting == false) {
+      gameCaptureReplayInputs(game);
       game->frameCount++;  //Increment frame count
       game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
    }
@@ -319,8 +323,6 @@ void gameSinglePlayer(Game* game) {
 
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
-   if (game->players == 1) { game->seed = time(0); }
-
    for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
       if (game->fbos[i]) {
          rendererDestroyFBO(game->fbos[i]);
@@ -330,11 +332,15 @@ void gameStartMatch(Game* game) {
 
    int boardCount = 0;
    int myBoard = 0;
+
    if (game->settings.mode == single_player) {
-      strcpy(game->pList[1].name, game->user.name);
-      game->user.number = 1;  //Maybe move this to a 1 player UI window later
-      game->pList[1].team = 0;
-      game->pList[1].level = game->user.level;
+      if (game->settings.replaying == false) {
+         game->seed = time(0);
+         strcpy(game->pList[1].name, game->user.name);
+         game->user.number = 1;  //Maybe move this to a 1 player UI window later
+         game->pList[1].team = 0;
+         game->pList[1].level = game->user.level;
+      }
       boardCount = 1;
       myBoard = 0;
    }
@@ -387,7 +393,7 @@ void gameStartMatch(Game* game) {
                   board->cursors.push_back(cursor);
                   p.second.board = board;
                   p.second.cursor = cursor;
-                  level += game->net->hostSetup[i].level;
+                  level += p.second.level;
                   count++;
                }
             }
@@ -398,7 +404,7 @@ void gameStartMatch(Game* game) {
             board->cursors.push_back(cursor);
             game->pList[i + 1].board = board;
             game->pList[i + 1].cursor = cursor;
-            board->level = game->net->hostSetup[i].level;
+            board->level = game->pList[i + 1].level;
          }
 
          game->boards.push_back(board);
@@ -429,16 +435,20 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
+
+   //Reset all the game things
    game->pList.clear();
    game->user.number = 1;
    game->boards.clear();
    game->teams.clear();
    game->playing = false;
    game->paused = false;
+   game->settings.replaying = false;
    game->frameCount = 0;
    game->timer = 0;
    game->busted = -1;
    soundsStopAll();
+   //End GGPO session if we got that far
    if (game->players > 1) {
       ggpoEndSession(game);
    }
@@ -600,4 +610,49 @@ bool gameRunning(Game* game) {
 
 void gameAI(Game* game) {
    boardAI(game);
+}
+
+//Process replay inputs and update game
+void gameReplay(Game* game) {
+   if (game->playing == false) { return; }
+
+   if (game->settings.mode == single_player) {
+      game->user.input = game->settings.repInputs[game->frameCount].input[0];
+   }
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+      for (int i = 0; i < game->players; i++) {
+         game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
+      }
+   }
+   gameUpdate(game);
+}
+
+void gameCaptureReplayInputs(Game* game) {
+   if (game->settings.replaying == true) { return; }
+
+   if (game->settings.mode == single_player) {
+      if (game->frameCount + 1 <= game->settings.repInputs.size()) {
+         game->settings.repInputs[game->frameCount].input[0] = game->user.input;
+      }
+      else if (game->frameCount + 1 > game->settings.repInputs.size()) {
+         ReplayInput replay = { 0 };
+         replay.input[0] = game->user.input;
+         game->settings.repInputs.push_back(replay);
+      }
+   }
+
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+      if (game->frameCount + 1 <= game->settings.repInputs.size()) {
+         for (int i = 0; i < game->players; i++) {
+            game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];
+         }
+      }
+      else if (game->frameCount + 1 > game->settings.repInputs.size()) {
+         ReplayInput replay = { 0 };
+         for (int i = 0; i < game->players; i++) {
+            replay.input[i] = game->net->inputs[i];
+         }
+         game->settings.repInputs.push_back(replay);
+      }
+   }
 }

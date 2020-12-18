@@ -194,6 +194,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <ClCompile Include="serialize.cpp" />
     <ClCompile Include="sounds.cpp" />
     <ClCompile Include="tile.cpp" />
+    <ClCompile Include="win.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Depends\stb\include\stb_image.h" />
@@ -211,6 +212,7 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <ClInclude Include="serialize.h" />
     <ClInclude Include="sounds.h" />
     <ClInclude Include="tile.h" />
+    <ClInclude Include="win.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\circle.png" />

@@ -14,6 +14,7 @@
 #include <map>
 
 #define GAME_MAX_PLAYERS    6
+#define REPLAY_SIZE 5 * 60 * 60
 
 struct GameWindow;
 
@@ -86,6 +87,10 @@ struct Player {
    bool dead = false;
 };
 
+struct ReplayInput {
+   UserInput input[4];              
+};
+
 enum GameMode {
    multi_solo = 0,                  //Individual boards
    multi_shared,                    //Shared board
@@ -94,14 +99,17 @@ enum GameMode {
 };
 
 struct GameSettings {
-   int bHeight = 12;                      //The height of the (visible) board
-   int bWidth = 6;                        //The width of the (visible) board
-   int tWidth = 32;                       //The width in pixels of tile
-   int tHeight = 32;                      //The height in pixels of a tile
+   int bHeight = 12;                               //The height of the (visible) board
+   int bWidth = 6;                                 //The width of the (visible) board
+   int tWidth = 32;                                //The width in pixels of tile
+   int tHeight = 32;                               //The height in pixels of a tile
 
-   GameMode mode = single_player;         //The currently game mode setting, multi_solo is separate boards for each player
+   GameMode mode = single_player;                  //The currently game mode setting, multi_solo is separate boards for each player
 
-   std::vector <unsigned char> save;      //todo this is broken and doesn't belong here... This holds the state saves
+   std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
+   std::vector <ReplayInput> repInputs;            //Used to store the inputs for a replay
+   int replaySpeed = 1;                            //The speed of the replay (frames per loop)
+   bool replaying = false;                         //Are we viewing a replay?
 };
 
 //@@Start Serialize
@@ -157,6 +165,7 @@ void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
 void gameSinglePlayer(Game* game);
+void gameReplay(Game* game);
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 
@@ -176,5 +185,4 @@ void gameAI(Game* game);
 void gameSwapWindow(Game* game);
 void sdlSetVsync(Game* game, bool toggle);
 
-void gameUpdateSprites(Game* game);
-void gameDrawSprites(Game* game);
+void gameCaptureReplayInputs(Game* game);
