@@ -282,8 +282,11 @@ static void _gameResults(Game* game) {
    if (game->settings.replaying == false) {  //Save the replay
       ImGui::SameLine();
       if (ImGui::Button("Save Replay")) {
-         createReplay(game);
-         //4replay todo file picker here
+         char* path = fileSaveUI();
+         if (path != " ") {
+            createReplay(game, path);
+         }
+         if (path != nullptr) { delete path; }
       }
    }
 }

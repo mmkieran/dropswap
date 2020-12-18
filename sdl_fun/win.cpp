@@ -63,3 +63,56 @@ char* fileOpenUI() {
    }
    return path;
 }
+
+char* fileSaveUI() {
+   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+   char* path = new char[500];  //to return the final path
+   sprintf(path, " ");
+
+   //Create a filter for different file types
+   COMDLG_FILTERSPEC rgSpec[] =
+   {
+       { L"DS Replay Files", L"*.rep" },
+       { L"All Files", L"*.*" },
+   };
+
+   if (SUCCEEDED(hr))
+   {
+      IFileSaveDialog* pSaveDialog;
+
+      // Create the FileOpenDialog object.
+      hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&pSaveDialog));
+
+      if (SUCCEEDED(hr)) {
+         // Set the file types to display only a particular type
+         hr = pSaveDialog->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+         if (SUCCEEDED(hr))
+         {
+            hr = pSaveDialog->SetDefaultExtension(L"rep");
+            if (SUCCEEDED(hr))
+            {
+               hr = pSaveDialog->Show(NULL);
+               if (SUCCEEDED(hr))
+               {
+                  // Grab the shell item that user specified in the save dialog
+                  IShellItem* pSaveResult = NULL;
+                  hr = pSaveDialog->GetResult(&pSaveResult);
+                  if (SUCCEEDED(hr)) {
+                     // Extract the full system path from the shell item
+                     PWSTR pszPathName = NULL;
+                     hr = pSaveResult->GetDisplayName(SIGDN_FILESYSPATH, &pszPathName);
+
+                     if (SUCCEEDED(hr)) {
+                        wcstombs(path, pszPathName, 500);
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      pSaveDialog->Release();
+      CoUninitialize();
+   }
+   return path;
+}

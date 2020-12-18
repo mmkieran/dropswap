@@ -731,7 +731,7 @@ void deserializeMultiSetup(Game* game, Byte*& start) {
 }
 
 //Save a replay to a file
-std::vector <Byte> createReplay(Game* game) {
+std::vector <Byte> createReplay(Game* game, char* path) {
    std::vector <Byte> stream;
 
    //Limited Game Serializing
@@ -755,7 +755,7 @@ std::vector <Byte> createReplay(Game* game) {
       writeStream(stream, game->settings.repInputs[i].input);
    }
 
-   streamSaveToFile("saves/replay.rep", stream);
+   streamSaveToFile(path, stream);
 
    return stream;
 }
@@ -797,10 +797,9 @@ FILE* streamSaveToFile(const char* path, std::vector <Byte>& stream) {
       fwrite(&streamSize, sizeof(int), 1, out);
 
       fwrite(stream.data(), sizeof(Byte) * streamSize, 1, out);
-
+      fclose(out);
    }
    else { printf("Failed to save file... Err: %d\n", err); }  //todo game log file
-   fclose(out);
    return out;
 }
 
@@ -817,11 +816,11 @@ std::vector <Byte> streamLoadFromFile(const char* path) {
       Byte* start = stream.data();  
       fread(start, sizeof(Byte) * streamSize, 1, in);
 
+      fclose(in);
    }
    else { //todo game log file
       char* msg = strerror(err);
       printf(msg);
    }  
-   fclose(in);
    return stream;
 }
