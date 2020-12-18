@@ -262,3 +262,4 @@ __pycache__/
 /sdl_fun/assets/game_state.csv
 /sdl_fun/saves
 /sdl_fun/imgui.ini
+*.rep

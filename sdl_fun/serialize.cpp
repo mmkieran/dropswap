@@ -4,7 +4,7 @@
 
 //This resizes a vector and shoves bytes on the end
 template <typename T>
-void writeStream(std::vector <Byte> &stream, const T &input) {
+void writeStream(std::vector <Byte>& stream, const T& input) {
    int oldSize = stream.size();
    int newSize = oldSize + sizeof(T);
    stream.resize(newSize);
@@ -14,31 +14,90 @@ void writeStream(std::vector <Byte> &stream, const T &input) {
 
 //Take a vector of things and write the number and then each item
 template <typename T>
-void writeStream(std::vector <Byte> &stream, std::vector <T> const &input) {
+void writeStream(std::vector <Byte>& stream, std::vector <T> const& input) {
    writeStream(stream, input.size());
    for (auto&& item : input) { writeStream(item); }
 }
 
 //This takes a unsigned char* and reads out a chunk, it then increments the stream pointer
 template <typename T>
-void readStream(Byte* &stream, T& output) {
+void readStream(Byte*& stream, T& output) {
    memcpy(&output, stream, sizeof(T));
    stream += sizeof(T);
 }
 
 //Same as readStream, but for a vector
 template <typename T>
-void readStream(Byte* &stream, std::vector <T> &output) {
+void readStream(Byte*& stream, std::vector <T>& output) {
    size_t count;  //size_t can store the size of any object
    readStream(stream, count);
-   for (size_t i = 0; i < count; i++){
+   for (size_t i = 0; i < count; i++) {
       T instance{};
       readStream(stream, instance);
-      output.push_back(std::move(instance) );  //std::move avoids copying
+      output.push_back(std::move(instance));  //std::move avoids copying
    }
 }
 
-void _gameSerialize(std::vector <Byte> &stream, Game* game) {
+void _serializeGameTiming(std::vector <Byte>& stream, Game* game) {
+   writeStream(stream, game->timings.gracePeriod[0]);
+   writeStream(stream, game->timings.fallDelay[0]);
+   writeStream(stream, game->timings.removeClear[0]);
+   writeStream(stream, game->timings.enterSilver[0]);
+   writeStream(stream, game->timings.countIn[0]);
+   writeStream(stream, game->timings.landPause[0]);
+   writeStream(stream, game->timings.deployTime[0]);
+}
+
+void _deserializeGameTiming(Byte*& start, Game* game) {
+   readStream(start, game->timings.gracePeriod[0]);
+   readStream(start, game->timings.fallDelay[0]);
+   readStream(start, game->timings.removeClear[0]);
+   readStream(start, game->timings.enterSilver[0]);
+   readStream(start, game->timings.countIn[0]);
+   readStream(start, game->timings.landPause[0]);
+   readStream(start, game->timings.deployTime[0]);
+}
+
+void _serializePlayerList(std::vector <Byte>& stream, Game* game) {
+   int count = game->pList.size();
+   writeStream(stream, count);
+
+   for (auto&& pair : game->pList) {
+      writeStream(stream, pair.second.name);
+      writeStream(stream, pair.second.number);
+      writeStream(stream, pair.second.level);
+      writeStream(stream, pair.second.team);
+      //writeStream(stream, pair.second.dead);  //todo not used
+   }
+}
+
+void _deserializePlayerList(Byte*& start, Game* game) {
+   int count = 0;
+   readStream(start, count);
+   for (int i = 1; i <= count; i++) {
+      readStream(start, game->pList[i].name);
+      readStream(start, game->pList[i].number);
+      readStream(start, game->pList[i].level);
+      readStream(start, game->pList[i].team);
+      //writeStream(stream, game->pList[i].dead);  //todo not used
+   }
+}
+
+void _serializeGameUser(std::vector <Byte>& stream, Game* game) {
+   writeStream(stream, game->user.name);
+   writeStream(stream, game->user.level);
+   writeStream(stream, game->user.number);
+   //writeStream(stream, game->user.wins);
+}
+
+void _deserializeGameUser(Byte*& start, Game* game) {
+   readStream(start, game->user.name);
+   readStream(start, game->user.level);
+   readStream(start, game->user.number);
+   //readStream(start, game->user.wins);
+}
+
+void _gameSerialize(std::vector <Byte>& stream, Game* game) {
    //   GameWindow* sdl = nullptr;
    //writeStream(stream, game->windowWidth);
    //writeStream(stream, game->windowHeight);
@@ -60,7 +119,7 @@ void _gameSerialize(std::vector <Byte> &stream, Game* game) {
    writeStream(stream, game->seed);
 }
 
-void _gameDeserialize(Byte* &start, Game* game) {
+void _gameDeserialize(Byte*& start, Game* game) {
    //   GameWindow* sdl = nullptr;
    //readStream(start, game->windowWidth);
    //readStream(start, game->windowHeight);
@@ -201,7 +260,7 @@ void _boardStatsDeserialize(Byte*& start, Board* board) {
    }
 }
 
-void _boardSerialize(std::vector <Byte> &stream, Board* board) {
+void _boardSerialize(std::vector <Byte>& stream, Board* board) {
    writeStream(stream, board->startH);
    writeStream(stream, board->endH);
    writeStream(stream, board->wBuffer);
@@ -234,7 +293,7 @@ void _boardSerialize(std::vector <Byte> &stream, Board* board) {
    _boardAlliesSerialize(stream, board);
 }
 
-void _boardDeserialize(Byte* &start, Board* board) {
+void _boardDeserialize(Byte*& start, Board* board) {
    readStream(start, board->startH);
    readStream(start, board->endH);
    readStream(start, board->wBuffer);
@@ -268,7 +327,7 @@ void _boardDeserialize(Byte* &start, Board* board) {
 }
 
 //Below are special deserializers for Tile enums
-void _serializeTileType(std::vector <Byte> &stream, Tile* tile) {
+void _serializeTileType(std::vector <Byte>& stream, Tile* tile) {
    int type = 0;
    if (tile->type) {
       type = (int)tile->type;
@@ -276,7 +335,7 @@ void _serializeTileType(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, type);
 }
 
-void _deserializeTileType(Byte* &start, Tile* tile) {
+void _deserializeTileType(Byte*& start, Tile* tile) {
    int type;
    readStream(start, type);
    if (type >= 0 && type < tile_COUNT) {
@@ -285,7 +344,7 @@ void _deserializeTileType(Byte* &start, Tile* tile) {
    else { tile->type = tile_empty; }
 }
 
-void _serializeTileStatus(std::vector <Byte> &stream, Tile* tile) {
+void _serializeTileStatus(std::vector <Byte>& stream, Tile* tile) {
    int status = 0;
    if (tile->status) {
       status = (int)tile->status;
@@ -293,7 +352,7 @@ void _serializeTileStatus(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, status);
 }
 
-void _deserializeTileStatus(Byte* &start, Tile* tile) {
+void _deserializeTileStatus(Byte*& start, Tile* tile) {
    int status;
    readStream(start, status);
    if (status >= 0 && status < status_COUNT) {
@@ -320,7 +379,7 @@ void _deserializeVisualEffect(Byte*& start, Tile* tile) {
 }
 
 //Special serializers for Garbage
-void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
+void _serializeTileGarbage(std::vector <Byte>& stream, Tile* tile) {
    bool garbageStart = false;
    if (tile->garbage != nullptr) {
       garbageStart = true;
@@ -328,7 +387,7 @@ void _serializeTileGarbage(std::vector <Byte> &stream, Tile* tile) {
    writeStream(stream, garbageStart);
 }
 
-void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
+void _deserializeTileGarbage(Byte*& start, Board* board, Tile* tile) {
    bool garbageStart = false;
    readStream(start, garbageStart);
    if (garbageStart == true) {
@@ -337,7 +396,7 @@ void _deserializeTileGarbage(Byte* &start, Board* board, Tile* tile) {
    }
 }
 
-void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
+void _tileSerialize(std::vector <Byte>& stream, Tile* tile) {
    _serializeTileType(stream, tile);
    _serializeTileStatus(stream, tile);
    _serializeVisualEffect(stream, tile);
@@ -354,7 +413,7 @@ void _tileSerialize(std::vector <Byte> &stream, Tile* tile) {
    _serializeTileGarbage(stream, tile);
 }
 
-void _tileDeserialize(Byte* &start, Board* board, Tile* tile) {
+void _tileDeserialize(Byte*& start, Board* board, Tile* tile) {
    _deserializeTileType(start, tile);
    _deserializeTileStatus(start, tile);
    _deserializeVisualEffect(start, tile);
@@ -383,7 +442,7 @@ void _cursorDeserializeDroplist(Byte*& start, Board* board, Cursor* cursor) {
    }
 }
 
-void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
+void _cursorSerialize(std::vector <Byte>& stream, Board* board) {
    int cursorNumber = board->cursors.size();
    writeStream(stream, cursorNumber);
    for (int i = 0; i < cursorNumber; i++) {
@@ -399,9 +458,9 @@ void _cursorSerialize(std::vector <Byte> &stream, Board* board) {
    }
 }
 
-void _cursorDeserialize(Byte* &start, Board* board) {
+void _cursorDeserialize(Byte*& start, Board* board) {
    int cursorNumber = 0;
-   readStream(start, cursorNumber );
+   readStream(start, cursorNumber);
    for (int i = 0; i < cursorNumber; i++) {
       Cursor* cursor = board->cursors[i];
       readStream(start, cursor->x);
@@ -415,7 +474,7 @@ void _cursorDeserialize(Byte* &start, Board* board) {
    }
 }
 
-void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
+void _garbageSerialize(std::vector <Byte>& stream, Board* board) {
 
    writeStream(stream, board->pile->nextID);
    int count = board->pile->garbage.size();
@@ -437,7 +496,7 @@ void _garbageSerialize(std::vector <Byte> &stream, Board* board) {
    }
 }
 
-void _garbageDeserialize(Byte* &start, Board* board) {
+void _garbageDeserialize(Byte*& start, Board* board) {
 
    readStream(start, board->pile->nextID);
 
@@ -542,7 +601,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    for (int i = 0; i < players; i++) {
       Board* board = nullptr;
       if (game->playing) {
-         board = boardCreate(game, i + 1, 64 , 64);
+         board = boardCreate(game, i + 1, 64, 64);
          //deserialize board
          if (board) {
             _boardDeserialize(start, board);
@@ -573,6 +632,7 @@ int gameLoad(Game* game, unsigned char*& start) {
    return 0;
 }
 
+//Sve the game state to a file
 FILE* gameSaveState(Game* game, const char* filename) {
    FILE* out;
    int err = fopen_s(&out, filename, "w");
@@ -590,11 +650,12 @@ FILE* gameSaveState(Game* game, const char* filename) {
 
    }
    else { printf("Failed to save file... Err: %d\n", err); }
-   game->settings.save = stream;  
+   game->settings.save = stream;
    fclose(out);
    return out;
 }
 
+//Load the game state from a file
 int gameLoadState(Game* game, const char* path) {
    FILE* in;
    int err = fopen_s(&in, path, "r");
@@ -622,26 +683,6 @@ int gameLoadState(Game* game, const char* path) {
    return 1;
 }
 
-void _serializeGameTiming(Game* game, std::vector <Byte>& stream) {
-   writeStream(stream, game->timings.gracePeriod[0]);
-   writeStream(stream, game->timings.fallDelay[0]);
-   writeStream(stream, game->timings.removeClear[0]);
-   writeStream(stream, game->timings.enterSilver[0]);
-   writeStream(stream, game->timings.countIn[0]);
-   writeStream(stream, game->timings.landPause[0]);
-   writeStream(stream, game->timings.deployTime[0]);
-}
-
-void _deserializeGameTiming(Game* game, Byte*& start) {
-   readStream(start, game->timings.gracePeriod[0]);
-   readStream(start, game->timings.fallDelay[0]);
-   readStream(start, game->timings.removeClear[0]);
-   readStream(start, game->timings.enterSilver[0]);
-   readStream(start, game->timings.countIn[0]);
-   readStream(start, game->timings.landPause[0]);
-   readStream(start, game->timings.deployTime[0]);
-}
-
 //Serialize hostSetup (port numbers, ips, player number, game info) so we can send it over tcp
 void serializeMultiSetup(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->net->participants);
@@ -662,9 +703,10 @@ void serializeMultiSetup(Game* game, std::vector <Byte>& stream) {
    writeStream(stream, game->net->frameDelay[0]);
    writeStream(stream, game->net->disconnectTime[0]);
 
-   _serializeGameTiming(game, stream);
+   _serializeGameTiming(stream, game);
 }
 
+//Deserialize hostSetup (port numbers, ips, player number, game info) received over TCP
 void deserializeMultiSetup(Game* game, Byte*& start) {
    readStream(start, game->net->participants);
    int mode = 0;
@@ -685,5 +727,101 @@ void deserializeMultiSetup(Game* game, Byte*& start) {
    readStream(start, game->net->frameDelay[0]);
    readStream(start, game->net->disconnectTime[0]);
 
-   _deserializeGameTiming(game, start);
+   _deserializeGameTiming(start, game);
+}
+
+//Save a replay to a file
+std::vector <Byte> createReplay(Game* game) {
+   std::vector <Byte> stream;
+
+   //Limited Game Serializing
+   writeStream(stream, game->settings.bHeight);
+   writeStream(stream, game->settings.bWidth);
+   writeStream(stream, game->settings.tWidth);
+   writeStream(stream, game->settings.tHeight);
+   writeStream(stream, game->players);
+   writeStream(stream, game->seed);
+   int mode = (int)game->settings.mode;
+   writeStream(stream, mode);
+
+   _serializePlayerList(stream, game);
+   _serializeGameTiming(stream, game);
+   _serializeGameUser(stream, game);
+
+   game->settings.repInputs.resize(game->frameCount);
+   int count = game->settings.repInputs.size();
+   writeStream(stream, count);
+   for (int i = 0; i < count; i++) {
+      writeStream(stream, game->settings.repInputs[i].input);
+   }
+
+   streamSaveToFile("saves/replay.rep", stream);
+
+   return stream;
+}
+
+//Load a replay from a file
+void loadReplay(Game* game, std::vector <Byte> stream) {
+   unsigned char* start = stream.data();
+
+   //Limited Game Serializing
+   readStream(start, game->settings.bHeight);
+   readStream(start, game->settings.bWidth);
+   readStream(start, game->settings.tWidth);
+   readStream(start, game->settings.tHeight);
+   readStream(start, game->players);
+   readStream(start, game->seed);
+   int mode = 0;
+   readStream(start, mode);
+   game->settings.mode = (GameMode)mode;
+
+   _deserializePlayerList(start, game);
+   _deserializeGameTiming(start, game);
+   _deserializeGameUser(start, game);
+
+   int count = 0;
+   readStream(start, count);
+   game->settings.repInputs.resize(count);
+   for (int i = 0; i < count; i++) {
+      readStream(start, game->settings.repInputs[i].input);
+   }
+}
+
+//Save a stream of data (Byte vector) to a file
+FILE* streamSaveToFile(const char* path, std::vector <Byte>& stream) {
+   FILE* out;
+   int err = fopen_s(&out, path, "w");
+
+   if (err == 0 && stream.size() > 0) {
+      int streamSize = stream.size();
+      fwrite(&streamSize, sizeof(int), 1, out);
+
+      fwrite(stream.data(), sizeof(Byte) * streamSize, 1, out);
+
+   }
+   else { printf("Failed to save file... Err: %d\n", err); }  //todo game log file
+   fclose(out);
+   return out;
+}
+
+//Load a stream of data from a file
+std::vector <Byte> streamLoadFromFile(const char* path) {
+   FILE* in;
+   int err = fopen_s(&in, path, "r");
+   std::vector <Byte> stream;
+   if (in != nullptr) {
+      int streamSize = 0;
+      fread(&streamSize, sizeof(int), 1, in);
+      stream.resize(streamSize);
+
+      Byte* start = stream.data();
+      fread(start, sizeof(Byte) * streamSize, 1, in);
+
+   }
+   else { //todo game log file
+      char* msg = strerror(err);
+      printf(msg);
+   }
+   fclose(in);
+   return stream;
 }
