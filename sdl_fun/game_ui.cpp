@@ -1431,8 +1431,8 @@ void replayUI(Game* game, bool* p_open) {
 
       if (strcmp(path, " ") != 0) {
          if (game->playing == true) { gameEndMatch(game); }
-         std::vector <Byte> stream = streamLoadFromFile(path);
-         loadReplay(game, stream);
+         std::vector <Byte> stream = streamLoadFromFile(path); 
+         loadReplay(game, stream);  //todo we should validate the file and bail before/during load
          game->settings.replaying = true;
          gameStartMatch(game);
 

@@ -55,10 +55,10 @@ char* fileOpenUI() {
                      pItem->Release();
                   }
                }
-               pFileOpen->Release();
             }
          }
       }
+      pFileOpen->Release();
       CoUninitialize();
    }
    return path;
