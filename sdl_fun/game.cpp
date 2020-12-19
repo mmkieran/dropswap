@@ -459,7 +459,7 @@ void gameRender(Game* game) {
    //Play sounds here because of GGPO
    if (game->sounds == 0) {
       for (auto&& board : game->boards) {
-         if (game->user.number - 1 == board->index) {
+         if (game->pList[game->user.number].board == board) {
             MusicInfo anxiety = soundsGetMusicInfo(sound_anxiety);
             for (auto&& pair : board->soundToggles) {
                SoundEffect sound = pair.first;

@@ -413,7 +413,7 @@ void boardUI(Game* game) {
             dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32_WHITE, gameOverText, NULL);
          }
          if (game->waiting && game->timer < game->timings.countIn[0]) {  //Count in message
-            static bool countSound[3] = { false, false, false };
+            static int lastCount = 0;
             char countDownText[10];
             ImGui::PushFont(game->fonts[72]);
             sprintf(countDownText, "%d", game->waitLength / 1000 + 1);
@@ -422,11 +422,9 @@ void boardUI(Game* game) {
             dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(255, 255, 255, 255), 3.0);
             dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32(255, 0, 0, 255), countDownText, NULL);
             ImGui::PopFont();
-            for (int i = 0; i < 3; i++) {  //Play a sound as we count down
-               if (game->waitLength < (i + 1) * 1000 && countSound[i] == false) {
-                  countSound[i] = true;
-                  game->soundToggles[sound_clear] = true;
-               }
+            if (game->waitLength / 1000 != lastCount ) {
+               lastCount = game->waitLength / 1000;
+               game->soundToggles[sound_clear] = true;
             }
          }
          ImGui::EndChild();
