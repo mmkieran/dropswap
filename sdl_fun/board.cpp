@@ -177,7 +177,9 @@ void boardBust(Board* board) {
                board->game->waiting = true;
                board->game->waitLength = 4000;
 
+               board->game->pList[board->cursors[i]->index].board = ally;
                Cursor* cursor = cursorCreate(ally, below->xpos, below->ypos, board->cursors[i]->index);
+               board->game->pList[board->cursors[i]->index].cursor = cursor;
                ally->cursors.push_back(cursor);
             }
          }
