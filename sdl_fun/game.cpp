@@ -457,28 +457,25 @@ void gameEndMatch(Game* game) {
 //Call the draw function for all the boards
 void gameRender(Game* game) {
    //Play sounds here because of GGPO
-   static bool silence = false;
-   static bool dangerPlaying = false;
-   static int anxietyHandle;
    if (game->sounds == 0) {
       for (auto&& board : game->boards) {
          if (game->user.number - 1 == board->index) {
+            MusicInfo anxiety = soundsGetMusicInfo(sound_anxiety);
             for (auto&& pair : board->soundToggles) {
                SoundEffect sound = pair.first;
-               if (pair.first == sound_anxiety && pair.second == true) {
-                  //soundsStopAll();
-                  if (dangerPlaying == false) {
-                     anxietyHandle = soundsPlaySound(game, sound);
-                     dangerPlaying = true;
+               if (sound == sound_anxiety) {
+                  if (pair.second == true) {
+                     if (anxiety.play == false) { 
+                        soundsPlayMusic(game, sound); 
+                     }
                   }
-                  silence = true;
+                  else if (pair.second == false && anxiety.play == true) {
+                     soundsStopSound(anxiety.handle);
+                     anxiety.play = false;
+                     soundsSetMusicInfo(sound_anxiety, anxiety);
+                  }
                }
-               else if (pair.first == sound_anxiety && pair.second == false) {
-                  silence = false;
-                  dangerPlaying = false;
-                  soundsStopSound(anxietyHandle);
-               }
-               if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
+               else if (pair.second == true && anxiety.play == false) { soundsPlaySound(game, sound); }
                board->soundToggles[sound] = false;
             }
          }
@@ -486,7 +483,7 @@ void gameRender(Game* game) {
 
       for (auto&& pair : game->soundToggles) {
          SoundEffect sound = pair.first;
-         if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
+         if (pair.second == true) { soundsPlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }
    }

@@ -745,7 +745,6 @@ void boardRemoveClears(Board* board) {
    int current = board->game->timer;
    bool stillChaining = false;
    bool stillClearedTiles = false;
-   board->soundToggles[sound_anxiety] = false;
 
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
@@ -754,7 +753,7 @@ void boardRemoveClears(Board* board) {
          if (tile->status == status_clear || tile->status == status_disable) { stillClearedTiles = true; }
 
          //todo Anxiety doesn't really belong here
-         if (tileGetRow(board, tile) <= board->startH + 1 && tile->falling == false) { 
+         if (tileGetRow(board, tile) <= board->startH + 2 && tile->falling == false) { 
             if (tile->type == tile_garbage && tile->status != status_clear) {
                Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
                if (garbage->falling == false) {
