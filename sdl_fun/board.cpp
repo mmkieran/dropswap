@@ -872,17 +872,24 @@ int boardFillTiles(Board* board) {
    for (int row = 0; row < board->wBuffer; row++) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
-         if (row < board->startH + (board->endH - board->startH) / 2) {
-            tileInit(board, tile, row, col, tile_empty);
-            continue;
+         if (row > 0 && row <= board->startH / 2 + 1) {
+            TileType type = _tileGenType(board, tile);
+            if (col % 2 == 0) {
+               tileInit(board, tile, row - 1, col, type);
+               tile->falling = true;
+            }
+            else {
+               tileInit(board, tile, row, col, type);
+               tile->chain = true;
+               tile->falling = true;
+            }
          }
-         
-         TileType type = _tileGenType(board, tile);
-         if (col % 2 == 0) {
-            tileInit(board, tile, row - board->startH - 3, col, type);
+         else if (row == board->endH) {  //fill the bottom layer
+            TileType type = _tileGenType(board, tile);
+            tileInit(board, tile, row, col, type);
          }
          else {
-            tileInit(board, tile, row - board->startH - 2, col, type);
+            tileInit(board, tile, row, col, tile_empty);
          }
       }
    }
