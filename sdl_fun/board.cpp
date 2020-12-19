@@ -379,7 +379,7 @@ void boardSwap(Board* board, Cursor* cursor) {
    tiles.push_back(tile1); 
    tiles.push_back(tile2);
 
-   board->game->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
+   board->soundToggles[sound_swap] = true;  //Send a signal to play swap sound
    tile1->effect = visual_swapl;  //Visual interpolation for swapping left
    tile1->effectTime = board->game->timer + SWAPTIME;
    tile2->effect = visual_swapr;  //Visual interpolation for swapping right
@@ -608,7 +608,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
       board->boardStats.lastCombo = uniqueMatches.size();
       if (board->chain > 1) { boardPauseTime(board, pause_chain, board->chain); }
       else { boardPauseTime(board, pause_combo, uniqueMatches.size()); }
-      board->game->soundToggles[sound_clear] = true; 
+      board->soundToggles[sound_clear] = true; 
 
       //first try to render arbitrary text over the board
       int duration = board->game->timings.removeClear[0] / 2;
@@ -632,7 +632,7 @@ void boardCheckClear(Board* board, std::vector <Tile*> tileList, bool fallCombo)
          if (fallCombo && m->chain == true) {
             board->chain += 1;
             fallCombo = false;
-            board->game->soundToggles[sound_chain] = true;
+            board->soundToggles[sound_chain] = true;
          }
 
          //todo add score logic here
@@ -690,7 +690,7 @@ void boardFall(Board* board, float velocity) {
          tilesToCheck.push_back(tile);  //debug just check 'em all for clears
          if (prevFall == true && tile->falling == false) {
             //tilesToCheck.push_back(tile);  //todo find a way to use a less aggressive clear check
-            board->game->soundToggles[sound_land] = true;
+            board->soundToggles[sound_land] = true;
          }
          else if (prevFall == false && tile->falling == false) {
             int lookDown = 2;
@@ -745,7 +745,7 @@ void boardRemoveClears(Board* board) {
    int current = board->game->timer;
    bool stillChaining = false;
    bool stillClearedTiles = false;
-   board->game->soundToggles[sound_anxiety] = false;
+   board->soundToggles[sound_anxiety] = false;
 
    for (int row = board->endH -1; row >= board->startH; row--) {
       for (int col = 0; col < board->w; col++) {
@@ -758,12 +758,12 @@ void boardRemoveClears(Board* board) {
             if (tile->type == tile_garbage && tile->status != status_clear) {
                Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
                if (garbage->falling == false) {
-                  board->game->soundToggles[sound_anxiety] = true;
+                  board->soundToggles[sound_anxiety] = true;
                   board->boardStats.dangeresque += 1;  //Board Stats
                }
             }
             else {
-               board->game->soundToggles[sound_anxiety] = true;
+               board->soundToggles[sound_anxiety] = true;
                board->boardStats.dangeresque += 1;  //Board Stats
             }
          }

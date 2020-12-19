@@ -128,7 +128,7 @@ struct Game {
    std::vector <Sprite> drawList;                  //Used for rendering textures outside the boards or when not playing a game
    Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
    std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
-   int sounds = 0;                                 //Game sound toggle (0 is disabled)
+   int sounds = 0;                                 //Game sound toggle (0 is enabled)
    bool isRunning = false;                         //Used in main application loop
    KeepTime kt;                                    //Structure to keep SDL ticks and calculate elapsed time
    int frameCount = 0;                             //How many frames have we done

@@ -345,7 +345,7 @@ void garbageFall(Board* board, double velocity) {
          }
          if (garbage->falling == false) {  
             if (garbage->totalFall > board->tileHeight * 2 - 0.00001) {  //Landing
-               board->game->soundToggles[sound_crashland] = true;
+               board->soundToggles[sound_crashland] = true;
                boardPauseTime(board, pause_crashland);
 
                boardEnableVisual(board, visual_shake, SHAKETIME);

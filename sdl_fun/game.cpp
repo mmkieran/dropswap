@@ -461,21 +461,31 @@ void gameRender(Game* game) {
    static bool dangerPlaying = false;
    static int anxietyHandle;
    if (game->sounds == 0) {
+      for (auto&& board : game->boards) {
+         if (game->user.number - 1 == board->index) {
+            for (auto&& pair : board->soundToggles) {
+               SoundEffect sound = pair.first;
+               if (pair.first == sound_anxiety && pair.second == true) {
+                  //soundsStopAll();
+                  if (dangerPlaying == false) {
+                     anxietyHandle = soundsPlaySound(game, sound);
+                     dangerPlaying = true;
+                  }
+                  silence = true;
+               }
+               else if (pair.first == sound_anxiety && pair.second == false) {
+                  silence = false;
+                  dangerPlaying = false;
+                  soundsStopSound(anxietyHandle);
+               }
+               if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
+               board->soundToggles[sound] = false;
+            }
+         }
+      }
+
       for (auto&& pair : game->soundToggles) {
          SoundEffect sound = pair.first;
-         if (pair.first == sound_anxiety && pair.second == true) {
-            //soundsStopAll();
-            if (dangerPlaying == false) {
-               anxietyHandle = soundsPlaySound(game, sound);
-               dangerPlaying = true;
-            }
-            silence = true;
-         }
-         else if (pair.first == sound_anxiety && pair.second == false) {
-            silence = false;
-            dangerPlaying = false;
-            soundsStopSound(anxietyHandle);
-         }
          if (pair.second == true && silence == false) { soundsPlaySound(game, sound); }
          game->soundToggles[sound] = false;
       }

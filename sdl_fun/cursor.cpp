@@ -287,7 +287,7 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
    for (int i = 0; i < 2; i++) {
       if (landed == true) {
          Tile* tile = botUp[i];
-         board->game->soundToggles[sound_land] = true;
+         board->soundToggles[sound_land] = true;
          tile->status = status_normal;
          tile->statusTime = 0;
          cursor->dropList[i] = -1;
