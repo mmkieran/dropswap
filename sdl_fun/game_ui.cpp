@@ -412,18 +412,19 @@ void boardUI(Game* game) {
             dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(0, 0, 0, 255));
             dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32_WHITE, gameOverText, NULL);
          }
-         if (game->waiting && game->timer < game->timings.countIn[0]) {  //Count in message
+         if (game->waiting && game->timer == 0) {  //Count in message
             static int lastCount = 0;
+            int count = ceil(game->waitLength / 1000.0);
             char countDownText[10];
             ImGui::PushFont(game->fonts[72]);
-            sprintf(countDownText, "%d", game->waitLength / 1000 + 1);
+            sprintf(countDownText, "%d", count);
             ImVec2 tSize = ImGui::CalcTextSize(countDownText);
             ImVec2 msgLoc = { csPos.x - (pad.x * 2) - tSize.x / 2 + board->w * board->tileWidth / 2, csPos.y - (pad.y * 2) - tSize.y / 2 + board->h * board->tileHeight / 2 };
             dList->AddRectFilled({ msgLoc.x - 20, msgLoc.y - 20 }, { (msgLoc.x + 20) + tSize.x, msgLoc.y + tSize.y + 20 }, IM_COL32(255, 255, 255, 255), 3.0);
             dList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), msgLoc, IM_COL32(255, 0, 0, 255), countDownText, NULL);
             ImGui::PopFont();
-            if (game->waitLength / 1000 != lastCount ) {
-               lastCount = game->waitLength / 1000;
+            if (count != lastCount ) {
+               lastCount = count;
                game->soundToggles[sound_clear] = true;
             }
          }

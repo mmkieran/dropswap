@@ -65,7 +65,7 @@ struct GameTimings {
    int fallDelay[3] = { 100, 0, 1000 };        //The pause before a tile falls after swapping
    int removeClear[3] = { 1800, 500, 5000 };   //Time it takes to change a cleared tile to empty
    int enterSilver[3] = { 30000, 0, 120000 };  //Time before silvers start appearing
-   int countIn[3] = { 2000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
+   int countIn[3] = { 3000, 0, 5000 };         //Time before the board starts moving and you can swap on startup
    int landPause[3] = { 1000, 0, 5000 };       //Pause board movement when garbage lands
    int deployTime[3] = { 3000, 0, 5000 };      //How long does it take for garbage to be placed on the board
 };
