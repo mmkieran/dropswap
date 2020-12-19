@@ -458,6 +458,7 @@ void boardUI(Game* game) {
          ImGui::SetNextWindowSize({ 600, 500 }, ImGuiCond_Once);
          ImGui::OpenPopup("Game Over"); 
          popups[Popup_GameOver].isOpen = true;
+         game->soundToggles[sound_musicbox] = true;  //Play gameover music
       }
       if (ImGui::BeginPopupModal("Game Over") ) {
          if (popups[Popup_GameOver].isOpen == false) { ImGui::CloseCurrentPopup(); }
@@ -663,6 +664,10 @@ void gameSettingsUI(Game* game, bool* p_open) {
          if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
          ImGui::Checkbox("AI", &game->ai);
          ImGui::Checkbox("Sync test", &game->net->syncTest);
+
+         if (ImGui::Button("Sound Test")) {
+            game->soundToggles[sound_siren] = true;
+         }
       }
    }
    ImGui::End();

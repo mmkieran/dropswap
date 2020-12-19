@@ -1,7 +1,6 @@
 
 #include "resources.h"
 
-//#include <thread>
 #include <time.h>
 
 struct Resources {
@@ -43,6 +42,8 @@ static const char* _soundPaths[] =
    "assets/crashland.wav",
    "assets/chain.wav",
    "assets/anxiety.wav",
+   "assets/musicbox.wav",
+   "assets/siren.mp3",
    "assets/waltz.mp3"
 };
 

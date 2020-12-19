@@ -181,6 +181,7 @@ void boardBust(Board* board) {
                Cursor* cursor = cursorCreate(ally, below->xpos, below->ypos, board->cursors[i]->index);
                board->game->pList[board->cursors[i]->index].cursor = cursor;
                ally->cursors.push_back(cursor);
+               ally->game->soundToggles[sound_siren] = true;  //Play death sound
             }
          }
       }
