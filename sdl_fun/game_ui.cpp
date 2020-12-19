@@ -4,6 +4,7 @@
 #include "serialize.h"
 #include "netplay.h"
 #include "resources.h"
+#include "sounds.h"
 
 #include "imgui/imgui.h"
 #include "win.h"
@@ -592,6 +593,10 @@ void gameSettingsUI(Game* game, bool* p_open) {
       //ImGui::Combo("Background Music", &backgroundMusic, "On\0Off\0");
 
       ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
+      static float globalVol[3] = { soundsGetGlobalVolume(), 0.0, 1.0 };
+      ImGui::SliderScalar("Master Volume", ImGuiDataType_Float, &globalVol[0], &globalVol[1], &globalVol[2]);
+      if (ImGui::IsItemEdited() == true) { 
+         soundsSetGlobalVolume(globalVol[0]); }
 
       static int tileSize = 1;
       ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
