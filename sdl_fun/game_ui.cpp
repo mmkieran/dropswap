@@ -664,8 +664,19 @@ void gameSettingsUI(Game* game, bool* p_open) {
          ImGui::Checkbox("AI", &game->ai);
          ImGui::Checkbox("Sync test", &game->net->syncTest);
 
-         if (ImGui::Button("Sound Test")) {
-            game->soundToggles[sound_siren] = true;
+         ImGui::Image((void*)(intptr_t)resourcesGetTexture(game->resources, Texture_wall)->handle, { 100, 100 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+         if (ImGui::CollapsingHeader("Sound Test")) {
+            if (ImGui::Button("Stop Sounds")) {
+               soundsStopAll();
+            }
+            for (int i = 0; i < sound_COUNT; i++) {
+               ImGui::PushID(i);
+               if (ImGui::Button("Sound")) {
+                  game->soundToggles[(SoundEffect)i] = true;
+               }
+               ImGui::PopID();
+            }
          }
       }
    }
