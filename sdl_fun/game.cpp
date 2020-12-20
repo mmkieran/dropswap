@@ -214,6 +214,19 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    resourcesGetName(game);
    game->settings.repInputs.reserve(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
 
+   Sprite sprite;
+   meshSetDrawRect(sprite.info, 0, 0, 100, 100, 0);
+
+   sprite.speed = 0;  
+   sprite.dir = 0;
+   sprite.stop = 0;
+   sprite.end = 1000000;
+   sprite.render.texture = resourcesGetTexture(game->resources, Texture_wall);
+   game->drawList.push_back(sprite);
+
+   textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
+   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
    return game;
 }
 
@@ -558,6 +571,8 @@ void gameDrawSprites(Game* game) {
 
       //Color transformations
       for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
+
+      textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
 
       if (sprite.render.animation != nullptr) {
          animationDraw(game, sprite.render.animation, sprite.info);
