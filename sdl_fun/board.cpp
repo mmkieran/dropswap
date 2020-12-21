@@ -173,7 +173,7 @@ void boardBust(Board* board) {
                sprite.stop = current + 2000;
                sprite.end = current + 4000;
                sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
-               board->game->drawList.push_back(sprite);
+               board->game->drawFront.push_back(sprite);
                board->game->waiting = true;
                board->game->waitLength = 4000;
 

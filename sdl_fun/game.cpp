@@ -216,14 +216,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    game->settings.repInputs.reserve(REPLAY_SIZE);  //4replay make sure the replay size is reasonable, may need to expand
 
    Sprite sprite;
-   meshSetDrawRect(sprite.info, 0, 0, 100, 100, 0);
-
-   sprite.speed = 0;  
-   sprite.dir = 0;
-   sprite.stop = 0;
-   sprite.end = 1000000;
+   meshSetDrawRect(sprite.info, 0, 0, width, height, 0);
    sprite.render.texture = resourcesGetTexture(game->resources, Texture_wall);
-   game->drawList.push_back(sprite);
+   game->drawBack.push_back(sprite);
 
    return game;
 }
@@ -314,7 +309,7 @@ void gameUpdate(Game* game) {
       }
    }
 
-   gameUpdateSprites(game);
+   gameUpdateSprites(game, game->drawFront);
 
    if (game->waiting == false) {
       gameCaptureReplayInputs(game);
@@ -523,6 +518,7 @@ void imguiRender(Game* game) {
 
    rendererSetTarget(0, 0, width, height);
    rendererClear(0.0, 0.0, 0.0, 0.0);
+   gameDrawSprites(game, game->drawBack);
 
    boardUI(game);  
    ImGui::Render();
@@ -531,16 +527,16 @@ void imguiRender(Game* game) {
 
    //Draw Sprites
    worldToDevice(game, 0.0f, 0.0f, width, height);
-   gameDrawSprites(game);
+   gameDrawSprites(game, game->drawFront);
 
    if (game->vsync != 0) { SDL_GL_SwapWindow(game->sdl->window); }
 }
 
 //Updates the sprites using their speed and direction, removes expired ones
-void gameUpdateSprites(Game* game) {
+void gameUpdateSprites(Game* game, std::vector <Sprite>& list) {
    std::vector <Sprite> activeSprites;
    int current = game->kt.getTime() / 1000;
-   for (auto&& sprite : game->drawList) {
+   for (auto&& sprite : list) {
       if (sprite.end > current) { 
          if (sprite.stop > current) {
             Vec2 move = getXYDistance({ sprite.info.rect.x, sprite.info.rect.y }, sprite.dir, sprite.speed);
@@ -550,13 +546,13 @@ void gameUpdateSprites(Game* game) {
          activeSprites.push_back(sprite);
       }
    }
-   game->drawList = activeSprites;
+   list = activeSprites;
 }
 
 //Renders the sprites after imgui has drawn it's windows so we can draw over top
 //todo investigate if we could have just done foreground in ImGui, lol
-void gameDrawSprites(Game* game) {
-   for (auto&& sprite : game->drawList) {
+void gameDrawSprites(Game* game, std::vector <Sprite>& list) {
+   for (auto&& sprite : list) {
       textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
 
       if (sprite.render.animation != nullptr) {
