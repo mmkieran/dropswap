@@ -64,7 +64,7 @@ struct DrawInfo {
    Rect rect;                                   //Determines the size of the mesh square
    int rot = 0;                                 //Rotation of mesh
    Vec2 cam = { 0, 0 };                         //Has the camera moved it
-   float color[4] = { 0,0,0,0 };                //Does it have color transformations applied
+   float color[4] = { 1.0, 1.0, 1.0, 1.0 };     //Does it have color transformations applied
 };
 
 struct Sprite {
@@ -157,3 +157,5 @@ FBO* rendererCreateFBO(Game* game, int width, int height);
 int rendererDestroyFBO(FBO* fbo);
 void rendererEnableFBO(FBO* fbo);
 void rendererDisableFBO();
+
+void rendererCopyTo(Mesh* mesh);

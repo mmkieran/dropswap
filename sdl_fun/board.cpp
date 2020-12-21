@@ -72,7 +72,7 @@ Board* boardCreate(Game* game, int team, int tWidth, int tHeight) {
 
          board->pile = garbagePileCreate();
 		   boardStartRandom(board);
-         board->mesh = meshCreate();  //Everything is drawn with this
+         //board->mesh = meshCreate();  //Commented out for now because destroying causes a crash
 
          return board;
       }
@@ -93,7 +93,7 @@ Board* boardDestroy(Board* board) {
          cursorDestroy(cursor);
       }
       free(board->tiles);
-      board->mesh = meshDestroy(board->mesh);
+      //board->mesh = meshDestroy(board->mesh);  //Causes openGL crash on destroy for some reason.. attribute pointer?
       delete board;
    }
    return nullptr;
@@ -1322,12 +1322,6 @@ void boardAI(Game* game) {
 
 void boardDrawSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
-      //Camera movements or mesh displacements
-      Vec2 move = { 0, 0 };
-      sprite.info.cam = move;
-
-      //Color transformations
-      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
 
       if (sprite.render.animation != nullptr) {
          animationDraw(board->game, sprite.render.animation, sprite.info);

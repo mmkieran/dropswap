@@ -554,7 +554,6 @@ void rendererCopyTo(Mesh* mesh) {
    //copy data from vertices to buffer
    glBufferData(GL_ARRAY_BUFFER, sizeof(mesh->positions), mesh->positions, GL_STATIC_DRAW);
 
-   glDrawArrays(GL_TRIANGLES, 0, mesh->ptCount);
    glBindBuffer(GL_ARRAY_BUFFER, 0);  //unbind it
 
 }

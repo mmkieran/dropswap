@@ -186,13 +186,9 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
 
    //Load game resources
    game->resources = initResources();
-   game->mesh = meshCreate();  //Everything is drawn with this
 
    //Make a vertex array object... stores the links between attributes and vbos
    game->sdl->VAO = vaoCreate();
-
-   //initialize IMGUI
-   imguiSetup(game);
 
    //Use the Shader Program once it's created in resources
    shaderUseProgram(resourcesGetShader(game));
@@ -200,6 +196,11 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    //Set the projection matrices to change origin to world and then to device coordinates
    originToWorld(game, 0.0f, 0.0f, width, height);
    worldToDevice(game, 0.0f, 0.0f, width, height);
+
+   game->mesh = meshCreate();  //Everything is drawn with this
+
+   //initialize IMGUI
+   imguiSetup(game);
 
    game->windowHeight = height;
    game->windowWidth = width;
@@ -223,9 +224,6 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    sprite.end = 1000000;
    sprite.render.texture = resourcesGetTexture(game->resources, Texture_wall);
    game->drawList.push_back(sprite);
-
-   textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
-   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
    return game;
 }
@@ -336,12 +334,6 @@ void gameSinglePlayer(Game* game) {
 
 //Create the boards and set playing to true
 void gameStartMatch(Game* game) {
-   for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
-      if (game->fbos[i]) {
-         rendererDestroyFBO(game->fbos[i]);
-      }
-   }
-   game->fbos.clear();
 
    int boardCount = 0;
    int myBoard = 0;
@@ -565,13 +557,6 @@ void gameUpdateSprites(Game* game) {
 //todo investigate if we could have just done foreground in ImGui, lol
 void gameDrawSprites(Game* game) {
    for (auto&& sprite : game->drawList) {
-      //Camera movements or mesh displacements
-      Vec2 move = { 0, 0 };
-      sprite.info.cam = move;
-
-      //Color transformations
-      for (int i = 0; i < 4; i++) { sprite.info.color[i] = 1.0; }
-
       textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
 
       if (sprite.render.animation != nullptr) {
