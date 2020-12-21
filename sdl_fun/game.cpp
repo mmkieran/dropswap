@@ -218,7 +218,7 @@ Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, b
    Sprite sprite;
    meshSetDrawRect(sprite.info, 0, 0, width, height, 0);
    sprite.render.texture = resourcesGetTexture(game->resources, Texture_wall);
-   game->drawBack.push_back(sprite);
+   //game->drawBack.push_back(sprite);
 
    return game;
 }
