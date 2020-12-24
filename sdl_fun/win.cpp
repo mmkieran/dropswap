@@ -116,3 +116,7 @@ char* fileSaveUI() {
    }
    return path;
 }
+
+void fileOpenWith(wchar_t const* path) {
+   ShellExecute(0, 0, path, 0, 0, SW_SHOW);
+}

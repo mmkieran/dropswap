@@ -18,6 +18,7 @@ void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
 void replayUI(Game* game, bool* p_open);
+void licensesUI(Game* game, bool* p_open);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -175,6 +176,15 @@ void mainUI(Game* game) {
    }
    if (showSettings) {
       gameSettingsUI(game, &showSettings);
+   }
+
+   ImGui::NewLine();
+   static bool showLicenses = false;
+   if (ImGui::Button("Licenses", ImVec2{ width, 0 })) {
+      showLicenses = true;
+   }
+   if (showLicenses) {
+      licensesUI(game, &showLicenses);
    }
 
    ImGui::PopFont();
@@ -1484,6 +1494,45 @@ void replayUI(Game* game, bool* p_open) {
       else if (ImGui::IsItemActive() == false) {
          frameRange[0] = game->frameCount;
       }
+   }
+
+   ImGui::End();
+}
+
+void licensesUI(Game* game, bool* p_open) {
+   centerWindow(game, { 600, 500 });
+   if (!ImGui::Begin("Licenses", p_open, winFlags) ) {
+      ImGui::End();
+      return;
+   }
+
+   if (ImGui::Button("Dear ImGui") ) {
+      fileOpenWith(L".\\license\\imgui.txt");
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("GGPO")) {
+      fileOpenWith(L".\\license\\ggpo.txt");
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("SDL2")) {
+      fileOpenWith(L".\\license\\sdl2.txt");
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("SoLoud")) {
+      fileOpenWith(L".\\license\\soloud.txt");
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("MiniUPnP")) {
+      fileOpenWith(L".\\license\\miniupnp.txt");
+   }
+
+   ImGui::NewLine();
+   if (ImGui::Button("STB")) {
+      fileOpenWith(L".\\license\\stb_image.txt");
    }
 
    ImGui::End();
