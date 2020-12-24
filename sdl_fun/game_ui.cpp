@@ -1500,39 +1500,48 @@ void replayUI(Game* game, bool* p_open) {
 }
 
 void licensesUI(Game* game, bool* p_open) {
-   centerWindow(game, { 600, 500 });
+   centerWindow(game, { 440, 400 });
+   float width = ImGui::GetWindowContentRegionWidth();
+
    if (!ImGui::Begin("Licenses", p_open, winFlags) ) {
       ImGui::End();
       return;
    }
 
-   if (ImGui::Button("Dear ImGui") ) {
-      fileOpenWith(L".\\license\\imgui.txt");
+   ImGui::NewLine();
+   helpfulText("Dear ImGui"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##ImGui", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\imgui.txt");
    }
 
    ImGui::NewLine();
-   if (ImGui::Button("GGPO")) {
-      fileOpenWith(L".\\license\\ggpo.txt");
+   helpfulText("GGPO"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##GGPO", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\ggpo.txt");
    }
 
    ImGui::NewLine();
-   if (ImGui::Button("SDL2")) {
-      fileOpenWith(L".\\license\\sdl2.txt");
+   helpfulText("SDL2"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##SDL2", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\sdl2.txt");
    }
 
    ImGui::NewLine();
-   if (ImGui::Button("SoLoud")) {
-      fileOpenWith(L".\\license\\soloud.txt");
+   helpfulText("SoLoud"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##SoLoud", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\soloud.txt");
    }
 
    ImGui::NewLine();
-   if (ImGui::Button("MiniUPnP")) {
-      fileOpenWith(L".\\license\\miniupnp.txt");
+   helpfulText("MiniUPnP"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##MiniUPnP", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\miniupnp.txt");
    }
 
    ImGui::NewLine();
-   if (ImGui::Button("STB")) {
-      fileOpenWith(L".\\license\\stb_image.txt");
+   helpfulText("STB"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
+   if (ImGui::Button("Open License##STB", { 200, 0 })) {
+      fileOpenDefaultProgram(L".\\license\\stb_image.txt");
    }
 
    ImGui::End();

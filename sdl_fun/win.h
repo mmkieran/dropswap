@@ -2,4 +2,4 @@
 
 char* fileOpenUI();
 char* fileSaveUI();
-void fileOpenWith(wchar_t const* path);
+void fileOpenDefaultProgram(wchar_t const* path);
