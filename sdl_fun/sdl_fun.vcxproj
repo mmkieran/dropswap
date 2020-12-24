@@ -113,7 +113,8 @@
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
 xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ /y 
-xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
+xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y
+xcopy $(SolutionDir)sdl_fun\license\* $(TargetDir)license\ /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -176,7 +177,8 @@ xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)Depends\SDL2\lib\x64\SDL2.dll $(TargetDir) /Y 
 xcopy $(SolutionDir)sdl_fun\saves\* $(TargetDir)saves\ /y 
-xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y</Command>
+xcopy $(SolutionDir)sdl_fun\assets\* $(TargetDir)assets\ /y
+xcopy $(SolutionDir)sdl_fun\license\* $(TargetDir)license\ /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
