@@ -19,6 +19,7 @@ void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
 void replayUI(Game* game, bool* p_open);
 void licensesUI(Game* game, bool* p_open);
+void creditsUI(Game* game, bool* p_open);
 
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
@@ -33,10 +34,23 @@ bool serverRunning = false;                  //Is the server thread running
 
 
 const char* credits = R"(
-A special thanks goes out to:
-Stephanie Anderson
-Brandon Townsend
-Sean Hunter
+This game is dedicated to the Eclipse Mining Technologies team. I hope that we'll be able to Drop and Swap in person again soon.
+
+A special thanks goes out to
+
+   My wife, Stephanie Anderson, and our boys.
+
+   Brandon Townsend for getting me started and listening to me ramble on about it from then on. I finally feel like we could do a game jam, lol.
+
+   Sean Hunter for always being there with the answers. I'm excited for the final version of Super Puzzled Cat.
+
+   And all the people who helped me test it. It was much more painful than I ever imagined.
+    
+   Tyler Fowler
+   Russ Bohnhoff
+   Kyle McDonald
+   Paul Castleberry
+        
 ...
 )";
 
@@ -122,7 +136,7 @@ static void botRightButton(const char* input) {
 
 //Main menu UI
 void mainUI(Game* game) {
-   centerWindow(game, { 400, 300 });
+   centerWindow(game, { 400, 340 });
    ImGui::PushFont(game->fonts[20]);
    if (!ImGui::Begin("Menu", (bool*)0, winFlags)) {
       ImGui::PopFont();
@@ -185,6 +199,15 @@ void mainUI(Game* game) {
    }
    if (showLicenses) {
       licensesUI(game, &showLicenses);
+   }
+
+   ImGui::NewLine();
+   static bool showCredits = false;
+   if (ImGui::Button("Credits", ImVec2{ width, 0 })) {
+      showCredits = true;
+   }
+   if (showCredits) {
+      creditsUI(game, &showCredits);
    }
 
    ImGui::PopFont();
@@ -1543,6 +1566,18 @@ void licensesUI(Game* game, bool* p_open) {
    if (ImGui::Button("Open License##STB", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\stb_image.txt");
    }
+
+   ImGui::End();
+}
+
+void creditsUI(Game* game, bool* p_open) {
+   centerWindow(game, { 800, 600 });
+   if (!ImGui::Begin("Credits", p_open, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::TextUnformatted(credits);
 
    ImGui::End();
 }
