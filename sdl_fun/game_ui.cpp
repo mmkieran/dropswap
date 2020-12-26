@@ -35,7 +35,7 @@ bool serverRunning = false;                  //Is the server thread running
 std::vector <std::string> credits = {
    "This game is dedicated to the Eclipse Mining Technologies team.",
    "I hope that we'll be able to Drop and Swap in person again soon.",
-   "A special thanks goes out to",
+   "A special thanks goes out to:",
    "My wife, Stephanie Anderson, and our boys. Enough said, lol.",
    "Brandon Townsend for teaching me everything I needed to start.",
    "I finally feel like we could do a game jam, lol.",
@@ -43,10 +43,10 @@ std::vector <std::string> credits = {
    "I'm excited for the final version of Super Puzzled Cat.",
    "And all the people who helped me test it.",
    "It was much more painful than I ever imagined.",
-   "Tyler Fowler",
-   "Russ Bohnhoff",
-   "Kyle McDonald",
-   "Paul Castleberry",
+   "   Tyler Fowler",
+   "   Russ Bohnhoff",
+   "   Kyle McDonald",
+   "   Paul Castleberry",
 };
 
 ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
@@ -1568,40 +1568,39 @@ void licensesUI(Game* game, bool* p_open) {
 void creditsUI(Game* game, bool* p_open) {
    centerWindow(game, { 800, 600 });
    static int timer = 0;
-   static int index = 0;
 
    if (!ImGui::Begin("Credits", (bool*)0, winFlags)) {
       timer = 0;
-      index = 0;
       ImGui::End();
       return;
    }
-
    timer++;
-   if (timer == 300) {  //Show credit for 5 seconds
-      index++; 
-      timer = 0;
-   }
 
    ImVec2 currPos = ImGui::GetCursorPos();
-   float posY = 500 - (400 / 300) * timer;
-   if (index < credits.size()) {
-      ImGui::SetCursorPosY(posY);
-      ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), credits[index].c_str());
+   bool done = true;
+   for (int i = 0; i < credits.size(); i++) {
+      float posY = 500 - (400 / 300) * (timer/2) + (i * 50);
+      if (posY > 40 && posY <= 500) {
+         ImGui::SetCursorPosY(posY);
+         helpfulCenterText(credits[i].c_str());
+         done = false;
+      }
+   }
+   if (done == true) { 
+      ImGui::NewLine();
+      helpfulCenterText("Thanks Everybody!"); 
    }
 
    ImGui::SetCursorPosY(540);
    ImGui::Separator();
    if (ImGui::Button("Back")) {
       timer = 0;
-      index = 0;
       *p_open = false;
    }
 
    ImGui::SameLine();
    if (ImGui::Button("Restart")) {
       timer = 0;
-      index = 0;
    }
 
    ImGui::End();
