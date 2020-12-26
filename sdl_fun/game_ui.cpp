@@ -1588,7 +1588,9 @@ void creditsUI(Game* game, bool* p_open) {
    }
    if (done == true) { 
       ImGui::NewLine();
+      ImGui::PushFont(game->fonts[72]);
       helpfulCenterText("Thanks Everybody!"); 
+      ImGui::PopFont();
    }
 
    ImGui::SetCursorPosY(540);
