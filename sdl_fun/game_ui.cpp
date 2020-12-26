@@ -1528,37 +1528,37 @@ void licensesUI(Game* game, bool* p_open) {
 
    ImGui::NewLine();
    helpfulText("Dear ImGui"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##ImGui", { 200, 0 })) {
+   if (ImGui::Button("View License##ImGui", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\imgui.txt");
    }
 
    ImGui::NewLine();
    helpfulText("GGPO"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##GGPO", { 200, 0 })) {
+   if (ImGui::Button("View License##GGPO", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\ggpo.txt");
    }
 
    ImGui::NewLine();
    helpfulText("SDL2"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##SDL2", { 200, 0 })) {
+   if (ImGui::Button("View License##SDL2", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\sdl2.txt");
    }
 
    ImGui::NewLine();
    helpfulText("SoLoud"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##SoLoud", { 200, 0 })) {
+   if (ImGui::Button("View License##SoLoud", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\soloud.txt");
    }
 
    ImGui::NewLine();
    helpfulText("MiniUPnP"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##MiniUPnP", { 200, 0 })) {
+   if (ImGui::Button("View License##MiniUPnP", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\miniupnp.txt");
    }
 
    ImGui::NewLine();
    helpfulText("STB"); ImGui::SameLine(); ImGui::SetCursorPosX(200);
-   if (ImGui::Button("Open License##STB", { 200, 0 })) {
+   if (ImGui::Button("View License##STB", { 200, 0 })) {
       fileOpenDefaultProgram(L".\\license\\stb_image.txt");
    }
 
