@@ -344,6 +344,11 @@ void gameStartMatch(Game* game) {
       boardCount = 1;
       myBoard = 0;
    }
+   else if (game->settings.mode == single_vs) {
+      game->seed = time(0);
+      myBoard = 0;
+      boardCount = game->players;
+   }
    else if (game->net->syncTest == true) {
       myBoard = 0;
       boardCount = game->players;
@@ -362,7 +367,7 @@ void gameStartMatch(Game* game) {
 
       int team = 0;
       if (game->net->syncTest == true) { team = i; }
-      else if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
+      else if (game->settings.mode == multi_solo || game->settings.mode == single_vs) { team = game->pList[i + 1].team; }
       else if (game->settings.mode == multi_shared) { team = i; }
 
       if (game->players > 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
@@ -399,7 +404,7 @@ void gameStartMatch(Game* game) {
             }
             board->level = level / count;
          }
-         if (game->settings.mode == multi_solo) {
+         if (game->settings.mode == multi_solo || game->settings.mode == single_vs) {
             Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->pList[i + 1].number);
             board->cursors.push_back(cursor);
             game->pList[i + 1].board = board;

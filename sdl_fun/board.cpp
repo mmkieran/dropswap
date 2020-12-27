@@ -223,7 +223,7 @@ void boardUpdate(Board* board) {
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
       }
    }
-   else if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared) {
+   else if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared || board->game->settings.mode == single_vs) {
       for (int i = 0; i < board->cursors.size(); i++) {
          int index = board->cursors[i]->index - 1;  //Zero-based player number to lookup inputs from GGPO
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);
@@ -1283,7 +1283,7 @@ void boardAI(Game* game) {
    if (game->settings.mode == single_vs) { 
       for (int i = 1; i < game->pList.size(); i++) {  //Skip first player
          int number = game->pList[i + 1].number;
-         aiChooseMove(game->boards[number], number);
+         aiChooseMove(game->boards[number], number);  //This only works for solo boards
       }
    }  
    else if (game->net->syncTest == true || game->settings.mode == single_player) { 

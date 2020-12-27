@@ -359,7 +359,7 @@ void boardUI(Game* game) {
                ImGui::Text(game->pList[cursor->index].name);
             }
          }
-         if (game->settings.mode == multi_solo) { 
+         else if (game->settings.mode == multi_solo) { 
             if (i == game->user.number - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -371,7 +371,7 @@ void boardUI(Game* game) {
             ImGui::Text("Team %d", board->team + 1);
             ImGui::Text(game->pList[i + 1].name); 
          }
-         if (game->settings.mode == single_player) { 
+         else if (game->settings.mode == single_player) { 
             if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -1420,6 +1420,28 @@ void ggpoReadyModal(Game* game) {
       }
       ImGui::EndPopup();
    }
+}
+
+void singleVersusUI(Game* game, bool* p_open) {
+   if (!ImGui::Begin("Single Player Versus", p_open)) {
+      ImGui::End();
+      return;
+   }
+
+   static int people[3] = { 2, 2, 4 };
+   static int level[3] = { 5, 1, 10 };
+   ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+
+   for (int i = 1; i <= people[0]; i++) {
+      if (i == 1) { ImGui::Text("You"); }
+      else { ImGui::Text("Computer %d", i); }
+      ImGui::SameLine();
+      ImGui::Combo("Team", &game->pList[i].team, "One\0Two\0");
+      ImGui::SameLine();
+      ImGui::SliderScalar("Level", ImGuiDataType_U32, &level[0], &level[1], &level[2]);
+   }
+
+   ImGui::End();
 }
 
 void debugConnections(Game* game, bool* p_open) {
