@@ -96,7 +96,8 @@ struct ReplayInput {
 enum GameMode {
    multi_solo = 0,                  //Individual boards
    multi_shared,                    //Shared board
-   single_player,                   //todo one of many?
+   single_player,                   //This is practice by yourself
+   single_vs,                       //Versus one or more computers
    game_mode_COUNT,                 //In case we need to iterate through them
 };
 

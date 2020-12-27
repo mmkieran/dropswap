@@ -322,7 +322,7 @@ void gameUpdate(Game* game) {
 void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
-   if (game->ai == true) { gameAI(game); }  
+   if (game->ai == true || game->settings.mode == single_vs) { gameAI(game); }
    gameCheckPause(game, game->user.input);
    gameUpdate(game);
 }

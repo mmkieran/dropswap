@@ -35,7 +35,7 @@ int main(int argc, char* args[]) {
             }
          }
          else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
-         else if (game->settings.mode == single_player) { gameSinglePlayer(game); }
+         else if (game->settings.mode == single_player || game->settings.mode == single_vs) { gameSinglePlayer(game); }
       }
       imguiRender(game);  //imgui windows, the board, cursor, and other things 
       

@@ -13,6 +13,9 @@ void updateSprites(Board* board);
 void boardDrawSprites(Board* board);
 void boardBust(Board* board);
 
+void aiChooseMove(Board* board);
+void aiDoStep(Board* board);
+
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
    Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
@@ -1274,39 +1277,23 @@ void aiGetSteps(Board* board) {
    aiLogic.moves.clear();
 }
 
-void aiDoStep(Board* board) {
-   if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
-      AIStep step = aiLogic.matchSteps.front();
-      aiLogic.matchSteps.pop_front();
-      switch (step) {
-      case ai_left:
-         board->game->user.input.left.p = true;
-         break;
-      case ai_right:
-         board->game->user.input.right.p = true;
-         break;
-      case ai_up:
-         board->game->user.input.up.p = true;
-         break;
-      case ai_down:
-         board->game->user.input.down.p = true;
-         break;
-      case ai_swap:
-         board->game->user.input.swap.p = true;
-         break;
+//Based on the game mode, find out which board to work on
+void boardAI(Game* game) {
+   if (game->settings.mode == single_vs) { 
+      for (int i = 1; i < game->boards.size(); i++) {
+         aiChooseMove(game->boards[i]);
       }
-   }
+   }  
+   else if (game->net->syncTest == true || game->settings.mode == single_player) { aiChooseMove(game->boards[0]); }
+   else if (game->settings.mode == multi_shared || game->settings.mode == multi_solo) { aiChooseMove(game->pList[game->user.number].board); }
+
 }
 
-void boardAI(Game* game) {
-   Board* board;
-   if (game->settings.mode == single_player) { board = game->pList[game->user.number].board; }  
-   else if (game->net->syncTest == true) { board = game->boards[0]; }
-   else if (game->settings.mode == multi_shared) { board = game->pList[game->user.number].board; }
-   else if (game->settings.mode == multi_solo) { board = game->pList[game->user.number].board; }
-   if (game->timer > game->timings.countIn[0]) {
+//Basically a flow chart of possible actions the AI can take
+void aiChooseMove(Board* board) {
+   if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic.matchSteps.empty() == true) {
-         aiClearGarbage(board); 
+         aiClearGarbage(board);
          if (aiLogic.moves.empty()) { aiFindVertMatch(board); }
          if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
          if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
@@ -1320,6 +1307,41 @@ void boardAI(Game* game) {
    }
 }
 
+//Take the move step and transfer it to the player inputs
+void aiDoStep(Board* board) {
+   if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
+      AIStep step = aiLogic.matchSteps.front();
+      aiLogic.matchSteps.pop_front();
+
+      UserInput input;
+      switch (step) {
+      case ai_left:
+         input.left.p = true;
+         break;
+      case ai_right:
+         input.right.p = true;
+         break;
+      case ai_up:
+         input.up.p = true;
+         break;
+      case ai_down:
+         input.down.p = true;
+         break;
+      case ai_swap:
+         input.swap.p = true;
+         break;
+      }
+
+      if (board->game->settings.mode == single_vs) {
+         board->game->net->inputs[board->index];  //todo this won't work in with shared boards
+      }
+      else {
+         board->game->user.input = input;
+      }
+   }
+}
+
+//Draw any sprites that are on the board
 void boardDrawSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
 
@@ -1332,6 +1354,7 @@ void boardDrawSprites(Board* board) {
    }
 }
 
+//Update the sprites if they have a movement component
 void updateSprites(Board* board) {
    std::vector <Sprite> activeSprites;
    for (auto&& sprite : board->sprites) {
@@ -1346,11 +1369,7 @@ void updateSprites(Board* board) {
    board->sprites = activeSprites;
 }
 
-void _tileInfo(Tile* tile) {
-   //This is for boardDebug so you can click the button and get a table of tile info
-   //I haven't done this though...
-}
-
+//Creates a windows with a grid of buttons that show the tile type as a letter
 void boardDebug(Board* board, bool* p_open) {
    if (!ImGui::Begin("Debug tiles", p_open)) {
       ImGui::End();
