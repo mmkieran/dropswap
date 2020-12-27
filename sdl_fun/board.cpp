@@ -1280,8 +1280,8 @@ void aiGetSteps(Board* board) {
 //Based on the game mode, find out which board to work on
 void boardAI(Game* game) {
    if (game->settings.mode == single_vs) { 
-      for (int i = 1; i < game->boards.size(); i++) {
-         aiChooseMove(game->boards[i]);
+      for (int i = 1; i < game->pList.size(); i++) {
+         aiChooseMove(game->boards[game->pList[i + 1].number]);
       }
    }  
    else if (game->net->syncTest == true || game->settings.mode == single_player) { aiChooseMove(game->boards[0]); }
