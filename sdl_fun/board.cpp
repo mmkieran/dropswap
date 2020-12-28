@@ -1282,8 +1282,7 @@ void aiGetSteps(Board* board, int player) {
 void boardAI(Game* game) {
    if (game->settings.mode == single_vs) { 
       for (int i = 1; i < game->pList.size(); i++) {  //Skip first player
-         int number = game->pList[i + 1].number;
-         aiChooseMove(game->boards[number], number);  //This only works for solo boards
+         aiChooseMove(game->pList[i + 1].board, game->pList[i + 1].number);
       }
    }  
    else if (game->net->syncTest == true || game->settings.mode == single_player) { 
@@ -1315,11 +1314,11 @@ void aiChooseMove(Board* board, int player) {
 
 //Take the move step and transfer it to the player inputs
 void aiDoStep(Board* board, int player) {
+   UserInput input;
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
       AIStep step = aiLogic[player].matchSteps.front();
       aiLogic[player].matchSteps.pop_front();
 
-      UserInput input;
       switch (step) {
       case ai_left:
          input.left.p = true;
@@ -1337,13 +1336,12 @@ void aiDoStep(Board* board, int player) {
          input.swap.p = true;
          break;
       }
-
-      if (board->game->settings.mode == single_vs) {
-         board->game->net->inputs[player - 1];  
-      }
-      else {
-         board->game->user.input = input;
-      }
+   }
+   if (board->game->settings.mode == single_vs) {
+      board->game->net->inputs[player - 1] = input;
+   }
+   else {
+      board->game->user.input = input;
    }
 }
 

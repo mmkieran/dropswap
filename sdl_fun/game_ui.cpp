@@ -13,6 +13,7 @@
 
 void ggpoSessionUI(Game* game, bool* p_open);
 void singlePlayerGame(Game* game, bool* p_open);
+void singleVersusUI(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
@@ -41,7 +42,7 @@ std::vector <std::string> credits = {
    "I finally feel like we could do a game jam, lol.",
    "Sean Hunter for always being there with the answers.",
    "I'm excited for the final version of Super Puzzled Cat.",
-   "And all the people who helped me test it.",
+   "And all the people who helped me test Drop and Swap.",
    "It was much more painful than I ever imagined.",
    "   Tyler Fowler",
    "   Russ Bohnhoff",
@@ -223,6 +224,13 @@ void singlePlayerGame(Game* game, bool* p_open) {
       game->settings.mode = single_player;
       gameStartMatch(game);
    }
+
+   static bool singleVersus = false;
+   ImGui::NewLine();
+   if (ImGui::Button("Versus Computer", ImVec2{ width, 0 })) {
+      singleVersus = true;
+   }
+   if (singleVersus == true) { singleVersusUI(game, &singleVersus); }
 
    static bool replayWindow = false;
    ImGui::NewLine();
@@ -1423,7 +1431,8 @@ void ggpoReadyModal(Game* game) {
 }
 
 void singleVersusUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Single Player Versus", p_open)) {
+   centerWindow(game, { 600, 600 });
+   if (!ImGui::Begin("Single Player Versus", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -1432,13 +1441,27 @@ void singleVersusUI(Game* game, bool* p_open) {
    static int level[3] = { 5, 1, 10 };
    ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
 
+   ImGui::PushItemWidth(150);
    for (int i = 1; i <= people[0]; i++) {
+      ImGui::PushID(i);
       if (i == 1) { ImGui::Text("You"); }
       else { ImGui::Text("Computer %d", i); }
       ImGui::SameLine();
       ImGui::Combo("Team", &game->pList[i].team, "One\0Two\0");
       ImGui::SameLine();
       ImGui::SliderScalar("Level", ImGuiDataType_U32, &level[0], &level[1], &level[2]);
+      ImGui::PopID();
+   }
+   ImGui::PopItemWidth();
+
+   if (ImGui::Button("Start")) {
+      game->players = people[0];
+      game->settings.mode = single_vs;
+      for (int i = 0; i < game->players; i++) {
+         game->pList[i + 1].number = i + 1;
+         sprintf(game->pList[i + 1].name, "Player %d", i + 1);
+      }
+      gameStartMatch(game);
    }
 
    ImGui::End();
