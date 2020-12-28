@@ -48,7 +48,7 @@ char* fileOpenUI() {
                      // Display the file name to the user.
                      if (SUCCEEDED(hr))
                      {
-                        MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+                        //MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
                         wcstombs(path, pszFilePath, 500);
                         CoTaskMemFree(pszFilePath);
                      }

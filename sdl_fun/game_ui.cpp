@@ -18,6 +18,7 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
+void loadReplayFromFile(Game* game);
 void replayUI(Game* game, bool* p_open);
 void licensesUI(Game* game, bool* p_open);
 void creditsUI(Game* game, bool* p_open);
@@ -51,6 +52,10 @@ std::vector <std::string> credits = {
 };
 
 ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+
+int frameRange[3] = { 0, 0, 0 };
+int frameRate[3] = { 0, 1, 16 };
+bool replayLoaded = false;
 
 //Struct to contain information about the popup
 struct popupInfo {
@@ -98,6 +103,27 @@ static void HelpMarker(const char* desc)
       ImGui::TextUnformatted(desc);
       ImGui::PopTextWrapPos();
       ImGui::EndTooltip();
+   }
+}
+
+void errorLoadingReplay() {
+   if (popupOpen(Popup_LoadFailed) == true) {
+      ImGui::SetNextWindowSize({ 200, 200 }, ImGuiCond_Once);
+      ImGui::OpenPopup("Failed to Load File");
+      popups[Popup_LoadFailed].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Failed to Load File")) {
+      if (popups[Popup_LoadFailed].isOpen == false) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_LoadFailed);
+      }
+
+      if (ImGui::Button("Close")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_LoadFailed);
+      }
+
+      ImGui::EndPopup();
    }
 }
 
@@ -232,12 +258,10 @@ void singlePlayerGame(Game* game, bool* p_open) {
    }
    if (singleVersus == true) { singleVersusUI(game, &singleVersus); }
 
-   static bool replayWindow = false;
    ImGui::NewLine();
    if (ImGui::Button("Watch Replay", ImVec2{ width, 0 })) {
-      replayWindow = true;
+      loadReplayFromFile(game);
    }
-   if (replayWindow == true) { replayUI(game, &replayWindow); }
 
    ImGui::NewLine();
    if (ImGui::Button("Back", ImVec2{ width, 0 })) {
@@ -1518,29 +1542,34 @@ void debugMultiplayerSetup(Game* game, bool* p_open) {
    ImGui::End();
 }
 
+void loadReplayFromFile(Game* game) {
+   char* path = fileOpenUI();
+
+   if (strcmp(path, " ") != 0) {
+      if (game->playing == true) { gameEndMatch(game); }
+      game->settings.replayStream = streamLoadFromFile(path);
+      replayLoaded = loadReplay(game, game->settings.replayStream);
+      if (replayLoaded == true) {
+         game->settings.replaying = true;
+         gameStartMatch(game);
+         frameRange[2] = game->settings.repInputs.size() - 1;
+      }
+      else {
+         popupEnable(Popup_LoadFailed);
+         replayLoaded = false;
+      }
+   }
+   if (path != nullptr) { delete path; }
+}
+
 void replayUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("Replay Options", p_open)) {
       ImGui::End();
       return;
    }
 
-   static int frameRange[3] = { 0, 0, 0 };
-   static int frameRate[3] = { 0, 1, 16 };
-   static bool replayLoaded = false;
    if (ImGui::Button("Load Replay")) {
-      char* path = fileOpenUI();
-
-      if (strcmp(path, " ") != 0) {
-         if (game->playing == true) { gameEndMatch(game); }
-         game->settings.replayStream = streamLoadFromFile(path); 
-         loadReplay(game, game->settings.replayStream);  //todo we should validate the file and bail before/during load
-         game->settings.replaying = true;
-         gameStartMatch(game);
-
-         frameRange[2] = game->settings.repInputs.size() - 1;
-         replayLoaded = true;
-      }
-      if (path != nullptr) { delete path; }
+      loadReplayFromFile(game);
    }
 
    if (replayLoaded == true) {
@@ -1562,6 +1591,7 @@ void replayUI(Game* game, bool* p_open) {
          frameRange[0] = game->frameCount;
       }
    }
+   errorLoadingReplay();
 
    ImGui::End();
 }

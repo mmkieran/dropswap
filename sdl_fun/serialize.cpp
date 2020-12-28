@@ -734,6 +734,8 @@ void deserializeMultiSetup(Game* game, Byte*& start) {
 std::vector <Byte> createReplay(Game* game, char* path) {
    std::vector <Byte> stream;
 
+   writeStream(stream, "DropSwapReplay");  //File tag for validation
+
    //Limited Game Serializing
    writeStream(stream, game->settings.bHeight);
    writeStream(stream, game->settings.bWidth);
@@ -761,8 +763,12 @@ std::vector <Byte> createReplay(Game* game, char* path) {
 }
 
 //Load a replay from a file
-void loadReplay(Game* game, std::vector <Byte> stream) {
+bool loadReplay(Game* game, std::vector <Byte> stream) {
    unsigned char* start = stream.data();
+
+   char fileTag[15] = "";
+   readStream(start, fileTag);
+   if (strcmp(fileTag, "DropSwapReplay") != 0) { return false; }
 
   //Limited Game Serializing
    readStream(start, game->settings.bHeight);
@@ -785,6 +791,7 @@ void loadReplay(Game* game, std::vector <Byte> stream) {
    for (int i = 0; i < count; i++) {
       readStream(start, game->settings.repInputs[i].input);
    }
+   return true;
 }
 
 //Save a stream of data (Byte vector) to a file

@@ -7,6 +7,7 @@ enum PopupType {
    Popup_Disconnect,
    Popup_Connecting,
    Popup_Error,
+   Popup_LoadFailed,
    Popup_Waiting,
    Popup_GameSetup,
    Popup_Quit,
@@ -29,3 +30,4 @@ void gameSettingsUI(Game* game, bool* p_open);
 void popupEnable(PopupType popup, int other = 0);
 bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
+void errorLoadingReplay();
