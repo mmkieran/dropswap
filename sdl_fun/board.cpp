@@ -1316,6 +1316,7 @@ void aiChooseMove(Board* board, int player) {
 //Take the move step and transfer it to the player inputs
 void aiDoStep(Board* board, int player) {
    UserInput input;
+   if (board->game->settings.mode != single_vs) { input = board->game->user.input; }
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
       AIStep step = aiLogic[player].matchSteps.front();
       aiLogic[player].matchSteps.pop_front();

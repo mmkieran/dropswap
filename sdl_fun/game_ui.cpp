@@ -219,7 +219,7 @@ void singlePlayerGame(Game* game, bool* p_open) {
 
    ImGui::NewLine();
    float width = ImGui::GetWindowContentRegionWidth();
-   if (ImGui::Button("Practice", ImVec2{ width, 0 })) {
+   if (ImGui::Button("Practice Solo", ImVec2{ width, 0 })) {
       game->players = 1;
       game->settings.mode = single_player;
       gameStartMatch(game);
@@ -234,7 +234,7 @@ void singlePlayerGame(Game* game, bool* p_open) {
 
    static bool replayWindow = false;
    ImGui::NewLine();
-   if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
+   if (ImGui::Button("Watch Replay", ImVec2{ width, 0 })) {
       replayWindow = true;
    }
    if (replayWindow == true) { replayUI(game, &replayWindow); }
