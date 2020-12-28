@@ -30,4 +30,3 @@ void gameSettingsUI(Game* game, bool* p_open);
 void popupEnable(PopupType popup, int other = 0);
 bool popupStatus(PopupType popup);
 void popupDisable(PopupType popup);
-void errorLoadingReplay();

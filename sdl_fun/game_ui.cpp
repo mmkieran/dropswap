@@ -262,6 +262,7 @@ void singlePlayerGame(Game* game, bool* p_open) {
    if (ImGui::Button("Watch Replay", ImVec2{ width, 0 })) {
       loadReplayFromFile(game);
    }
+   errorLoadingReplay();
 
    ImGui::NewLine();
    if (ImGui::Button("Back", ImVec2{ width, 0 })) {
@@ -1546,10 +1547,10 @@ void loadReplayFromFile(Game* game) {
    char* path = fileOpenUI();
 
    if (strcmp(path, " ") != 0) {
-      if (game->playing == true) { gameEndMatch(game); }
       game->settings.replayStream = streamLoadFromFile(path);
       replayLoaded = loadReplay(game, game->settings.replayStream);
       if (replayLoaded == true) {
+         if (game->playing == true) { gameEndMatch(game); }
          game->settings.replaying = true;
          gameStartMatch(game);
          frameRange[2] = game->settings.repInputs.size() - 1;
