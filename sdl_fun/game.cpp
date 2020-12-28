@@ -445,6 +445,13 @@ void gameEndMatch(Game* game) {
       }
    }
 
+   for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
+      if (game->fbos[i]) {
+         rendererDestroyFBO(game->fbos[i]);
+      }
+   }
+   game->fbos.clear();
+
    //Reset all the game things
    game->pList.clear();
    game->user.number = 1;

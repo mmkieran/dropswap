@@ -1226,6 +1226,7 @@ void aiGetSteps(Board* board, int player) {
    Cursor* cursor;
    if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
    else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; } 
+   else if (board->game->settings.mode == single_vs) { cursor = board->game->pList[player].cursor; } 
    else { cursor = board->game->pList[board->game->user.number].cursor; }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
