@@ -1454,7 +1454,7 @@ void singleVersusUI(Game* game, bool* p_open) {
       ImGui::SameLine();
       ImGui::Combo("Team", &game->pList[i].team, "One\0Two\0");
       ImGui::SameLine();
-      ImGui::SliderScalar("Level", ImGuiDataType_U32, &level[0], &level[1], &level[2]);
+      ImGui::SliderScalar("Level", ImGuiDataType_U32, &game->pList[i].level, &level[1], &level[2]);
       ImGui::PopID();
    }
    ImGui::PopItemWidth();
