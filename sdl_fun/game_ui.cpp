@@ -1532,8 +1532,8 @@ void replayUI(Game* game, bool* p_open) {
 
       if (strcmp(path, " ") != 0) {
          if (game->playing == true) { gameEndMatch(game); }
-         std::vector <Byte> stream = streamLoadFromFile(path); 
-         loadReplay(game, stream);  //todo we should validate the file and bail before/during load
+         game->settings.replayStream = streamLoadFromFile(path); 
+         loadReplay(game, game->settings.replayStream);  //todo we should validate the file and bail before/during load
          game->settings.replaying = true;
          gameStartMatch(game);
 
@@ -1550,8 +1550,7 @@ void replayUI(Game* game, bool* p_open) {
       if (ImGui::IsItemDeactivatedAfterEdit() == true) {
          if (frameRange[0] < game->frameCount) {
             if (game->playing == true) { gameEndMatch(game); }
-            std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
-            loadReplay(game, stream);
+            loadReplay(game, game->settings.replayStream);
             game->settings.replaying = true;
             gameStartMatch(game);
          }

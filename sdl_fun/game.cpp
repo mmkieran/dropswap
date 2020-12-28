@@ -349,7 +349,7 @@ void gameStartMatch(Game* game) {
       myBoard = 0;
    }
    else if (game->settings.mode == single_vs) {
-      game->seed = time(0);
+      if (game->settings.replaying == false) { game->seed = time(0); }
       myBoard = 0;
       boardCount = game->players;
    }
@@ -638,7 +638,7 @@ void gameReplay(Game* game) {
    if (game->settings.mode == single_player) {
       game->user.input = game->settings.repInputs[game->frameCount].input[0];
    }
-   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
       for (int i = 0; i < game->players; i++) {
          game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
       }
@@ -660,7 +660,7 @@ void gameCaptureReplayInputs(Game* game) {
       }
    }
 
-   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
       if (game->frameCount + 1 <= game->settings.repInputs.size()) {
          for (int i = 0; i < game->players; i++) {
             game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];
