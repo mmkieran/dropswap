@@ -239,6 +239,11 @@ void singlePlayerGame(Game* game, bool* p_open) {
    }
    if (replayWindow == true) { replayUI(game, &replayWindow); }
 
+   ImGui::NewLine();
+   if (ImGui::Button("Back", ImVec2{ width, 0 })) {
+      *p_open = false;
+   }
+
    ImGui::End();
 }
 
