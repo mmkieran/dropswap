@@ -116,8 +116,8 @@ void garbageDeploy(Board* board) {
                   for (int c = col ; c < garbage->width + col; c++) {
                      Tile* tile = boardGetTile(board, row, c);
                      tile->type = tile_garbage;
-                     tileSetTexture(board, tile);
                      tile->idGarbage = garbage->ID;
+                     tileSetTexture(board, tile);
 
                      if (row == startRow && c == col) {
                         garbage->start = tile;
