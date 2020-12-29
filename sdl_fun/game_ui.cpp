@@ -278,9 +278,11 @@ void singlePlayerGame(Game* game, bool* p_open) {
    errorLoadingReplay();
 
    ImGui::NewLine();
+   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
    if (ImGui::Button("Back", ImVec2{ width, 0 })) {
       *p_open = false;
    }
+   ImGui::PopStyleColor();
 
    ImGui::End();
 }
@@ -307,9 +309,13 @@ void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost) 
       *isHost = false;
    }
    ImGui::NewLine();
+   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
+
    if (ImGui::Button("Back", ImVec2{ width, 0 })) {
       *p_open = false;
-   }
+   }   
+   ImGui::PopStyleColor();
+
    ImGui::End();
 }
 
@@ -1711,7 +1717,7 @@ void creditsUI(Game* game, bool* p_open) {
 void aboutUI(Game* game, bool* p_open) {
    centerWindow(game, { 400, 400 });
 
-   if (!ImGui::Begin("About", (bool*)0, winFlags)) {
+   if (!ImGui::Begin("About", p_open, winFlags)) {
       ImGui::End();
       return;
    }
@@ -1744,6 +1750,13 @@ void aboutUI(Game* game, bool* p_open) {
    if (showCredits) {
       creditsUI(game, &showCredits);
    }
+
+   ImGui::NewLine();
+   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(1.0f, 0.6f, 0.6f));
+   if (ImGui::Button("Back", ImVec2{ width, 0 })) {
+      *p_open = false;
+   }
+   ImGui::PopStyleColor();
 
    ImGui::End();
 }
