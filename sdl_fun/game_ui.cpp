@@ -1487,26 +1487,33 @@ void singleVersusUI(Game* game, bool* p_open) {
    }
 
    static int people[3] = { 2, 2, 4 };
-   static int level[3] = { 5, 1, 10 };
+   static int levelRanges[3] = { 5, 1, 10 };
+   static int teams[4] = { 0, 1, 1, 1 };  //Team setup for each player
+   static int levels[4] = { 5, 5, 5, 5 };  //Player handicaps
    ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
 
+   ImGui::NewLine();
    ImGui::PushItemWidth(150);
-   for (int i = 1; i <= people[0]; i++) {
+   for (int i = 0; i < people[0]; i++) {
       ImGui::PushID(i);
-      if (i == 1) { ImGui::Text("You"); }
+      if (i == 0) { ImGui::Text("You"); }
       else { ImGui::Text("Computer %d", i); }
       ImGui::SameLine();
-      ImGui::Combo("Team", &game->pList[i].team, "One\0Two\0");
+      ImGui::SetCursorPosX(140);  //Sameline wipes this out if you do it before
+      ImGui::Combo("Team", &teams[i], "One\0Two\0");
       ImGui::SameLine();
-      ImGui::SliderScalar("Level", ImGuiDataType_U32, &game->pList[i].level, &level[1], &level[2]);
+      ImGui::SliderScalar("Level", ImGuiDataType_U32, &levels[i], &levelRanges[1], &levelRanges[2]);
       ImGui::PopID();
    }
    ImGui::PopItemWidth();
 
+   ImGui::NewLine();
    if (ImGui::Button("Start")) {
       game->players = people[0];
       game->settings.mode = single_vs;
       for (int i = 0; i < game->players; i++) {
+         game->pList[i + 1].team = teams[i];
+         game->pList[i + 1].level = levels[i];
          game->pList[i + 1].number = i + 1;
          sprintf(game->pList[i + 1].name, "Player %d", i + 1);
       }
