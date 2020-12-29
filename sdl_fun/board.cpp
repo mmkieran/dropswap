@@ -1022,6 +1022,7 @@ struct AILogic {
 //Holds the move steps for each ai opponent
 std::map <int, AILogic> aiLogic;
 
+//Is the tile something the ai can move right now
 static bool _validTile(Board* board, Tile* tile) {
    if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
       tile->status == status_stop || tile->type == tile_empty) {
@@ -1030,6 +1031,7 @@ static bool _validTile(Board* board, Tile* tile) {
    else { return true; }
 }
 
+//Look for vertical matches along a row (typically below garbage)
 static bool _vertMatch(Board* board, int row, int col, int player) {
    bool moveFound = false;
 
@@ -1090,6 +1092,7 @@ bool aiFindVertMatch(Board* board, int player) {
    return moveFound;
 }
 
+//Search for a horizontal match
 bool aiFindHorizMatch(Board* board, int player) {
    bool moveFound = false;
    for (int row = board->startH - 1; row < board->endH; row++) {
@@ -1129,6 +1132,7 @@ bool aiFindHorizMatch(Board* board, int player) {
    return moveFound;
 }
 
+//Look for a vertical match below garbage
 bool aiClearGarbage(Board* board, int player) {
    bool moveFound = false;
    for (auto&& pair : board->pile->garbage) {
@@ -1143,6 +1147,7 @@ bool aiClearGarbage(Board* board, int player) {
    return moveFound;
 }
 
+//If there's nothing else to do, flatten your towers
 bool aiFlattenBoard(Board* board, int player) {
    bool moveFound = false;
    for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)*3/4; row++) {
@@ -1184,6 +1189,7 @@ bool aiFlattenBoard(Board* board, int player) {
    return moveFound;
 }
 
+//Look at a snapshot of the board and decide how to make a chain
 void aiChain(Board* board, int player) {
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
@@ -1221,8 +1227,8 @@ void aiChain(Board* board, int player) {
    }
 }
 
+//Calculate the steps to move cursor into place
 void aiGetSteps(Board* board, int player) {
-   //Calculate steps to move cursor into place
    Cursor* cursor;
    if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
    else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; } 
