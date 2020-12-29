@@ -322,7 +322,11 @@ void gameUpdate(Game* game) {
 void gameSinglePlayer(Game* game) {
    if (game->playing == false) { return; }
    processInputs(game);
-   if (game->ai == true) { gameAI(game); }  
+   if (game->settings.mode == single_vs) {
+      game->net->inputs[0] = game->user.input;
+      gameAI(game);
+   }
+   if (game->ai == true) { gameAI(game); }
    gameCheckPause(game, game->user.input);
    gameUpdate(game);
 }
@@ -344,6 +348,11 @@ void gameStartMatch(Game* game) {
       boardCount = 1;
       myBoard = 0;
    }
+   else if (game->settings.mode == single_vs) {
+      if (game->settings.replaying == false) { game->seed = time(0); }
+      myBoard = 0;
+      boardCount = game->players;
+   }
    else if (game->net->syncTest == true) {
       myBoard = 0;
       boardCount = game->players;
@@ -362,7 +371,7 @@ void gameStartMatch(Game* game) {
 
       int team = 0;
       if (game->net->syncTest == true) { team = i; }
-      else if (game->settings.mode == multi_solo) { team = game->pList[i + 1].team; }
+      else if (game->settings.mode == multi_solo || game->settings.mode == single_vs) { team = game->pList[i + 1].team; }
       else if (game->settings.mode == multi_shared) { team = i; }
 
       if (game->players > 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
@@ -399,7 +408,7 @@ void gameStartMatch(Game* game) {
             }
             board->level = level / count;
          }
-         if (game->settings.mode == multi_solo) {
+         if (game->settings.mode == multi_solo || game->settings.mode == single_vs) {
             Cursor* cursor = cursorCreate(board, cursorX, cursorY, game->pList[i + 1].number);
             board->cursors.push_back(cursor);
             game->pList[i + 1].board = board;
@@ -435,6 +444,13 @@ void gameEndMatch(Game* game) {
          boardDestroy(game->boards[i]);
       }
    }
+
+   for (int i = 0; i < game->fbos.size(); i++) {  //Destroy the old FBOs
+      if (game->fbos[i]) {
+         rendererDestroyFBO(game->fbos[i]);
+      }
+   }
+   game->fbos.clear();
 
    //Reset all the game things
    game->pList.clear();
@@ -622,7 +638,7 @@ void gameReplay(Game* game) {
    if (game->settings.mode == single_player) {
       game->user.input = game->settings.repInputs[game->frameCount].input[0];
    }
-   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
       for (int i = 0; i < game->players; i++) {
          game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
       }
@@ -644,7 +660,7 @@ void gameCaptureReplayInputs(Game* game) {
       }
    }
 
-   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) {
+   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
       if (game->frameCount + 1 <= game->settings.repInputs.size()) {
          for (int i = 0; i < game->players; i++) {
             game->settings.repInputs[game->frameCount].input[i] = game->net->inputs[i];

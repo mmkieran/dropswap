@@ -13,10 +13,12 @@
 
 void ggpoSessionUI(Game* game, bool* p_open);
 void singlePlayerGame(Game* game, bool* p_open);
+void singleVersusUI(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
 void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
+void loadReplayFromFile(Game* game);
 void replayUI(Game* game, bool* p_open);
 void licensesUI(Game* game, bool* p_open);
 void creditsUI(Game* game, bool* p_open);
@@ -41,7 +43,7 @@ std::vector <std::string> credits = {
    "I finally feel like we could do a game jam, lol.",
    "Sean Hunter for always being there with the answers.",
    "I'm excited for the final version of Super Puzzled Cat.",
-   "And all the people who helped me test it.",
+   "And all the people who helped me test Drop and Swap.",
    "It was much more painful than I ever imagined.",
    "   Tyler Fowler",
    "   Russ Bohnhoff",
@@ -50,6 +52,10 @@ std::vector <std::string> credits = {
 };
 
 ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+
+int frameRange[3] = { 0, 0, 0 };
+int frameRate[3] = { 0, 1, 16 };
+bool replayLoaded = false;
 
 //Struct to contain information about the popup
 struct popupInfo {
@@ -97,6 +103,27 @@ static void HelpMarker(const char* desc)
       ImGui::TextUnformatted(desc);
       ImGui::PopTextWrapPos();
       ImGui::EndTooltip();
+   }
+}
+
+void errorLoadingReplay() {
+   if (popupOpen(Popup_LoadFailed) == true) {
+      ImGui::SetNextWindowSize({ 200, 200 }, ImGuiCond_Once);
+      ImGui::OpenPopup("Failed to Load File");
+      popups[Popup_LoadFailed].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Failed to Load File")) {
+      if (popups[Popup_LoadFailed].isOpen == false) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_LoadFailed);
+      }
+
+      if (ImGui::Button("Close")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_LoadFailed);
+      }
+
+      ImGui::EndPopup();
    }
 }
 
@@ -218,18 +245,29 @@ void singlePlayerGame(Game* game, bool* p_open) {
 
    ImGui::NewLine();
    float width = ImGui::GetWindowContentRegionWidth();
-   if (ImGui::Button("Practice", ImVec2{ width, 0 })) {
+   if (ImGui::Button("Practice Solo", ImVec2{ width, 0 })) {
       game->players = 1;
       game->settings.mode = single_player;
       gameStartMatch(game);
    }
 
-   static bool replayWindow = false;
+   static bool singleVersus = false;
    ImGui::NewLine();
-   if (ImGui::Button("Replay", ImVec2{ width, 0 })) {
-      replayWindow = true;
+   if (ImGui::Button("Versus Computer", ImVec2{ width, 0 })) {
+      singleVersus = true;
    }
-   if (replayWindow == true) { replayUI(game, &replayWindow); }
+   if (singleVersus == true) { singleVersusUI(game, &singleVersus); }
+
+   ImGui::NewLine();
+   if (ImGui::Button("Watch Replay", ImVec2{ width, 0 })) {
+      loadReplayFromFile(game);
+   }
+   errorLoadingReplay();
+
+   ImGui::NewLine();
+   if (ImGui::Button("Back", ImVec2{ width, 0 })) {
+      *p_open = false;
+   }
 
    ImGui::End();
 }
@@ -359,7 +397,7 @@ void boardUI(Game* game) {
                ImGui::Text(game->pList[cursor->index].name);
             }
          }
-         if (game->settings.mode == multi_solo) { 
+         else if (game->settings.mode == multi_solo) { 
             if (i == game->user.number - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -371,7 +409,7 @@ void boardUI(Game* game) {
             ImGui::Text("Team %d", board->team + 1);
             ImGui::Text(game->pList[i + 1].name); 
          }
-         if (game->settings.mode == single_player) { 
+         else if (game->settings.mode == single_player) { 
             if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -1422,6 +1460,43 @@ void ggpoReadyModal(Game* game) {
    }
 }
 
+void singleVersusUI(Game* game, bool* p_open) {
+   centerWindow(game, { 600, 600 });
+   if (!ImGui::Begin("Single Player Versus", p_open, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   static int people[3] = { 2, 2, 4 };
+   static int level[3] = { 5, 1, 10 };
+   ImGui::SliderScalar("Total Players", ImGuiDataType_U32, &people[0], &people[1], &people[2]);
+
+   ImGui::PushItemWidth(150);
+   for (int i = 1; i <= people[0]; i++) {
+      ImGui::PushID(i);
+      if (i == 1) { ImGui::Text("You"); }
+      else { ImGui::Text("Computer %d", i); }
+      ImGui::SameLine();
+      ImGui::Combo("Team", &game->pList[i].team, "One\0Two\0");
+      ImGui::SameLine();
+      ImGui::SliderScalar("Level", ImGuiDataType_U32, &game->pList[i].level, &level[1], &level[2]);
+      ImGui::PopID();
+   }
+   ImGui::PopItemWidth();
+
+   if (ImGui::Button("Start")) {
+      game->players = people[0];
+      game->settings.mode = single_vs;
+      for (int i = 0; i < game->players; i++) {
+         game->pList[i + 1].number = i + 1;
+         sprintf(game->pList[i + 1].name, "Player %d", i + 1);
+      }
+      gameStartMatch(game);
+   }
+
+   ImGui::End();
+}
+
 void debugConnections(Game* game, bool* p_open) {
    if (!ImGui::Begin("Conn State", p_open)) {
       ImGui::End();
@@ -1468,29 +1543,34 @@ void debugMultiplayerSetup(Game* game, bool* p_open) {
    ImGui::End();
 }
 
+void loadReplayFromFile(Game* game) {
+   char* path = fileOpenUI();
+
+   if (strcmp(path, " ") != 0) {
+      game->settings.replayStream = streamLoadFromFile(path);
+      replayLoaded = loadReplay(game, game->settings.replayStream);
+      if (replayLoaded == true) {
+         if (game->playing == true) { gameEndMatch(game); }
+         game->settings.replaying = true;
+         gameStartMatch(game);
+         frameRange[2] = game->settings.repInputs.size() - 1;
+      }
+      else {
+         popupEnable(Popup_LoadFailed);
+         replayLoaded = false;
+      }
+   }
+   if (path != nullptr) { delete path; }
+}
+
 void replayUI(Game* game, bool* p_open) {
    if (!ImGui::Begin("Replay Options", p_open)) {
       ImGui::End();
       return;
    }
 
-   static int frameRange[3] = { 0, 0, 0 };
-   static int frameRate[3] = { 0, 1, 16 };
-   static bool replayLoaded = false;
    if (ImGui::Button("Load Replay")) {
-      char* path = fileOpenUI();
-
-      if (strcmp(path, " ") != 0) {
-         if (game->playing == true) { gameEndMatch(game); }
-         std::vector <Byte> stream = streamLoadFromFile(path); 
-         loadReplay(game, stream);  //todo we should validate the file and bail before/during load
-         game->settings.replaying = true;
-         gameStartMatch(game);
-
-         frameRange[2] = game->settings.repInputs.size() - 1;
-         replayLoaded = true;
-      }
-      if (path != nullptr) { delete path; }
+      loadReplayFromFile(game);
    }
 
    if (replayLoaded == true) {
@@ -1500,8 +1580,7 @@ void replayUI(Game* game, bool* p_open) {
       if (ImGui::IsItemDeactivatedAfterEdit() == true) {
          if (frameRange[0] < game->frameCount) {
             if (game->playing == true) { gameEndMatch(game); }
-            std::vector <Byte> stream = streamLoadFromFile("saves/replay.rep");
-            loadReplay(game, stream);
+            loadReplay(game, game->settings.replayStream);
             game->settings.replaying = true;
             gameStartMatch(game);
          }
@@ -1513,6 +1592,7 @@ void replayUI(Game* game, bool* p_open) {
          frameRange[0] = game->frameCount;
       }
    }
+   errorLoadingReplay();
 
    ImGui::End();
 }

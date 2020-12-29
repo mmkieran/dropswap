@@ -28,7 +28,7 @@ void serializeMultiSetup(Game* game, std::vector <Byte>& stream);
 void deserializeMultiSetup(Game* game, Byte*& start);
 
 std::vector <Byte> createReplay(Game* game, char* path);
-void loadReplay(Game* game, std::vector <Byte> stream);
+bool loadReplay(Game* game, std::vector <Byte> stream);
 
 FILE* streamSaveToFile(const char* path, std::vector <Byte>& stream);
 std::vector <Byte> streamLoadFromFile(const char* path);

@@ -7,6 +7,7 @@ enum PopupType {
    Popup_Disconnect,
    Popup_Connecting,
    Popup_Error,
+   Popup_LoadFailed,
    Popup_Waiting,
    Popup_GameSetup,
    Popup_Quit,

@@ -13,6 +13,9 @@ void updateSprites(Board* board);
 void boardDrawSprites(Board* board);
 void boardBust(Board* board);
 
+void aiChooseMove(Board* board, int player);
+void aiDoStep(Board* board, int player);
+
 //Create the tile array for the board
 Tile* _boardCreateArray(int width, int height) {
    Tile* tiles = (Tile*)malloc(sizeof(Tile) * (height * 2 + 1) * width);
@@ -220,7 +223,7 @@ void boardUpdate(Board* board) {
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[0]);
       }
    }
-   else if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared) {
+   else if (board->game->settings.mode == multi_solo || board->game->settings.mode == multi_shared || board->game->settings.mode == single_vs) {
       for (int i = 0; i < board->cursors.size(); i++) {
          int index = board->cursors[i]->index - 1;  //Zero-based player number to lookup inputs from GGPO
          cursorUpdate(board, board->cursors[i], board->game->net->inputs[index]);
@@ -1016,7 +1019,8 @@ struct AILogic {
    std::list <AIStep> matchSteps;  //The Cursor movements needed to make a match
 };
 
-AILogic aiLogic;
+//Holds the move steps for each ai opponent
+std::map <int, AILogic> aiLogic;
 
 static bool _validTile(Board* board, Tile* tile) {
    if (tile->falling == true || tile->status == status_disable || tile->status == status_clear ||
@@ -1026,7 +1030,7 @@ static bool _validTile(Board* board, Tile* tile) {
    else { return true; }
 }
 
-static bool _vertMatch(Board* board, int row, int col) {
+static bool _vertMatch(Board* board, int row, int col, int player) {
    bool moveFound = false;
 
    Tile* tSet[3];
@@ -1062,7 +1066,7 @@ static bool _vertMatch(Board* board, int row, int col) {
 
          move.dest.col = col;
          move.dest.row = move.target.row;
-         aiLogic.moves.push_front(move);
+         aiLogic[player].moves.push_front(move);
       }
       moveFound = true;
    }
@@ -1070,7 +1074,7 @@ static bool _vertMatch(Board* board, int row, int col) {
 }
 
 //Very basic search for vertical 2 and decide on tile to swap in to match
-bool aiFindVertMatch(Board* board) {
+bool aiFindVertMatch(Board* board, int player) {
    bool moveFound = false;
 
    for (int row = board->startH - 1; row < board->endH - 2; row++) {
@@ -1078,7 +1082,7 @@ bool aiFindVertMatch(Board* board) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
 
-         moveFound = _vertMatch(board, row, col);
+         moveFound = _vertMatch(board, row, col, player);
          if (moveFound == true) { return moveFound; }
       }
    }
@@ -1086,7 +1090,7 @@ bool aiFindVertMatch(Board* board) {
    return moveFound;
 }
 
-bool aiFindHorizMatch(Board* board) {
+bool aiFindHorizMatch(Board* board, int player) {
    bool moveFound = false;
    for (int row = board->startH - 1; row < board->endH; row++) {
       if (moveFound == true) { break; }
@@ -1114,7 +1118,7 @@ bool aiFindHorizMatch(Board* board) {
                int c = tileGetCol(board, pair.second[i]);
                move.target.col = c;
                move.target.row = r;
-               aiLogic.moves.push_back(move);
+               aiLogic[player].moves.push_back(move);
 
             }
             moveFound = true;
@@ -1125,7 +1129,7 @@ bool aiFindHorizMatch(Board* board) {
    return moveFound;
 }
 
-bool aiClearGarbage(Board* board) {
+bool aiClearGarbage(Board* board, int player) {
    bool moveFound = false;
    for (auto&& pair : board->pile->garbage) {
       Garbage* garbage = pair.second;
@@ -1133,13 +1137,13 @@ bool aiClearGarbage(Board* board) {
          int gRow = tileGetRow(board, garbage->start);
          int col = tileGetCol(board, garbage->start);
 
-         moveFound = _vertMatch(board, gRow + 1, col);
+         moveFound = _vertMatch(board, gRow + 1, col, player);
       }
    }
    return moveFound;
 }
 
-bool aiFlattenBoard(Board* board) {
+bool aiFlattenBoard(Board* board, int player) {
    bool moveFound = false;
    for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)*3/4; row++) {
       if (moveFound == true) { break; }
@@ -1171,7 +1175,7 @@ bool aiFlattenBoard(Board* board) {
 
             move.dest.col = closestCol;
             move.dest.row = row;
-            aiLogic.moves.push_back(move);
+            aiLogic[player].moves.push_back(move);
             moveFound = true;
             break;
          }
@@ -1180,7 +1184,7 @@ bool aiFlattenBoard(Board* board) {
    return moveFound;
 }
 
-void aiChain(Board* board) {
+void aiChain(Board* board, int player) {
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -1217,16 +1221,17 @@ void aiChain(Board* board) {
    }
 }
 
-void aiGetSteps(Board* board) {
+void aiGetSteps(Board* board, int player) {
    //Calculate steps to move cursor into place
    Cursor* cursor;
    if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
    else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; } 
+   else if (board->game->settings.mode == single_vs) { cursor = board->game->pList[player].cursor; } 
    else { cursor = board->game->pList[board->game->user.number].cursor; }
    int cursorCol = cursorGetCol(board, cursor);
    int cursorRow = cursorGetRow(board, cursor);
 
-   for (auto&& move : aiLogic.moves) {
+   for (auto&& move : aiLogic[player].moves) {
       if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
       //Figure out if the target needs to move left or right
       int moveDirection = move.dest.col - move.target.col;
@@ -1238,88 +1243,111 @@ void aiGetSteps(Board* board) {
 
       for (int i = 0; i < abs(colDiff); i++) {
          if (colDiff < 0) {        //move left
-            aiLogic.matchSteps.push_back(ai_left);
+            aiLogic[player].matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (colDiff > 0) {   //move right
-            aiLogic.matchSteps.push_back(ai_right);
+            aiLogic[player].matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
       for (int i = 0; i < abs(rowDiff); i++) {
          if (rowDiff < 0) {        //move up
-            aiLogic.matchSteps.push_back(ai_up);
+            aiLogic[player].matchSteps.push_back(ai_up);
             cursorRow--;
          }
          else if (rowDiff > 0) {   //move down
-            aiLogic.matchSteps.push_back(ai_down);
+            aiLogic[player].matchSteps.push_back(ai_down);
             cursorRow++;
          }
       }
 
       //Figure out how many swaps to move the target tile to the destination
       for (int i = 0; i < abs(moveDirection); i++) {
-         aiLogic.matchSteps.push_back(ai_swap);
+         aiLogic[player].matchSteps.push_back(ai_swap);
          if (abs(moveDirection) == i + 1) { break; }
          if (moveDirection < 0) {        //move left
-            aiLogic.matchSteps.push_back(ai_left);
+            aiLogic[player].matchSteps.push_back(ai_left);
             cursorCol--;
          }
          else if (moveDirection > 0) {   //move right
-            aiLogic.matchSteps.push_back(ai_right);
+            aiLogic[player].matchSteps.push_back(ai_right);
             cursorCol++;
          }
       }
    }
-   aiLogic.moves.clear();
+   aiLogic[player].moves.clear();
 }
 
-void aiDoStep(Board* board) {
+//Based on the game mode, find out which board to work on
+void boardAI(Game* game) {
+   if (game->settings.mode == single_vs) { 
+      for (int i = 1; i < game->pList.size(); i++) {  //Skip first player
+         aiChooseMove(game->pList[i + 1].board, game->pList[i + 1].number);
+      }
+   }  
+   else if (game->net->syncTest == true || game->settings.mode == single_player) { 
+      aiChooseMove(game->boards[0], 1); 
+   }
+   else if (game->settings.mode == multi_shared || game->settings.mode == multi_solo) { 
+      aiChooseMove(game->pList[game->user.number].board, game->user.number); 
+   }
+
+}
+
+//Basically a flow chart of possible actions the AI can take
+void aiChooseMove(Board* board, int player) {
+   if (board->game->timer > board->game->timings.countIn[0]) {
+      if (aiLogic[player].matchSteps.empty() == true) {
+         aiClearGarbage(board, player);
+         if (aiLogic[player].moves.empty()) { aiFindVertMatch(board, player); }
+         if (aiLogic[player].moves.empty()) { aiFindHorizMatch(board, player); }
+         if (aiLogic[player].moves.empty()) { aiFlattenBoard(board, player); }
+
+         if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+      }
+   }
+
+   if (aiLogic[player].matchSteps.empty() == false) {
+      aiDoStep(board, player);
+   }
+}
+
+//Take the move step and transfer it to the player inputs
+void aiDoStep(Board* board, int player) {
+   UserInput input;
+   if (board->game->settings.mode != single_vs) { input = board->game->user.input; }
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
-      AIStep step = aiLogic.matchSteps.front();
-      aiLogic.matchSteps.pop_front();
+      AIStep step = aiLogic[player].matchSteps.front();
+      aiLogic[player].matchSteps.pop_front();
+
       switch (step) {
       case ai_left:
-         board->game->user.input.left.p = true;
+         input.left.p = true;
          break;
       case ai_right:
-         board->game->user.input.right.p = true;
+         input.right.p = true;
          break;
       case ai_up:
-         board->game->user.input.up.p = true;
+         input.up.p = true;
          break;
       case ai_down:
-         board->game->user.input.down.p = true;
+         input.down.p = true;
          break;
       case ai_swap:
-         board->game->user.input.swap.p = true;
+         input.swap.p = true;
          break;
       }
    }
-}
-
-void boardAI(Game* game) {
-   Board* board;
-   if (game->settings.mode == single_player) { board = game->pList[game->user.number].board; }  
-   else if (game->net->syncTest == true) { board = game->boards[0]; }
-   else if (game->settings.mode == multi_shared) { board = game->pList[game->user.number].board; }
-   else if (game->settings.mode == multi_solo) { board = game->pList[game->user.number].board; }
-   if (game->timer > game->timings.countIn[0]) {
-      if (aiLogic.matchSteps.empty() == true) {
-         aiClearGarbage(board); 
-         if (aiLogic.moves.empty()) { aiFindVertMatch(board); }
-         if (aiLogic.moves.empty()) { aiFindHorizMatch(board); }
-         if (aiLogic.moves.empty()) { aiFlattenBoard(board); }
-
-         if (aiLogic.moves.empty() == false) { aiGetSteps(board); }
-      }
+   if (board->game->settings.mode == single_vs) {
+      board->game->net->inputs[player - 1] = input;
    }
-
-   if (aiLogic.matchSteps.empty() == false) {
-      aiDoStep(board);
+   else {
+      board->game->user.input = input;
    }
 }
 
+//Draw any sprites that are on the board
 void boardDrawSprites(Board* board) {
    for (auto&& sprite : board->sprites) {
 
@@ -1332,6 +1360,7 @@ void boardDrawSprites(Board* board) {
    }
 }
 
+//Update the sprites if they have a movement component
 void updateSprites(Board* board) {
    std::vector <Sprite> activeSprites;
    for (auto&& sprite : board->sprites) {
@@ -1346,11 +1375,7 @@ void updateSprites(Board* board) {
    board->sprites = activeSprites;
 }
 
-void _tileInfo(Tile* tile) {
-   //This is for boardDebug so you can click the button and get a table of tile info
-   //I haven't done this though...
-}
-
+//Creates a windows with a grid of buttons that show the tile type as a letter
 void boardDebug(Board* board, bool* p_open) {
    if (!ImGui::Begin("Debug tiles", p_open)) {
       ImGui::End();

@@ -96,7 +96,8 @@ struct ReplayInput {
 enum GameMode {
    multi_solo = 0,                  //Individual boards
    multi_shared,                    //Shared board
-   single_player,                   //todo one of many?
+   single_player,                   //This is practice by yourself
+   single_vs,                       //Versus one or more computers
    game_mode_COUNT,                 //In case we need to iterate through them
 };
 
@@ -109,6 +110,7 @@ struct GameSettings {
    GameMode mode = single_player;                  //The currently game mode setting, multi_solo is separate boards for each player
 
    std::vector <unsigned char> save;               //todo this is broken and doesn't belong here... This holds the state saves
+   std::vector <unsigned char> replayStream;       //Holds the binary data loaded from a replay file
    std::vector <ReplayInput> repInputs;            //Used to store the inputs for a replay
    int replaySpeed = 1;                            //The speed of the replay (frames per loop)
    bool replaying = false;                         //Are we viewing a replay?
