@@ -19,7 +19,7 @@ void multiplayerJoin(Game* game, bool* p_open);
 void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
 void loadReplayFromFile(Game* game);
-void replayUI(Game* game, bool* p_open);
+void replayUI(Game* game);
 void licensesUI(Game* game, bool* p_open);
 void creditsUI(Game* game, bool* p_open);
 
@@ -370,7 +370,7 @@ void boardUI(Game* game) {
          return;
       }
 
-      if (game->settings.replaying == true) { replayUI(game, (bool*)0); }
+      if (game->settings.replaying == true) { replayUI(game); }
 
       ImGuiStyle style = ImGui::GetStyle();
       ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", game->timer / 1000);
@@ -1563,14 +1563,10 @@ void loadReplayFromFile(Game* game) {
    if (path != nullptr) { delete path; }
 }
 
-void replayUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Replay Options", p_open)) {
+void replayUI(Game* game) {
+   if (!ImGui::Begin("Replay Options")) {
       ImGui::End();
       return;
-   }
-
-   if (ImGui::Button("Load Replay")) {
-      loadReplayFromFile(game);
    }
 
    if (replayLoaded == true) {
@@ -1593,6 +1589,17 @@ void replayUI(Game* game, bool* p_open) {
       }
    }
    errorLoadingReplay();
+
+   ImGui::NewLine();
+   if (ImGui::Button("Load Replay")) {
+      loadReplayFromFile(game);
+   }
+
+   ImGui::SameLine();
+   if (ImGui::Button("Exit Replays")) {
+      if (game->playing == true) { gameEndMatch(game); }
+      game->settings.replaying = false;
+   }
 
    ImGui::End();
 }
