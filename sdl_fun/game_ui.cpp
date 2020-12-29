@@ -20,6 +20,8 @@ void multiplayerHost(Game* game, bool* p_open);
 void ggpoReadyModal(Game* game);
 void loadReplayFromFile(Game* game);
 void replayUI(Game* game);
+void aboutUI(Game* game, bool* p_open);
+void gameInfoUI(Game* game, bool* p_open);
 void licensesUI(Game* game, bool* p_open);
 void creditsUI(Game* game, bool* p_open);
 
@@ -50,6 +52,26 @@ std::vector <std::string> credits = {
    "   Kyle McDonald",
    "   Paul Castleberry",
 };
+
+const char* aboutText = R"(
+Written by Kieran McDonald 
+08/23/2020
+
+I always wanted to make a video game and this was my
+gateway into that world. It was everything I imagined
+and now I find myself thinking about the next one.
+
+Drop and Swap was born out of love for Panel De Pon
+and Puyo Puyo. It was my attempt to make a multi-
+player game so we could continue our tradition of 
+afternoon games when COVID-19 hit.
+
+The game itself is completey for fun and my own
+education. Hope you enjoy it.
+
+Kieran
+
+)";
 
 ImGuiWindowFlags winFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
@@ -215,21 +237,12 @@ void mainUI(Game* game) {
    }
 
    ImGui::NewLine();
-   static bool showLicenses = false;
-   if (ImGui::Button("Licenses", ImVec2{ width, 0 })) {
-      showLicenses = true;
+   static bool aboutWindow = false;
+   if (ImGui::Button("About", ImVec2{ width, 0 })) {
+      aboutWindow = true;
    }
-   if (showLicenses) {
-      licensesUI(game, &showLicenses);
-   }
-
-   ImGui::NewLine();
-   static bool showCredits = false;
-   if (ImGui::Button("Credits", ImVec2{ width, 0 })) {
-      showCredits = true;
-   }
-   if (showCredits) {
-      creditsUI(game, &showCredits);
+   if (aboutWindow) {
+      aboutUI(game, &aboutWindow);
    }
 
    ImGui::PopFont();
@@ -1691,6 +1704,59 @@ void creditsUI(Game* game, bool* p_open) {
    if (ImGui::Button("Restart")) {
       timer = 0;
    }
+
+   ImGui::End();
+}
+
+void aboutUI(Game* game, bool* p_open) {
+   centerWindow(game, { 400, 400 });
+
+   if (!ImGui::Begin("About", (bool*)0, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   float width = ImGui::GetWindowContentRegionWidth();
+
+   ImGui::NewLine();
+   static bool showInfo = false;
+   if (ImGui::Button("Info", ImVec2{ width, 0 })) {
+      showInfo = true;
+   }
+   if (showInfo) {
+      gameInfoUI(game, &showInfo);
+   }
+
+   ImGui::NewLine();
+   static bool showLicenses = false;
+   if (ImGui::Button("Licenses", ImVec2{ width, 0 })) {
+      showLicenses = true;
+   }
+   if (showLicenses) {
+      licensesUI(game, &showLicenses);
+   }
+
+   ImGui::NewLine();
+   static bool showCredits = false;
+   if (ImGui::Button("Credits", ImVec2{ width, 0 })) {
+      showCredits = true;
+   }
+   if (showCredits) {
+      creditsUI(game, &showCredits);
+   }
+
+   ImGui::End();
+}
+
+void gameInfoUI(Game* game, bool* p_open) {
+   centerWindow(game, { 500, 500 });
+
+   if (!ImGui::Begin("Info", p_open, winFlags)) {
+      ImGui::End();
+      return;
+   }
+
+   ImGui::TextUnformatted(aboutText);
 
    ImGui::End();
 }
