@@ -359,15 +359,17 @@ static void _gameResults(Game* game) {
    }
    ImGui::PopStyleVar();
    ImGui::NewLine();
-
    ImGui::PopFont();
+
+   static bool repSaved = false;
    if (ImGui::Button("Accept Defeat")) {
       gameEndMatch(game);
       ImGui::CloseCurrentPopup();
       popupDisable(Popup_GameOver);
+      repSaved = false;
    }
    
-   if (game->settings.replaying == false) {  //Save the replay
+   if (game->settings.replaying == false && repSaved == false) {  //Save the replay
       ImGui::SameLine();
       if (ImGui::Button("Save Replay")) {
          char* path = fileSaveUI();
@@ -375,6 +377,7 @@ static void _gameResults(Game* game) {
             createReplay(game, path);
          }
          if (path != nullptr) { delete path; }
+         repSaved = true;
       }
    }
 }
