@@ -326,7 +326,7 @@ void gameSinglePlayer(Game* game) {
       game->net->inputs[0] = game->user.input;
       gameAI(game);
    }
-   if (game->ai == true) { gameAI(game); }
+   else if (game->ai == true) { gameAI(game); }
    gameCheckPause(game, game->user.input);
    gameUpdate(game);
 }
@@ -566,7 +566,6 @@ void gameUpdateSprites(Game* game, std::vector <Sprite>& list) {
 }
 
 //Renders the sprites after imgui has drawn it's windows so we can draw over top
-//todo investigate if we could have just done foreground in ImGui, lol
 void gameDrawSprites(Game* game, std::vector <Sprite>& list) {
    for (auto&& sprite : list) {
       textureTransform(game, sprite.render.texture, 0, 0, sprite.render.texture->w, sprite.render.texture->h);
