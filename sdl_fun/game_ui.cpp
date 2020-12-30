@@ -25,6 +25,8 @@ void gameInfoUI(Game* game, bool* p_open);
 void licensesUI(Game* game, bool* p_open);
 void creditsUI(Game* game, bool* p_open);
 
+void gameSetupError(int pCount, bool teams[2]);
+
 void debugConnections(Game* game, bool* p_open);
 void debugMultiplayerSetup(Game* game, bool* p_open);
 
@@ -416,7 +418,7 @@ void boardUI(Game* game) {
                ImGui::Text(game->pList[cursor->index].name);
             }
          }
-         else if (game->settings.mode == multi_solo) { 
+         else if (game->settings.mode == multi_solo || game->settings.mode == single_vs) { 
             if (i == game->user.number - 1) {  //todo add player icon
                ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
                ImGui::SameLine();
@@ -1379,25 +1381,7 @@ void multiplayerHost(Game* game, bool* p_open) {
          }
          ImGui::SameLine();
 
-         if (popupOpen(Popup_Error) == true) {
-            ImGui::OpenPopup("Setup Error");
-            popups[Popup_Error].isOpen = true;
-         }
-         if (ImGui::BeginPopupModal("Setup Error", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-            if (popups[Popup_Error].isOpen == false) { ImGui::CloseCurrentPopup(); }
-            else {
-               if (pCount < 2) { ImGui::Text("You must have at least 2 players."); }
-               else if (pCount > 4) { ImGui::Text("You can't have more than 4 players."); }
-               else if (teams[0] == false) { ImGui::Text("You need at least one player on team 1"); }
-               else if (teams[1] == false) { ImGui::Text("You need at least one player on team 2"); }
-               ImGui::NewLine();
-               if (ImGui::Button("OK")) {
-                  ImGui::CloseCurrentPopup();
-                  popupDisable(Popup_Error);
-               }
-               ImGui::EndPopup();
-            }
-         }
+         gameSetupError(pCount, teams);
       }
 
       if (ImGui::Button("Cancel")) {
@@ -1508,17 +1492,29 @@ void singleVersusUI(Game* game, bool* p_open) {
    ImGui::PopItemWidth();
 
    ImGui::NewLine();
+   static bool teamCheck[2] = { false, false };
    if (ImGui::Button("Start")) {
       game->players = people[0];
       game->settings.mode = single_vs;
+
+      teamCheck[0] = teamCheck[1] = false;
       for (int i = 0; i < game->players; i++) {
-         game->pList[i + 1].team = teams[i];
-         game->pList[i + 1].level = levels[i];
-         game->pList[i + 1].number = i + 1;
-         sprintf(game->pList[i + 1].name, "Player %d", i + 1);
+         teamCheck[teams[i]] = true;
       }
-      gameStartMatch(game);
+
+      if (teamCheck[0] == true && teamCheck[1] == true) {
+         for (int i = 0; i < game->players; i++) {
+            game->pList[i + 1].team = teams[i];
+            game->pList[i + 1].level = levels[i];
+            game->pList[i + 1].number = i + 1;
+            sprintf(game->pList[i + 1].name, "Player %d", i + 1);
+         }
+         gameStartMatch(game);
+      }
+      else { popupEnable(Popup_Error); }
    }
+
+   gameSetupError(people[0], teamCheck);
 
    ImGui::End();
 }
@@ -1779,4 +1775,26 @@ void gameInfoUI(Game* game, bool* p_open) {
    ImGui::TextUnformatted(aboutText);
 
    ImGui::End();
+}
+
+void gameSetupError(int pCount, bool teams[2]) {
+   if (popupOpen(Popup_Error) == true) {
+      ImGui::OpenPopup("Setup Error");
+      popups[Popup_Error].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Setup Error", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+      if (popups[Popup_Error].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      else {
+         if (pCount < 2) { ImGui::Text("You must have at least 2 players."); }
+         else if (pCount > 4) { ImGui::Text("You can't have more than 4 players."); }
+         else if (teams[0] == false) { ImGui::Text("You need at least one player on team 1"); }
+         else if (teams[1] == false) { ImGui::Text("You need at least one player on team 2"); }
+         ImGui::NewLine();
+         if (ImGui::Button("OK")) {
+            ImGui::CloseCurrentPopup();
+            popupDisable(Popup_Error);
+         }
+         ImGui::EndPopup();
+      }
+   }
 }
