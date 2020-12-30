@@ -130,6 +130,17 @@ static void HelpMarker(const char* desc)
    }
 }
 
+//Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate system
+void imguiDrawTexture(Game* game, TextureEnum textureType, ImVec2 size) {
+   Texture* texture = resourcesGetTexture(game->resources, textureType);
+   ImGui::Image((void*)(intptr_t)texture->handle, size, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+}
+
+//Overload for the above function taking GLuint handle for a Texture
+void imguiDrawTexture(Game* game, unsigned int handle, ImVec2 size) {
+   ImGui::Image((void*)(intptr_t)handle, size, ImVec2 { 0, 1 }, ImVec2{ 1, 0 });
+}
+
 void errorLoadingReplay() {
    if (popupOpen(Popup_LoadFailed) == true) {
       ImGui::SetNextWindowSize({ 200, 200 }, ImGuiCond_Once);
@@ -406,16 +417,11 @@ void boardUI(Game* game) {
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Header
-         Texture* star = resourcesGetTexture(game->resources, Texture_star);
-         Texture* heart = resourcesGetTexture(game->resources, Texture_heart);
-         Texture* silver = resourcesGetTexture(game->resources, Texture_silver);
-         Texture* dtriangle = resourcesGetTexture(game->resources, Texture_dtriangle);
-         Texture* garbage = resourcesGetTexture(game->resources, Texture_g);
          if (game->settings.mode == multi_shared) {  
             ImGui::Text("Team %d", board->team + 1);
             for (auto&& cursor : board->cursors) {
                if (cursor->index == game->user.number) {
-                  ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                  imguiDrawTexture(game, Texture_star, { 16, 16 });
                   ImGui::SameLine();
                }
                ImGui::Text(game->pList[cursor->index].name);
@@ -423,11 +429,11 @@ void boardUI(Game* game) {
          }
          else if (game->settings.mode == multi_solo || game->settings.mode == single_vs) { 
             if (i == game->user.number - 1) {  //todo add player icon
-               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               imguiDrawTexture(game, Texture_star, { 16, 16 });
                ImGui::SameLine();
             }
             else if (game->pList[game->user.number].team == board->team) {
-               ImGui::Image((void*)(intptr_t)heart->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               imguiDrawTexture(game, Texture_heart, { 16, 16 });
                ImGui::SameLine();
             }
             ImGui::Text("Team %d", board->team + 1);
@@ -435,14 +441,14 @@ void boardUI(Game* game) {
          }
          else if (game->settings.mode == single_player) { 
             if (i == game->pList[game->user.number].team - 1) {  //todo add player icon
-               ImGui::Image((void*)(intptr_t)star->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+               imguiDrawTexture(game, Texture_star, { 16, 16 });
                ImGui::SameLine();
             }
             ImGui::Text(game->user.name); 
          }
          //Board status row
          ImGui::PushFont(game->fonts[18]);
-         ImGui::Image((void*)(intptr_t)silver->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo pause icon
+         imguiDrawTexture(game, Texture_silver, { 16, 16 });  //todo pause icon
          ImGui::SameLine();
          ImGui::Text("%0.1f s", board->pauseLength / 1000.0);
          ImGui::SameLine();
@@ -454,7 +460,7 @@ void boardUI(Game* game) {
                tiles += garbage.second->width * garbage.second->layers;
             }
          }
-         ImGui::Image((void*)(intptr_t)garbage->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo incoming garbage icon
+         imguiDrawTexture(game, Texture_g, { 16, 16 });  //todo incoming garbage icon
          ImGui::SameLine();
          ImGui::Text("%d X %d", pieces, tiles);
          //todo This is for adding an icon for being targetted, but since it happens after the fact, it's not super handy
@@ -462,7 +468,7 @@ void boardUI(Game* game) {
          //   for (int i = 0; i < game->boards.size(); i++) {
          //      if (game->boards[i]->target == board->index) {
          //         ImGui::SameLine();
-         //         ImGui::Image((void*)(intptr_t)dtriangle->handle, { 16, 16 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });  //todo garbage target icon
+         //         imguiDrawTexture(game, Texture_dtriangle, { 16, 16 });  //todo garbage target icon
          //      }
          //   }
          //}
@@ -478,9 +484,8 @@ void boardUI(Game* game) {
          board->sPos.x = csPos.x;
          board->sPos.y = csPos.y;
 
-         //Used to display a texture in ImGui... we do ImVec2{ 0, 1 }, ImVec2{ 1, 0 } because it uses a different coordinate
          if (game->fbos[i]) {
-            ImGui::Image((void*)(intptr_t)game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+            imguiDrawTexture(game, game->fbos[i]->texture, { game->fbos[i]->w, game->fbos[i]->h });
          }
          ImDrawList* dList = ImGui::GetWindowDrawList();
          ImVec2 pad = ImGui::GetStyle().WindowPadding;
@@ -753,8 +758,6 @@ void gameSettingsUI(Game* game, bool* p_open) {
          if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
          ImGui::Checkbox("AI", &game->ai);
          ImGui::Checkbox("Sync test", &game->net->syncTest);
-
-         ImGui::Image((void*)(intptr_t)resourcesGetTexture(game->resources, Texture_wall)->handle, { 100, 100 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
          if (ImGui::CollapsingHeader("Sound Test")) {
             if (ImGui::Button("Stop Sounds")) {
