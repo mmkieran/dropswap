@@ -1152,7 +1152,7 @@ bool aiClearGarbage(Board* board, int player) {
 //If there's nothing else to do, flatten your towers
 bool aiFlattenBoard(Board* board, int player) {
    bool moveFound = false;
-   for (int row = board->startH - 1; row < board->startH + (board->endH - board->startH)*3/4; row++) {
+   for (int row = board->startH - 1; row < board->endH - 1; row++) {
       if (moveFound == true) { break; }
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { break; }
@@ -1193,34 +1193,77 @@ bool aiFlattenBoard(Board* board, int player) {
 
 //Look at a snapshot of the board and decide how to make a chain
 void aiChain(Board* board, int player) {
+   bool moveFound = false;
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
+         if (moveFound == true) { return; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
-            Tile* right = boardGetTile(board, row, col + 1);
+            std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
 
-            //vertical match
+            //vertical clear
             bool vertMatch = false;
             Tile* below = boardGetTile(board, row + 1, col);
-            if (below->status == status_clear || below->type == tile_empty) {
+            if (below && below->status == status_clear) {
                vertMatch = true;
                int lookDown = 2;
                while (below && (below->status == status_clear || below->type == tile_empty)) {
                   below = boardGetTile(board, row + lookDown, col);
                   lookDown++;
                }
-               std::vector <Tile*> belowTiles = boardGetAllTilesInRow(board, row + lookDown);
 
-               std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
-               for (auto&& tile : belowTiles) {  //Skip this stuff
-                  if (tile->falling == true || tile->status != status_normal|| tile->type == tile_empty || tile->type == tile_garbage) {
+               //Get all tiles in bottom row and count them
+               for (int i = 0; i < board->w; i++) {  
+                  Tile* t = boardGetTile(board, row + lookDown, i);
+                  if (t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
                      continue;
                   }
-                  tileCounts[tile->type].push_back(tile);
+                  else { tileCounts[t->type].push_back(t); }
                }
+
+               //Look for the bottom row and see if we have two of the same
                for (auto&& pair : tileCounts) {
-                  if (pair.second.size() >= 2) {  //If we have three tiles of the same type in a row
-                     
+                  if (pair.second.size() >= 2) {  
+                     std::vector <Tile*> chain;
+
+                     //Look for a tile above the clear that matches the bottom row couple
+                     bool topMatch = false;
+                     for (int i = 0; i < board->w; i++) {
+                        Tile* t = boardGetTile(board, row - 1, i);  
+                        if (t->type == pair.second[0]->type) {
+                           chain.push_back(t);
+                           topMatch = true;
+                           break;
+                        }
+                     }
+                     if (topMatch == false) { continue; }
+
+                     //Check which bottom tile we need to swap first
+                     int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
+                     if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
+                        if (botTilePos[0] < botTilePos[1]) {  //Need to do closer first
+                           chain.push_back(pair.second[1]);
+                           chain.push_back(pair.second[0]);
+                        }
+                        else {
+                           chain.push_back(pair.second[0]);
+                           chain.push_back(pair.second[1]);
+                        }
+                     }
+
+                     for (auto&& t : chain) {
+                        MoveInfo move;
+                        move.target.col = col;
+                        move.target.row = row;
+
+                        move.dest.col = col;
+                        move.dest.row = row;
+                        aiLogic[player].moves.push_front(move);
+                     }
+
+
+                     moveFound = true;
+                     break;
                   }
                }
             }
