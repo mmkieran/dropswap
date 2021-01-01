@@ -1215,7 +1215,7 @@ void aiChain(Board* board, int player) {
                //Get all tiles in bottom row and count them
                for (int i = 0; i < board->w; i++) {  
                   Tile* t = boardGetTile(board, row + lookDown, i);
-                  if (t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+                  if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
                      continue;
                   }
                   else { tileCounts[t->type].push_back(t); }
@@ -1224,44 +1224,57 @@ void aiChain(Board* board, int player) {
                //Look for the bottom row and see if we have two of the same
                for (auto&& pair : tileCounts) {
                   if (pair.second.size() >= 2) {  
-                     std::vector <Tile*> chain;
+                     MoveInfo moves[3];  //Holds the moves for the top and bottom tiles
 
                      //Look for a tile above the clear that matches the bottom row couple
-                     bool topMatch = false;
+                     bool topFound = false;
                      for (int i = 0; i < board->w; i++) {
                         Tile* t = boardGetTile(board, row - 1, i);  
                         if (t->type == pair.second[0]->type) {
-                           chain.push_back(t);
-                           topMatch = true;
+                           moves[2].target.col = i;
+                           moves[2].target.row = row - 1;
+
+                           moves[2].dest.col = col;
+                           moves[2].dest.row = row - 1;
+
+                           topFound = true;
                            break;
                         }
                      }
-                     if (topMatch == false) { continue; }
+                     if (topFound == false) { continue; }
 
-                     //Check which bottom tile we need to swap first
+                     //Check which bottom tile we need to swap first (order of list is left to right)
+                     moves[0].target.row = moves[1].target.row = row + lookDown;
+                     moves[0].dest.row = moves[1].dest.row = row + lookDown;
+
                      int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
                      if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
-                        if (botTilePos[0] < botTilePos[1]) {  //Need to do closer first
-                           chain.push_back(pair.second[1]);
-                           chain.push_back(pair.second[0]);
+                        if (botTilePos[0] < botTilePos[1]) {  //Need to do the right-most first
+
+                           moves[0].target.col = botTilePos[1];
+                           moves[1].target.col = botTilePos[0];
+
+                           moves[0].dest.col = col - 1;
+                           moves[1].dest.col = col - 2;
                         }
-                        else {
-                           chain.push_back(pair.second[0]);
-                           chain.push_back(pair.second[1]);
+                     }
+                     else {  //Could be right-side or split
+                        moves[0].target.col = botTilePos[0];
+                        moves[1].target.col = botTilePos[1];
+
+                        if (botTilePos[0] > col && botTilePos[1] > col) {  //both on the right
+                           moves[0].dest.col = col + 1;
+                           moves[1].dest.col = col + 2;
+                        }
+                        else {  //Tiles are split around clear
+                           moves[0].dest.col = col - 1;
+                           moves[1].dest.col = col + 1;
                         }
                      }
 
-                     for (auto&& t : chain) {
-                        MoveInfo move;
-                        move.target.col = col;
-                        move.target.row = row;
-
-                        move.dest.col = col;
-                        move.dest.row = row;
-                        aiLogic[player].moves.push_front(move);
+                     for (int i = 0; i < 3; i++) {
+                        aiLogic[player].moves.push_front(moves[i]);
                      }
-
-
                      moveFound = true;
                      break;
                   }
@@ -1350,6 +1363,7 @@ void boardAI(Game* game) {
 void aiChooseMove(Board* board, int player) {
    if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic[player].matchSteps.empty() == true) {
+         aiChain(board, player);
          aiClearGarbage(board, player);
          if (aiLogic[player].moves.empty()) { aiFindVertMatch(board, player); }
          if (aiLogic[player].moves.empty()) { aiFindHorizMatch(board, player); }
