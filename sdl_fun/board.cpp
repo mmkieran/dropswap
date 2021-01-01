@@ -1015,8 +1015,10 @@ struct MoveInfo {
 
 struct AILogic {
 
-   std::list <MoveInfo> moves;         //Each tile's current row/col and destination
-   std::list <AIStep> matchSteps;  //The Cursor movements needed to make a match
+   std::list <MoveInfo> moves;         //Each tile's current row/col position and its row/col destination
+   std::list <AIStep> matchSteps;      //The Cursor movements needed to move the tile to its destination
+   bool waiting = false;               //Are we delaying actions because of a clear
+   std::vector <Tile*> clearList;      //What tile are we waiting for
 };
 
 //Holds the move steps for each ai opponent
