@@ -1141,7 +1141,7 @@ bool aiFindHorizMatch(Board* board, int player) {
 
 void aiMoveBoardUp(Board* board, int player) {
    int highestRow = -1;
-   for (int row = board->startH - 1; row < board->endH - 1; row++) {
+   for (int row = board->startH - 1; row < board->wBuffer - 1; row++) {
       if (highestRow != -1) { break; }
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
