@@ -1017,8 +1017,11 @@ struct AILogic {
 
    std::list <MoveInfo> moves;         //Each tile's current row/col position and its row/col destination
    std::list <AIStep> matchSteps;      //The Cursor movements needed to move the tile to its destination
+
+   //Chain specific logic
    bool waiting = false;               //Are we delaying actions because of a clear
-   Tile* clearedTile = nullptr;        //What tile are we waiting for
+   Tile* clearedTile = nullptr;        //The tile that needs to be cleared so the chain can fall
+   Tile* fallTile = nullptr;           //The tile that needs to fall to make the chain
 };
 
 //Holds the move steps for each ai opponent
@@ -1233,6 +1236,7 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
                moves[2].dest.col = col;
                moves[2].dest.row = row - 1;
 
+               aiLogic[player].fallTile = t;  //Wait for this tile to fall so we don't mess up the chain
                topFound = true;
                break;
             }
@@ -1280,6 +1284,7 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
 }
 
 void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, int player) {
+   if (row == board->startH - 1) { return; }
    std::map <TileType, std::vector <Tile*> > tCountAbove;  //Hash of tile type counts
    std::map <TileType, std::vector <Tile*> > tCountAlong;  //Hash of tile type counts
    Tile* right = boardGetTile(board, row, col + 1);
@@ -1295,7 +1300,7 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
    }
 
    int startCol = col;
-   int endCol = col + lookRight - 1;
+   int endCol = col + lookRight - 2;
 
    //Get all tiles above the clear
    for (int i = 0; i < board->w; i++) {
@@ -1328,11 +1333,11 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                moves[2].target.row = moves[2].dest.row = row;
 
                //Take care of the single tile
-               bool onLeft = false;
+               bool leftOfSplit = false;
                if (alongGroup.second[0]->xpos < tile->xpos) {  //The along tile is on the left
                   moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
                   moves[2].dest.col = startCol - 1;
-                  onLeft = true;
+                  leftOfSplit = true;
                }
                else {  //The along tile is on the right
                   moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
@@ -1343,13 +1348,13 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                if (aboveGroup.second[0]->xpos < aboveGroup.second[1]->xpos) {  //The first tile is on the left, so move it second
                   moves[0].target.col = tileGetCol(board, aboveGroup.second[1]);
                   moves[1].target.col = tileGetCol(board, aboveGroup.second[0]);
-                  if (onLeft == true) {
+                  if (leftOfSplit == true) {
                      moves[0].dest.col = startCol + 1;
                      moves[1].dest.col = startCol;
                   }
                   else {
                      moves[0].dest.col = endCol;
-                     moves[1].dest.col = endCol + 1;
+                     moves[1].dest.col = endCol - 1;
                   }
 
                }
@@ -1357,18 +1362,23 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                   moves[0].target.col = tileGetCol(board, aboveGroup.second[0]);
                   moves[1].target.col = tileGetCol(board, aboveGroup.second[1]);
 
-                  if (onLeft == true) {
+                  if (leftOfSplit == true) {
                      moves[0].dest.col = startCol + 1;
                      moves[1].dest.col = startCol;
                   }
                   else {
                      moves[0].dest.col = endCol;
-                     moves[1].dest.col = endCol + 1;
+                     moves[1].dest.col = endCol - 1;
                   }
                }
 
+               for (int i = 0; i < 3; i++) {
+                  aiLogic[player].moves.push_front(moves[i]);
+               }
                moveFound = true;
-               break;
+               aiLogic[player].waiting = true;
+               aiLogic[player].fallTile = aboveGroup.second[0];  //Wait for this tile to fall so we don't mess up the chain
+               aiLogic[player].clearedTile = tile;
             }
          }
       }
@@ -1380,21 +1390,23 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
 void aiChain(Board* board, int player) {
    bool moveFound = false;
    std::vector <bool> checkedColumns(board->w, 0);
+   std::vector <bool> checkedRows(board->endH, 0);
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { return; }
-         if (checkedColumns[col] == true) { continue; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
             Tile* below = boardGetTile(board, row + 1, col);
             Tile* right = boardGetTile(board, row, col + 1);
 
-            if (below && below->status == status_clear) {
+            if (below && below->status == status_clear) {  //Check for vertical clear
+               if (checkedColumns[col] == true) { continue; }
                checkedColumns[col] = true;
                _aiVertChain(board, tile, moveFound, row, col, player);
             }
-            if (right && right->status == status_clear) {
-               //checkedColumns[col] = true;
+            if (right && right->status == status_clear) {  //Check for horizontal clear
+               if (checkedRows[row] == true) { continue; }
+               checkedRows[row] = true;
                _aiHorizChain(board, tile, moveFound, row, col, player);
             }
          }
@@ -1482,15 +1494,14 @@ void aiChooseMove(Board* board, int player) {
       if (aiLogic[player].matchSteps.empty() == true) {
          aiClearGarbage(board, player);
          if (aiLogic[player].waiting == true) {
-            if (aiLogic[player].clearedTile->status != status_clear) {
+            if (aiLogic[player].clearedTile->status != status_clear && aiLogic[player].fallTile->falling == false) {
                aiLogic[player].waiting = false;
                aiLogic[player].clearedTile = nullptr;
+               aiLogic[player].fallTile = nullptr;
             }
          }
          else {
-            if (aiLogic[player].moves.empty()) {
-               aiChain(board, player);
-            }
+            if (aiLogic[player].moves.empty()) { aiChain(board, player); }
             if (aiLogic[player].moves.empty()) { aiFindVertMatch(board, player); }
             if (aiLogic[player].moves.empty()) { aiFindHorizMatch(board, player); }
             if (aiLogic[player].moves.empty()) { aiFlattenBoard(board, player); }

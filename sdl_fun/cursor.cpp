@@ -305,7 +305,7 @@ bool dropDrop(Board* board, Cursor* cursor, float velocity) {
 
 void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
    bool apm = false;
-   if (cursor->y <= 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
+   if (cursor->y < 0) { cursor->y = board->tileHeight + board->offset; }  //todo we should hide the swap cursor?
    if (input.power.p == true && cursor->mode == 0) { 
       bool alreadyDropping = false;
       for (auto&& c : board->cursors) {
@@ -328,12 +328,12 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
 
       if (input.up.p) {
          apm = true;  //Board Stats
-         if (y - board->tileHeight <= 0) { return; }
+         if (y - board->tileHeight < 0) { return; }
          else { cursorSetY(cursor, (y - board->tileHeight)); }
       }
       if (input.down.p) {
          apm = true;  //Board Stats
-         if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+         if (y + board->tileHeight > board->tileHeight * (board->startH - 1)) { return; }
          else { cursorSetY(cursor, (y + board->tileHeight)); }
       }
       if (input.right.p) {
@@ -356,11 +356,11 @@ void cursorUpdate(Board* board, Cursor* cursor, UserInput input) {
       }
 
       if (input.up.h) {
-         if (y - board->tileHeight <= 0) { return; }
+         if (y - board->tileHeight < 0) { return; }
          else { cursorSetY(cursor, (y - board->tileHeight)); }
       }
       if (input.down.h) {
-         if (y + board->tileHeight >= board->tileHeight * (board->startH - 1)) { return; }
+         if (y + board->tileHeight > board->tileHeight * (board->startH - 1)) { return; }
          else {
             cursorSetY(cursor, (y + board->tileHeight));
          }
