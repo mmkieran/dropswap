@@ -1018,7 +1018,7 @@ struct AILogic {
    std::list <MoveInfo> moves;         //Each tile's current row/col position and its row/col destination
    std::list <AIStep> matchSteps;      //The Cursor movements needed to move the tile to its destination
    bool waiting = false;               //Are we delaying actions because of a clear
-   std::vector <Tile*> clearList;      //What tile are we waiting for
+   Tile* clearedTile = nullptr;        //What tile are we waiting for
 };
 
 //Holds the move steps for each ai opponent
@@ -1081,7 +1081,7 @@ static bool _vertMatch(Board* board, int row, int col, int player) {
 bool aiFindVertMatch(Board* board, int player) {
    bool moveFound = false;
 
-   for (int row = board->startH - 1; row < board->endH - 2; row++) {
+   for (int row = board->endH - 3; row >= board->startH - 1; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (_validTile(board, tile) == false || tile->type == tile_garbage) { continue; }
@@ -1194,9 +1194,11 @@ bool aiFlattenBoard(Board* board, int player) {
 //Look at a snapshot of the board and decide how to make a chain
 void aiChain(Board* board, int player) {
    bool moveFound = false;
+   std::vector <bool> checkedColumns(board->w, 0);
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { return; }
+         if (checkedColumns[col] == true) { continue; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
             std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
@@ -1206,15 +1208,21 @@ void aiChain(Board* board, int player) {
             Tile* below = boardGetTile(board, row + 1, col);
             if (below && below->status == status_clear) {
                vertMatch = true;
+               checkedColumns[col] = true;
                int lookDown = 2;
+
                while (below && (below->status == status_clear || below->type == tile_empty)) {
-                  below = boardGetTile(board, row + lookDown, col);
-                  lookDown++;
+                  Tile* next = boardGetTile(board, row + lookDown, col);
+                  if (next) {
+                     below = next;
+                     lookDown++;
+                  }
+                  else { break; }
                }
 
-               //Get all tiles in bottom row and count them
+               //Get all tiles in bottom of the clear
                for (int i = 0; i < board->w; i++) {  
-                  Tile* t = boardGetTile(board, row + lookDown, i);
+                  Tile* t = boardGetTile(board, row + lookDown - 2, i);
                   if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
                      continue;
                   }
@@ -1229,7 +1237,10 @@ void aiChain(Board* board, int player) {
                      //Look for a tile above the clear that matches the bottom row couple
                      bool topFound = false;
                      for (int i = 0; i < board->w; i++) {
-                        Tile* t = boardGetTile(board, row - 1, i);  
+                        Tile* t = boardGetTile(board, row - 1, i);
+                        if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+                           continue;
+                        }
                         if (t->type == pair.second[0]->type) {
                            moves[2].target.col = i;
                            moves[2].target.row = row - 1;
@@ -1276,6 +1287,8 @@ void aiChain(Board* board, int player) {
                         aiLogic[player].moves.push_front(moves[i]);
                      }
                      moveFound = true;
+                     aiLogic[player].waiting = true;
+                     aiLogic[player].clearedTile = pair.second[0];
                      break;
                   }
                }
@@ -1363,13 +1376,23 @@ void boardAI(Game* game) {
 void aiChooseMove(Board* board, int player) {
    if (board->game->timer > board->game->timings.countIn[0]) {
       if (aiLogic[player].matchSteps.empty() == true) {
-         aiChain(board, player);
          aiClearGarbage(board, player);
-         if (aiLogic[player].moves.empty()) { aiFindVertMatch(board, player); }
-         if (aiLogic[player].moves.empty()) { aiFindHorizMatch(board, player); }
-         if (aiLogic[player].moves.empty()) { aiFlattenBoard(board, player); }
+         if (aiLogic[player].waiting == true) {
+            if (aiLogic[player].clearedTile->status != status_clear) {
+               aiLogic[player].waiting = false;
+               aiLogic[player].clearedTile = nullptr;
+            }
+         }
+         else {
+            if (aiLogic[player].moves.empty()) {
+               aiChain(board, player);
+            }
+            if (aiLogic[player].moves.empty()) { aiFindVertMatch(board, player); }
+            if (aiLogic[player].moves.empty()) { aiFindHorizMatch(board, player); }
+            if (aiLogic[player].moves.empty()) { aiFlattenBoard(board, player); }
 
-         if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+            if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+         }
       }
    }
 
