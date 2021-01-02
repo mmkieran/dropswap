@@ -1191,6 +1191,191 @@ bool aiFlattenBoard(Board* board, int player) {
    return moveFound;
 }
 
+void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, int player) {
+   std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
+   Tile* below = boardGetTile(board, row + 1, col);
+   int lookDown = 2;
+
+   while (below && (below->status == status_clear || below->type == tile_empty)) {
+      Tile* next = boardGetTile(board, row + lookDown, col);
+      if (next) {
+         below = next;
+         lookDown++;
+      }
+      else { break; }
+   }
+
+   //Get all tiles in bottom of the clear
+   for (int i = 0; i < board->w; i++) {
+      Tile* t = boardGetTile(board, row + lookDown - 2, i);
+      if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+         continue;
+      }
+      else { tileCounts[t->type].push_back(t); }
+   }
+
+   //Look for the bottom row and see if we have two of the same
+   for (auto&& pair : tileCounts) {
+      if (pair.second.size() >= 2) {
+         MoveInfo moves[3];  //Holds the moves for the top and bottom tiles
+
+         //Look for a tile above the clear that matches the bottom row couple
+         bool topFound = false;
+         for (int i = 0; i < board->w; i++) {
+            Tile* t = boardGetTile(board, row - 1, i);
+            if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+               continue;
+            }
+            if (t->type == pair.second[0]->type) {
+               moves[2].target.col = i;
+               moves[2].target.row = row - 1;
+
+               moves[2].dest.col = col;
+               moves[2].dest.row = row - 1;
+
+               topFound = true;
+               break;
+            }
+         }
+         if (topFound == false) { continue; }
+
+         //Check which bottom tile we need to swap first (order of list is left to right)
+         moves[0].target.row = moves[1].target.row = row + lookDown;
+         moves[0].dest.row = moves[1].dest.row = row + lookDown;
+
+         int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
+         if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
+            if (botTilePos[0] < botTilePos[1]) {  //Need to do the right-most first
+
+               moves[0].target.col = botTilePos[1];
+               moves[1].target.col = botTilePos[0];
+
+               moves[0].dest.col = col - 1;
+               moves[1].dest.col = col - 2;
+            }
+         }
+         else {  //Could be right-side or split
+            moves[0].target.col = botTilePos[0];
+            moves[1].target.col = botTilePos[1];
+
+            if (botTilePos[0] > col && botTilePos[1] > col) {  //both on the right
+               moves[0].dest.col = col + 1;
+               moves[1].dest.col = col + 2;
+            }
+            else {  //Tiles are split around clear
+               moves[0].dest.col = col - 1;
+               moves[1].dest.col = col + 1;
+            }
+         }
+
+         for (int i = 0; i < 3; i++) {
+            aiLogic[player].moves.push_front(moves[i]);
+         }
+         moveFound = true;
+         aiLogic[player].waiting = true;
+         aiLogic[player].clearedTile = pair.second[0];
+         break;
+      }
+   }
+}
+
+void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, int player) {
+   std::map <TileType, std::vector <Tile*> > tCountAbove;  //Hash of tile type counts
+   std::map <TileType, std::vector <Tile*> > tCountAlong;  //Hash of tile type counts
+   Tile* right = boardGetTile(board, row, col + 1);
+   int lookRight = 2;
+
+   while (right && right->status == status_clear) {  //Find how wide the clear is
+      Tile* next = boardGetTile(board, row, col + lookRight);
+      if (next) {
+         right = next;
+         lookRight++;
+      }
+      else { break; }
+   }
+
+   int startCol = col;
+   int endCol = col + lookRight - 1;
+
+   //Get all tiles above the clear
+   for (int i = 0; i < board->w; i++) {
+      Tile* t = boardGetTile(board, row - 1, i);
+      if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+         continue;
+      }
+      else { tCountAbove[t->type].push_back(t); }
+   }
+
+   //Get all tiles above the clear
+   for (int i = 0; i < board->w; i++) {
+      Tile* t = boardGetTile(board, row, i);
+      if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
+         continue;
+      }
+      else { tCountAlong[t->type].push_back(t); }
+   }
+
+   //Look through the top row and see if we can find two of the same
+   for (auto&& aboveGroup : tCountAbove) {
+      if (aboveGroup.second.size() >= 2) {
+         if (moveFound == true) { break; }
+         MoveInfo moves[3];  
+         for (auto&& alongGroup : tCountAlong) {  //Look in row with clear for matching type
+            if (alongGroup.first == aboveGroup.first) {
+               moves[0].target.row = moves[1].target.row = row - 1;
+               moves[0].dest.row = moves[1].dest.row = row - 1;
+
+               moves[2].target.row = moves[2].dest.row = row;
+
+               //Take care of the single tile
+               bool onLeft = false;
+               if (alongGroup.second[0]->xpos < tile->xpos) {  //The along tile is on the left
+                  moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
+                  moves[2].dest.col = startCol - 1;
+                  onLeft = true;
+               }
+               else {  //The along tile is on the right
+                  moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
+                  moves[2].dest.col = endCol + 1;
+               }
+
+               //Take care of the two tiles on top
+               if (aboveGroup.second[0]->xpos < aboveGroup.second[1]->xpos) {  //The first tile is on the left, so move it second
+                  moves[0].target.col = tileGetCol(board, aboveGroup.second[1]);
+                  moves[1].target.col = tileGetCol(board, aboveGroup.second[0]);
+                  if (onLeft == true) {
+                     moves[0].dest.col = startCol + 1;
+                     moves[1].dest.col = startCol;
+                  }
+                  else {
+                     moves[0].dest.col = endCol;
+                     moves[1].dest.col = endCol + 1;
+                  }
+
+               }
+               else {  //The second tile is on the left, so leave the order as is
+                  moves[0].target.col = tileGetCol(board, aboveGroup.second[0]);
+                  moves[1].target.col = tileGetCol(board, aboveGroup.second[1]);
+
+                  if (onLeft == true) {
+                     moves[0].dest.col = startCol + 1;
+                     moves[1].dest.col = startCol;
+                  }
+                  else {
+                     moves[0].dest.col = endCol;
+                     moves[1].dest.col = endCol + 1;
+                  }
+               }
+
+               moveFound = true;
+               break;
+            }
+         }
+      }
+   }
+
+}
+
 //Look at a snapshot of the board and decide how to make a chain
 void aiChain(Board* board, int player) {
    bool moveFound = false;
@@ -1201,97 +1386,16 @@ void aiChain(Board* board, int player) {
          if (checkedColumns[col] == true) { continue; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
-            std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
-
-            //vertical clear
-            bool vertMatch = false;
             Tile* below = boardGetTile(board, row + 1, col);
+            Tile* right = boardGetTile(board, row, col + 1);
+
             if (below && below->status == status_clear) {
-               vertMatch = true;
                checkedColumns[col] = true;
-               int lookDown = 2;
-
-               while (below && (below->status == status_clear || below->type == tile_empty)) {
-                  Tile* next = boardGetTile(board, row + lookDown, col);
-                  if (next) {
-                     below = next;
-                     lookDown++;
-                  }
-                  else { break; }
-               }
-
-               //Get all tiles in bottom of the clear
-               for (int i = 0; i < board->w; i++) {  
-                  Tile* t = boardGetTile(board, row + lookDown - 2, i);
-                  if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
-                     continue;
-                  }
-                  else { tileCounts[t->type].push_back(t); }
-               }
-
-               //Look for the bottom row and see if we have two of the same
-               for (auto&& pair : tileCounts) {
-                  if (pair.second.size() >= 2) {  
-                     MoveInfo moves[3];  //Holds the moves for the top and bottom tiles
-
-                     //Look for a tile above the clear that matches the bottom row couple
-                     bool topFound = false;
-                     for (int i = 0; i < board->w; i++) {
-                        Tile* t = boardGetTile(board, row - 1, i);
-                        if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
-                           continue;
-                        }
-                        if (t->type == pair.second[0]->type) {
-                           moves[2].target.col = i;
-                           moves[2].target.row = row - 1;
-
-                           moves[2].dest.col = col;
-                           moves[2].dest.row = row - 1;
-
-                           topFound = true;
-                           break;
-                        }
-                     }
-                     if (topFound == false) { continue; }
-
-                     //Check which bottom tile we need to swap first (order of list is left to right)
-                     moves[0].target.row = moves[1].target.row = row + lookDown;
-                     moves[0].dest.row = moves[1].dest.row = row + lookDown;
-
-                     int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
-                     if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
-                        if (botTilePos[0] < botTilePos[1]) {  //Need to do the right-most first
-
-                           moves[0].target.col = botTilePos[1];
-                           moves[1].target.col = botTilePos[0];
-
-                           moves[0].dest.col = col - 1;
-                           moves[1].dest.col = col - 2;
-                        }
-                     }
-                     else {  //Could be right-side or split
-                        moves[0].target.col = botTilePos[0];
-                        moves[1].target.col = botTilePos[1];
-
-                        if (botTilePos[0] > col && botTilePos[1] > col) {  //both on the right
-                           moves[0].dest.col = col + 1;
-                           moves[1].dest.col = col + 2;
-                        }
-                        else {  //Tiles are split around clear
-                           moves[0].dest.col = col - 1;
-                           moves[1].dest.col = col + 1;
-                        }
-                     }
-
-                     for (int i = 0; i < 3; i++) {
-                        aiLogic[player].moves.push_front(moves[i]);
-                     }
-                     moveFound = true;
-                     aiLogic[player].waiting = true;
-                     aiLogic[player].clearedTile = pair.second[0];
-                     break;
-                  }
-               }
+               _aiVertChain(board, tile, moveFound, row, col, player);
+            }
+            if (right && right->status == status_clear) {
+               //checkedColumns[col] = true;
+               _aiHorizChain(board, tile, moveFound, row, col, player);
             }
          }
       }
