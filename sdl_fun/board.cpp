@@ -1022,6 +1022,8 @@ struct AILogic {
    bool waiting = false;               //Are we delaying actions because of a clear
    Tile* clearedTile = nullptr;        //The tile that needs to be cleared so the chain can fall
    Tile* fallTile = nullptr;           //The tile that needs to fall to make the chain
+
+   bool moveUp = false;                //Should we pull the board up
 };
 
 //Holds the move steps for each ai opponent
@@ -1135,6 +1137,27 @@ bool aiFindHorizMatch(Board* board, int player) {
       }
    }
    return moveFound;
+}
+
+void aiMoveBoardUp(Board* board, int player) {
+   int highestRow = -1;
+   for (int row = board->startH - 1; row < board->endH - 1; row++) {
+      if (highestRow != -1) { break; }
+      for (int col = 0; col < board->w; col++) {
+         Tile* tile = boardGetTile(board, row, col);
+
+         if (tile->type != tile_empty) {
+            highestRow = row;
+            break;
+         }
+      }
+   }
+   if (highestRow != -1 && highestRow > board->startH + 3) {
+      aiLogic[player].moveUp = true;
+   }
+   else {
+      aiLogic[player].moveUp = false;
+   }
 }
 
 //Look for a vertical match below garbage
@@ -1491,6 +1514,7 @@ void boardAI(Game* game) {
 //Basically a flow chart of possible actions the AI can take
 void aiChooseMove(Board* board, int player) {
    if (board->game->timer > board->game->timings.countIn[0]) {
+      aiMoveBoardUp(board, player);
       if (aiLogic[player].matchSteps.empty() == true) {
          aiClearGarbage(board, player);
          if (aiLogic[player].waiting == true) {
@@ -1520,6 +1544,7 @@ void aiChooseMove(Board* board, int player) {
 void aiDoStep(Board* board, int player) {
    UserInput input;
    if (board->game->settings.mode != single_vs) { input = board->game->user.input; }
+   if (aiLogic[player].moveUp == true) { input.nudge.p = true; }
    if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
       AIStep step = aiLogic[player].matchSteps.front();
       aiLogic[player].matchSteps.pop_front();
