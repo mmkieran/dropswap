@@ -369,13 +369,13 @@ void boardSwap(Board* board, Cursor* cursor) {
    std::vector <Tile*> tiles;
    //Check if after we swapped them, either tile is falling... these don't get cleared
    if (below1 && (below1->type == tile_empty || below1->falling == true)) {
-      //tile1->falling = true;
+      tile1->falling = true;
       tile1->status = status_stop;  
       tile1->statusTime = board->game->timer + board->game->timings.fallDelay[0];  //Short pause before falling
    }
 
    if (below2 && (below2->type == tile_empty || below2->falling == true)) {
-      //tile2->falling = true;
+      tile2->falling = true;
       tile2->status = status_stop;
       tile2->statusTime = board->game->timer + board->game->timings.fallDelay[0];  //Short pause before falling
    }
@@ -1152,7 +1152,7 @@ void aiMoveBoardUp(Board* board, int player) {
          }
       }
    }
-   if (highestRow != -1 && highestRow > board->startH + 3) {
+   if (highestRow != -1 && highestRow > board->startH + (board->h /2) ) {
       aiLogic[player].moveUp = true;
    }
    else {
@@ -1295,6 +1295,7 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
             }
          }
 
+         aiLogic[player].moves.clear();
          for (int i = 0; i < 3; i++) {
             aiLogic[player].moves.push_front(moves[i]);
          }
@@ -1356,45 +1357,56 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                moves[2].target.row = moves[2].dest.row = row;
 
                //Take care of the single tile
-               bool leftOfSplit = false;
+               Tile* leftSideTile = nullptr;
+               Tile* rightSideTile = nullptr;
                if (alongGroup.second[0]->xpos < tile->xpos) {  //The along tile is on the left
                   moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
                   moves[2].dest.col = startCol - 1;
-                  leftOfSplit = true;
+                  
+                  leftSideTile = boardGetTile(board, row - 1, startCol + 1);
                }
                else {  //The along tile is on the right
                   moves[2].target.col = tileGetCol(board, alongGroup.second[0]);
                   moves[2].dest.col = endCol + 1;
+
+                  rightSideTile = boardGetTile(board, row - 1, endCol - 1);
                }
 
                //Take care of the two tiles on top
-               if (aboveGroup.second[0]->xpos < aboveGroup.second[1]->xpos) {  //The first tile is on the left, so move it second
-                  moves[0].target.col = tileGetCol(board, aboveGroup.second[1]);
-                  moves[1].target.col = tileGetCol(board, aboveGroup.second[0]);
-                  if (leftOfSplit == true) {
+               if (leftSideTile != nullptr) {  //Overhang is on the left
+                  if (aboveGroup.second[1]->xpos <= leftSideTile->xpos) {  //Both tiles are to the left of the destination overhang 
+                     moves[0].target.col = tileGetCol(board, aboveGroup.second[1]);
+                     moves[1].target.col = tileGetCol(board, aboveGroup.second[0]);
+
                      moves[0].dest.col = startCol + 1;
                      moves[1].dest.col = startCol;
                   }
-                  else {
+                  else {  //Both tiles are to the right of the destination overhang 
+                     moves[0].target.col = tileGetCol(board, aboveGroup.second[0]);
+                     moves[1].target.col = tileGetCol(board, aboveGroup.second[1]);
+
+                     moves[0].dest.col = startCol;
+                     moves[1].dest.col = startCol + 1;
+                  }
+               }
+               else if (rightSideTile != nullptr) {  //Overhang is on the right
+                  if (aboveGroup.second[0]->xpos >= rightSideTile->xpos) {  //Both tiles are to the right of the destination overhang 
+                     moves[0].target.col = tileGetCol(board, aboveGroup.second[0]);
+                     moves[1].target.col = tileGetCol(board, aboveGroup.second[1]);
+
+                     moves[0].dest.col = endCol - 1;
+                     moves[1].dest.col = endCol;
+                  }
+                  else {  //Both tiles are to the left of the destination overhang 
+                     moves[0].target.col = tileGetCol(board, aboveGroup.second[1]);
+                     moves[1].target.col = tileGetCol(board, aboveGroup.second[0]);
+
                      moves[0].dest.col = endCol;
                      moves[1].dest.col = endCol - 1;
                   }
-
-               }
-               else {  //The second tile is on the left, so leave the order as is
-                  moves[0].target.col = tileGetCol(board, aboveGroup.second[0]);
-                  moves[1].target.col = tileGetCol(board, aboveGroup.second[1]);
-
-                  if (leftOfSplit == true) {
-                     moves[0].dest.col = startCol + 1;
-                     moves[1].dest.col = startCol;
-                  }
-                  else {
-                     moves[0].dest.col = endCol;
-                     moves[1].dest.col = endCol - 1;
-                  }
                }
 
+               aiLogic[player].moves.clear();
                for (int i = 0; i < 3; i++) {
                   aiLogic[player].moves.push_front(moves[i]);
                }
@@ -1426,11 +1438,13 @@ void aiChain(Board* board, int player) {
                if (checkedColumns[col] == true) { continue; }
                checkedColumns[col] = true;
                _aiVertChain(board, tile, moveFound, row, col, player);
+               if (moveFound == true) { return; }
             }
             if (right && right->status == status_clear) {  //Check for horizontal clear
                if (checkedRows[row] == true) { continue; }
                checkedRows[row] = true;
                _aiHorizChain(board, tile, moveFound, row, col, player);
+               if (moveFound == true) { return; }
             }
          }
       }
