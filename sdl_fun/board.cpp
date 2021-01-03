@@ -1141,7 +1141,7 @@ bool aiFindHorizMatch(Board* board, int player) {
 
 void aiMoveBoardUp(Board* board, int player) {
    int highestRow = -1;
-   for (int row = board->startH - 1; row < board->wBuffer - 1; row++) {
+   for (int row = board->startH - 1; row < board->wBuffer; row++) {
       if (highestRow != -1) { break; }
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
@@ -1267,8 +1267,8 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
          if (topFound == false) { continue; }
 
          //Check which bottom tile we need to swap first (order of list is left to right)
-         moves[0].target.row = moves[1].target.row = row + lookDown;
-         moves[0].dest.row = moves[1].dest.row = row + lookDown;
+         moves[0].target.row = moves[1].target.row = row + lookDown - 2;
+         moves[0].dest.row = moves[1].dest.row = row + lookDown - 2;
 
          int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
          if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
@@ -1301,7 +1301,7 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
          }
          moveFound = true;
          aiLogic[player].waiting = true;
-         aiLogic[player].clearedTile = pair.second[0];
+         aiLogic[player].clearedTile = tile;
          break;
       }
    }
