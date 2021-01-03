@@ -3,9 +3,6 @@
 
 #include <list>
 
-void aiChooseMove(Board* board, int player);
-void aiDoStep(Board* board, int player);
-
 //Everything below here if for AI Logic
 enum AIStep {
    ai_none = 0,
@@ -50,6 +47,152 @@ static bool _validTile(Board* board, Tile* tile) {
       return false;
    }
    else { return true; }
+}
+
+//Based on the game mode, find out which board to work on
+void boardAI(Game* game) {
+   if (game->settings.mode == single_vs) {
+      for (int i = 1; i < game->pList.size(); i++) {  //Skip first player
+         aiChooseMove(game->pList[i + 1].board, game->pList[i + 1].number);
+      }
+   }
+   else if (game->net->syncTest == true || game->settings.mode == single_player) {
+      aiChooseMove(game->boards[0], 1);
+   }
+   else if (game->settings.mode == multi_shared || game->settings.mode == multi_solo) {
+      aiChooseMove(game->pList[game->user.number].board, game->user.number);
+   }
+
+}
+
+static void _stopWaiting(int player) {
+   aiLogic[player].waiting = false;
+   aiLogic[player].clearedTile = nullptr;
+   aiLogic[player].fallTile = -1;
+}
+
+//Basically a flow chart of possible actions the AI can take
+void aiChooseMove(Board* board, int player) {
+   if (board->game->timer > board->game->timings.countIn[0]) {  //Don't start moving until after count-in
+      aiMoveBoardUp(board, player);
+      if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
+         aiClearGarbage(board, player);
+         if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
+            Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
+            if (fallTile) {
+               if (aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
+                  _stopWaiting(player);
+               }
+            }
+            else { _stopWaiting(player); }
+         }
+         else {
+            aiChain(board, player);
+            if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
+            if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
+            if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
+            //Now figure out based on target and destination tiles what cursor movements need to happen
+            if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+         }
+      }
+   }
+
+   aiDoStep(board, player);  //Transfer cursor movements to inputs
+}
+
+//Calculate the steps to move cursor into place
+void aiGetSteps(Board* board, int player) {
+   Cursor* cursor;
+   if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
+   else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; }
+   else if (board->game->settings.mode == single_vs) { cursor = board->game->pList[player].cursor; }
+   else { cursor = board->game->pList[board->game->user.number].cursor; }
+   int cursorCol = cursorGetCol(board, cursor);
+   int cursorRow = cursorGetRow(board, cursor);
+
+   for (auto&& move : aiLogic[player].moves) {
+      if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
+      //Figure out if the target needs to move left or right
+      int moveDirection = move.dest.col - move.target.col;
+
+      int colDiff = move.target.col - cursorCol;
+      int rowDiff = move.target.row - cursorRow;
+
+      if (moveDirection < 0) { colDiff -= 1; }  //If we need to swap left, shift the cursor left one
+
+      for (int i = 0; i < abs(colDiff); i++) {
+         if (colDiff < 0) {        //move left
+            aiLogic[player].matchSteps.push_back(ai_left);
+            cursorCol--;
+         }
+         else if (colDiff > 0) {   //move right
+            aiLogic[player].matchSteps.push_back(ai_right);
+            cursorCol++;
+         }
+      }
+      for (int i = 0; i < abs(rowDiff); i++) {
+         if (rowDiff < 0) {        //move up
+            aiLogic[player].matchSteps.push_back(ai_up);
+            cursorRow--;
+         }
+         else if (rowDiff > 0) {   //move down
+            aiLogic[player].matchSteps.push_back(ai_down);
+            cursorRow++;
+         }
+      }
+
+      //Figure out how many swaps to move the target tile to the destination
+      for (int i = 0; i < abs(moveDirection); i++) {
+         aiLogic[player].matchSteps.push_back(ai_swap);
+         if (abs(moveDirection) == i + 1) { break; }
+         if (moveDirection < 0) {        //move left
+            aiLogic[player].matchSteps.push_back(ai_left);
+            cursorCol--;
+         }
+         else if (moveDirection > 0) {   //move right
+            aiLogic[player].matchSteps.push_back(ai_right);
+            cursorCol++;
+         }
+      }
+   }
+   aiLogic[player].moves.clear();
+}
+
+//Take the move step and transfer it to the player inputs
+void aiDoStep(Board* board, int player) {
+   UserInput input;
+   if (board->game->settings.mode != single_vs) { input = board->game->user.input; }
+   if (aiLogic[player].moveUp == true) { input.nudge.p = true; }
+   if (aiLogic[player].matchSteps.empty() == false) {
+      if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
+         AIStep step = aiLogic[player].matchSteps.front();
+         aiLogic[player].matchSteps.pop_front();
+
+         switch (step) {
+         case ai_left:
+            input.left.p = true;
+            break;
+         case ai_right:
+            input.right.p = true;
+            break;
+         case ai_up:
+            input.up.p = true;
+            break;
+         case ai_down:
+            input.down.p = true;
+            break;
+         case ai_swap:
+            input.swap.p = true;
+            break;
+         }
+      }
+   }
+   if (board->game->settings.mode == single_vs) {
+      board->game->net->inputs[player - 1] = input;
+   }
+   else {
+      board->game->user.input = input;
+   }
 }
 
 //Look for vertical matches along a row (typically below garbage)
@@ -284,34 +427,32 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
          moves[0].target.row = moves[1].target.row = row + lookDown - 2;
          moves[0].dest.row = moves[1].dest.row = row + lookDown - 2;
 
-         int botTilePos[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
-         if (botTilePos[0] < col && botTilePos[1] < col) {  //both on the left
-            if (botTilePos[0] < botTilePos[1]) {  //Need to do the right-most first
+         int botTileCol[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
+         if (botTileCol[1] < col) {  //both on the left
+            moves[0].target.col = botTileCol[1];
+            moves[1].target.col = botTileCol[0];
 
-               moves[0].target.col = botTilePos[1];
-               moves[1].target.col = botTilePos[0];
-
-               moves[0].dest.col = col - 1;
-               moves[1].dest.col = col - 2;
-            }
+            moves[0].dest.col = col - 1;
+            moves[1].dest.col = col - 2;
          }
-         else {  //Could be right-side or split
-            moves[0].target.col = botTilePos[0];
-            moves[1].target.col = botTilePos[1];
+         else if (botTileCol[0] > col) {  //both on the right
+            moves[0].target.col = botTileCol[0];
+            moves[1].target.col = botTileCol[1];
 
-            if (botTilePos[0] > col && botTilePos[1] > col) {  //both on the right
-               moves[0].dest.col = col + 1;
-               moves[1].dest.col = col + 2;
-            }
-            else {  //Tiles are split around clear
-               moves[0].dest.col = col - 1;
-               moves[1].dest.col = col + 1;
-            }
+            moves[0].dest.col = col + 1;
+            moves[1].dest.col = col + 2;
+         }
+         else if (botTileCol[0] < col && botTileCol[1] > col) {  //They are split
+            moves[0].target.col = botTileCol[0];
+            moves[1].target.col = botTileCol[1];
+
+            moves[0].dest.col = col - 1;
+            moves[1].dest.col = col + 1;
          }
 
          aiLogic[player].moves.clear();
          for (int i = 0; i < 3; i++) {
-            aiLogic[player].moves.push_front(moves[i]);
+            aiLogic[player].moves.push_back(moves[i]);
          }
          moveFound = true;
          aiLogic[player].waiting = true;
@@ -422,7 +563,7 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
 
                aiLogic[player].moves.clear();
                for (int i = 0; i < 3; i++) {
-                  aiLogic[player].moves.push_front(moves[i]);
+                  aiLogic[player].moves.push_back(moves[i]);
                }
                moveFound = true;
                aiLogic[player].waiting = true;
@@ -479,7 +620,7 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
 
                aiLogic[player].moves.clear();
                for (int i = 0; i < 3; i++) {
-                  aiLogic[player].moves.push_front(moves[i]);
+                  aiLogic[player].moves.push_back(moves[i]);
                }
                moveFound = true;
                aiLogic[player].waiting = true;
@@ -519,144 +660,5 @@ void aiChain(Board* board, int player) {
             }
          }
       }
-   }
-}
-
-//Calculate the steps to move cursor into place
-void aiGetSteps(Board* board, int player) {
-   Cursor* cursor;
-   if (board->game->net->syncTest == true) { cursor = board->cursors[0]; }
-   else if (board->game->settings.mode == single_player) { cursor = board->game->pList[board->game->user.number].cursor; }
-   else if (board->game->settings.mode == single_vs) { cursor = board->game->pList[player].cursor; }
-   else { cursor = board->game->pList[board->game->user.number].cursor; }
-   int cursorCol = cursorGetCol(board, cursor);
-   int cursorRow = cursorGetRow(board, cursor);
-
-   for (auto&& move : aiLogic[player].moves) {
-      if (move.dest.col == move.target.col && move.dest.row == move.target.row) { continue; }
-      //Figure out if the target needs to move left or right
-      int moveDirection = move.dest.col - move.target.col;
-
-      int colDiff = move.target.col - cursorCol;
-      int rowDiff = move.target.row - cursorRow;
-
-      if (moveDirection < 0) { colDiff -= 1; }  //If we need to swap left, shift the cursor left one
-
-      for (int i = 0; i < abs(colDiff); i++) {
-         if (colDiff < 0) {        //move left
-            aiLogic[player].matchSteps.push_back(ai_left);
-            cursorCol--;
-         }
-         else if (colDiff > 0) {   //move right
-            aiLogic[player].matchSteps.push_back(ai_right);
-            cursorCol++;
-         }
-      }
-      for (int i = 0; i < abs(rowDiff); i++) {
-         if (rowDiff < 0) {        //move up
-            aiLogic[player].matchSteps.push_back(ai_up);
-            cursorRow--;
-         }
-         else if (rowDiff > 0) {   //move down
-            aiLogic[player].matchSteps.push_back(ai_down);
-            cursorRow++;
-         }
-      }
-
-      //Figure out how many swaps to move the target tile to the destination
-      for (int i = 0; i < abs(moveDirection); i++) {
-         aiLogic[player].matchSteps.push_back(ai_swap);
-         if (abs(moveDirection) == i + 1) { break; }
-         if (moveDirection < 0) {        //move left
-            aiLogic[player].matchSteps.push_back(ai_left);
-            cursorCol--;
-         }
-         else if (moveDirection > 0) {   //move right
-            aiLogic[player].matchSteps.push_back(ai_right);
-            cursorCol++;
-         }
-      }
-   }
-   aiLogic[player].moves.clear();
-}
-
-//Based on the game mode, find out which board to work on
-void boardAI(Game* game) {
-   if (game->settings.mode == single_vs) {
-      for (int i = 1; i < game->pList.size(); i++) {  //Skip first player
-         aiChooseMove(game->pList[i + 1].board, game->pList[i + 1].number);
-      }
-   }
-   else if (game->net->syncTest == true || game->settings.mode == single_player) {
-      aiChooseMove(game->boards[0], 1);
-   }
-   else if (game->settings.mode == multi_shared || game->settings.mode == multi_solo) {
-      aiChooseMove(game->pList[game->user.number].board, game->user.number);
-   }
-
-}
-
-//Basically a flow chart of possible actions the AI can take
-void aiChooseMove(Board* board, int player) {
-   if (board->game->timer > board->game->timings.countIn[0]) {  //Don't start moving until after count-in
-      aiMoveBoardUp(board, player);
-      if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
-         aiClearGarbage(board, player);
-         if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
-            Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
-            if (fallTile && aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
-               aiLogic[player].waiting = false;
-               aiLogic[player].clearedTile = nullptr;
-               aiLogic[player].fallTile = -1;
-            }
-         }
-         else {
-            aiChain(board, player);
-            if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
-            if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
-            if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
-            //Now figure out based on target and destination tiles what cursor movements need to happen
-            if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
-         }
-      }
-   }
-
-   aiDoStep(board, player);  //Transfer cursor movements to inputs
-}
-
-//Take the move step and transfer it to the player inputs
-void aiDoStep(Board* board, int player) {
-   UserInput input;
-   if (board->game->settings.mode != single_vs) { input = board->game->user.input; }
-   if (aiLogic[player].moveUp == true) { input.nudge.p = true; }
-   if (aiLogic[player].matchSteps.empty() == false) {
-      if (board->game->frameCount % board->game->aiDelay[0] == 0) {  //This is so it doesn't have 1000 apm
-         AIStep step = aiLogic[player].matchSteps.front();
-         aiLogic[player].matchSteps.pop_front();
-
-         switch (step) {
-         case ai_left:
-            input.left.p = true;
-            break;
-         case ai_right:
-            input.right.p = true;
-            break;
-         case ai_up:
-            input.up.p = true;
-            break;
-         case ai_down:
-            input.down.p = true;
-            break;
-         case ai_swap:
-            input.swap.p = true;
-            break;
-         }
-      }
-   }
-   if (board->game->settings.mode == single_vs) {
-      board->game->net->inputs[player - 1] = input;
-   }
-   else {
-      board->game->user.input = input;
    }
 }
