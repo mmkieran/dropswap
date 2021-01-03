@@ -46,6 +46,9 @@
     <ClCompile Include="win.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="board_ai.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -108,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="board_ai.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

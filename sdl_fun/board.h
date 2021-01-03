@@ -95,6 +95,8 @@ int boardFillTiles(Board* board);
 void boardPauseTime(Board* board, BoardPauseType type, int size = 0);
 
 Tile* boardGetTile(Board* board, int row, int col);
+std::vector <Tile*> boardGetAllTilesInCol(Board* board, int col);
+std::vector <Tile*> boardGetAllTilesInRow(Board* board, int row);
 
 void boardUpdate(Board* board);
 void boardRender(Game* game, Board* board);
@@ -118,7 +120,5 @@ int tileGetCol(Board* board, Tile* tile);
 int boardRandomTile(Board* board);
 void boardStartRandom(Board* board);
 void boardLoadRandom(Board* board);
-
-void boardAI(Game* game);
 
 void boardDebug(Board* board, bool* p_open);

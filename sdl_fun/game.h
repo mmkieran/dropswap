@@ -8,6 +8,7 @@
 #include "mymath.h"
 #include "game_inputs.h"
 #include "game_ui.h"
+#include "board_ai.h"
 
 #include <stdint.h>
 #include <vector>
