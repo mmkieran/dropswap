@@ -209,7 +209,6 @@ xcopy $(SolutionDir)sdl_fun\license\* $(TargetDir)license\ /y</Command>
     <ClInclude Include="game_ui.h" />
     <ClInclude Include="garbage.h" />
     <ClInclude Include="mymath.h" />
-    <ClInclude Include="myvector.h" />
     <ClInclude Include="netplay.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="resources.h" />
@@ -252,9 +251,6 @@ xcopy $(SolutionDir)sdl_fun\license\* $(TargetDir)license\ /y</Command>
     <ProjectReference Include="..\soloud\soloud.vcxproj">
       <Project>{092a96f6-f56c-4946-9038-6c58899ba9ab}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="parse structs.py" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="assets\gamecontrollerdb.txt" />

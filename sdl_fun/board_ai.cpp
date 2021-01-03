@@ -35,7 +35,7 @@ struct AILogic {
    //Chain specific logic
    bool waiting = false;               //Are we delaying actions because of a clear
    Tile* clearedTile = nullptr;        //The tile that needs to be cleared so the chain can fall
-   Tile* fallTile = nullptr;           //The tile that needs to fall to make the chain
+   int fallTile = -1;                  //The tile that needs to fall to make the chain
 
    bool moveUp = false;                //Should we pull the board up
 };
@@ -273,7 +273,7 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
                moves[2].dest.col = col;
                moves[2].dest.row = row - 1;
 
-               aiLogic[player].fallTile = t;  //Wait for this tile to fall so we don't mess up the chain
+               aiLogic[player].fallTile = t->ID;  //Wait for this tile to fall so we don't mess up the chain
                topFound = true;
                break;
             }
@@ -426,7 +426,7 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                }
                moveFound = true;
                aiLogic[player].waiting = true;
-               aiLogic[player].fallTile = aboveGroup.second[0];  //Wait for this tile to fall so we don't mess up the chain
+               aiLogic[player].fallTile = aboveGroup.second[0]->ID;  //Wait for this tile to fall so we don't mess up the chain
                aiLogic[player].clearedTile = tile;
                return;
             }
@@ -483,7 +483,7 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
                }
                moveFound = true;
                aiLogic[player].waiting = true;
-               aiLogic[player].fallTile = aboveGroup.second[0];  //Wait for this tile to fall so we don't mess up the chain
+               aiLogic[player].fallTile = aboveGroup.second[0]->ID;  //Wait for this tile to fall so we don't mess up the chain
                aiLogic[player].clearedTile = tile;
                return;
             }
@@ -603,10 +603,11 @@ void aiChooseMove(Board* board, int player) {
       if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
          aiClearGarbage(board, player);
          if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
-            if (aiLogic[player].clearedTile->status != status_clear && aiLogic[player].fallTile->falling == false) {
+            Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
+            if (fallTile && aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
                aiLogic[player].waiting = false;
                aiLogic[player].clearedTile = nullptr;
-               aiLogic[player].fallTile = nullptr;
+               aiLogic[player].fallTile = -1;
             }
          }
          else {

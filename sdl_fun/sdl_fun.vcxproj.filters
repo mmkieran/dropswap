@@ -92,9 +92,6 @@
     <ClInclude Include="garbage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="myvector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="serialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -175,11 +172,6 @@
     <Image Include="assets\sword.png">
       <Filter>assets</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="parse structs.py">
-      <Filter>third</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="gamecontrollerdb.txt">

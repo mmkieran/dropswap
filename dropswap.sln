@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dropswap", "sdl_fun\sdl_fun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "imgui\example_sdl_opengl3.vcxproj", "{BBAEB705-1669-40F3-8567-04CF6A991F4C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fool_around", "fool_around\fool_around.vcxproj", "{25AF99CC-7ADF-4A84-92D5-6471F5878594}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ggpo", "ggpo\ggpo.vcxproj", "{9BC3893A-AA0C-46B8-A55F-814404CFBB67}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soloud", "soloud\soloud.vcxproj", "{092A96F6-F56C-4946-9038-6C58899BA9AB}"
@@ -39,14 +37,6 @@ Global
 		{BBAEB705-1669-40F3-8567-04CF6A991F4C}.Release|x64.Build.0 = Release|x64
 		{BBAEB705-1669-40F3-8567-04CF6A991F4C}.Release|x86.ActiveCfg = Release|Win32
 		{BBAEB705-1669-40F3-8567-04CF6A991F4C}.Release|x86.Build.0 = Release|Win32
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Debug|x64.ActiveCfg = Debug|x64
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Debug|x64.Build.0 = Debug|x64
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Debug|x86.ActiveCfg = Debug|Win32
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Debug|x86.Build.0 = Debug|Win32
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Release|x64.ActiveCfg = Release|x64
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Release|x64.Build.0 = Release|x64
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Release|x86.ActiveCfg = Release|Win32
-		{25AF99CC-7ADF-4A84-92D5-6471F5878594}.Release|x86.Build.0 = Release|Win32
 		{9BC3893A-AA0C-46B8-A55F-814404CFBB67}.Debug|x64.ActiveCfg = Debug|x64
 		{9BC3893A-AA0C-46B8-A55F-814404CFBB67}.Debug|x64.Build.0 = Debug|x64
 		{9BC3893A-AA0C-46B8-A55F-814404CFBB67}.Debug|x86.ActiveCfg = Debug|Win32
