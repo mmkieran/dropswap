@@ -1119,6 +1119,9 @@ void multiplayerJoin(Game* game, bool* p_open) {
       return;
    }
 
+   helpfulCenterText("Enter the IP address of the host and hit Connect To Host.");
+   ImGui::NewLine();
+
    if (game->debug == true) {
       static bool showDebugConn = false;
       if (ImGui::Button("Show Conn State")) {
@@ -1187,6 +1190,12 @@ void multiplayerJoin(Game* game, bool* p_open) {
       if (clientStatus >= client_received) {
          ImGui::BeginChild("Game Setup", { width, 200 }, true);
          ImGui::Text("Game Setup");
+         ImGui::Separator();
+         if (game->settings.mode == multi_solo) { ImGui::Text("Board Type: Individual boards"); }
+         else if (game->settings.mode == multi_shared) { ImGui::Text("Board Type: Shared board"); }
+         ImGui::Text("Board Size: %dw x %dh", game->settings.bWidth, game->settings.bHeight);
+         ImGui::NewLine();
+         ImGui::Text("Player Info");
          ImGui::Separator();
          for (int i = 0; i < game->net->participants; i++) {
             ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 100 });
@@ -1260,6 +1269,10 @@ void multiplayerHost(Game* game, bool* p_open) {
       ImGui::End();
       return;
    }
+
+   helpfulCenterText("Select the number of players and hit Find Players.");
+   helpfulCenterText("Each player will need your IP address to join the game.");
+   ImGui::NewLine();
 
    if (game->debug == true) {
       static bool showDebugConn = false;
