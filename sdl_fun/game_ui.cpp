@@ -690,14 +690,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Combo("Sound Effects", &game->sounds, "On\0Off\0");
       static float globalVol[3] = { soundsGetGlobalVolume(), 0.0, 1.0 };
       ImGui::SliderScalar("Master Volume", ImGuiDataType_Float, &globalVol[0], &globalVol[1], &globalVol[2]);
-      if (ImGui::IsItemEdited() == true) { 
-         soundsSetGlobalVolume(globalVol[0]); }
-
-      static int tileSize = 1;
-      ImGui::Combo("Tile Size", &tileSize, "Normal\0Small\0Tiny\0");
-      if (tileSize == 0) { game->settings.tWidth = game->settings.tHeight = 64; }
-      else  if (tileSize == 1) { game->settings.tWidth = game->settings.tHeight = 32; }
-      else { game->settings.tWidth = game->settings.tHeight = 16; }
+      if (ImGui::IsItemEdited() == true) { soundsSetGlobalVolume(globalVol[0]); }
 
       static bool vsync = false;
       ImGui::Checkbox("Vsync", &vsync);
@@ -730,6 +723,7 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::Checkbox("Show Debug Options", &game->debug);
 
       if (game->debug == true) {
+
          ImGui::Checkbox("Network log file", &game->net->netlog);
          static bool showOldSession = false;
          if (showOldSession == false) {
@@ -1188,7 +1182,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
 
       //This displays the game information once it is received
       if (clientStatus >= client_received) {
-         ImGui::BeginChild("Game Setup", { width, 200 }, true);
+         ImGui::BeginChild("Game Setup", { width, 300 }, true);
          ImGui::Text("Game Setup");
          ImGui::Separator();
          if (game->settings.mode == multi_solo) { ImGui::Text("Board Type: Individual boards"); }
@@ -1378,20 +1372,18 @@ void multiplayerHost(Game* game, bool* p_open) {
 
          static int mode = 0;
          ImGui::NewLine();
-         if (ImGui::CollapsingHeader("Board Setup"), ImGuiTreeNodeFlags_DefaultOpen) {
-            ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-            ImGui::InputInt("Board Width", &game->settings.bWidth);
-            ImGui::InputInt("Board Height", &game->settings.bHeight);
-            ImGui::NewLine();
+         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+         if (ImGui::IsItemEdited) {
+            game->settings.mode = (GameMode)mode;
+            game->settings.bHeight = 12;
+            if (mode == 0) { game->settings.bWidth = 6; }
+            else if (mode == 1) { game->settings.bWidth = 12; }
          }
+         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
 
-         if (ImGui::CollapsingHeader("GGPO Options")) {
-            ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-            ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-            ImGui::NewLine();
-         }
-         if (game->settings.mode != (GameMode)mode) { game->settings.mode = (GameMode)mode; }  //todo this seems a bit awkward
          ImGui::NewLine();
+         ImGui::Separator();
 
          static bool teams[2] = { false, false };
          static int pCount = -1;
