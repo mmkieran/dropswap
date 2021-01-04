@@ -1161,17 +1161,40 @@ void multiplayerJoin(Game* game, bool* p_open) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message.c_str());
          }
       }
-
-      if (clientStatus >= client_connecting) {  //If we created a socket then pop up a modal with info/status
-         popupEnable(Popup_GameSetup);
-      }
-      else { popupDisable(Popup_GameSetup); }
       ImGui::EndChild();
       ImGui::NewLine();
    }
 
+   if (clientStatus >= client_connecting && clientStatus < client_received) {  
+      popupEnable(Popup_MultiStarted);
+   }
+   else { popupDisable(Popup_MultiStarted); }
+
+   if (popupOpen(Popup_MultiStarted) == true) {
+      ImGui::OpenPopup("Connection Started");
+      popups[Popup_MultiStarted].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Connection Started", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
+      if (popups[Popup_MultiStarted].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
+      ImGui::NewLine();
+
+      if (ImGui::Button("Cancel")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_MultiStarted);
+         tcpReset();
+         clientStatus = client_none;
+         //todo add a send message to host, so we know we lost a player
+      }
+      ImGui::EndPopup();
+   }
+
+   if (clientStatus >= client_received) {  //If we created a socket then pop up a modal with info/status
+      popupEnable(Popup_GameSetup);
+   }
+   else { popupDisable(Popup_GameSetup); }
+
    if (popupOpen(Popup_GameSetup) == true) {
-      //ImGui::SetNextWindowSize({ 700, 700 }, ImGuiCond_Once);
       ImGui::OpenPopup("Connection Status");
       popups[Popup_GameSetup].isOpen = true;
    }
@@ -1332,13 +1355,35 @@ void multiplayerHost(Game* game, bool* p_open) {
       serverStatus = server_none;
    }
 
-   if (serverStatus > server_started) {  //Once we start listening on our socket pop up a modal with status/info
+   if (serverStatus > server_started && serverStatus < server_waiting) {  //Once we start listening on our socket pop up a modal with status/info
+      popupEnable(Popup_MultiStarted);
+   }
+   else { popupDisable(Popup_MultiStarted); }
+
+   if (popupOpen(Popup_MultiStarted) == true) {
+      ImGui::OpenPopup("Connection Started");
+      popups[Popup_MultiStarted].isOpen = true;
+   }
+   if (ImGui::BeginPopupModal("Connection Started", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize)) {
+      if (popups[Popup_MultiStarted].isOpen == false) { ImGui::CloseCurrentPopup(); }
+      if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
+      ImGui::NewLine();
+
+      if (ImGui::Button("Cancel")) {
+         ImGui::CloseCurrentPopup();
+         popupDisable(Popup_MultiStarted);
+         tcpReset();
+         serverStatus = server_none;
+      }
+      ImGui::EndPopup();
+   }
+
+   if (serverStatus >= server_waiting) {
       popupEnable(Popup_GameSetup);
    }
    else { popupDisable(Popup_GameSetup); }
 
    if (popupOpen(Popup_GameSetup) == true) {
-      //ImGui::SetNextWindowSize({ 700, 700 }, ImGuiCond_Once);
       ImGui::OpenPopup("Connection Status");
       popups[Popup_GameSetup].isOpen = true;
    }

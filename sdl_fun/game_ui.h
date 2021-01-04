@@ -9,6 +9,7 @@ enum PopupType {
    Popup_Error,
    Popup_LoadFailed,
    Popup_Waiting,
+   Popup_MultiStarted,
    Popup_GameSetup,
    Popup_Quit,
 };
