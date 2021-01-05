@@ -99,6 +99,12 @@ static void _stopWaiting(int player) {
 }
 
 //Basically a flow chart of possible actions the AI can take
+/*
+Always move the board up if possible
+Clear garbage rather than waiting
+If you spot a chain, go for it (unless waiting or executing a chain move)
+
+*/
 void aiChooseMove(Board* board, int player) {
    aiMoveBoardUp(board, player);
 
@@ -113,19 +119,20 @@ void aiChooseMove(Board* board, int player) {
       else { _stopWaiting(player); }
    }
    else {
+      //These moves can happen even in the middle of another move
       aiChain(board, player); 
       aiClearGarbage(board, player);
+      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
-      if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
+      if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are found
          aiLogic[player].currentMove = ai_no_move;
 
          if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
          if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
          if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
-         //Now figure out based on target and destination tiles what cursor movements need to happen
       }
 
-      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
    }
 
    aiDoStep(board, player);  //Transfer cursor movements to inputs
