@@ -778,6 +778,9 @@ void onePlayerOptions(Game* game) {
 
    if (game->settings.replaying == false) {
       if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
+         if (game->ai == true) { ImGui::Text(aiGetMove(1)); }
+         ImGui::NewLine();
+
          ImGui::Checkbox("Turn On AI", &game->ai);
          ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
 

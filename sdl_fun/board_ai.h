@@ -16,3 +16,5 @@ void aiMoveBoardUp(Board* board, int player);
 bool aiClearGarbage(Board* board, int player);
 bool aiFlattenBoard(Board* board, int player);
 void aiChain(Board* board, int player);
+
+const char* aiGetMove(int player);
