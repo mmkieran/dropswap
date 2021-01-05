@@ -37,8 +37,8 @@ std::map <AIMoveType, const char*> moveNames = {
 };
 
 struct TileIndex {
-   int col = INT_MIN;
    int row = INT_MIN;
+   int col = INT_MIN;
 };
 
 struct MoveInfo {
@@ -65,6 +65,12 @@ std::map <int, AILogic> aiLogic;
 
 const char* aiGetMove(int player) {
    return moveNames[aiLogic[player].currentMove];
+}
+
+//Get a tile using the row and col
+int _checkTileLookup(Board* board, int row, int col) {
+   int out = (board->w * row + col);
+   return out;
 }
 
 //Is the tile something the ai can move right now
@@ -99,14 +105,10 @@ static void _stopWaiting(int player) {
 }
 
 //Basically a flow chart of possible actions the AI can take
-/*
-Always move the board up if possible
-Clear garbage rather than waiting
-If you spot a chain, go for it (unless waiting or executing a chain move)
-
-*/
 void aiChooseMove(Board* board, int player) {
    aiMoveBoardUp(board, player);
+   aiClearGarbage(board, player);
+   if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
    if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
       //aiLogic[player].currentMove = ai_waiting;
@@ -120,8 +122,7 @@ void aiChooseMove(Board* board, int player) {
    }
    else {
       //These moves can happen even in the middle of another move
-      aiChain(board, player); 
-      aiClearGarbage(board, player);
+      if (aiLogic[player].moves.empty() == true) { aiChain(board, player); }
       if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
       if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are in progress
@@ -421,23 +422,27 @@ bool aiFlattenBoard(Board* board, int player) {
    return moveFound;
 }
 
-void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, int player) {
+void _aiVertChain(Board* board, Tile* tile, std::map <int, bool>& checkedTiles, bool& moveFound, int row, int col, int player) {
    std::map <TileType, std::vector <Tile*> > tileCounts;  //Hash of tile type counts
-   Tile* below = boardGetTile(board, row + 1, col);
-   int lookDown = 2;
 
-   while (below && (below->status == status_clear || below->type == tile_empty)) {
-      Tile* next = boardGetTile(board, row + lookDown, col);
-      if (next) {
-         below = next;
-         lookDown++;
+   int botRow = row;
+   while (botRow < board->wBuffer) {
+      Tile* current = boardGetTile(board, botRow, col);
+      if (current && (current->status == status_clear || current->type == tile_empty)) {
+         if (current->status == status_clear) { 
+            checkedTiles[_checkTileLookup(board, botRow, col)] = true;
+         }
+         botRow++;
       }
-      else { break; }
+      else { 
+         botRow--;
+         break; 
+      }
    }
 
    //Get all tiles in bottom of the clear
    for (int i = 0; i < board->w; i++) {
-      Tile* t = boardGetTile(board, row + lookDown - 2, i);
+      Tile* t = boardGetTile(board, botRow, i);
       if (!t || t->falling == true || t->status != status_normal || t->type == tile_empty || t->type == tile_garbage) {
          continue;
       }
@@ -471,8 +476,8 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
          if (topFound == false) { continue; }
 
          //Check which bottom tile we need to swap first (order of list is left to right)
-         moves[0].target.row = moves[1].target.row = row + lookDown - 2;
-         moves[0].dest.row = moves[1].dest.row = row + lookDown - 2;
+         moves[0].target.row = moves[1].target.row = botRow;
+         moves[0].dest.row = moves[1].dest.row = botRow;
 
          int botTileCol[2] = { tileGetCol(board, pair.second[0]), tileGetCol(board, pair.second[1]) };
          if (botTileCol[1] < col) {  //both on the left
@@ -509,24 +514,26 @@ void _aiVertChain(Board* board, Tile* tile, bool& moveFound, int row, int col, i
    }
 }
 
-void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, int player) {
+void _aiHorizChain(Board* board, Tile* tile, std::map <int, bool>& checkedTiles, bool& moveFound, int row, int col, int player) {
    if (row == board->startH - 1) { return; }
    std::map <TileType, std::vector <Tile*> > tCountAbove;  //Hash of tile type counts
    std::map <TileType, std::vector <Tile*> > tCountAlong;  //Hash of tile type counts
-   Tile* right = boardGetTile(board, row, col + 1);
-   int lookRight = 2;
 
-   while (right && right->status == status_clear) {  //Find how wide the clear is
-      Tile* next = boardGetTile(board, row, col + lookRight);
-      if (next) {
-         right = next;
-         lookRight++;
+   int rightCol = col;
+   while (rightCol < board->w) {
+      Tile* current = boardGetTile(board, row, rightCol);
+      if (current && current->status == status_clear) {
+         checkedTiles[_checkTileLookup(board, row, rightCol)] = true;
+         rightCol++;
       }
-      else { break; }
+      else {
+         rightCol--;
+         break;
+      }
    }
 
    int startCol = col;
-   int endCol = col + lookRight - 2;
+   int endCol = rightCol;
 
    //Get all tiles above the clear
    for (int i = 0; i < board->w; i++) {
@@ -683,8 +690,9 @@ void _aiHorizChain(Board* board, Tile* tile, bool& moveFound, int row, int col, 
 //Look at a snapshot of the board and decide how to make a chain
 void aiChain(Board* board, int player) {
    bool moveFound = false;
-   std::vector <bool> checkedColumns(board->w, 0);
-   std::vector <bool> checkedRows(board->endH, 0);
+   std::map <int, bool> checkedVert;
+   std::map <int, bool> checkedHoriz;
+
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          if (moveFound == true) { return; }
@@ -694,18 +702,18 @@ void aiChain(Board* board, int player) {
             Tile* right = boardGetTile(board, row, col + 1);
 
             if (below && below->status == status_clear) {  //Check for vertical clear
-               if (checkedColumns[col] == true) { continue; }
-               checkedColumns[col] = true;
-               _aiVertChain(board, tile, moveFound, row, col, player);
+               if (checkedHoriz[_checkTileLookup(board, row, col)] == false) {
+                  _aiVertChain(board, tile, checkedHoriz, moveFound, row, col, player);
+               }
                if (moveFound == true) { 
                   aiLogic[player].currentMove = ai_vert_chain;
                   return; 
                }
             }
             if (right && right->status == status_clear) {  //Check for horizontal clear
-               if (checkedRows[row] == true) { continue; }
-               checkedRows[row] = true;
-               _aiHorizChain(board, tile, moveFound, row, col, player);
+               if (checkedHoriz[_checkTileLookup(board, row, col)] == false) {
+                  _aiHorizChain(board, tile, checkedHoriz, moveFound, row, col, player);
+               }
                if (moveFound == true) { 
                   aiLogic[player].currentMove = ai_horiz_chain;
                   return; 
