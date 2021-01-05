@@ -1396,8 +1396,22 @@ void multiplayerHost(Game* game, bool* p_open) {
          //This is the player information table
          ImGui::Text("Game Setup");
          ImGui::Separator();
+         static int mode = 0;
+         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+         if (ImGui::IsItemEdited) {
+            game->settings.mode = (GameMode)mode;
+            game->settings.bHeight = 12;
+            if (mode == 0) { game->settings.bWidth = 6; }
+            else if (mode == 1) { game->settings.bWidth = 12; }
+         }
+         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+         ImGui::NewLine();
+
          ImGui::PushID("Player Info Set");
          ImGui::PushItemWidth(100);
+         ImGui::Text("Player Info");
+         ImGui::Separator();
          for (int i = 0; i < people[0]; i++) {
             ImGui::PushID(i);  //So widgets don't name collide
             SocketInfo sock = getSocket(i - 1);
@@ -1414,18 +1428,6 @@ void multiplayerHost(Game* game, bool* p_open) {
          }
          ImGui::PopID();
          ImGui::PopItemWidth();
-
-         static int mode = 0;
-         ImGui::NewLine();
-         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-         if (ImGui::IsItemEdited) {
-            game->settings.mode = (GameMode)mode;
-            game->settings.bHeight = 12;
-            if (mode == 0) { game->settings.bWidth = 6; }
-            else if (mode == 1) { game->settings.bWidth = 12; }
-         }
-         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
 
          ImGui::NewLine();
          ImGui::Separator();
