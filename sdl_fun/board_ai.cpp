@@ -703,7 +703,7 @@ void aiChain(Board* board, int player) {
 
             if (below && below->status == status_clear) {  //Check for vertical clear
                if (checkedVert[_checkTileLookup(board, row, col)] == false) {
-                  _aiVertChain(board, tile, checkedHoriz, moveFound, row, col, player);
+                  _aiVertChain(board, tile, checkedVert, moveFound, row, col, player);
                }
                if (moveFound == true) { 
                   aiLogic[player].currentMove = ai_vert_chain;
