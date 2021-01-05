@@ -124,7 +124,7 @@ void aiChooseMove(Board* board, int player) {
       aiClearGarbage(board, player);
       if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
-      if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are found
+      if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are in progress
          aiLogic[player].currentMove = ai_no_move;
 
          if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
