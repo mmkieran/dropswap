@@ -29,8 +29,8 @@ std::map <AIMoveType, const char*> moveNames = {
    {ai_no_move,       "No move"},
    {ai_vert_match,    "Vert Match"},
    {ai_horiz_match,   "Horiz Match"},
-   {ai_vert_chain,    "Vert Chain"},
-   {ai_horiz_chain,   "Horiz Chain"},
+   {ai_vert_chain,    "Chain Vert"},
+   {ai_horiz_chain,   "Chain Horiz"},
    {ai_clear_garbage, "Clear Garbage"},
    {ai_flatten_board, "Flatten Board"},
    {ai_waiting,       "Waiting"},
@@ -100,30 +100,32 @@ static void _stopWaiting(int player) {
 
 //Basically a flow chart of possible actions the AI can take
 void aiChooseMove(Board* board, int player) {
-   if (board->game->timer > board->game->timings.countIn[0]) {  //Don't start moving until after count-in
-      aiMoveBoardUp(board, player);
-      if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
-         aiLogic[player].currentMove = ai_no_move;
-         aiClearGarbage(board, player);
-         if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
-            aiLogic[player].currentMove = ai_waiting;
-            Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
-            if (fallTile) {
-               if (aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
-                  _stopWaiting(player);
-               }
-            }
-            else { _stopWaiting(player); }
-         }
-         else {
-            aiChain(board, player);
-            if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
-            if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
-            if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
-            //Now figure out based on target and destination tiles what cursor movements need to happen
-            if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
+   aiMoveBoardUp(board, player);
+
+   if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
+      //aiLogic[player].currentMove = ai_waiting;
+      Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
+      if (fallTile) {
+         if (aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
+            _stopWaiting(player);
          }
       }
+      else { _stopWaiting(player); }
+   }
+   else {
+      aiChain(board, player); 
+      aiClearGarbage(board, player);
+
+      if (aiLogic[player].matchSteps.empty() == true) {  //Look for new moves after the current sequence is done
+         aiLogic[player].currentMove = ai_no_move;
+
+         if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
+         if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
+         if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
+         //Now figure out based on target and destination tiles what cursor movements need to happen
+      }
+
+      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }
    }
 
    aiDoStep(board, player);  //Transfer cursor movements to inputs
