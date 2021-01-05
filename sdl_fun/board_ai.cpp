@@ -702,7 +702,7 @@ void aiChain(Board* board, int player) {
             Tile* right = boardGetTile(board, row, col + 1);
 
             if (below && below->status == status_clear) {  //Check for vertical clear
-               if (checkedHoriz[_checkTileLookup(board, row, col)] == false) {
+               if (checkedVert[_checkTileLookup(board, row, col)] == false) {
                   _aiVertChain(board, tile, checkedHoriz, moveFound, row, col, player);
                }
                if (moveFound == true) { 
