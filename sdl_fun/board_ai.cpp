@@ -111,21 +111,19 @@ void aiChooseMove(Board* board, int player) {
 
    if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
       //aiLogic[player].currentMove = ai_waiting;
+      if (aiLogic[player].clearedTile && aiLogic[player].clearedTile->status != status_clear) { aiLogic[player].clearedTile = nullptr; }
       Tile* fallTile = board->tileLookup[aiLogic[player].fallTile];
-      if (fallTile) {
-         if (aiLogic[player].clearedTile->status != status_clear && fallTile->falling == false) {
-            _stopWaiting(player);
-         }
+      if (aiLogic[player].clearedTile == nullptr && (fallTile == nullptr || fallTile->falling == false) ) {
+         aiLogic[player].fallTile = -1; 
       }
-      else { _stopWaiting(player); }
+      if (aiLogic[player].fallTile == - 1 && aiLogic[player].clearedTile == nullptr) { 
+         _stopWaiting(player); }
    }
    if (aiLogic[player].waiting == false) {
       //These moves can happen even in the middle of another move
       if (aiLogic[player].moves.empty() == true) { aiChain(board, player); }
 
       if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are in progress
-         aiLogic[player].currentMove = ai_no_move;
-
          if (aiLogic[player].moves.empty() == true) { aiFindVertMatch(board, player); }
          if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
          if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
@@ -349,7 +347,7 @@ void aiMoveBoardUp(Board* board, int player) {
          }
       }
    }
-   if (highestRow != -1 && highestRow > board->startH + (board->h / 2)) {
+   if (highestRow != -1 && highestRow > board->startH + (board->h / 4)) {
       aiLogic[player].moveUp = true;
    }
    else {
@@ -693,7 +691,7 @@ bool aiChain(Board* board, int player) {
    std::map <int, bool> checkedVert;
    std::map <int, bool> checkedHoriz;
 
-   for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
+   for (int row = board->startH; row < board->endH; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
