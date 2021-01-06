@@ -772,12 +772,18 @@ void gameSettingsUI(Game* game, bool* p_open) {
 
 void onePlayerOptions(Game* game) {
 
-   //todo fix statesave
-   //if (ImGui::Button("Load Game State")) { gameLoadState(game, "saves/game_state.dat"); }
-   //if (ImGui::Button("Save Game State")) { gameSaveState(game, "saves/game_state.dat"); }
-
    if (game->settings.replaying == false) {
       if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
+         if (ImGui::Button("Load Game State")) {
+            if (game->settings.save.size() > 0) {
+               unsigned char* start = game->settings.save.data();
+               gameCallbackLoad(game, start);
+            }
+         }
+
+         if (ImGui::Button("Save Game State")) { game->settings.save = gameSave(game); }
+         ImGui::NewLine();
+
          if (game->ai == true) { ImGui::Text(aiGetMove(1)); }
          ImGui::NewLine();
 
