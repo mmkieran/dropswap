@@ -108,7 +108,6 @@ static void _stopWaiting(int player) {
 void aiChooseMove(Board* board, int player) {
    aiMoveBoardUp(board, player);
    aiClearGarbage(board, player);
-   if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
    if (aiLogic[player].waiting == true) {  //Check if we're still waiting for a clear to finish
       //aiLogic[player].currentMove = ai_waiting;
@@ -120,10 +119,9 @@ void aiChooseMove(Board* board, int player) {
       }
       else { _stopWaiting(player); }
    }
-   else {
+   if (aiLogic[player].waiting == false) {
       //These moves can happen even in the middle of another move
       if (aiLogic[player].moves.empty() == true) { aiChain(board, player); }
-      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
       if (aiLogic[player].matchSteps.empty() == true) {  //Only do these if no other moves are in progress
          aiLogic[player].currentMove = ai_no_move;
@@ -132,9 +130,8 @@ void aiChooseMove(Board* board, int player) {
          if (aiLogic[player].moves.empty() == true) { aiFindHorizMatch(board, player); }
          if (aiLogic[player].moves.empty() == true) { aiFlattenBoard(board, player); }
       }
-
-      if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
    }
+   if (aiLogic[player].moves.empty() == false) { aiGetSteps(board, player); }  //Figure out cursor movements to move target to destination
 
    aiDoStep(board, player);  //Transfer cursor movements to inputs
 }
@@ -372,6 +369,9 @@ bool aiClearGarbage(Board* board, int player) {
          moveFound = _vertMatch(board, gRow + 1, col, player);
          if (moveFound == true) {
             aiLogic[player].currentMove = ai_clear_garbage;
+            if (aiLogic[player].matchSteps.empty() == false) {  //Clear any existing steps so we can chain
+               aiLogic[player].matchSteps.clear();
+            }
             return moveFound;
          }
       }
@@ -688,14 +688,13 @@ void _aiHorizChain(Board* board, Tile* tile, std::map <int, bool>& checkedTiles,
 }
 
 //Look at a snapshot of the board and decide how to make a chain
-void aiChain(Board* board, int player) {
+bool aiChain(Board* board, int player) {
    bool moveFound = false;
    std::map <int, bool> checkedVert;
    std::map <int, bool> checkedHoriz;
 
    for (int row = board->startH; row < board->endH - 1; row++) {  //sweet spot
       for (int col = 0; col < board->w; col++) {
-         if (moveFound == true) { return; }
          Tile* tile = boardGetTile(board, row, col);
          if (tile->status == status_clear) {
             Tile* below = boardGetTile(board, row + 1, col);
@@ -707,7 +706,10 @@ void aiChain(Board* board, int player) {
                }
                if (moveFound == true) { 
                   aiLogic[player].currentMove = ai_vert_chain;
-                  return; 
+                  if (aiLogic[player].matchSteps.empty() == false) {  //Clear any existing steps so we can chain
+                     aiLogic[player].matchSteps.clear();
+                  }
+                  return moveFound; 
                }
             }
             if (right && right->status == status_clear) {  //Check for horizontal clear
@@ -716,10 +718,14 @@ void aiChain(Board* board, int player) {
                }
                if (moveFound == true) { 
                   aiLogic[player].currentMove = ai_horiz_chain;
-                  return; 
+                  if (aiLogic[player].matchSteps.empty() == false) {  //Clear any existing steps so we can chain
+                     aiLogic[player].matchSteps.clear();
+                  }
+                  return moveFound; 
                }
             }
          }
       }
    }
+   return moveFound;
 }
