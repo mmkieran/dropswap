@@ -59,17 +59,12 @@ const char* aboutText = R"(
 Written by Kieran McDonald 
 08/23/2020
 
-I always wanted to make a video game and this was my
-gateway into that world. It was everything I imagined
-and now I find myself thinking about the next one.
-
-Drop and Swap was born out of love for Panel De Pon
-and Puyo Puyo. It was my attempt to make a multi-
-player game so we could continue our tradition of 
-afternoon games when COVID-19 hit.
-
-The game itself is completey for fun and my own
-education. Hope you enjoy it.
+Drop and Swap was born out of love for Panel De Pon 
+and Puyo Puyo. It started out as a joke, but it turned 
+into a fun and challenging project. I'd always wanted to 
+make a video game since I started playing and hacking 
+them on the Commodore 64. I'm glad I finally got the
+chance to. Hope you enjoy it :)
 
 Kieran
 
