@@ -64,8 +64,9 @@ and Puyo Puyo. It started out as a joke, but it turned
 into a fun and challenging project. I'd always wanted to 
 make a video game since I started playing and hacking 
 them on the Commodore 64. I'm glad I finally got the
-chance to. Hope you enjoy it :)
+chance. 
 
+Hope you enjoy it :)
 Kieran
 
 )";
