@@ -1435,10 +1435,12 @@ void multiplayerHost(Game* game, bool* p_open) {
 
       static bool teams[2] = { false, false };
       static int pCount = -1;
-      if (ImGui::Button("Start Game")) {
-         validateMultiSetup(people[0], pCount, teams, serverStatus);
+      if (serverStatus == server_waiting) {
+         if (ImGui::Button("Start Game")) {
+            validateMultiSetup(people[0], pCount, teams, serverStatus);
+         }
+         ImGui::SameLine();
       }
-      ImGui::SameLine();
 
       gameSetupError(pCount, teams);
 
