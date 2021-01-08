@@ -5,6 +5,7 @@
 typedef struct Board Board;
 
 void boardAI(Game* game);
+void resetAILogic();
 
 void aiChooseMove(Board* board, int player);
 void aiGetSteps(Board* board, int player);

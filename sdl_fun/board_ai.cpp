@@ -63,6 +63,11 @@ struct AILogic {
 //Holds the move steps for each ai opponent
 std::map <int, AILogic> aiLogic;
 
+void resetAILogic() {
+   std::map <int, AILogic> out;
+   aiLogic = out;
+}
+
 const char* aiGetMove(int player) {
    return moveNames[aiLogic[player].currentMove];
 }

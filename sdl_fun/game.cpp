@@ -453,6 +453,7 @@ void gameEndMatch(Game* game) {
    game->fbos.clear();
 
    //Reset all the game things
+   resetAILogic();
    game->pList.clear();
    game->user.number = 1;
    game->boards.clear();
