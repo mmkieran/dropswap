@@ -1194,7 +1194,7 @@ void multiplayerJoin(Game* game, bool* p_open) {
       ImGui::EndPopup();
    }
 
-   if (clientStatus >= client_received) {  //If we created a socket then pop up a modal with info/status
+   if (clientStatus >= client_received && clientStatus != client_done) {  //If we created a socket then pop up a modal with info/status
       popupEnable(Popup_GameSetup);
    }
    else { popupDisable(Popup_GameSetup); }
@@ -1208,40 +1208,37 @@ void multiplayerJoin(Game* game, bool* p_open) {
       if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
-      //This displays the game information once it is received
-      if (clientStatus >= client_received) {
-         ImGui::BeginChild("Game Setup", { width, 300 }, true);
-         ImGui::Text("Game Setup");
-         ImGui::Separator();
-         if (game->settings.mode == multi_solo) { ImGui::Text("Board Type: Individual boards"); }
-         else if (game->settings.mode == multi_shared) { ImGui::Text("Board Type: Shared board"); }
-         ImGui::Text("Board Size: %dw x %dh", game->settings.bWidth, game->settings.bHeight);
-         ImGui::NewLine();
-         ImGui::Text("Player Info");
-         ImGui::Separator();
-         for (int i = 0; i < game->net->participants; i++) {
-            ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 100 });
-            ImGui::Text(game->net->hostSetup[i].name);
-            ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
-            ImGui::Text("Team: %d", game->net->hostSetup[i].team + 1);
-            ImGui::Text("Board Speed: %d", game->net->hostSetup[i].level);
-            ImGui::EndChild();
-            if (i + 1 != game->net->participants) { ImGui::SameLine(); }
-         }
+      ImGui::BeginChild("Game Setup", { width, 300 }, true);
+      ImGui::Text("Game Setup");
+      ImGui::Separator();
+      if (game->settings.mode == multi_solo) { ImGui::Text("Board Type: Individual boards"); }
+      else if (game->settings.mode == multi_shared) { ImGui::Text("Board Type: Shared board"); }
+      ImGui::Text("Board Size: %dw x %dh", game->settings.bWidth, game->settings.bHeight);
+      ImGui::NewLine();
+      ImGui::Text("Player Info");
+      ImGui::Separator();
+      for (int i = 0; i < game->net->participants; i++) {
+         ImGui::BeginChild((char*)game->net->hostSetup[i].id, { width / game->net->participants, 100 });
+         ImGui::Text(game->net->hostSetup[i].name);
+         ImGui::Text("Player: %d", game->net->hostSetup[i].pNum);
+         ImGui::Text("Team: %d", game->net->hostSetup[i].team + 1);
+         ImGui::Text("Board Speed: %d", game->net->hostSetup[i].level);
          ImGui::EndChild();
-         ImGui::NewLine();
-
-         if (ImGui::Button("Start Game")) {
-            for (int i = 0; i < game->net->participants; i++) {
-               if (i == 0) {
-                  strcpy(game->net->hostSetup[i].ipAddress, ipAddress);  //Use the IP we used to connect to the host
-               }
-            }
-            clientStatus = client_loaded;
-            ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
-         }
-         ImGui::SameLine();
+         if (i + 1 != game->net->participants) { ImGui::SameLine(); }
       }
+      ImGui::EndChild();
+      ImGui::NewLine();
+
+      if (ImGui::Button("Start Game")) {
+         for (int i = 0; i < game->net->participants; i++) {
+            if (i == 0) {
+               strcpy(game->net->hostSetup[i].ipAddress, ipAddress);  //Use the IP we used to connect to the host
+            }
+         }
+         clientStatus = client_loaded;
+         ggpoCreateSession(game, game->net->hostSetup, game->net->participants);
+      }
+      ImGui::SameLine();
 
       if (ImGui::Button("Cancel")) {
          ImGui::CloseCurrentPopup();
@@ -1383,7 +1380,7 @@ void multiplayerHost(Game* game, bool* p_open) {
       ImGui::EndPopup();
    }
 
-   if (serverStatus >= server_waiting) {
+   if (serverStatus >= server_waiting && serverStatus != server_done) {
       popupEnable(Popup_GameSetup);
    }
    else { popupDisable(Popup_GameSetup); }
@@ -1397,55 +1394,53 @@ void multiplayerHost(Game* game, bool* p_open) {
       if (game->net->messages.size() > 0) { ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), game->net->messages.back().c_str()); }
       ImGui::NewLine();
 
-      if (serverStatus == server_waiting) {
-         //This is the player information table
-         ImGui::Text("Game Setup");
-         ImGui::Separator();
-         static int mode = 0;
-         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-         if (ImGui::IsItemEdited) {
-            game->settings.mode = (GameMode)mode;
-            game->settings.bHeight = 12;
-            if (mode == 0) { game->settings.bWidth = 6; }
-            else if (mode == 1) { game->settings.bWidth = 12; }
-         }
-         ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-         ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-         ImGui::NewLine();
-
-         ImGui::PushID("Player Info Set");
-         ImGui::PushItemWidth(100);
-         ImGui::Text("Player Info");
-         ImGui::Separator();
-         for (int i = 0; i < people[0]; i++) {
-            ImGui::PushID(i);  //So widgets don't name collide
-            SocketInfo sock = getSocket(i - 1);
-            if (i == 0) { ImGui::Text(game->user.name); }
-            else { ImGui::Text(sock.name); }
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(224);
-            ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
-            ImGui::SameLine();
-            ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
-            //ImGui::SameLine();
-            //ImGui::Text(inet_ntoa(sock.address.sin_addr));
-            ImGui::PopID();
-         }
-         ImGui::PopID();
-         ImGui::PopItemWidth();
-
-         ImGui::NewLine();
-         ImGui::Separator();
-
-         static bool teams[2] = { false, false };
-         static int pCount = -1;
-         if (ImGui::Button("Start Game")) {
-            validateMultiSetup(people[0], pCount, teams, serverStatus);
-         }
-         ImGui::SameLine();
-
-         gameSetupError(pCount, teams);
+      //This is the player information table
+      ImGui::Text("Game Setup");
+      ImGui::Separator();
+      static int mode = 0;
+      ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+      if (ImGui::IsItemEdited) {
+         game->settings.mode = (GameMode)mode;
+         game->settings.bHeight = 12;
+         if (mode == 0) { game->settings.bWidth = 6; }
+         else if (mode == 1) { game->settings.bWidth = 12; }
       }
+      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
+      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
+      ImGui::NewLine();
+
+      ImGui::PushID("Player Info Set");
+      ImGui::PushItemWidth(100);
+      ImGui::Text("Player Info");
+      ImGui::Separator();
+      for (int i = 0; i < people[0]; i++) {
+         ImGui::PushID(i);  //So widgets don't name collide
+         SocketInfo sock = getSocket(i - 1);
+         if (i == 0) { ImGui::Text(game->user.name); }
+         else { ImGui::Text(sock.name); }
+         ImGui::SameLine();
+         ImGui::SetCursorPosX(224);
+         ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
+         ImGui::SameLine();
+         ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
+         //ImGui::SameLine();
+         //ImGui::Text(inet_ntoa(sock.address.sin_addr));
+         ImGui::PopID();
+      }
+      ImGui::PopID();
+      ImGui::PopItemWidth();
+
+      ImGui::NewLine();
+      ImGui::Separator();
+
+      static bool teams[2] = { false, false };
+      static int pCount = -1;
+      if (ImGui::Button("Start Game")) {
+         validateMultiSetup(people[0], pCount, teams, serverStatus);
+      }
+      ImGui::SameLine();
+
+      gameSetupError(pCount, teams);
 
       if (ImGui::Button("Cancel")) {
          ImGui::CloseCurrentPopup();
@@ -1671,6 +1666,17 @@ void replayUI(Game* game) {
       }
       else if (ImGui::IsItemActive() == false) {
          frameRange[0] = game->frameCount;
+      }
+
+      if (game->settings.replayPaused == false) {
+         if (ImGui::Button("Pause Replay")) {
+            game->settings.replayPaused = true;
+         }
+      }
+      else if (game->settings.replayPaused == true) {
+         if (ImGui::Button("Unpause Replay")) {
+            game->settings.replayPaused = false;
+         }
       }
    }
    errorLoadingReplay();

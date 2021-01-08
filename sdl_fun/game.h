@@ -115,6 +115,7 @@ struct GameSettings {
    std::vector <ReplayInput> repInputs;            //Used to store the inputs for a replay
    int replaySpeed = 1;                            //The speed of the replay (frames per loop)
    bool replaying = false;                         //Are we viewing a replay?
+   bool replayPaused = false;                       //Did the user pause the replay
 };
 
 //@@Start Serialize
