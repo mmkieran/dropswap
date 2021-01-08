@@ -335,7 +335,7 @@ void gameSinglePlayer(Game* game) {
 void gameStartMatch(Game* game) {
 
    int boardCount = 0;
-   int myBoard = 0;
+   game->user.myBoard = 0;
 
    if (game->settings.mode == single_player) {
       if (game->settings.replaying == false) {
@@ -346,24 +346,24 @@ void gameStartMatch(Game* game) {
          game->pList[1].level = game->user.level;
       }
       boardCount = 1;
-      myBoard = 0;
+      game->user.myBoard = 0;
    }
    else if (game->settings.mode == single_vs) {
       if (game->settings.replaying == false) { game->seed = time(0); }
-      myBoard = 0;
+      game->user.myBoard = 0;
       boardCount = game->players;
    }
    else if (game->net->syncTest == true) {
-      myBoard = 0;
+      game->user.myBoard = 0;
       boardCount = game->players;
    }
    else if (game->settings.mode == multi_shared) {  //Shared board
       boardCount = 2; 
-      myBoard = game->pList[game->user.number].team;
+      game->user.myBoard = game->pList[game->user.number].team;
    }  
    else if (game->settings.mode == multi_solo) {  //Solo boards
       boardCount = game->players;
-      myBoard = game->user.number - 1;
+      game->user.myBoard = game->user.number - 1;
    }
 
    for (int i = 0; i < boardCount; i++) {
@@ -376,8 +376,6 @@ void gameStartMatch(Game* game) {
 
       if (game->players >= 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
       else { board = boardCreate(game, team, 52, 52); }  //todo Hard code board size for now
-      //if (team == myBoard) { board = boardCreate(game, team, 48, 48); }  //Determine board size based on current user
-      //else { board = boardCreate(game, team, 32, 32); }
 
       if (board) {
          board->index = i;
@@ -417,8 +415,13 @@ void gameStartMatch(Game* game) {
          }
 
          game->boards.push_back(board);
-
-         FBO* fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
+         FBO* fbo = nullptr;
+         if (i != game->user.myBoard) {
+            fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
+         }
+         else if (i == game->user.myBoard) {
+            fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
+         }
          if (fbo) { game->fbos.push_back(fbo); }
       }
    }

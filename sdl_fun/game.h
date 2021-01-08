@@ -75,8 +75,9 @@ struct User {
    char name[30];
    int level = 5;                //Selected board level
    int number = 1;               //1 based player number (GGPO handle in multi)
-   int wins = 0;
+   int wins = 0;                 //todo not currently used
    UserInput input;              //Holds the local inputs for the user
+   int myBoard = 0;              //What is my board index
 };
 
 //Information about the player
