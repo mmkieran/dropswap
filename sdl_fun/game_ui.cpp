@@ -1104,12 +1104,24 @@ void multiplayerHost(Game* game, bool* p_open) {
          ImGui::Text("Game Setup");
          ImGui::Separator();
          static int mode = 0;
-         ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
-         if (ImGui::IsItemEdited) {
-            game->settings.mode = (GameMode)mode;
-            game->settings.bHeight = 12;
-            if (mode == 0) { game->settings.bWidth = 6; }
-            else if (mode == 1) { game->settings.bWidth = 12; }
+         static int bSize = 0;
+         if (people[0] > 2) {
+            ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
+            if (ImGui::IsItemEdited) {
+               game->settings.mode = (GameMode)mode;
+               if (mode == 0) {
+                  game->settings.bWidth = 6;
+                  game->settings.bHeight = 12;
+               }
+            }
+            if (mode == 1) {
+               ImGui::Combo("Board Size", &bSize, "Regular\0Wide\0");
+               if (ImGui::IsItemEdited) {
+                  game->settings.bHeight = 12;
+                  if (mode == 1 && bSize == 0) { game->settings.bWidth = 6; }
+                  else if (mode == 1 && bSize == 1) { game->settings.bWidth = 12; }
+               }
+            }
          }
          ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
          ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
