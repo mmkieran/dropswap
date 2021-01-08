@@ -415,13 +415,7 @@ void gameStartMatch(Game* game) {
          }
 
          game->boards.push_back(board);
-         FBO* fbo = nullptr;
-         if (i != game->user.myBoard) {
-            fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
-         }
-         else if (i == game->user.myBoard) {
-            fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
-         }
+         FBO* fbo = rendererCreateFBO(game, board->tileWidth, board->tileHeight);  //Create Framebuffer Object
          if (fbo) { game->fbos.push_back(fbo); }
       }
    }
