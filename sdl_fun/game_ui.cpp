@@ -11,7 +11,6 @@
 
 #include <thread>
 
-void ggpoSessionUI(Game* game, bool* p_open);
 void singlePlayerGame(Game* game, bool* p_open);
 void singleVersusUI(Game* game, bool* p_open);
 void multiHostOrGuest(Game* game, bool* p_open, bool* multiSetup, bool* isHost);
@@ -176,15 +175,6 @@ static void centerWindow(Game* game, ImVec2 size) {
    ImGui::SetNextWindowSize(size, ImGuiCond_Once);
    ImVec2 pos = { (game->windowWidth - size.x) / 2, (game->windowHeight - size.y) / 2 };
    ImGui::SetNextWindowPos(pos, ImGuiCond_Once);
-}
-
-//todo this isn't used and doesn't quite work... remove?
-static void botRightButton(const char* input) {
-   ImVec2 pad = ImGui::GetStyle().WindowPadding;
-   ImVec2 win = ImGui::GetWindowSize();
-   ImVec2 tSize = ImGui::CalcTextSize(input);
-   ImGui::SetCursorPos({ win.x - (tSize.x + pad.x) * 2, win.y - (tSize.y + pad.y) * 2 });
-   ImGui::Separator();
 }
 
 //Main menu UI
@@ -409,7 +399,6 @@ void boardUI(Game* game) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";
          sprintf(playerInfo, "Player Info %d", i + 1);
-         //ImGui::PushStyleColor(ImGuiCol_ChildBg, (ImVec4)ImColor::ImColor({ 200, 255, 0, 255 }));
          ImGui::BeginChild(playerInfo, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, true, 0);
 
          //Board Header
@@ -469,7 +458,6 @@ void boardUI(Game* game) {
          //   }
          //}
          ImGui::PopFont();
-         //ImGui::PopStyleColor();
 
          //Draw the board
          char playerName[30] = "Player";
@@ -525,7 +513,6 @@ void boardUI(Game* game) {
          char boardStats[30] = "Board Info";
          sprintf(boardStats, "Player Info %d", i + 1);
          ImGui::BeginChild(boardStats, ImVec2{ (float)board->tileWidth * (board->w) + (style.WindowPadding.x * 2), 0 }, false, 0);
-         //ImGui::Text("Frame: %d", game->frameCount);
 
          ImGui::EndChild();
          ImGui::PopStyleVar();
@@ -588,7 +575,6 @@ void boardUI(Game* game) {
       }
 
       if (popupOpen(Popup_Quit) == true) {
-         //ImGui::SetNextWindowSize({ 200, 200 }, ImGuiCond_Once);
          ImGui::OpenPopup("Quit Game");
          popups[Popup_Quit].isOpen = true;
       }
@@ -606,30 +592,6 @@ void boardUI(Game* game) {
          }
          ImGui::EndPopup();
       }
-
-      //static int fCount = 0;
-      //if (popupOpen(Popup_Waiting) == true) { 
-      //   ImGui::OpenPopup("Waiting for Player to Catch Up"); 
-      //   popups[Popup_Waiting].isOpen = true;
-      //   fCount = popups[Popup_Waiting].other;
-      //   game->paused = true;
-      //}
-      //if (ImGui::BeginPopupModal("Waiting for Player to Catch Up")) {
-      //   if (fCount == 0) {
-      //      ImGui::CloseCurrentPopup();
-      //      popupDisable(Popup_Waiting);
-      //      game->paused = false;
-      //   }
-      //   if (ImGui::Button("Quit")) {
-      //      gameEndMatch(game);
-      //      ImGui::CloseCurrentPopup();
-      //      popupDisable(Popup_Waiting);
-      //      game->paused = false;
-      //      fCount = 0;
-      //   }
-      //   fCount--;
-      //   ImGui::EndPopup();
-      //}
 
       ImGui::PopFont();
       ImGui::End();
@@ -721,18 +683,6 @@ void gameSettingsUI(Game* game, bool* p_open) {
       if (game->debug == true) {
 
          ImGui::Checkbox("Network log file", &game->net->netlog);
-         static bool showOldSession = false;
-         if (showOldSession == false) {
-            if (ImGui::Button("Show Old Session Window")) {
-               showOldSession = true;
-            }
-         }
-         else {
-            if (ImGui::Button("Hide Old Session Window")) {
-               showOldSession = false;
-            }
-         }
-         if (showOldSession == true) { ggpoSessionUI(game, &showOldSession); }
 
          static bool showDemo = false;
          if (showDemo == false) {
@@ -838,278 +788,31 @@ void onePlayerOptions(Game* game) {
    }
 }
 
-//Show the connection window for GGPO... only for 2 players
-void ggpoSessionUI(Game* game, bool* p_open) {
-
-   if (!ImGui::Begin("Connection Setup", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   ImGui::PushFont(game->fonts[13]);
-   if (game->debug == true) {
-      ImGui::Checkbox("DEBUG: Sync test", &game->net->syncTest);
-      ImGui::SameLine(); HelpMarker("This is for detecting desynchronization issues in ggpo's rollback system.");
-   }
-   static int mode = 0;
-   ImGui::Combo("Game Mode", &mode, "Individual Boards\0Shared Board\0");
-   game->settings.mode = (GameMode)mode;
-
-   helpfulText("The seed is used to generate a random board. It must be the same for both players.");
-   ImGui::NewLine();
-   static int seed = 0;
-   ImGui::DragInt("Seed", &seed, 1, 1.0, 5000);
-   game->seed = seed;
-
-   ImGui::NewLine();
-
-   if (ImGui::CollapsingHeader("Board Setup")) {
-      ImGui::InputInt("Board Width", &game->settings.bWidth);
-      ImGui::InputInt("Board Height", &game->settings.bHeight);
-      ImGui::Checkbox("I AM A ROBOT", &game->ai);
-      ImGui::SliderScalar("AI Delay", ImGuiDataType_U32, &game->aiDelay[0], &game->aiDelay[1], &game->aiDelay[2]);
-      ImGui::NewLine();
-   }
-
-   static bool manualPorts = false;
-
-   if (ImGui::CollapsingHeader("Connection Options") ) {
-      ImGui::Checkbox("Use UPNP connection", &game->net->upnp);
-      ImGui::SameLine(); HelpMarker("Universal Plug and Play must be used if you aren't on the same internal network.");
-      ImGui::Checkbox("Manual Ports", &manualPorts);
-
-      ImGui::NewLine();
-      helpfulText("These options have to be the same for all players or bad things will happen...");
-      ImGui::SliderScalar("Frame Delay", ImGuiDataType_U32, &game->net->frameDelay[0], &game->net->frameDelay[1], &game->net->frameDelay[2]);
-      ImGui::SliderScalar("Disconnect Wait", ImGuiDataType_U32, &game->net->disconnectTime[0], &game->net->disconnectTime[1], &game->net->disconnectTime[2]);
-      ImGui::NewLine();
-   }
-
-   static unsigned short participants = 2;
-   int pMin = 2;
-   int pMax = GAME_MAX_PLAYERS;
-
-   if (ImGui::CollapsingHeader("Player Info", ImGuiTreeNodeFlags_DefaultOpen)) {
-      helpfulText("Select the number of people (players/spectators) who will take part in the match. The host must be a player.");
-      ImGui::NewLine();
-
-      ImGui::PushItemWidth(140);
-      ImGui::Text("Players");
-      ImGui::SameLine();
-      ImGui::SliderScalar("##Participants", ImGuiDataType_U8, &participants, &pMin, &pMax);
-      ImGui::SameLine();
-
-      if (ImGui::Button("Load From File")) {
-         FILE* in;
-         int err = fopen_s(&in, "saves/ggpo_session_setup.csv", "r");
-
-         if (err == 0) {
-            int i = 0;  //participants
-            char* tok;
-            char buffer[2048];
-
-            fgets(buffer, 2048, in); // header
-            fgets(buffer, 2048, in); //First data line
-            while (!feof(in))
-            {
-               game->net->hostSetup[i].me = atoi(strtok(buffer, ",\n"));            // me
-               game->net->hostSetup[i].host = atoi(strtok(nullptr, ",\n"));         // host
-               game->net->hostSetup[i].playerType = atoi(strtok(nullptr, ",\n"));   // player type
-               game->net->hostSetup[i].team = atoi(strtok(nullptr, ",\n"));         // team
-               strcpy(game->net->hostSetup[i].ipAddress, strtok(nullptr, ",\n"));   // ip address
-               game->net->hostSetup[i].localPort = atoi(strtok(nullptr, ",\n"));    //port
-
-               i++;
-               fgets(buffer, 2048, in);
-            }
-            participants = i;
-         }
-         else { printf("Failed to load file... Err: %d\n", err); }
-         fclose(in);
-      }
-
-      ImGui::SameLine();
-      if (ImGui::Button("Save To File")) {
-         FILE* out;
-         int err = fopen_s(&out, "saves/ggpo_session_setup.csv", "w");
-
-         if (err == 0) {
-            fprintf(out, "Me,Host,Player Number,Type,IP Address,Port\n");
-            for (int i = 0; i < participants; i++) {
-               fprintf(out, "%d,", game->net->hostSetup[i].me);
-               fprintf(out, "%d,", game->net->hostSetup[i].host);
-               fprintf(out, "%d,", game->net->hostSetup[i].playerType);
-               fprintf(out, "%d,", game->net->hostSetup[i].team);
-               fprintf(out, "%s,", game->net->hostSetup[i].ipAddress);
-               fprintf(out, "%d,", game->net->hostSetup[i].localPort);
-               fprintf(out, "\n");
-            }
-         }
-         else { printf("Failed to create file... Err: %d\n", err); }
-         fclose(out);
-      }
-
-      ImGui::SameLine();
-      if (ImGui::Button("Clear Setup")) {
-         for (int i = 0; i < participants; i++) {
-            game->net->hostSetup[i].me = false;
-            game->net->hostSetup[i].host = false;
-            game->net->hostSetup[i].playerType = 0;
-            game->net->hostSetup[i].localPort = 7001 + i;
-         }
-         participants = 2;
-      }
-      ImGui::NewLine();
-      ImGui::PopItemWidth();
-
-      ImGui::PushID("Player Info Set");
-      for (int i = 0; i < participants; i++) {
-
-         ImGui::PushID(i);
-         ImGui::PushItemWidth(80);
-
-         int pNum = i + 1;
-         ImGui::TextColored(ImVec4(1.0f, 1.0f * pNum / 4, 0.0f, 1.0f), "Player %d", pNum);
-         ImGui::SameLine();
-
-         if (ImGui::Checkbox("Me", &game->net->hostSetup[i].me)) {
-            for (int j = 0; j < participants; j++) {
-               if (game->net->hostSetup[j].me == true && i != j) { game->net->hostSetup[j].me = false; }
-            }
-         }
-         ImGui::SameLine();
-
-         if (ImGui::Checkbox("Host", &game->net->hostSetup[i].host)) {
-            for (int j = 0; j < participants; j++) {
-               if (game->net->hostSetup[j].host == true && i != j) { game->net->hostSetup[j].host = false; }
-            }
-         }
-         ImGui::SameLine();
-         ImGui::Combo("Player Type", &game->net->hostSetup[i].playerType, "Player\0Spectator\0");
-         ImGui::SameLine();
-         ImGui::Combo("Team", &game->net->hostSetup[i].team, "One\0Two\0");
-         ImGui::SameLine();
-         ImGui::InputText("IP Address", game->net->hostSetup[i].ipAddress, IM_ARRAYSIZE(game->net->hostSetup[i].ipAddress));
-         ImGui::SameLine();
-         if (manualPorts) {
-            ImGui::DragScalar("Port", ImGuiDataType_U16, &game->net->hostSetup[i].localPort, 1.0);
-            ImGui::SameLine(); HelpMarker("Select a unique port number that you will use to send information to host.");
-            ImGui::SameLine();
-         }
-         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ggpoShowStatus(game, i));
-
-         ImGui::PopItemWidth();
-         ImGui::PopID();
-      }
-      ImGui::PopID();
-      ImGui::NewLine();
-   }
-
-   static bool connectStats = false;
-   if (game->net->ggpo == nullptr) {
-      if (ImGui::Button("Open Connection")) {
-         connectStats = true;
-         int pNum = 1;
-         for (int i = 0; i < participants; i++) {
-            if (manualPorts == false) { game->net->hostSetup[i].localPort = 7001 + i; }
-            if (game->net->hostSetup->playerType == 0) { 
-               game->net->hostSetup[i].pNum = pNum; 
-               pNum++; 
-            }
-         }
-         game->players = pNum - 1;
-         game->net->participants = participants;
-         ggpoCreateSession(game, game->net->hostSetup, participants);
-      }
-   }
-
-   if (connectStats) { connectStatusUI(game, &connectStats); }
-
-   static bool netStats = false;
-   if (game->net && game->net->ggpo) {
-      if (ImGui::Button("Connection Info")) {
-         netStats = true;
-      }
-      if (netStats == true) { ggpoNetStatsUI(game, &netStats); }
-
-      ImGui::SameLine();
-      if (ImGui::Button("Close Connection")) {
-         ggpoEndSession(game);
-         connectStats = netStats = false;
-      }
-      if (game->net && getMyConnState() != Running) {
-         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Connecting...");
-         ImGui::NewLine();
-      }
-      else if (game->net && getMyConnState() == Running) {
-         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Ready");
-         ImGui::NewLine();
-      }
-   }
-
-   int ready = true;
-   for (int i = 0; i < participants; i++) {
-      if (game->net->hostSetup[i].state == Running) {
-         continue;
-      }
-      else { ready = false; }
-   }
-
-   if (ready == true) {
-
-      if (ImGui::Button("Start Game")) {
-         gameStartMatch(game);
-      }
-      ImGui::SameLine(); HelpMarker("Try and hit start roughly at the same time, lol.");
-   }
-
-   ImGui::PopFont();
-   ImGui::End();
-}
-
-//Gives feedback (messages) about the progress of the GGPO connection thread
-void connectStatusUI(Game* game, bool* p_open) {
-   if (!ImGui::Begin("Connection Status", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   if (game->net && getMyConnState() == Running) {
-      game->net->messages.clear();
-      *p_open = false;
-   }
-   else {
-      for (auto&& message : game->net->messages) {
-         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), message.c_str());
-      }
-   }
-
-   ImGui::End();
-}
-
-void ggpoNetStatsUI(Game* game, bool* p_open) {
-
-   if (!ImGui::Begin("Network Stats", p_open)) {
-      ImGui::End();
-      return;
-   }
-
-   GGPONetworkStats stats;
-   for (int i = 0; i < game->players; i++) {
-      if (game->user.number == i + 1) { continue; }
-      ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
-
-      ImGui::Text("Player %d Connection Info", i + 1);
-      ImGui::Text("%.2f kilobytes/sec sent", stats.network.kbps_sent);
-      ImGui::Text("Send queue length: %d", stats.network.send_queue_len);
-      ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
-      ImGui::Text("Ping: %d ", stats.network.ping);
-      ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
-      ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
-   }
-
-   ImGui::End();
-}
+//Todo this isn't used right now
+//Get some stats about the GGPO connection
+//void ggpoNetStatsUI(Game* game, bool* p_open) {
+//
+//   if (!ImGui::Begin("Network Stats", p_open)) {
+//      ImGui::End();
+//      return;
+//   }
+//
+//   GGPONetworkStats stats;
+//   for (int i = 0; i < game->players; i++) {
+//      if (game->user.number == i + 1) { continue; }
+//      ggpo_get_network_stats(game->net->ggpo, i + 1, &stats);
+//
+//      ImGui::Text("Player %d Connection Info", i + 1);
+//      ImGui::Text("%.2f kilobytes/sec sent", stats.network.kbps_sent);
+//      ImGui::Text("Send queue length: %d", stats.network.send_queue_len);
+//      ImGui::Text("Receive queue length: %d", stats.network.recv_queue_len);
+//      ImGui::Text("Ping: %d ", stats.network.ping);
+//      ImGui::Text("Local Frames behind: %d", stats.timesync.local_frames_behind);
+//      ImGui::Text("Remote frames behind: %d", stats.timesync.remote_frames_behind);
+//   }
+//
+//   ImGui::End();
+//}
 
 void multiplayerJoin(Game* game, bool* p_open) {
    centerWindow(game, { 1000, 800 });
