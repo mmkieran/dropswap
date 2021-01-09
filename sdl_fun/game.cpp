@@ -238,11 +238,14 @@ void gameHandleEvents(Game* game) {
             if (game->playing == true && popupStatus(Popup_Quit) == false) { popupEnable(Popup_Quit); }
             else { popupDisable(Popup_Quit); }
          }
-         ////Statesave is broken right now
-         //if (game->players == 1) {  //Only save state in one player games
-         //   if (event.key.keysym.sym == SDLK_F1) { gameSaveState(game, "saves/game_state.dat"); }
-         //   else if (event.key.keysym.sym == SDLK_F2) { gameLoadState(game, "saves/game_state.dat"); }
-         //}
+
+         if (game->players == 1 && game->playing == true) {  //Only save state in one player games
+            if (event.key.keysym.sym == SDLK_F1) { game->settings.save = gameSave(game); }
+            else if (event.key.keysym.sym == SDLK_F2 && game->settings.save.size() > 0) { 
+               unsigned char* start = game->settings.save.data();
+               gameCallbackLoad(game, start); 
+            }
+         }
       }
 
       if (event.cdevice.type == SDL_CONTROLLERDEVICEADDED) {  //Check for controllers being removed/added

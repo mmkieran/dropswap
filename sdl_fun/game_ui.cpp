@@ -720,14 +720,15 @@ void onePlayerOptions(Game* game) {
 
    if (game->settings.replaying == false) {
       if (game->debug == true || game->debug == false) {  //todo turn this off later when I make a proper 1 player
-         if (ImGui::Button("Load Game State")) {
+
+         if (ImGui::Button("Save State (F1)")) { game->settings.save = gameSave(game); }
+         ImGui::SameLine();
+         if (ImGui::Button("Load State (F2)")) {
             if (game->settings.save.size() > 0) {
                unsigned char* start = game->settings.save.data();
                gameCallbackLoad(game, start);
             }
          }
-
-         if (ImGui::Button("Save Game State")) { game->settings.save = gameSave(game); }
          ImGui::NewLine();
 
          if (game->ai == true) { ImGui::Text(aiGetMove(1)); }
