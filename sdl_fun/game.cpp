@@ -454,6 +454,7 @@ void gameEndMatch(Game* game) {
 
    //Reset all the game things
    resetAILogic();
+   game->settings.save.clear();
    game->pList.clear();
    game->user.number = 1;
    game->boards.clear();
