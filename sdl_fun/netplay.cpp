@@ -355,6 +355,7 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
       if (game->net->players[i].type != GGPO_PLAYERTYPE_SPECTATOR) {  //Populate player list
          game->pList[handle].number = handle;
          game->pList[handle].team = connects[i].team;
+         game->pList[connects[i].pNum].level = connects[i].level;
          strcpy(game->pList[handle].name, connects[i].name);
       }
 
