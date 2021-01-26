@@ -1106,7 +1106,7 @@ void multiplayerHost(Game* game, bool* p_open) {
          ImGui::Separator();
          static int mode = 0;
          static int bSize = 0;
-         if (people[0] > 2) {
+         if (people[0] >= 2) {
             ImGui::Combo("Board Type", &mode, "Individual\0Shared\0");
             if (ImGui::IsItemEdited) {
                game->settings.mode = (GameMode)mode;
