@@ -225,8 +225,10 @@ void dropRotate(Board* board, Cursor* cursor, int dir) {
 void _clearDroplist(Board* board, Cursor* cursor) {
    for (int i = 0; i < 2; i++) {
       Tile* tile = board->tileLookup[cursor->dropList[i]];
-      tile->status = status_normal;
-      tile->statusTime = 0;
+      if (tile) {
+         tile->status = status_normal;
+         tile->statusTime = 0;
+      }
       cursor->dropList[i] = -1;
    }
 }
