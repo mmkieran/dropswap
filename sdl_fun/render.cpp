@@ -422,7 +422,7 @@ Animation* animationCreate(int frames, int delay, int stride, int rowStart, int 
 //Sample a texture sheet and draw the correct frame of the animation using the time
 void animationDraw(Game* game, Animation* animation, DrawInfo info) {
 
-   int currentFrame = (game->timer / animation->delay) % animation->frames;
+   int currentFrame = ((int)game->timer / animation->delay) % animation->frames;
    Vec2 src = { (animation->stride * currentFrame), animation->height };
    Vec2 size = {animation->width, animation->height};
 

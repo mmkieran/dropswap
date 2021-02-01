@@ -394,7 +394,7 @@ void boardUI(Game* game) {
       if (game->settings.replaying == true) { replayUI(game); }
 
       ImGuiStyle style = ImGui::GetStyle();
-      ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", game->timer / 1000);
+      ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", (int)game->timer / 1000);
       for (int i = 0; i < game->boards.size(); i++) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";

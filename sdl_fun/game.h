@@ -158,7 +158,7 @@ struct Game {
    int paused = 0;                                 //Is the game paused
    bool waiting = false;                           //Is the game waiting for something
    int waitLength = 0;                             //How long is the game waiting
-   int timer = 0;                                  //Game clock in milliseconds
+   double timer = 0;                               //Game clock in milliseconds
 };
 //@@End Serialize
 

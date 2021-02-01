@@ -314,11 +314,9 @@ void gameUpdate(Game* game) {
 
    gameUpdateSprites(game, game->drawFront);
 
-   if (game->waiting == false) {
-      gameCaptureReplayInputs(game);
-      game->frameCount++;  //Increment frame count
-      game->timer = game->frameCount * (1000.0f / 60.0f);  //Increment game timer
-   }
+   gameCaptureReplayInputs(game);
+   game->frameCount++;  //Increment frame count
+   if (game->waiting == false) { game->timer += (1000.0f / 60.0f); }  //Increment game timer
 }
 
 //Process inputs and update game - single player

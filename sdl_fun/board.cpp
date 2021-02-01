@@ -153,10 +153,10 @@ void boardBust(Board* board) {
          }
          if (ally) {
             for (int i = 0; i < board->cursors.size(); i++) {
-               Sprite sprite;
+               //Sprite sprite;
                int current = board->game->kt.getTime() / 1000;
                float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
-               meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight / 2, ally->tileWidth, ally->tileHeight, 0);
+               //meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight / 2, ally->tileWidth, ally->tileHeight, 0);
 
                //Figure out where to drop the sword to
                int col = (ally->w - 1) / 2;
@@ -168,12 +168,12 @@ void boardBust(Board* board) {
                   lookDown++;
                }
 
-               sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
-               sprite.dir = 180;
-               sprite.stop = current + 2000;
-               sprite.end = current + 4000;
-               sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
-               board->game->drawFront.push_back(sprite);
+               //sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
+               //sprite.dir = 180;
+               //sprite.stop = current + 2000;
+               //sprite.end = current + 4000;
+               //sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
+               //board->game->drawFront.push_back(sprite);
                board->game->waiting = true;
                board->game->waitLength = 4000;
 
