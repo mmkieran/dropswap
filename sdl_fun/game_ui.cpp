@@ -1116,13 +1116,13 @@ void multiplayerHost(Game* game, bool* p_open) {
                game->settings.mode = (GameMode)mode;
                if (mode == 0) {
                   game->settings.bWidth = 6;
-                  game->settings.bHeight = 12;
+                  game->settings.bHeight = 18;
                }
             }
             if (mode == 1) {
                ImGui::Combo("Board Size", &bSize, "Regular\0Wide\0");
                if (ImGui::IsItemEdited) {
-                  game->settings.bHeight = 12;
+                  game->settings.bHeight = 18;
                   if (mode == 1 && bSize == 0) { game->settings.bWidth = 6; }
                   else if (mode == 1 && bSize == 1) { game->settings.bWidth = 12; }
                }

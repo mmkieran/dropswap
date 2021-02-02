@@ -304,7 +304,7 @@ void gameUpdate(Game* game) {
          game->waitLength = 0;
       }
    }
-   if (game->waiting == false) {
+   if (game->waiting == false && game->busted == -1) {
       for (int i = 0; i < game->boards.size(); i++) {
          if (game->boards[i] == nullptr) { continue; }
          if (game->boards[i]->bust == true) { continue; }
@@ -314,9 +314,11 @@ void gameUpdate(Game* game) {
 
    gameUpdateSprites(game, game->drawFront);
 
-   gameCaptureReplayInputs(game);
-   game->frameCount++;  //Increment frame count
-   if (game->waiting == false) { game->timer += (1000.0f / 60.0f); }  //Increment game timer
+   if (game->busted == -1) { 
+      gameCaptureReplayInputs(game); 
+      game->frameCount++;  //Increment frame count
+      if (game->waiting == false) { game->timer += (1000.0f / 60.0f); }  //Increment game timer
+   }
 }
 
 //Process inputs and update game - single player
