@@ -395,6 +395,10 @@ void boardUI(Game* game) {
 
       ImGuiStyle style = ImGui::GetStyle();
       ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Game Time: %d s", (int)game->timer / 1000);
+      if (game->debug == true) {
+         ImGui::SameLine();
+         ImGui::TextColored(ImVec4(0.1f, 0.9f, 0.1f, 1.0f), "Frame: %d", game->frameCount);
+      }
       for (int i = 0; i < game->boards.size(); i++) {
          Board* board = game->boards[i];
          char playerInfo[30] = "Player Info";
