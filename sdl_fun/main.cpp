@@ -39,9 +39,6 @@ int main(int argc, char* args[]) {
          else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
          else if (game->settings.mode == single_player || game->settings.mode == single_vs) { gameSinglePlayer(game); }
       }
-      if (game->busted != -1) {  //In case a player is behind in frames, so they can reach the end of the game
-         if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
-      }
       imguiRender(game);  //imgui windows, the board, cursor, and other things 
       
       end = game->kt.getTime();

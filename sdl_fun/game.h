@@ -140,7 +140,7 @@ struct Game {
    bool isRunning = false;                         //Used in main application loop
    KeepTime kt;                                    //Structure to keep SDL ticks and calculate elapsed time
    int frameCount = 0;                             //How many frames have we done
-   bool debug = false;                             //Toggle to show debug tools and options
+   bool debug = true;                             //Toggle to show debug tools and options
    uint64_t seed = 0;                              //Holds the random number seed given to each board
 
    User user;                                      //Information about the user such as name and player number
@@ -165,7 +165,7 @@ struct Game {
 Game* gameCreate(const char* title, int xpos, int ypos, int width, int height, bool fullscreen);
 bool gameRunning(Game* game);
 
-bool gameCheckBust(Game* game);
+void gameCheckBust(Game* game);
 void gameCheckPause(Game* game, UserInput input);
 
 void gameHandleEvents(Game* game);

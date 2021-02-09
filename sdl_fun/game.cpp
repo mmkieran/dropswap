@@ -261,7 +261,7 @@ void gameHandleEvents(Game* game) {
 }
 
 //Check the boards to see if it's game over
-bool gameCheckBust(Game* game) {
+void gameCheckBust(Game* game) {
    if (game->busted == -1) {
       int dead[2] = { 0 , 0 };
       int total[2] = { 0 , 0 };
@@ -274,10 +274,8 @@ bool gameCheckBust(Game* game) {
       for (int i = 0; i < 2; i++) {
          if (total[i] == dead[i] && total[i] != 0) { 
             game->busted = i;
-            return true;
          }
       }
-      return false;
    }
 }
 
@@ -304,7 +302,7 @@ void gameUpdate(Game* game) {
          game->waitLength = 0;
       }
    }
-   if (game->waiting == false && game->busted == -1) {
+   if (game->waiting == false) {
       for (int i = 0; i < game->boards.size(); i++) {
          if (game->boards[i] == nullptr) { continue; }
          if (game->boards[i]->bust == true) { continue; }
@@ -314,10 +312,10 @@ void gameUpdate(Game* game) {
 
    gameUpdateSprites(game, game->drawFront);
 
-   if (game->busted == -1) { 
-      gameCaptureReplayInputs(game); 
+   if (game->waiting == false) {
+      gameCaptureReplayInputs(game);
       game->frameCount++;  //Increment frame count
-      if (game->waiting == false) { game->timer += (1000.0f / 60.0f); }  //Increment game timer
+      game->timer = (1000.0f / 60.0f) * game->frameCount;
    }
 }
 
