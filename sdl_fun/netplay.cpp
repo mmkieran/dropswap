@@ -372,6 +372,8 @@ void ggpoCreateSession(Game* game, SessionInfo connects[], unsigned short partic
 
 //Updates the game, notifies GGPO and advances the frame
 void gameAdvanceFrame(Game* game) {
+   gameCheckBust(game);
+
    for (int i = 0; i < game->players; i++) {  //Check for pauses
       gameCheckPause(game, game->net->inputs[i]);
    }

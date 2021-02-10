@@ -322,6 +322,8 @@ void gameUpdate(Game* game) {
 
 //Process inputs and update game - single player
 void gameSinglePlayer(Game* game) {
+   gameCheckBust(game);
+
    if (game->playing == false) { return; }
    processInputs(game);
    if (game->settings.mode == single_vs) {
@@ -633,6 +635,8 @@ void gameAI(Game* game) {
 
 //Process replay inputs and update game
 void gameReplay(Game* game, bool bypass) {
+   gameCheckBust(game);
+
    if (game->playing == false || game->busted != -1) { return; }
    if (game->settings.replayPaused == true && bypass == false) { return; }
 

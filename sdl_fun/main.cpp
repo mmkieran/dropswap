@@ -23,8 +23,6 @@ int main(int argc, char* args[]) {
       gameHandleEvents(game);  //Inputs have to come before imgui start frame
       imguiStartFrame(game);
 
-      gameCheckBust(game);
-
       if (game->settings.replaying == true) { gameReplay(game); }
       else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
       else if (game->settings.mode == single_player || game->settings.mode == single_vs) { gameSinglePlayer(game); }
