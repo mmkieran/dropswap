@@ -136,7 +136,7 @@ struct Game {
    std::vector <Sprite> drawFront;                 //Used for rendering textures outside the boards or when not playing a game
    Resources* resources = nullptr;                 //Resources for the game like textures, sounds, and files
    std::map <SoundEffect, bool> soundToggles;      //Map of all the sounds and whether they are playing
-   int sounds = 0;                                 //Game sound toggle (0 is enabled)
+   int sounds = 1;                                 //Game sound toggle (0 is enabled)
    bool isRunning = false;                         //Used in main application loop
    KeepTime kt;                                    //Structure to keep SDL ticks and calculate elapsed time
    int frameCount = 0;                             //How many frames have we done
@@ -158,7 +158,7 @@ struct Game {
    int paused = 0;                                 //Is the game paused
    bool waiting = false;                           //Is the game waiting for something
    int waitLength = 0;                             //How long is the game waiting
-   double timer = 0;                               //Game clock in milliseconds
+   int timer = 0;                                  //Game clock in milliseconds
 };
 //@@End Serialize
 
@@ -173,7 +173,7 @@ void gameGiveIdleToGGPO(Game* game, int time);
 
 void gameRunFrame();
 void gameSinglePlayer(Game* game);
-void gameReplay(Game* game);
+void gameReplay(Game* game, bool bypass = false);
 void gameUpdate(Game* game);
 void gameRender(Game* game);
 

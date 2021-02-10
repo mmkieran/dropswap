@@ -281,6 +281,7 @@ void gameCheckBust(Game* game) {
 
 //Detect if any player paused the game
 void gameCheckPause(Game* game, UserInput input) {
+   if (game->busted != - 1) { return; }
    if (input.pause.p == true) {
       if (game->paused == true) {
          game->paused = false;
@@ -293,7 +294,7 @@ void gameCheckPause(Game* game, UserInput input) {
 
 //Update the board state for all players
 void gameUpdate(Game* game) {
-   if (game->playing == false || game->paused == true) { return; }
+   if (game->playing == false || game->paused == true || game->busted != - 1) { return; }
    if (game->waiting == true) {
       game->waitLength -= 1000 / 60;  
 
@@ -631,18 +632,26 @@ void gameAI(Game* game) {
 }
 
 //Process replay inputs and update game
-void gameReplay(Game* game) {
-   if (game->playing == false) { return; }
+void gameReplay(Game* game, bool bypass) {
+   if (game->playing == false || game->busted != -1) { return; }
+   if (game->settings.replayPaused == true && bypass == false) { return; }
 
-   if (game->settings.mode == single_player) {
-      game->user.input = game->settings.repInputs[game->frameCount].input[0];
+   int rate = game->settings.replaySpeed;
+   if (game->frameCount + 1 + rate > game->settings.repInputs.size()) {
+      rate = game->settings.repInputs.size() - (game->frameCount + 1 + rate);
    }
-   else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
-      for (int i = 0; i < game->players; i++) {
-         game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
+
+   for (int i = 0; i < rate; i++) {
+      if (game->settings.mode == single_player) {
+         game->user.input = game->settings.repInputs[game->frameCount].input[0];
       }
+      else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared || game->settings.mode == single_vs) {
+         for (int i = 0; i < game->players; i++) {
+            game->net->inputs[i] = game->settings.repInputs[game->frameCount].input[i];
+         }
+      }
+      gameUpdate(game);
    }
-   gameUpdate(game);
 }
 
 void gameCaptureReplayInputs(Game* game) {

@@ -1383,7 +1383,7 @@ void replayUI(Game* game) {
             gameStartMatch(game);
          }
          while (game->frameCount < frameRange[0]) {
-            gameReplay(game);
+            gameReplay(game, true);
          }
       }
       else if (ImGui::IsItemActive() == false) {

@@ -24,21 +24,11 @@ int main(int argc, char* args[]) {
       imguiStartFrame(game);
 
       gameCheckBust(game);
-      if (game->busted == -1) {
-         if (game->settings.replaying == true) { 
-            int rate = game->settings.replaySpeed;
-            if (game->frameCount + 1 + rate > game->settings.repInputs.size()) {
-               rate = game->settings.repInputs.size() - (game->frameCount + 1 + rate);
-            }
-            if (game->settings.replayPaused == false) {
-               for (int i = 0; i < rate; i++) {
-                  gameReplay(game);
-               }
-            }
-         }
-         else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
-         else if (game->settings.mode == single_player || game->settings.mode == single_vs) { gameSinglePlayer(game); }
-      }
+
+      if (game->settings.replaying == true) { gameReplay(game); }
+      else if (game->settings.mode == multi_solo || game->settings.mode == multi_shared) { gameRunFrame(); }
+      else if (game->settings.mode == single_player || game->settings.mode == single_vs) { gameSinglePlayer(game); }
+
       imguiRender(game);  //imgui windows, the board, cursor, and other things 
       
       end = game->kt.getTime();
