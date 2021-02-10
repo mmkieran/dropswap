@@ -143,48 +143,48 @@ void boardBust(Board* board) {
          }
       }
       //Logic to transfer my cursor to my allies board
-      if (board->game->settings.mode == multi_solo) {
-         Board* ally = nullptr;
-         for (auto&& index : board->allies) {
-            if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
-               ally = board->game->boards[index];
-               break;
-            }
-         }
-         if (ally) {
-            for (int i = 0; i < board->cursors.size(); i++) {
-               ////Sprite sprite;
-               //int current = board->game->kt.getTime() / 1000;
-               //float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
-               //meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight / 2, ally->tileWidth, ally->tileHeight, 0);
+      //if (board->game->settings.mode == multi_solo) {
+      //   Board* ally = nullptr;
+      //   for (auto&& index : board->allies) {
+      //      if (board->game->boards[index]->bust == false) { //Find a living ally so I can transfer my cursor
+      //         ally = board->game->boards[index];
+      //         break;
+      //      }
+      //   }
+      //   if (ally) {
+      //      for (int i = 0; i < board->cursors.size(); i++) {
+      //         //Sprite sprite;
+      //         int current = board->game->kt.getTime() / 1000;
+      //         float x = ally->sPos.x + (ally->w * ally->tileWidth) / 2;  //Determine position for sword in middle of board
+      //         meshSetDrawRect(sprite.info, x, ally->sPos.y - board->tileHeight / 2, ally->tileWidth, ally->tileHeight, 0);
 
-               ////Figure out where to drop the sword to
-               //int col = (ally->w - 1) / 2;
-               //int row = ally->startH - 2;
-               //int lookDown = 2;
-               //Tile* below = boardGetTile(ally, row, col);
-               //while (below && below->type == tile_empty) {
-               //   below = boardGetTile(ally, row + lookDown, col);
-               //   lookDown++;
-               //}
+      //         //Figure out where to drop the sword to
+      //         int col = (ally->w - 1) / 2;
+      //         int row = ally->startH - 2;
+      //         int lookDown = 2;
+      //         Tile* below = boardGetTile(ally, row, col);
+      //         while (below && below->type == tile_empty) {
+      //            below = boardGetTile(ally, row + lookDown, col);
+      //            lookDown++;
+      //         }
 
-               //sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
-               //sprite.dir = 180;
-               //sprite.stop = current + 2000;
-               //sprite.end = current + 4000;
-               //sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
-               //board->game->drawFront.push_back(sprite);
-               board->game->waiting = true;
-               board->game->waitLength = 4000;
+      //         sprite.speed = below->ypos / (60.0 * 2);  //speed is pixel/frame
+      //         sprite.dir = 180;
+      //         sprite.stop = current + 2000;
+      //         sprite.end = current + 4000;
+      //         sprite.render.texture = resourcesGetTexture(board->game->resources, Texture_sword);
+      //         board->game->drawFront.push_back(sprite);
+      //         board->game->waiting = true;
+      //         board->game->waitLength = 4000;
 
-               board->game->pList[board->cursors[i]->index].board = ally;
-               Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
-               board->game->pList[board->cursors[i]->index].cursor = cursor;
-               ally->cursors.push_back(cursor);
-               ally->game->soundToggles[sound_siren] = true;  //Play death sound
-            }
-         }
-      }
+      //         board->game->pList[board->cursors[i]->index].board = ally;
+      //         Cursor* cursor = cursorCreate(ally, 0, 0 + ally->offset, board->cursors[i]->index);
+      //         board->game->pList[board->cursors[i]->index].cursor = cursor;
+      //         ally->cursors.push_back(cursor);
+      //         ally->game->soundToggles[sound_siren] = true;  //Play death sound
+      //      }
+      //   }
+      //}
    }
 }
 
