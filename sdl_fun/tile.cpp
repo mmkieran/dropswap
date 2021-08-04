@@ -76,8 +76,9 @@ void tileDraw(Board* board, Tile* tile, VisualEffect effect, int effectTime) {
 
       if (effect == visual_countdown) {
          for (int i = 0; i < 4; i++) {
-            float val = 1.0 * (effectTime - board->game->timer + board->game->timings.removeClear[0] / 4) / board->game->timings.removeClear[0];
-            info.color[i] = val < 0 ? 0 : val;
+            float val = 1.0;
+            val = (effectTime - board->game->timer) / float(board->game->timings.removeClear[0]);
+            info.color[i] = val;
          }
       }
 
