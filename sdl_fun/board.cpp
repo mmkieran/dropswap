@@ -747,7 +747,7 @@ void boardRemoveClears(Board* board) {
    bool stillChaining = false;
    bool stillClearedTiles = false;
 
-   for (int row = board->endH -1; row >= board->startH; row--) {
+   for (int row = board->endH -1; row > 0; row--) {
       for (int col = 0; col < board->w; col++) {
          Tile* tile = boardGetTile(board, row, col);
          if (tile->type == tile_empty) { continue; }
@@ -846,11 +846,16 @@ void boardMoveUp(Board* board, float height) {
 
          //Bust logic
          if (tile->ypos <= 0.0f && tile->falling == false) { //Tile is above the top of the board and not falling
-            if (tile->type == tile_garbage && tile->status != status_clear) {  
-               Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
-               if (garbage->falling == false) { dangerZone = true; } 
+            if (tile->type == tile_garbage) {  
+               if (tile->status != status_clear) {
+                  Garbage* garbage = garbageGet(board->pile, tile->idGarbage);
+                  if (garbage->falling == false) {
+                     dangerZone = true;
+                  }
+               }
             }
-            else { dangerZone = true; }  
+            else { 
+               dangerZone = true; }  
          } 
          if (row == board->endH - 1) { checkTiles.push_back(tile); }  //Check the bottom row for clears
          tile->ypos -= nudge;  
