@@ -42,7 +42,7 @@ std::vector <std::string> credits = {
    "I hope that we'll be able to Drop and Swap in person again soon.",
    "A special thanks goes out to:",
    "My wife, Stephanie Anderson, and our boys. Enough said, lol.",
-   "Brandon Townsend for teaching me everything I needed to start.",
+   "Brianna Townsend for teaching me everything I needed to start.",
    "I finally feel like we could do a game jam, lol.",
    "Sean Hunter for always being there with the answers.",
    "I'm excited for the final version of Super Puzzled Cat.",

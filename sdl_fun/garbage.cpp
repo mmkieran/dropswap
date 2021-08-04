@@ -267,10 +267,10 @@ static void garbageClear(Board* board, std::map <int, Garbage*> cleared) {
          }
          tile->garbage = nullptr;
          tile->idGarbage = -1;
-         tile->statusTime = clearTime + (200 * c + 1000);
+         tile->statusTime = clearTime + (2000);  //How long should we wait before we remove the cleared garbage
          tile->status = status_clear;
          tile->effect = visual_countdown;
-         tile->effectTime = clearTime + (200 * c + 1000);
+         tile->effectTime = clearTime + (2000);  //How long should we visually fade it out
          tile->falling = false;
       }
 
