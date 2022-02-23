@@ -379,7 +379,7 @@ void gameStartMatch(Game* game) {
       else if (game->settings.mode == multi_shared) { team = i; }
 
       if (game->players >= 2) { board = boardCreate(game, team, 40, 40); }  //todo investigate why variable tile size causes desync (below)
-      else { board = boardCreate(game, team, 52, 52); }  //todo Hard code board size for now
+      else { board = boardCreate(game, team, 40, 40); }  //todo Hard code board size for now
 
       if (board) {
          board->index = i;

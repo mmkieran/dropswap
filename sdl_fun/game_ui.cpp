@@ -681,41 +681,40 @@ void gameSettingsUI(Game* game, bool* p_open) {
       ImGui::SliderScalar("Enter Silvers", ImGuiDataType_U32, &game->timings.enterSilver[0], &game->timings.enterSilver[1], &game->timings.enterSilver[2]);
    }
 
-   if (ImGui::CollapsingHeader("Debug")) {
-      ImGui::Checkbox("Show Debug Options", &game->debug);
+   if (game->debug == true) {
+      if (ImGui::CollapsingHeader("Debug")) {
+         //ImGui::Checkbox("Show Debug Options", &game->debug);
 
-      if (game->debug == true) {
+            ImGui::Checkbox("Network log file", &game->net->netlog);
 
-         ImGui::Checkbox("Network log file", &game->net->netlog);
-
-         static bool showDemo = false;
-         if (showDemo == false) {
-            if (ImGui::Button("Show ImGui Demo")) {
-               showDemo = true;
-            }
-         }
-         else {
-            if (ImGui::Button("Hide ImGui Demo")) {
-               showDemo = false;
-            }
-         }
-         if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
-         ImGui::Checkbox("AI", &game->ai);
-         ImGui::Checkbox("Sync test", &game->net->syncTest);
-
-         if (ImGui::CollapsingHeader("Sound Test")) {
-            if (ImGui::Button("Stop Sounds")) {
-               soundsStopAll();
-            }
-            for (int i = 0; i < sound_COUNT; i++) {
-               ImGui::PushID(i);
-               if (ImGui::Button("Sound")) {
-                  game->soundToggles[(SoundEffect)i] = true;
+            static bool showDemo = false;
+            if (showDemo == false) {
+               if (ImGui::Button("Show ImGui Demo")) {
+                  showDemo = true;
                }
-               ImGui::PopID();
+            }
+            else {
+               if (ImGui::Button("Hide ImGui Demo")) {
+                  showDemo = false;
+               }
+            }
+            if (showDemo == true) { ImGui::ShowDemoWindow(&showDemo); }
+            ImGui::Checkbox("AI", &game->ai);
+            ImGui::Checkbox("Sync test", &game->net->syncTest);
+
+            if (ImGui::CollapsingHeader("Sound Test")) {
+               if (ImGui::Button("Stop Sounds")) {
+                  soundsStopAll();
+               }
+               for (int i = 0; i < sound_COUNT; i++) {
+                  ImGui::PushID(i);
+                  if (ImGui::Button("Sound")) {
+                     game->soundToggles[(SoundEffect)i] = true;
+                  }
+                  ImGui::PopID();
+               }
             }
          }
-      }
    }
    ImGui::End();
 }

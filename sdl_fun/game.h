@@ -104,7 +104,7 @@ enum GameMode {
 };
 
 struct GameSettings {
-   int bHeight = 12;                               //The height of the (visible) board
+   int bHeight = 18;                               //The height of the (visible) board
    int bWidth = 6;                                 //The width of the (visible) board
    int tWidth = 32;                                //The width in pixels of tile
    int tHeight = 32;                               //The height in pixels of a tile
